@@ -32,7 +32,7 @@ You need to start `oms` web-service before UI. Folowing directory structure assu
           log/  -> default directory for models run log files
 ```
 
-On Windows you can start `oms` web-service and UI by double clicking on 1bin\opmpp-ui.bat`:
+On Windows you can start `oms` web-service and UI by double clicking on `bin\opmpp-ui.bat`:
 ```
 @echo off
 
