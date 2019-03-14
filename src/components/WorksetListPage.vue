@@ -9,7 +9,7 @@
 
         <span
           @click="showWsInfo(w)"
-          class="material-icons mdc-list-item__graphic note-link"
+          class="note-link material-icons mdc-list-item__graphic"
           :title="w.Name + ' notes'"
           :alt="w.Name + ' notes'">event_note</span>
         <span
@@ -132,10 +132,8 @@ export default {
 
   /* notes: a link or empty (not a link) */
   .note-item {
-    display: inline-block;
     height: 100%;
     margin: 0;
-    padding-top: 2rem;
     padding-left: 0.5rem;
     padding-right: 0.5rem;
   }

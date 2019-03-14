@@ -9,7 +9,7 @@
 
         <span
           @click="showParamInfo(p)"
-          class="material-icons mdc-list-item__graphic note-link"
+          class="note-link material-icons mdc-list-item__graphic"
           :title="p.Param.Name + ' info'"
           :alt="p.Param.Name + ' info'">event_note</span>
         <router-link v-if="pathRunSet !== '/'"
@@ -141,10 +141,8 @@ export default {
 
   /* notes: a link or empty (not a link) */
   .note-item {
-    display: inline-block;
     height: 100%;
     margin: 0;
-    padding-top: 2rem;
     padding-left: 0.5rem;
     padding-right: 0.5rem;
   }

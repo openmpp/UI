@@ -134,10 +134,8 @@ export default {
 
   /* notes: a link or empty (not a link) */
   .note-item {
-    display: inline-block;
     height: 100%;
     margin: 0;
-    padding-top: 2rem;
     padding-left: 0.5rem;
     padding-right: 0.5rem;
   }
