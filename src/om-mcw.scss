@@ -1,4 +1,5 @@
 /* extra omp-ui styles */
+@import "@material/theme/mdc-theme";
 
 /* primary light background */
 $om-theme-primary-light: #9fa8da; /*indigo-200*/ /*#a4addf;*/
@@ -15,4 +16,24 @@ $om-theme-primary-light: #9fa8da; /*indigo-200*/ /*#a4addf;*/
 /* medium font weight */
 .medium-wt {
   font-weight: 500
+}
+
+/* notes: a link or empty (not a link) */
+.om-note-item {
+  margin: 0 0.5rem 0 0;
+}
+.om-note-link {
+  @extend .om-note-item;
+  &:hover {
+    cursor: pointer;
+    /* background: rgba(0, 0, 0, 0.1); */
+  }
+  @extend .mdc-theme--on-primary;
+  @extend .mdc-theme--primary-bg;
+}
+.om-note-empty {
+  @extend .om-note-item;
+  cursor: default;
+  @extend .om-theme-primary-light-bg;
+  @extend .mdc-theme--on-primary;
 }

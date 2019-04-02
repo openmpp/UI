@@ -9,10 +9,10 @@
 
         <span
           @click="showRunInfo(r)"
-          class="note-link mdc-list-item__graphic material-icons"
+          class="om-note-link mdc-list-item__graphic material-icons"
           :title="r.Name + ' notes'"
           :alt="r.Name + ' notes'">
-            <span v-if="isSuccess(r)">event_note</span>
+            <span v-if="isSuccess(r)">subject</span>
             <span v-else>event_busy</span>
         </span>
         <span
@@ -104,6 +104,7 @@ export default {
 <!-- local scope css: this component only -->
 <style lang="scss" scoped>
   @import "@material/theme/mdc-theme";
+  @import "@/om-mcw.scss";
 
   /* main body list */
   .main-list {
@@ -130,26 +131,5 @@ export default {
     &:hover {
       background: rgba(0, 0, 0, 0.1);
     }
-  }
-
-  /* notes: a link or empty (not a link) */
-  .note-item {
-    height: 100%;
-    margin: 0;
-    padding-left: 0.5rem;
-    padding-right: 0.5rem;
-  }
-  .note-link {
-    @extend .note-item;
-    &:hover {
-      cursor: pointer;
-      background: rgba(0, 0, 0, 0.1);
-    }
-    @extend .mdc-theme--text-secondary-on-background;
-  }
-  .note-empty {
-    @extend .note-item;
-    cursor: default;
-    @extend .mdc-theme--text-disabled-on-background;
   }
 </style>

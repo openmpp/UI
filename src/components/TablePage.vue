@@ -6,84 +6,48 @@
 
     <span
       @click="showTableInfo()"
-      class="cell-icon-link material-icons" :alt="tableName + ' info'" :title="tableName + ' info'">event_note</span>
+      class="cell-icon-link material-icons" :alt="tableName + ' info'" :title="tableName + ' info'">subject</span>
 
-    <span v-if="tv.isPrev">
-      <span
-        @click="doFirstPage()"
-        class="cell-icon-link material-icons" title="First page" alt="First page">first_page</span>
-      <span
-        @click="doPrevPage()"
-        class="cell-icon-link material-icons" title="Previous page" alt="Previous page">navigate_before</span>
-    </span>
-    <span v-else>
-      <span
-        class="cell-icon-empty material-icons" title="First page" alt="First page">first_page</span>
-      <span
-        class="cell-icon-empty material-icons" title="Previous page" alt="Previous page">navigate_before</span>
-    </span>
+    <span v-if="tv.kind!==0"
+      @click="doExpressionPage()"
+      class="cell-icon-link material-icons" title="View table expressions" alt="View table expressions">functions</span>
+    <span v-else
+      class="cell-icon-empty material-icons" title="View table expressions" alt="View table expressions">functions</span>
 
-    <span v-if="tv.isNext">
-      <span
-        @click="doNextPage()"
-        class="cell-icon-link material-icons" title="Next page" alt="Next page">navigate_next</span>
-      <span
-        @click="doLastPage()"
-        class="cell-icon-link material-icons" title="Last page" alt="Last page">last_page</span>
-    </span>
-    <span v-else>
-      <span
-        class="cell-icon-empty material-icons" title="Next page" alt="Next page">navigate_next</span>
-      <span
-        class="cell-icon-empty material-icons" title="Last page" alt="Last page">last_page</span>
-    </span>
+    <span v-if="tv.kind!==1"
+      @click="doAccumulatorPage()"
+      class="cell-icon-link material-icons" title="View accumulators and sub-values" alt="View accumulators and sub-values">filter_8</span>
+    <span v-else
+      class="cell-icon-empty material-icons" title="View accumulators and sub-values" alt="View accumulators and sub-values">filter_8</span>
+
+    <span v-if="tv.kind!==2"
+      @click="doAllAccumulatorPage()"
+      class="cell-icon-link material-icons" title="View all accumulators and sub-values" alt="View all accumulators and sub-values">flip_to_back</span>
+    <span v-else
+      class="cell-icon-empty material-icons" title="View all accumulators and sub-values" alt="View all accumulators and sub-values">flip_to_back</span>
+
+    <span v-if="!pvtState.isAllDecimals"
+      @click="showMoreDecimals()"
+      class="cell-icon-link material-icons"
+      :title="'Show more decimals, now: ' + (!pvtState.isAllDecimals ? pvtState.nDecimals.toString() : 'show all')"
+      :alt="'Show more decimals, now: ' + (!pvtState.isAllDecimals ? pvtState.nDecimals.toString() : 'show all')">zoom_in</span>
+    <span v-else
+      class="cell-icon-empty material-icons" title="Show more decimals" alt="Show more decimals">zoom_in</span>
+
+    <span v-if="pvtState.nDecimals > 0 || pvtState.isAllDecimals"
+      @click="showLessDecimals()"
+      class="cell-icon-link material-icons"
+      :title="'Show less decimals, now: ' + (!pvtState.isAllDecimals ? pvtState.nDecimals.toString() : 'show all')"
+      :alt="'Show less decimals, now: ' + (!pvtState.isAllDecimals ? pvtState.nDecimals.toString() : 'show all')">zoom_out</span>
+    <span v-else
+      class="cell-icon-empty material-icons" title="Show less decimals" alt="Show less decimals">zoom_out</span>
 
     <span
-      @click="toggleMoreControls()"
-      class="cell-icon-link material-icons" :title="moreControlsLabel" :alt="moreControlsLabel">more_horiz</span>
-
-    <span v-if="isShowMoreControls" class="hdr-row medium-wt">
-
-      <span
-        @click="doResetView()"
-        class="cell-icon-link material-icons" title="Reset table view to default" alt="Reset table view to default">settings_backup_restore</span>
-
-      <span v-if="tv.isInc">
-        <span
-          @click="doIncreasePage()"
-          class="cell-icon-link material-icons" title="Increase page size" alt="Increase page size">expand_more</span>
-      </span>
-      <span v-else>
-        <span
-          class="cell-icon-empty material-icons" title="Increase page size" alt="Increase page size">expand_more</span>
-      </span>
-
-      <span v-if="tv.isDec">
-        <span
-          @click="doDecreasePage()"
-          class="cell-icon-link material-icons" title="Decrease page size" alt="Decrease page size">expand_less</span>
-      </span>
-      <span v-else>
-        <span
-          class="cell-icon-empty material-icons" title="Decrease page size" alt="Decrease page size">expand_less</span>
-      </span>
-
-      <span
-        @click="doUnlimitedPage()"
-        class="cell-icon-link material-icons" title="Unlimited page size, show all data" alt="Unlimited page size, show all data">all_inclusive</span>
-      <span
-        @click="doExpressionPage()"
-        class="cell-icon-link material-icons" title="View table expressions" alt="View table expressions">filter_none</span>
-      <span
-        @click="doAccumulatorPage()"
-        class="cell-icon-link material-icons" title="View accumulators and sub-values" alt="View accumulators and sub-values">filter_8</span>
-      <span
-        @click="doAllAccumulatorPage()"
-        class="cell-icon-link material-icons" title="View all accumulators and sub-values" alt="View all accumulators and sub-values">library_add</span>
-      <span
-        @click="doRefresh()"
-        class="cell-icon-link material-icons" title="Refresh" alt="Refresh">refresh</span>
-    </span>
+      @click="togglePivotControls()"
+      class="cell-icon-link material-icons" title="Show / hide pivot controls" alt="Show / hide pivot controls">tune</span>
+    <span
+      @click="doResetView()"
+      class="cell-icon-link material-icons" title="Reset table view to default" alt="Reset table view to default">settings_backup_restore</span>
 
     <span class="medium-wt">{{ tableName }}: </span>
     <span>{{ tableDescr() }}</span>
@@ -95,8 +59,10 @@
     <span class="mdc-typography--caption">{{msg}}</span>
   </div>
 
-  <div class="ht-container">
-    <HotTable ref="ht" :root="htRoot" :settings="htSettings"></HotTable>
+  <div class="pv-container">
+    <pivot-react
+      :pvtState="pvtState"
+      />
   </div>
 
   <table-info-dialog ref="noteDlg" id="table-note-dlg"></table-info-dialog>
@@ -111,7 +77,7 @@ import { mapGetters } from 'vuex'
 import { GET } from '@/store'
 import * as Mdf from '@/modelCommon'
 import TableInfoDialog from './TableInfoDialog'
-import { HotTable } from '@handsontable/vue'
+import PivotReact from '@/rv/PivotReact'
 
 /* eslint-disable no-multi-spaces */
 const kind = {
@@ -119,13 +85,9 @@ const kind = {
   ACC: 1,   // output table accumulator(s)
   ALL: 2    // output table all-accumultors view
 }
-const MAX_PAGE_SIZE = 65536
-const MAX_PAGE_OFFSET = (MAX_PAGE_SIZE * MAX_PAGE_SIZE)
-const SHOW_MORE_LABEL = 'Show more controls'
-const HIDE_MORE_LABEL = 'Hide extra controls'
 
 export default {
-  components: { TableInfoDialog, HotTable },
+  components: { TableInfoDialog, 'pivot-react': PivotReact },
 
   props: {
     digest: '',
@@ -140,39 +102,34 @@ export default {
       tableText: Mdf.emptyTableText(),
       tableSize: Mdf.emptyTableSize(),
       subCount: 0,
-      htRoot: '',
-      htSettings: {
-        manualColumnMove: true,
-        manualColumnResize: true,
-        manualRowResize: true,
-        autoColumnSize: {useHeaders: false},
-        columnSorting: true,
-        sortIndicator: true,
-        preventOverflow: 'horizontal',
-        renderAllRows: true,
-        stretchH: 'all',
-        fillHandle: false,
-        readOnly: true,
-        rowHeaders: true,
-        rowHeaderWidth: 72,
-        columns: [],
-        data: []
+      pvtState: {
+        data: [],
+        rows: [],
+        cols: [],
+        vals: [],
+        hiddenFromAggregators: [],
+        hiddenFromDragDrop: [],
+        valueFilter: {},
+        aggregatorName: 'Average',
+        sortDefs: [],
+        isShowUI: true,
+        isToggleUI: false,
+        nDecimals: 2,
+        isAllDecimals: false,
+        isDecimalsUpdate: false
       },
       dimProp: [],
-      exprProp: [],
-      accProp: [],
+      exprDecimals: {},
+      maxDecimals: 2,
+      exprLabels: {},
+      accLabels: {},
+      colLabels: [],
       totalEnumLabel: '',
       tv: {
         kind: kind.EXPR,
         start: 0,
-        size: 20,
-        isNext: false,
-        isPrev: false,
-        isInc: false,
-        isDec: false
+        size: 0   // unlimited page size
       },
-      isShowMoreControls: false,
-      moreControlsLabel: SHOW_MORE_LABEL,
       msg: ''
     }
   },
@@ -201,121 +158,287 @@ export default {
       this.$refs.noteDlg.showTableInfo(this.tableName, this.subCount)
     },
 
-    // show or hide extra controls
-    toggleMoreControls () {
-      this.isShowMoreControls = !this.isShowMoreControls
-      this.moreControlsLabel = this.isShowMoreControls ? HIDE_MORE_LABEL : SHOW_MORE_LABEL
-    },
-
     // local refresh button handler, table content only
     doRefresh () {
-      this.doRefreshDataPage()
-    },
-    // move to previous page
-    doPrevPage () {
-      if (this.tv.start === 0) return
-      if (this.tv.start > 0) this.tv.start -= this.tv.size
-      if ((this.tv.start || 0) <= 0) this.tv.start = 0
-      this.doRefreshDataPage()
-    },
-    // move to next page
-    doNextPage () {
-      this.tv.start = this.tv.start + this.tv.size
-      this.doRefreshDataPage()
-    },
-    // move to first page
-    doFirstPage () {
-      this.tv.start = 0
-      this.doRefreshDataPage()
-    },
-    // move to last page
-    doLastPage () {
-      this.tv.start = MAX_PAGE_OFFSET
-      this.doRefreshDataPage()
-    },
-    // increase page size
-    doIncreasePage () {
-      this.tv.size = this.tv.size >= 10 ? this.tv.size *= 2 : this.tv.size + 1
-      if (this.tv.size > MAX_PAGE_SIZE) this.tv.size = MAX_PAGE_SIZE
-      this.doRefreshDataPage()
-    },
-    // decrease page size
-    doDecreasePage () {
-      if (this.tv.size > 0) {
-        this.tv.size = this.tv.size > 10 ? Math.floor(this.tv.size / 2) : this.tv.size - 1
-      } else {
-        let len = (this.htSettings.rowHeaders.length || 0) > 0 ? this.htSettings.rowHeaders.length : 0
-        if (len <= 1) {
-          this.tv.isDec = false
-          return
-        }
-        // page size unlimited and last row > 0
-        this.tv.size = len > 10 ? Math.floor(len / 2) : len - 1
-      }
-      if (this.tv.size < 1) this.tv.size = 1
-      this.doRefreshDataPage()
-    },
-    // unlimited page size, show all data
-    doUnlimitedPage () {
-      this.tv.start = 0
-      this.tv.size = 0
       this.doRefreshDataPage()
     },
     // show output table expressions
     doExpressionPage () {
       this.tv.kind = kind.EXPR
-      this.setColumnsView()
+      this.setPivotView()
       this.doRefreshDataPage()
     },
     // show output table accumulators
     doAccumulatorPage () {
       this.tv.kind = kind.ACC
-      this.setColumnsView()
+      this.setPivotView()
       this.doRefreshDataPage()
     },
     // show all-accumulators view
     doAllAccumulatorPage () {
       this.tv.kind = kind.ALL
-      this.setColumnsView()
+      this.setPivotView()
       this.doRefreshDataPage()
     },
     // reset table view to default
     doResetView () {
       this.setDefaultPageView()
+      this.pvtState.isShowUI = true
+      this.pvtState.isToggleUI = true
+      this.pvtState.nDecimals = this.maxDecimals
+      this.pvtState.isAllDecimals = false
+      this.pvtState.isDecimalsUpdate = true
       this.doRefreshDataPage()
+    },
+    // show more decimals in table body
+    showMoreDecimals () {
+      let nDec = this.pvtState.nDecimals + 1
+      this.pvtState.isAllDecimals = nDec > this.maxDecimals
+      this.pvtState.nDecimals = !this.pvtState.isAllDecimals ? nDec : this.maxDecimals
+      this.pvtState.isDecimalsUpdate = true
+    },
+    // show more decimals in table body
+    showLessDecimals () {
+      let nDec = !this.pvtState.isAllDecimals ? this.pvtState.nDecimals - 1 : this.maxDecimals
+      this.pvtState.isAllDecimals = false
+      this.pvtState.nDecimals = nDec >= 0 ? nDec : 0
+      this.pvtState.isDecimalsUpdate = true
+    },
+    // show or hide pivot UI controls
+    togglePivotControls () {
+      this.pvtState.isShowUI = !this.pvtState.isShowUI
+      this.pvtState.isToggleUI = true
+    },
+
+    // refresh current page view on mounted or tab switch
+    refreshView () {
+      // find table and table size, including run sub-values count
+      this.tableText = Mdf.tableTextByName(this.theModel, this.tableName)
+      this.tableSize = Mdf.tableSizeByName(this.theModel, this.tableName)
+      this.subCount = this.theRunText.SubCount || 0
+      this.totalEnumLabel = Mdf.wordByCode(this.wordList, Mdf.ALL_WORD_CODE)
+
+      // find dimension type for each dimension and collect dimension lables
+      this.dimProp = []
+      for (let j = 0; j < this.tableSize.rank; j++) {
+        if (!this.tableText.TableDimsTxt[j].hasOwnProperty('Dim')) continue
+
+        let t = Mdf.typeTextById(this.theModel, (this.tableText.TableDimsTxt[j].Dim.TypeId || 0))
+        let dp = {
+          name: this.tableText.TableDimsTxt[j].Dim.Name || '',
+          label: Mdf.descrOfDescrNote(this.tableText.TableDimsTxt[j]),
+          isTotal: this.tableText.TableDimsTxt[j].Dim.IsTotal,
+          totalId: t.Type.TotalEnumId || 0,
+          typeText: t,
+          enumLabels: {}
+        }
+
+        for (let k = 0; k < t.TypeEnumTxt.length; k++) {
+          let eId = t.TypeEnumTxt[k].Enum.EnumId
+          dp.enumLabels[eId] = Mdf.enumDescrOrCodeById(t, eId) || t.TypeEnumTxt[k].Enum.Name || eId.toString()
+        }
+        if (dp.isTotal) dp.enumLabels[dp.totalId] = this.totalEnumLabel
+
+        this.dimProp.push(dp)
+      }
+
+      // expression labels and decimals
+      this.exprLabels = {}
+      this.exprDecimals = {}
+      this.maxDecimals = 0
+      for (let j = 0; j < this.tableText.TableExprTxt.length; j++) {
+        if (!this.tableText.TableExprTxt[j].hasOwnProperty('Expr')) continue
+
+        let eId = this.tableText.TableExprTxt[j].Expr.ExprId
+        this.exprLabels[eId] = Mdf.descrOfDescrNote(this.tableText.TableExprTxt[j]) || (this.tableText.TableExprTxt[j].Expr.Name || '') || eId.toString()
+
+        let dec = this.tableText.TableExprTxt[j].Expr.Decimals || 0
+        this.exprDecimals[eId] = dec
+        if (this.maxDecimals < dec) this.maxDecimals = dec
+      }
+      this.pvtState.nDecimals = this.maxDecimals
+
+      // accumultor labels
+      this.accLabels = {}
+      for (let j = 0; j < this.tableText.TableAccTxt.length; j++) {
+        if (!this.tableText.TableAccTxt[j].hasOwnProperty('Acc')) continue
+
+        let aId = this.tableText.TableAccTxt[j].Acc.AccId
+        this.accLabels[aId] = Mdf.descrOfDescrNote(this.tableText.TableAccTxt[j]) || (this.tableText.TableAccTxt[j].Acc.Name || '') || aId.toString()
+      }
+
+      // set columns layout and refresh the data
+      this.setDefaultPageView()
+      this.doRefreshDataPage()
+    },
+
+    // set default page view parameters
+    setDefaultPageView () {
+      this.tv.kind = kind.EXPR
+      this.tv.start = 0
+      this.tv.size = 0  // unlimited page size
+      // this.tv.size = 0 Math.min(20, this.tableSize.dimTotal * this.tableSize.exprCount)
+      this.setPivotView()
+    },
+
+    // set pivot table initial layout
+    setPivotView () {
+      this.pvtState.isToggleUI = false        // prevent UI controls hide / show toggle
+      this.pvtState.isDecimalsUpdate = false  // prevent decimals update in pivot table
+
+      // dimension columns
+      this.colLabels = []
+      for (let j = 0; j < this.tableSize.rank; j++) {
+        this.colLabels.push((this.dimProp[j].label || this.dimProp[j].name))
+      }
+      this.colLabels.push(this.tableText.ExprDescr || 'Measure') // expression dimension
+
+      // value column or accumulator sub-value column
+      if (this.tv.kind === kind.EXPR) {
+        this.colLabels.push('Value')   // expression value
+      } else {
+        this.colLabels.push('Sub #')    // sub id column
+        this.colLabels.push('SubValue') // sub-value column
+      }
+      const colCount = this.colLabels.length
+
+      // expression value view:
+      //   measure name on columns, first dimension on rows, rest of dimensions on others
+      //   values into body aggregators (pivot.vals[])
+      // accumulators view:
+      //   sub id on columns, measure name on rows, all dimensions on others
+      //   sub-values into body aggregators (pivot.vals[])
+      this.pvtState.rows = []
+      this.pvtState.cols = []
+      this.pvtState.vals = []
+      this.pvtState.hiddenFromAggregators = []
+      this.pvtState.hiddenFromDragDrop = []
+
+      if (this.tv.kind === kind.EXPR) {
+        const nVal = this.tableSize.rank + 1 // value position
+
+        this.pvtState.cols.push(this.colLabels[this.tableSize.rank])
+
+        if (this.tableSize.rank > 0) {
+          this.pvtState.rows.push(this.colLabels[0])
+        }
+
+        for (let n = 0; n < nVal; n++) {
+          this.pvtState.hiddenFromAggregators.push(this.colLabels[n])
+        }
+
+        this.pvtState.vals.push(this.colLabels[nVal])
+        this.pvtState.hiddenFromDragDrop.push(this.colLabels[nVal])
+
+        // else accumulators view
+      } else {
+        const nSub0 = this.tableSize.rank + 2 // first sub-value position
+
+        this.pvtState.rows.push(this.colLabels[this.tableSize.rank])
+        this.pvtState.cols.push(this.colLabels[this.tableSize.rank + 1])
+
+        for (let n = 0; n < nSub0; n++) {
+          this.pvtState.hiddenFromAggregators.push(this.colLabels[n])
+        }
+
+        for (let n = nSub0; n < colCount; n++) {
+          this.pvtState.vals.push(this.colLabels[n])
+          this.pvtState.hiddenFromDragDrop.push(this.colLabels[n])
+        }
+      }
+
+      // include only one value for "other" dimensions
+      // if there "All" item then only "All" else first item
+      // due to react-pivottable bug we have to exclude all items except one
+      this.pvtState.valueFilter = {}
+      const n0 = this.tv.kind === kind.EXPR ? 1 : 0
+
+      for (let n = n0; n < this.tableSize.rank; n++) {
+        let dcArr = Mdf.enumDescrOrCodeArray(this.dimProp[n].typeText)
+        if (!dcArr) continue
+        let attr = this.colLabels[n]
+
+        this.pvtState.valueFilter[attr] = dcArr.reduce((r, v, i) => {
+          if (i === 0 && !this.dimProp[n].isTotal) return r   // do not exclude first item if no "All" in that dimension
+          r[v] = true
+          return r
+        }, {})
+      }
+
+      // sort order: same as enum lables for dimensions
+      this.pvtState.sortDefs = []
+      let vs = []
+
+      for (let n = 0; n < this.tableSize.rank; n++) {
+        let attr = this.colLabels[n]
+        let lst = this.dimProp[n].enumLabels
+        if (!attr || !lst) continue
+
+        let vl = []
+        for (let lbl in lst) {
+          if (!lbl || !lst.hasOwnProperty(lbl)) continue
+          if (lst[lbl]) vl.push(lst[lbl])
+        }
+        if (vl.length > 0) vs.push({name: attr, vals: vl})
+      }
+
+      // sort order for measure column: same as expression or accumulator lables
+      let mAttr = this.colLabels[this.tableSize.rank]
+      if (mAttr) {
+        let vl = []
+        if (this.tv.kind === kind.EXPR) {
+          for (let lbl in this.exprLabels) {
+            if (!lbl || !this.exprLabels.hasOwnProperty(lbl)) continue
+            if (this.exprLabels[lbl]) vl.push(this.exprLabels[lbl])
+          }
+        } else {
+          for (let lbl in this.accLabels) {
+            if (!lbl || !this.accLabels.hasOwnProperty(lbl)) continue
+            if (this.accLabels[lbl]) vl.push(this.accLabels[lbl])
+          }
+        }
+        if (vl.length > 0) vs.push({name: mAttr, vals: vl})
+      }
+      this.pvtState.sortDefs = vs
+
+      // make empty data: column headers and empty row of values
+      this.pvtState.data = Object.freeze([this.colLabels.slice(), Array.fill('', 0, colCount)])
     },
 
     // update table data from response data page
     setData (d) {
       // if response is empty or invalid: clean table
+      this.pvtState.data = []
+      this.pvtState.isToggleUI = false        // prevent UI controls hide / show toggle
+      this.pvtState.isDecimalsUpdate = false  // prevent decimals update in pivot table
+
       let len = (!!d && (d.length || 0) > 0) ? d.length : 0
       if (!d || len <= 0) {
-        this.htSettings.data = ['none']
         return
       }
 
       // set page data
+      let vd = []
       switch (this.tv.kind) {
         case kind.EXPR:
-          this.htSettings.data = this.makeExprPage(len, d)
-          this.htSettings.rowHeaders = this.makeRowHeaders(len, 1)
+          vd = this.makeExprPage(len, d)
           break
         case kind.ACC:
-          this.htSettings.data = this.makeAccPage(len, d)
-          this.htSettings.rowHeaders = this.makeRowHeaders(len, 1)
+          vd = this.makeAccPage(len, d)
           break
         case kind.ALL:
-          this.htSettings.data = this.makeAllAccPage(len, d)
-          this.htSettings.rowHeaders = this.makeRowHeaders(len, this.tableSize.allAccCount)
+          vd = this.makeAllAccPage(len, d)
           break
         default:
-          this.htSettings.data = []
-          this.htSettings.rowHeaders = true
           console.log('Invalid kind of table view: must be or of: EXPR, ACC, ALL')
       }
+      vd.unshift(this.colLabels)  // add column labels (attributes in pivot table) as first row
+
+      this.pvtState.data = Object.freeze(vd)
     },
 
-    // make expression data page, columns are: dimensions, expression id, value
+    // make expression data page, columns are: dimensions, expression label, value
+    // sql: SELECT expr_id, dim0, dim1, value... ORDER BY 2, 3, 1
     makeExprPage (len, d) {
       const vp = []
 
@@ -333,40 +456,22 @@ export default {
       return vp
     },
 
-    // make accumulators data page, columns are: dimensions, accumulator id, sub-values
-    // each sub-value is a separate row in source rowset
+    // make accumulators data page, columns are: dimensions, accumulator label, sub-id, sub-value
+    // sql: SELECT acc_id, sub_id, dim0, dim1, value... ORDER BY 3, 4, 1, 2
     makeAccPage (len, d) {
       const vp = []
 
-      let nowKey = '?'  // non-existent start key to enforce append of the first row
-      let n = 0
-      const nSub0 = this.tableSize.rank + 1 // first sub-value position
-
       for (let i = 0; i < len; i++) {
-        let sk = [d[i].DimIds, d[i].AccId].toString() // current row key
-
-        if (sk === nowKey) {  // same key: set sub-value at position of sub_id
-          //
-          if (!d[i].IsNull) vp[n][nSub0 + (d[i].SubId || 0)] = d[i].Value
-        } else {
-          // make new row
-          let row = []
-          for (let j = 0; j < this.tableSize.rank; j++) {
-            row.push(
-              this.translateDimEnumId(j, d[i].DimIds[j]) || d[i].DimIds[j]
-            )
-          }
-          row.push(this.translateAccId(d[i].AccId) || d[i].AccId)
-          for (let j = 0; j < this.subCount; j++) { // append empty sub-values
-            row.push(void 0)
-          }
-
-          // append new row to page data
-          if (!d[i].IsNull) row[nSub0 + (d[i].SubId || 0)] = d[i].Value // set current sub-value
-          n = vp.length
-          vp.push(row)
-          nowKey = sk
+        let row = []
+        for (let j = 0; j < this.tableSize.rank; j++) {
+          row.push(
+            this.translateDimEnumId(j, d[i].DimIds[j]) || d[i].DimIds[j]
+          )
         }
+        row.push(this.translateAccId(d[i].AccId) || d[i].AccId)
+        row.push((d[i].SubId || 0))
+        row.push((!d[i].IsNull) ? d[i].Value : (void 0))
+        vp.push(row)
       }
       return vp
     },
@@ -374,92 +479,47 @@ export default {
     // make all-accumulators view page, columns are: dimensions, sub-values
     // each sub-value is a separate row in source rowset
     // each row has all accumulators
+    // sql: SELECT sub_id, dim0, dim1, acc0, acc1... ORDER BY 2, 3, 1
     makeAllAccPage (len, d) {
       const vp = []
 
-      let dKey = '?'  // non-existent start key to enforce append of the first row
-      let nf = 0
-      const nSub0 = this.tableSize.rank + 1 // first sub-value position
-
       for (let i = 0; i < len; i++) {
-        let sk = [d[i].DimIds].toString() // current dimensions key
-
-        if (sk === dKey) {  // same dimensions: for each accumulator set sub-value at position of sub_id
-          //
-          for (let k = 0; k < this.tableSize.allAccCount; k++) {
-            if (!d[i].IsNull[k]) vp[nf + k][nSub0 + (d[i].SubId || 0)] = d[i].Value[k]
-          }
-        } else {
-          // make new rows: one row per accumulator
-          nf = vp.length
-          dKey = sk
-
-          for (let k = 0; k < this.tableSize.allAccCount; k++) {
-            let row = []
-            for (let j = 0; j < this.tableSize.rank; j++) {
-              row.push(
-                this.translateDimEnumId(j, d[i].DimIds[j]) || d[i].DimIds[j]
-              )
-            }
-            row.push(this.translateAccId(k) || k)
-            for (let j = 0; j < this.subCount; j++) { // append empty sub-values
-              row.push(void 0)
-            }
-            // append new row to page data
-            if (!d[i].IsNull[k]) row[nSub0 + (d[i].SubId || 0)] = d[i].Value[k] // set current sub-value
-            vp.push(row)
-          }
+        let rp = []
+        for (let j = 0; j < this.tableSize.rank; j++) {
+          rp.push(
+            this.translateDimEnumId(j, d[i].DimIds[j]) || d[i].DimIds[j]
+          )
+        }
+        for (let k = 0; k < this.tableSize.allAccCount; k++) {
+          let row = rp.slice()
+          row.push(this.translateAccId(k) || k)
+          row.push((d[i].SubId || 0))
+          row.push((!d[i].IsNull[k]) ? d[i].Value[k] : (void 0))
+          vp.push(row)
         }
       }
       return vp
     },
 
-    // make table row headers, each data row can contain multiple table rows.
-    // in case of all-accumulators view each data row produce one table row for each accumulator
-    makeRowHeaders (len, rowSize) {
-      if ((!!len || 0) <= 0) return ['none']
-      const rh = []
-      let n = this.tv.start * rowSize
-      if (n < 0) n = 0
-      for (let k = 0; k < len * rowSize; k++) {
-        rh.push(n + k + 1)
-      }
-      return rh
-    },
-
     // translate dimension enum id to label, it does return enum code if label is empty
     // return total enum label if total enabled for dimension and id is total enum id
     translateDimEnumId (dimIdx, enumId) {
-      if (this.dimProp[dimIdx].isTotal && enumId === this.dimProp[dimIdx].totalId) return this.totalEnumLabel
-      return Mdf.enumDescrOrCodeById(this.dimProp[dimIdx].typeText, enumId)
+      if (enumId === void 0 || enumId === null) return '' // enum id undefined
+      return this.dimProp[dimIdx].enumLabels[enumId] || enumId.toString()
     },
 
     // translate expression id to label or name if label is empty
     // it is expected to be expression id === expression index
     translateExprId (exprId) {
-      if (exprId === void 0 || exprId === null || exprId < 0) { // expression id undefined
-        return ''
-      }
-      for (let j = 0; j < this.exprProp.length; j++) {
-        if (this.exprProp[j].exprId === exprId) {
-          return this.exprProp[j].label || this.exprProp[j].name
-        }
-      }
-      return exprId.toString()  // expression id not found
+      if (exprId === void 0 || exprId === null || exprId < 0) return '' // expression id undefined
+      return this.exprLabels[exprId] || exprId.toString()
     },
 
     // translate accumulator id to label or name if label is empty
     // it is expected to be accumulator id === accumulator index
     translateAccId (accId) {
-      if (accId === void 0 || accId === null || accId < 0) {  // accumulator id undefined
-        return ''
-      }
-      for (let j = 0; j < this.accProp.length; j++) {
-        if (this.accProp[j].accId === accId) {
-          return this.accProp[j].label || this.accProp[j].name
-        }
-      }
-      return accId.toString() // accumulator id not found
+      if (accId === void 0 || accId === null || accId < 0) return ''  // accumulator id undefined
+      return this.accLabels[accId] || accId.toString()
     },
 
     // return expression value formatted with specified decimals
@@ -469,111 +529,8 @@ export default {
       if (exprId === void 0 || exprId === null || exprId < 0) { // expression id undefined
         return val.toString()
       }
-      for (let j = 0; j < this.exprProp.length; j++) {
-        if (this.exprProp[j].exprId === exprId) {
-          if (this.exprProp[j].dec !== void 0 && this.exprProp[j].dec !== null) {
-            return val.toFixed(this.exprProp[j].dec)
-          }
-          break // decimals undefined: use default format
-        }
-      }
-      return val.toString() // default format if expression id not found or decimals undefined
-    },
-
-    // refresh current page view on mounted or tab switch
-    refreshView () {
-      // find table and table size, including run sub-values count
-      this.tableText = Mdf.tableTextByName(this.theModel, this.tableName)
-      this.tableSize = Mdf.tableSizeByName(this.theModel, this.tableName)
-      this.subCount = this.theRunText.SubCount || 0
-      this.totalEnumLabel = Mdf.wordByCode(this.wordList, Mdf.ALL_WORD_CODE)
-
-      // find dimension type for each dimension
-      this.dimProp = []
-      for (let j = 0; j < this.tableSize.rank; j++) {
-        if (this.tableText.TableDimsTxt[j].hasOwnProperty('Dim')) {
-          let t = Mdf.typeTextById(this.theModel, (this.tableText.TableDimsTxt[j].Dim.TypeId || 0))
-          this.dimProp.push({
-            name: this.tableText.TableDimsTxt[j].Dim.Name || '',
-            label: Mdf.descrOfDescrNote(this.tableText.TableDimsTxt[j]),
-            isTotal: this.tableText.TableDimsTxt[j].Dim.IsTotal,
-            totalId: t.Type.TotalEnumId || 0,
-            typeText: t
-          })
-        } else {
-          this.dimProp.push({
-            name: '', label: '', isTotal: false, totalId: 0, typeText: Mdf.emptyTypeText() })
-        }
-      }
-
-      // expression labels
-      this.exprProp = []
-      for (let j = 0; j < this.tableText.TableExprTxt.length; j++) {
-        if (this.tableText.TableExprTxt[j].hasOwnProperty('Expr')) {
-          this.exprProp.push({
-            exprId: this.tableText.TableExprTxt[j].Expr.ExprId,
-            dec: this.tableText.TableExprTxt[j].Expr.Decimals,
-            name: this.tableText.TableExprTxt[j].Expr.Name || '',
-            label: Mdf.descrOfDescrNote(this.tableText.TableExprTxt[j])
-          })
-        } else {
-          this.exprProp.push({ id: 0, name: '', label: '', dec: void 0 })
-        }
-      }
-
-      // accumultor labels
-      this.accProp = []
-      for (let j = 0; j < this.tableText.TableAccTxt.length; j++) {
-        if (this.tableText.TableAccTxt[j].hasOwnProperty('Acc')) {
-          this.accProp.push({
-            accId: this.tableText.TableAccTxt[j].Acc.AccId,
-            name: this.tableText.TableAccTxt[j].Acc.Name || '',
-            label: Mdf.descrOfDescrNote(this.tableText.TableAccTxt[j])
-          })
-        } else {
-          this.accProp.push({ accId: 0, name: '', label: '' })
-        }
-      }
-
-      // set columns layout and refresh the data
-      this.htRoot = 'ht-t-' + this.digest + '-' + this.nameDigest + '-' + this.tableName
-      this.setDefaultPageView()
-      this.doRefreshDataPage()
-    },
-
-    // set default page view parameters
-    setDefaultPageView () {
-      this.tv.kind = kind.EXPR
-      this.tv.start = 0
-      this.tv.size = Math.min(20, this.tableSize.dimTotal * this.tableSize.exprCount)
-      this.setColumnsView()
-    },
-
-    // table columns if view is output table expressions
-    setColumnsView () {
-      this.htSettings.columns = []
-
-      // dimension columns
-      for (let j = 0; j < this.tableSize.rank; j++) {
-        this.htSettings.columns.push({title: (this.dimProp[j].label || this.dimProp[j].name)})
-      }
-      this.htSettings.columns.push({  // expression dimension
-        title: (this.tableText.ExprDescr || 'Measure')
-      })
-
-      // value column or accumultor sub-value columns
-      if (this.tv.kind === kind.EXPR) {
-        this.htSettings.columns.push({  // expression value
-          title: 'Value',
-          className: 'htRight'
-        })
-      } else {
-        for (let j = 0; j < this.subCount; j++) {
-          this.htSettings.columns.push({  // column for each sub-value
-            title: j.toString(),
-            className: 'htRight'})
-        }
-      }
+      let dec = this.exprDecimals[exprId]
+      return (dec !== void 0 && dec !== null) ? val.toFixed(dec) : val.toString()
     },
 
     // get page of table data from current model run: expressions or accumulators
@@ -581,11 +538,6 @@ export default {
       this.loadDone = false
       this.loadWait = true
       this.msg = 'Loading...'
-
-      this.tv.isNext = false
-      this.tv.isPrev = false
-      this.tv.isInc = false
-      this.tv.isDec = false
 
       // exit if model run empty: must be found (not found run is empty)
       if (!Mdf.isNotEmptyRunText(this.theRunText)) {
@@ -618,13 +570,6 @@ export default {
         // set page view state: is next page exist
         this.tv.start = lt.Offset
         if (this.tv.kind !== kind.EXPR) this.tv.start = Math.floor(lt.Offset / this.subCount)
-        this.tv.isNext = !lt.IsLastPage
-        this.tv.isPrev = lt.Offset > 0
-        this.tv.isInc = this.tv.isNext && this.tv.size < MAX_PAGE_SIZE
-        this.tv.isDec = this.tv.size > 1
-        if (this.tv.size === 0 && lt.Size > 1) {
-          this.tv.isDec = this.tv.kind === kind.EXPR || lt.Size > 2 * this.subCount
-        }
 
         // update table page
         this.setData(d)
@@ -679,11 +624,6 @@ export default {
 }
 </script>
 
-<!-- handsontable css: cannot be local css -->
-<style lang="css">
-  @import "handsontable/dist/handsontable.full.css";
-</style>
-
 <!-- local scope css: this component only -->
 <style lang="scss" scoped>
   @import "@material/theme/mdc-theme";
@@ -705,7 +645,7 @@ export default {
     text-overflow: ellipsis;
     margin-top: 0.5rem;
   }
-  .ht-container {
+  .pv-container {
     flex: 1 1 auto;
     overflow: auto;
     margin-top: 0.5rem;

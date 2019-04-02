@@ -32,8 +32,10 @@ module.exports = {
       : config.dev.assetsPublicPath
   },
   resolve: {
-    extensions: ['.js', '.vue', '.json'],
+    // extensions: ['.js', '.vue', '.json'],
+    extensions: ['.js', '.vue', '.json', '.jsx'],
     alias: {
+      'vue$': 'vue/dist/vue.esm.js',
       '@': resolve('src'),
     }
   },
@@ -44,6 +46,17 @@ module.exports = {
         test: /\.vue$/,
         loader: 'vue-loader',
         options: vueLoaderConfig
+      },
+      {
+        test: /\.jsx?$/,
+        use: {
+          loader: 'babel-loader',
+          options: {
+            "presets" : [["env", {"modules": false}], "react"]
+            // "plugins": ["react-hot-loader/babel"]
+          }
+        },
+        exclude: /node_modules/,
       },
       {
         test: /\.js$/,

@@ -122,7 +122,7 @@ export const typeEnumSizeById = (md, typeId) => {
 // return true if this is non empty Enum
 export const isEnum = (t) => {
   if (!t || !t.Enum) return false
-  return !(t.Enum.EnumId === void 0 || t.Enum.EnumId === null)
+  return !(t.Enum.EnumId === void 0 || t.Enum.EnumId === null || !t.Enum.Name)
 }
 
 // find enum code by enum id or empty string if not found
@@ -157,6 +157,14 @@ export const enumIdByDescrOrCode = (typeTxt, enumDc) => {
     }
   }
   return null // not found
+}
+
+// return enum by index, retrun null if index out of range
+export const enumByIdx = (typeTxt, idx) => {
+  if (!typeTxt || !Hlpr.isLength(typeTxt.TypeEnumTxt)) return null
+  if (idx < 0 || idx >= typeTxt.TypeEnumTxt.length) return null
+
+  return isEnum(typeTxt.TypeEnumTxt[idx]) ? typeTxt.TypeEnumTxt[idx].Enum : null
 }
 
 // return array of all codes from TypeEnumTxt[]

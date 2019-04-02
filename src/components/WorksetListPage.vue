@@ -9,9 +9,9 @@
 
         <span
           @click="showWsInfo(w)"
-          class="note-link material-icons mdc-list-item__graphic"
+          class="om-note-link material-icons mdc-list-item__graphic"
           :title="w.Name + ' notes'"
-          :alt="w.Name + ' notes'">event_note</span>
+          :alt="w.Name + ' notes'">subject</span>
         <span
           @click="doWsClick(idx, w.Name)"
           class="link-next"
@@ -102,6 +102,7 @@ export default {
 <!-- local scope css: this component only -->
 <style lang="scss" scoped>
   @import "@material/theme/mdc-theme";
+  @import "@/om-mcw.scss";
 
   /* main body list */
   .main-list {
@@ -128,26 +129,5 @@ export default {
     &:hover {
       background: rgba(0, 0, 0, 0.1);
     }
-  }
-
-  /* notes: a link or empty (not a link) */
-  .note-item {
-    height: 100%;
-    margin: 0;
-    padding-left: 0.5rem;
-    padding-right: 0.5rem;
-  }
-  .note-link {
-    @extend .note-item;
-    &:hover {
-      cursor: pointer;
-      background: rgba(0, 0, 0, 0.1);
-    }
-    @extend .mdc-theme--text-secondary-on-background;
-  }
-  .note-empty {
-    @extend .note-item;
-    cursor: default;
-    @extend .mdc-theme--text-disabled-on-background;
   }
 </style>

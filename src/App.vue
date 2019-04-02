@@ -30,7 +30,7 @@
           @click="showModelNote"
           class="material-icons mdc-top-app-bar__action-item"
           :alt="modelName + ' notes'"
-          :title="modelName + ' notes'">event_note</button>
+          :title="modelName + ' notes'">subject</button>
         <button
           @click="doRefresh"
           class="material-icons mdc-top-app-bar__action-item"
