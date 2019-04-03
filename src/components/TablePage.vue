@@ -402,7 +402,7 @@ export default {
       this.pvtState.sortDefs = vs
 
       // make empty data: column headers and empty row of values
-      this.pvtState.data = Object.freeze([this.colLabels.slice(), Array.fill('', 0, colCount)])
+      this.pvtState.data = Object.freeze([this.colLabels.slice(), Array(colCount).fill('')])
     },
 
     // update table data from response data page
@@ -441,16 +441,15 @@ export default {
     // sql: SELECT expr_id, dim0, dim1, value... ORDER BY 2, 3, 1
     makeExprPage (len, d) {
       const vp = []
+      const nRank = this.tableSize.rank
 
       for (let i = 0; i < len; i++) {
-        let row = []
-        for (let j = 0; j < this.tableSize.rank; j++) {
-          row.push(
-            this.translateDimEnumId(j, d[i].DimIds[j]) || d[i].DimIds[j]
-          )
+        let row = Array(nRank + 2)
+        for (let j = 0; j < nRank; j++) {
+          row[j] = this.translateDimEnumId(j, d[i].DimIds[j]) || d[i].DimIds[j]
         }
-        row.push(this.translateExprId(d[i].ExprId) || d[i].ExprId)
-        row.push(this.formatExprValue(d[i].ExprId, d[i].IsNull, d[i].Value))
+        row[nRank] = this.translateExprId(d[i].ExprId) || d[i].ExprId
+        row[nRank + 1] = this.formatExprValue(d[i].ExprId, d[i].IsNull, d[i].Value)
         vp.push(row)
       }
       return vp
@@ -460,17 +459,16 @@ export default {
     // sql: SELECT acc_id, sub_id, dim0, dim1, value... ORDER BY 3, 4, 1, 2
     makeAccPage (len, d) {
       const vp = []
+      const nRank = this.tableSize.rank
 
       for (let i = 0; i < len; i++) {
-        let row = []
-        for (let j = 0; j < this.tableSize.rank; j++) {
-          row.push(
-            this.translateDimEnumId(j, d[i].DimIds[j]) || d[i].DimIds[j]
-          )
+        let row = Array(nRank + 3)
+        for (let j = 0; j < nRank; j++) {
+          row[j] = this.translateDimEnumId(j, d[i].DimIds[j]) || d[i].DimIds[j]
         }
-        row.push(this.translateAccId(d[i].AccId) || d[i].AccId)
-        row.push((d[i].SubId || 0))
-        row.push((!d[i].IsNull) ? d[i].Value : (void 0))
+        row[nRank] = this.translateAccId(d[i].AccId) || d[i].AccId
+        row[nRank + 1] = d[i].SubId || 0
+        row[nRank + 2] = !d[i].IsNull ? d[i].Value : (void 0)
         vp.push(row)
       }
       return vp
@@ -482,19 +480,19 @@ export default {
     // sql: SELECT sub_id, dim0, dim1, acc0, acc1... ORDER BY 2, 3, 1
     makeAllAccPage (len, d) {
       const vp = []
+      const nRank = this.tableSize.rank
+      const nv = this.tableSize.allAccCount
 
       for (let i = 0; i < len; i++) {
-        let rp = []
-        for (let j = 0; j < this.tableSize.rank; j++) {
-          rp.push(
-            this.translateDimEnumId(j, d[i].DimIds[j]) || d[i].DimIds[j]
-          )
+        let rp = Array(nRank)
+        for (let j = 0; j < nRank; j++) {
+          rp[j] = this.translateDimEnumId(j, d[i].DimIds[j]) || d[i].DimIds[j]
         }
-        for (let k = 0; k < this.tableSize.allAccCount; k++) {
-          let row = rp.slice()
-          row.push(this.translateAccId(k) || k)
-          row.push((d[i].SubId || 0))
-          row.push((!d[i].IsNull[k]) ? d[i].Value[k] : (void 0))
+        for (let k = 0; k < nv; k++) {
+          let row = Array(nRank + 3).fill(rp.slice())
+          row[nRank] = this.translateAccId(k) || k
+          row[nRank + 1] = d[i].SubId || 0
+          row[nRank + 2] = !d[i].IsNull[k] ? d[i].Value[k] : (void 0)
           vp.push(row)
         }
       }

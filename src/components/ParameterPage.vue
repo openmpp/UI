@@ -138,6 +138,7 @@ export default {
       paramText: Mdf.emptyParamText(),
       paramSize: Mdf.emptyParamSize(),
       paramType: Mdf.emptyTypeText(),
+      paramEnumLabels: {},
       paramRunSet: Mdf.emptyParamRunSet(),
       subCount: 0,
       isNullable: false, // if true then parameter value can be NULL
@@ -405,24 +406,25 @@ export default {
     // make table row headers, each data row can contain multiple table rows.
     makeRowHeaders (len) {
       if ((!!len || 0) <= 0) return ['none']
-      const rh = []
+      const rh = Array(len)
       let n = this.tv.start
       if (n < 0) n = 0
       for (let k = 0; k < len; k++) {
-        rh.push(n + k + 1)
+        rh[k] = n + k + 1
       }
       return rh
     },
 
     // translate dimension enum id to label, it does return enum code if label is empty
     translateDimEnumId (dimIdx, enumId) {
-      return Mdf.enumDescrOrCodeById(this.dimProp[dimIdx].typeText, enumId)
+      if (enumId === void 0 || enumId === null) return '' // enum id undefined
+      return this.dimProp[dimIdx].enumLabels[enumId] || enumId.toString()
     },
 
     // translate column value if parameter value is enum-based
     translateValue (isNull, val) {
       if (isNull || val === void 0 || val === null) return '' // value is null
-      if (!Mdf.isBuiltIn(this.paramType.Type)) return Mdf.enumDescrOrCodeById(this.paramType, val)
+      if (!Mdf.isBuiltIn(this.paramType.Type)) return this.paramEnumLabels[val] || val.toString()
       return val
     },
 
@@ -436,6 +438,7 @@ export default {
       this.paramText = Mdf.paramTextByName(this.theModel, this.paramName)
       this.paramSize = Mdf.paramSizeByName(this.theModel, this.paramName)
       this.paramType = Mdf.typeTextById(this.theModel, (this.paramText.Param.TypeId || 0))
+      this.paramEnumLabels = {}
       this.paramRunSet = Mdf.paramRunSetByName(
         this.isWsView ? this.theWorksetText : this.theRunText,
         this.paramName)
@@ -443,20 +446,31 @@ export default {
       this.isNullable = this.paramText.Param.hasOwnProperty('IsExtendable') && (this.paramText.Param.IsExtendable || false)
       this.isEdit = this.isWsView && !this.theWorksetText.IsReadonly
 
+      // if parameter values is enum-based then set enum labels for value output
+      if (!Mdf.isBuiltIn(this.paramType.Type)) {
+        for (let k = 0; k < this.paramType.TypeEnumTxt.length; k++) {
+          let eId = this.paramType.TypeEnumTxt[k].Enum.EnumId
+          this.paramEnumLabels[eId] = Mdf.enumDescrOrCodeById(this.paramType, eId) || this.paramType.TypeEnumTxt[k].Enum.Name || eId.toString()
+        }
+      }
+
       // find dimension type for each dimension
       this.dimProp = []
       for (let j = 0; j < this.paramSize.rank; j++) {
-        if (this.paramText.ParamDimsTxt[j].hasOwnProperty('Dim')) {
-          let t = Mdf.typeTextById(this.theModel, (this.paramText.ParamDimsTxt[j].Dim.TypeId || 0))
-          this.dimProp.push({
-            name: this.paramText.ParamDimsTxt[j].Dim.Name || '',
-            label: Mdf.descrOfDescrNote(this.paramText.ParamDimsTxt[j]),
-            typeText: t
-          })
-        } else {
-          this.dimProp.push({
-            name: '', label: '', typeText: Mdf.emptyTypeText() })
+        let t = Mdf.typeTextById(this.theModel, (this.paramText.ParamDimsTxt[j].Dim.TypeId || 0))
+        let dp = {
+          name: this.paramText.ParamDimsTxt[j].Dim.Name || '',
+          label: Mdf.descrOfDescrNote(this.paramText.ParamDimsTxt[j]),
+          typeText: t,
+          enumLabels: {}
         }
+
+        for (let k = 0; k < t.TypeEnumTxt.length; k++) {
+          let eId = t.TypeEnumTxt[k].Enum.EnumId
+          dp.enumLabels[eId] = Mdf.enumDescrOrCodeById(t, eId) || t.TypeEnumTxt[k].Enum.Name || eId.toString()
+        }
+
+        this.dimProp.push(dp)
       }
 
       // set column: header, type and validator
