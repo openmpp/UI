@@ -1,7 +1,6 @@
 /* modeified version of react-pivot css: to implement show UI and use some Material fixes */
 .pvtUi {
     color: #2a3f5f;
-    /* font-family: Verdana; */
     border-collapse: collapse;
 }
 .pvtUi select {
@@ -17,19 +16,17 @@
 }
 
 table.pvtTable {
-    /* font-size: 8pt; */
     font-size: 0.875rem;
     text-align: left;
     border-collapse: collapse;
     margin-top: 3px;
     margin-left: 3px;
-    /* font-family: Verdana; */
 }
 table.pvtTable thead tr th,
 table.pvtTable tbody tr th {
-    background-color: #ebf0f8;
+    /* background-color: #ebf0f8; */
+    background-color: whitesmoke;
     border: 1px solid #c8d4e3;
-    /* font-size: 8pt; */
     font-size: 0.875rem;
     font-weight: 500;
     padding: 5px;
@@ -45,7 +42,8 @@ table.pvtTable .pvtTotalLabel {
 table.pvtTable tbody tr td {
     color: #2a3f5f;
     padding: 5px;
-    background-color: #fff;
+    /* background-color: #fff; */
+    background-color: white;
     border: 1px solid #c8d4e3;
     vertical-align: top;
     text-align: right;
@@ -56,7 +54,6 @@ table.pvtTable tbody tr td {
 .pvtGrandTotal {
     font-size: 0.875rem;
     font-weight: 500;
-    /* font-weight: bold; */
 }
 
 .pvtRowOrder,
@@ -76,7 +73,8 @@ table.pvtTable tbody tr td {
 .pvtAxisContainer,
 .pvtVals {
     border: 1px solid #a2b1c6;
-    background: #f2f5fa;
+    /* background: #f2f5fa; */
+    background-color: whitesmoke;
     padding: 5px;
     min-width: 20px;
     min-height: 20px;
@@ -113,7 +111,7 @@ table.pvtTable tbody tr td {
     position: relative;
     width: 210px;
     box-sizing: border-box;
-    background: white;
+    background-color: white;
 }
 
 .pvtDropdownCurrentOpen {
@@ -121,7 +119,7 @@ table.pvtTable tbody tr td {
 }
 
 .pvtDropdownMenu {
-    background: white;
+    background-color: white;
     position: absolute;
     width: 100%;
     margin-top: -1px;
@@ -133,12 +131,12 @@ table.pvtTable tbody tr td {
 
 .pvtDropdownValue {
     padding: 2px 5px;
-    /* font-size: 12px; */
     font-size: 0.875rem;
     text-align: left;
 }
 .pvtDropdownActiveValue {
-    background: #ebf0f8;
+    /* background-color: #ebf0f8; */
+    background-color: whitesmoke;
 }
 
 .pvtVals {
@@ -170,7 +168,8 @@ table.pvtTable tbody tr td {
 
 .pvtAxisContainer li span.pvtAttr {
     -webkit-text-size-adjust: 100%;
-    background: #f3f6fa;
+    /* background: #f3f6fa; */
+    background-color: white;
     border: 1px solid #c8d4e3;
     padding: 2px 5px;
     white-space: nowrap;
@@ -208,7 +207,6 @@ table.pvtTable tbody tr td {
     position: absolute;
     right: 5px;
     top: 5px;
-    /* font-size: 18px; */
     font-size: 0.875rem;
     cursor: pointer;
     text-decoration: none !important;
@@ -218,7 +216,6 @@ table.pvtTable tbody tr td {
     position: absolute;
     left: 5px;
     top: 5px;
-    /* font-size: 18px; */
     font-size: 0.875rem;
     cursor: move;
     color: #a2b1c6;
@@ -228,7 +225,8 @@ table.pvtTable tbody tr td {
     color: #506784;
     border-radius: 5px;
     padding: 3px 6px;
-    background: #f2f5fa;
+    /* background: #f2f5fa; */
+    background-color: whitesmoke;
     border: 1px solid;
     border-color: #c8d4e3;
     font-size: 0.875rem;
@@ -238,12 +236,14 @@ table.pvtTable tbody tr td {
 }
 
 .pvtButton:hover {
-    background: #e2e8f0;
+    /* background: #e2e8f0; */
+    background-color: #e6e6e6;
     border-color: #a2b1c6;
 }
 
 .pvtButton:active {
-    background: #d1dae6;
+    /* background: #d1dae6; */
+    background-color: gainsboro;
 }
 
 .pvtFilterBox input {
@@ -263,7 +263,8 @@ table.pvtTable tbody tr td {
     z-index: 100;
     width: 300px;
     border: 1px solid #506784;
-    background-color: #fff;
+    /* background-color: #fff; */
+    background-color: white;
     position: absolute;
     text-align: center;
     user-select: none;
@@ -309,7 +310,8 @@ table.pvtTable tbody tr td {
 }
 
 .pvtCheckContainer p.selected {
-    background: #ebf0f8;
+    /* background-color: #ebf0f8; */
+    background-color: whitesmoke;
 }
 
 .pvtOnly {
