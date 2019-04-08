@@ -42,15 +42,18 @@ export default class ParamPivotReact extends React.Component {
   }
 
   render() {
-    // fix react pivottable: 
+    // set chart options and fix react pivottable: 
     //  height = window.innerHeight / 1.4 - 50
     //  width = window.innerWidth / 1.5
     let isUI = !!this.state.pivotState.showUI
+    let ph = isUI ? (window.innerHeight - 360) : (window.innerHeight - 240)
+    let pw = isUI ? (window.innerWidth - 320) : (window.innerWidth - 60)
     let pvs = Object.assign(
       {...this.state.pivotState},
         {plotlyOptions: 
-          {height: (isUI ? (window.innerHeight / 1.4 - 120) : (window.innerHeight / 1.4 - 50)),
-            width: (isUI ? (window.innerWidth / 1.4 - 120) : (window.innerWidth - 50))}
+          {height: (ph >= 480 ? ph : 480), 
+            width: (pw >= 640 ? pw : 640),
+            font: {family: 'Roboto, "Open Sans", verdana, arial, sans-serif'}}
       });
 
     // show / hide attributes dropdown controls: rows, columns, others, values
