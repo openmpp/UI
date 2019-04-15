@@ -34,7 +34,6 @@ export default {
 
   methods: {
     onToggle (evt) {
-      console.log(evt.detail)
       this.$emit('toggle', evt.detail.isOn)
     }
   },
@@ -51,7 +50,7 @@ export default {
 }
 </script>
 
-<!-- import MDC styles -->
-<style lang="scss">
-  @import '@material/icon-button/mdc-icon-button';
+<!-- local scope css: this component only -->
+<style lang="scss" scoped>
+@import '@material/icon-button/mdc-icon-button';
 </style>

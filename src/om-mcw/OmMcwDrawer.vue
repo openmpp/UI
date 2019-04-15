@@ -48,7 +48,8 @@ export default {
 <style scoped lang="scss">
 </style>
 
-<!-- import MDC styles -->
-<style lang="scss">
-  @import "@material/drawer/mdc-drawer";
+<!-- local scope css: this component only -->
+<style lang="scss" scoped>
+@import "@material/drawer/mdc-drawer";
+@import "@material/list/mdc-list";
 </style>

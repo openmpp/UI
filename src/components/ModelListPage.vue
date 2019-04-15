@@ -12,7 +12,7 @@
             @click="showModelNote(m)"
             class="om-note-link mdc-list-item__graphic material-icons"
             :title="m.Model.Name + ' notes'"
-            :alt="m.Model.Name + ' notes'">subject</a>
+            :alt="m.Model.Name + ' notes'">notes</a>
           <router-link
             :to="'/model/' + m.Model.Digest"
             class="ahref-model"

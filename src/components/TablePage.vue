@@ -6,7 +6,7 @@
 
     <span
       @click="showTableInfo()"
-      class="cell-icon-link material-icons" :alt="tableName + ' info'" :title="tableName + ' info'">subject</span>
+      class="cell-icon-link material-icons" :alt="tableName + ' info'" :title="tableName + ' info'">notes</span>
 
     <span v-if="tv.kind!==0"
       @click="doExpressionPage()"

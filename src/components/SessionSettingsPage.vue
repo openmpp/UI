@@ -127,10 +127,6 @@ export default {
     doRunClear () { this.setEmptyRunTextList() },
     doWsClear () { this.setEmptyWorksetTextList() },
 
-    langToggle (isOn) {
-      console.log('langToggle', isOn)
-    },
-
     ...mapActions({
       setUiLang: SET.UI_LANG,
       setTheModel: SET.THE_MODEL,

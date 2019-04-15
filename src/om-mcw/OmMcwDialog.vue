@@ -108,8 +108,7 @@ export default {
   }
 </style>
 
-<!-- import MDC styles -->
-<style lang="scss">
-  @import "@material/button/mdc-button";
-  @import "@material/dialog/mdc-dialog";
+<!-- local scope css: this component only -->
+<style lang="scss" scoped>
+@import "@material/dialog/mdc-dialog";
 </style>

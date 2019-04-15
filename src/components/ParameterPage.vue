@@ -6,7 +6,7 @@
 
     <span
       @click="showParamInfo()"
-      class="cell-icon-link material-icons" :alt="paramName + ' info'" :title="paramName + ' info'">subject</span>
+      class="cell-icon-link material-icons" :alt="paramName + ' info'" :title="paramName + ' info'">notes</span>
 
     <span v-if="tv.isPrev">
       <span

@@ -1,7 +1,7 @@
 <!-- Material Components Web simple wrapper for MDCIconButton with ripple effect -->
 <template>
 
-<button class="mdc-icon-button" :disabled="disabled" @click="doClick">
+<button class="mdc-icon-button" :disabled="disabled" @click="onClick">
   <slot></slot>
 </button>
 
@@ -23,7 +23,7 @@ export default {
   },
 
   methods: {
-    doClick (event) {
+    onClick (event) {
       this.$emit(event.type)
     }
   },
@@ -40,7 +40,7 @@ export default {
 }
 </script>
 
-<!-- import MDC styles -->
-<style lang="scss">
-  @import '@material/icon-button/mdc-icon-button';
+<!-- local scope css: this component only -->
+<style lang="scss" scoped>
+@import '@material/icon-button/mdc-icon-button';
 </style>

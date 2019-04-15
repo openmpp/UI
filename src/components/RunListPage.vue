@@ -12,8 +12,8 @@
           class="om-note-link mdc-list-item__graphic material-icons"
           :title="r.Name + ' notes'"
           :alt="r.Name + ' notes'">
-            <span v-if="isSuccess(r)">subject</span>
-            <span v-else>event_busy</span>
+            <span v-if="isSuccess(r)">notes</span>
+            <span v-else>error_outline</span>
         </span>
         <span
           @click="doRunClick(idx, r.Digest)"
