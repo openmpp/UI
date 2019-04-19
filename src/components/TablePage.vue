@@ -474,7 +474,7 @@ export default {
       return vp
     },
 
-    // make all-accumulators view page, columns are: dimensions, sub-values
+    // make all-accumulators view page, columns are: dimensions, accumulator label, sub-id, sub-value
     // each sub-value is a separate row in source rowset
     // each row has all accumulators
     // sql: SELECT sub_id, dim0, dim1, acc0, acc1... ORDER BY 2, 3, 1
@@ -489,7 +489,10 @@ export default {
           rp[j] = this.translateDimEnumId(j, d[i].DimIds[j]) || d[i].DimIds[j]
         }
         for (let k = 0; k < nv; k++) {
-          let row = Array(nRank + 3).fill(rp.slice())
+          let row = Array(nRank + 3)
+          for (let j = 0; j < nRank; j++) {
+            row[j] = rp[j]
+          }
           row[nRank] = this.translateAccId(k) || k
           row[nRank + 1] = d[i].SubId || 0
           row[nRank + 2] = !d[i].IsNull[k] ? d[i].Value[k] : (void 0)
