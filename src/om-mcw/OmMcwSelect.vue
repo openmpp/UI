@@ -101,6 +101,11 @@ export default {
 @import "@material/notched-outline/mdc-notched-outline";
 -->
 <style lang="scss" scoped>
+@import "@material/theme/mdc-theme";
 @import "@material/select/icon/mdc-select-icon";
 @import "@material/select/mdc-select";
+
+.mdc-select:not(.mdc-select--invalid) label.mdc-floating-label.mdc-floating-label--float-above {
+  @extend .mdc-theme--on-surface;
+}
 </style>
