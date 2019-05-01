@@ -9,7 +9,7 @@ import './om-pivottable.css';
 
 const PlotlyRenderers = createPlotlyRenderers(Plot);
 
-export default class ParamPivotReact extends React.Component {
+export default class PivotReact extends React.Component {
   constructor(props) {
     super(props);
     this.state = {pivotState: Object.assign(

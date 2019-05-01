@@ -250,7 +250,11 @@ export default {
         if (!this.tableText.TableExprTxt[j].hasOwnProperty('Expr')) continue
 
         let eId = this.tableText.TableExprTxt[j].Expr.ExprId
-        this.exprLabels[eId] = Mdf.descrOfDescrNote(this.tableText.TableExprTxt[j]) || (this.tableText.TableExprTxt[j].Expr.Name || '') || eId.toString()
+        this.exprLabels[eId] =
+          Mdf.descrOfDescrNote(this.tableText.TableExprTxt[j]) ||
+          this.tableText.TableExprTxt[j].Expr.SrcExpr ||
+          this.tableText.TableExprTxt[j].Expr.Name ||
+          eId.toString()
 
         let dec = this.tableText.TableExprTxt[j].Expr.Decimals || 0
         this.exprDecimals[eId] = dec
@@ -264,7 +268,11 @@ export default {
         if (!this.tableText.TableAccTxt[j].hasOwnProperty('Acc')) continue
 
         let aId = this.tableText.TableAccTxt[j].Acc.AccId
-        this.accLabels[aId] = Mdf.descrOfDescrNote(this.tableText.TableAccTxt[j]) || (this.tableText.TableAccTxt[j].Acc.Name || '') || aId.toString()
+        this.accLabels[aId] =
+          Mdf.descrOfDescrNote(this.tableText.TableAccTxt[j]) ||
+          this.tableText.TableAccTxt[j].Acc.SrcAcc ||
+          this.tableText.TableAccTxt[j].Acc.Name ||
+          aId.toString()
       }
 
       // set columns layout and refresh the data
