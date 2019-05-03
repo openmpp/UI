@@ -501,7 +501,7 @@ export default {
           for (let j = 0; j < nRank; j++) {
             row[j] = rp[j]
           }
-          row[nRank] = this.translateAccId(k) || k
+          row[nRank] = this.translateAccId(this.tableText.TableAccTxt[k].Acc.AccId) || k
           row[nRank + 1] = d[i].SubId || 0
           row[nRank + 2] = !d[i].IsNull[k] ? d[i].Value[k] : (void 0)
           vp.push(row)
