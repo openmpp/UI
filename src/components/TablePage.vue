@@ -448,8 +448,8 @@ export default {
     // make expression data page, columns are: dimensions, expression label, value
     // sql: SELECT expr_id, dim0, dim1, value... ORDER BY 2, 3, 1
     makeExprPage (len, d) {
-      const vp = []
       const nRank = this.tableSize.rank
+      const vp = Array(len)
 
       for (let i = 0; i < len; i++) {
         let row = Array(nRank + 2)
@@ -458,7 +458,7 @@ export default {
         }
         row[nRank] = this.translateExprId(d[i].ExprId) || d[i].ExprId
         row[nRank + 1] = this.formatExprValue(d[i].ExprId, d[i].IsNull, d[i].Value)
-        vp.push(row)
+        vp[i] = row
       }
       return vp
     },
@@ -466,8 +466,8 @@ export default {
     // make accumulators data page, columns are: dimensions, accumulator label, sub-id, sub-value
     // sql: SELECT acc_id, sub_id, dim0, dim1, value... ORDER BY 3, 4, 1, 2
     makeAccPage (len, d) {
-      const vp = []
       const nRank = this.tableSize.rank
+      const vp = Array(len)
 
       for (let i = 0; i < len; i++) {
         let row = Array(nRank + 3)
@@ -477,7 +477,7 @@ export default {
         row[nRank] = this.translateAccId(d[i].AccId) || d[i].AccId
         row[nRank + 1] = d[i].SubId || 0
         row[nRank + 2] = !d[i].IsNull ? d[i].Value : (void 0)
-        vp.push(row)
+        vp[i] = row
       }
       return vp
     },
@@ -487,9 +487,9 @@ export default {
     // each row has all accumulators
     // sql: SELECT sub_id, dim0, dim1, acc0, acc1... ORDER BY 2, 3, 1
     makeAllAccPage (len, d) {
-      const vp = []
       const nRank = this.tableSize.rank
       const nv = this.tableSize.allAccCount
+      const vp = Array(len * nv)
 
       for (let i = 0; i < len; i++) {
         let rp = Array(nRank)
@@ -504,7 +504,7 @@ export default {
           row[nRank] = this.translateAccId(this.tableText.TableAccTxt[k].Acc.AccId) || k
           row[nRank + 1] = d[i].SubId || 0
           row[nRank + 2] = !d[i].IsNull[k] ? d[i].Value[k] : (void 0)
-          vp.push(row)
+          vp[i * nv + k] = row
         }
       }
       return vp
