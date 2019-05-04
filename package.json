@@ -15,7 +15,7 @@
     "axios": "^0.18.0",
     "handsontable": "^6.2.2",
     "material-components-web": "^1.1.0",
-    "plotly.js": "^1.46.0",
+    "plotly.js-basic-dist": "^1.47.4",
     "react": "^16.8.6",
     "react-dom": "^16.8.6",
     "react-pivottable": "^0.9.0",

@@ -1,12 +1,15 @@
 import React from 'react';
 import PivotTableUI from 'react-pivottable/PivotTableUI';
 import TableRenderers from 'react-pivottable/TableRenderers';
-import Plot from 'react-plotly.js';
+import Plotly from 'plotly.js-basic-dist';
 import createPlotlyRenderers from 'react-pivottable/PlotlyRenderers';
-import {sortAs, numberFormat, aggregatorTemplates} from 'react-pivottable//Utilities';
+import createPlotlyComponent from 'react-plotly.js/factory';
+import {sortAs, numberFormat, aggregatorTemplates} from 'react-pivottable/Utilities';
 // import 'react-pivottable/pivottable.css';
 import './om-pivottable.css';
 
+// create Plotly React component via dependency injection
+const Plot = createPlotlyComponent(Plotly);
 const PlotlyRenderers = createPlotlyRenderers(Plot);
 
 export default class PivotReact extends React.Component {
