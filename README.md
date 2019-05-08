@@ -48,6 +48,6 @@ START "oms" /MIN bin\oms
 START http://localhost:4040
 ```
 
-Please visit our [wiki](http://www.openmpp.org/wiki/) for more information.
+Please visit our [wiki](https://ompp.sourceforge.io/wiki/) for more information.
 
 License: MIT.
