@@ -283,6 +283,7 @@ export default {
 <style lang="scss" scoped>
   @import "@material/theme/mdc-theme";
   @import "@material/list/mdc-list";
+  @import "@/om-mcw.scss";
 
   /* app body: drawer on left side and content */
   #app {
@@ -328,12 +329,13 @@ export default {
   .menu-start {
     margin-right: .5rem;
   }
-  .menu-count {
+  span.menu-count.mdc-list-item__meta {
     width: 3rem;
     text-align: right;
     padding-right: 1px;
     @extend .mdc-theme--on-primary;
     @extend .mdc-theme--primary-bg;
+    @extend .medium-wt;
   }
   hr.menu-divider-inset {
     margin-left: 3rem;
