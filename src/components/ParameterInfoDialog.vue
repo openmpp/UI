@@ -12,10 +12,13 @@
     <div class="note-row">
       <span class="note-cell">Type:</span><span class="note-cell">{{typeTitle}}</span>
     </div>
-    <div v-if="paramSize.rank !== 0" class="note-row">
-      <span class="note-cell">Dimensions:</span><span class="note-cell">{{paramSize.dimSize}}</span>
+    <div v-if="paramSize.rank > 1" class="note-row">
+        <span class="note-cell">Size:</span><span class="note-cell">{{paramSize.dimSize}} = {{paramSize.dimTotal}}</span>
     </div>
-    <div v-else class="note-row">
+    <div v-if="paramSize.rank === 1" class="note-row">
+      <span class="note-cell">Size:</span><span class="note-cell">{{paramSize.dimSize}}</span>
+    </div>
+    <div v-if="paramSize.rank <= 0" class="note-row">
       <span class="note-cell">Rank:</span><span class="note-cell">{{paramSize.rank}}</span>
     </div>
     <div v-if="isSubCount" class="note-row">

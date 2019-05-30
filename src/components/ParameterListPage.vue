@@ -11,7 +11,7 @@
           @click="showParamInfo(p)"
           class="om-note-link material-icons mdc-list-item__graphic"
           :title="p.Param.Name + ' info'"
-          :alt="p.Param.Name + ' info'">notes</span>
+          :alt="p.Param.Name + ' info'">description</span>
         <router-link v-if="pathRunSet !== '/'"
           :to="'/model/' + digest + '/' + pathRunSet + '/parameter/' + p.Param.Name"
           class="ahref-next"

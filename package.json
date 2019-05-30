@@ -17,9 +17,7 @@
     "build": "node build/build.js"
   },
   "dependencies": {
-    "@handsontable/vue": "^3.1.0",
     "axios": "^0.18.0",
-    "handsontable": "^6.2.2",
     "material-components-web": "^2.2.0",
     "plotly.js-basic-dist": "^1.47.4",
     "react": "^16.8.6",
@@ -27,7 +25,7 @@
     "react-pivottable": "^0.9.0",
     "react-plotly.js": "^2.3.0",
     "vue": "^2.5.2",
-    "vue-multi-select": "^4.0.0",
+    "vue-multi-select": "^3.15.0",
     "vue-router": "^3.0.1",
     "vuedraggable": "^2.21.0",
     "vuera": "^0.2.5",

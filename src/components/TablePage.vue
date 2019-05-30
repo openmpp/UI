@@ -6,7 +6,7 @@
 
     <span
       @click="showTableInfo()"
-      class="cell-icon-link material-icons" :alt="tableName + ' info'" :title="tableName + ' info'">notes</span>
+      class="cell-icon-link material-icons" :alt="tableName + ' info'" :title="tableName + ' info'">description</span>
 
     <span v-if="tv.kind!==0"
       @click="doExpressionPage()"
@@ -226,7 +226,7 @@ export default {
         let t = Mdf.typeTextById(this.theModel, (this.tableText.TableDimsTxt[j].Dim.TypeId || 0))
         let dp = {
           name: this.tableText.TableDimsTxt[j].Dim.Name || '',
-          label: Mdf.descrOfDescrNote(this.tableText.TableDimsTxt[j]),
+          label: Mdf.descrOfDescrNote(this.tableText.TableDimsTxt[j]) || this.tableText.TableDimsTxt[j].Dim.Name || '',
           isTotal: this.tableText.TableDimsTxt[j].Dim.IsTotal,
           totalId: t.Type.TotalEnumId || 0,
           typeText: t,

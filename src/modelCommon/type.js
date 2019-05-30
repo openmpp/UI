@@ -78,6 +78,8 @@ export const typeTextById = (md, typeId) => {
 // max type id for built-in types
 export const OM_MAX_BUILTIN_TYPE_ID = 100
 
+const OM_INT_TYPE_ID = 4 // type id of built-in int type
+
 // return true if model type is built-in
 export const isBuiltIn = (t) => {
   return isType(t) && t.TypeId <= OM_MAX_BUILTIN_TYPE_ID
@@ -106,6 +108,32 @@ export const isFloat = (t) => {
 export const isInt = (t) => {
   if (!isBuiltIn(t)) return false
   return !isBool(t) && !isString(t) && !isFloat(t)
+}
+
+// return TypeTxt for built-in int type
+export const intTypeText = (md) => {
+  if (Mdl.isModel(md)) { // if model not empty then search for int type
+    for (let k = 0; k < md.TypeTxt.length; k++) {
+      if (!isBuiltIn(md.TypeTxt[k].Type)) continue
+      if (md.TypeTxt[k].Type.Name.toLowerCase() === 'int') return md.TypeTxt[k]
+    }
+  }
+  // if not found then return default TypeTxt for int type
+  return {
+    Type: {
+      TypeId: OM_INT_TYPE_ID,
+      Name: 'int',
+      Digest: '_int_',
+      DicId: 0,
+      TotalEnumId: 1
+    },
+    DescrNote: {
+      LangCode: '',
+      Descr: '',
+      Note: ''
+    },
+    TypeEnumTxt: []
+  }
 }
 
 // enum is array of TypeEnumTxt[]

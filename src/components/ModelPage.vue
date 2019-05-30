@@ -10,7 +10,7 @@
         @click="showRunInfoDlg()"
         class="cell-icon-link material-icons"
         alt="Description and notes" title="Description and notes">
-          <span v-if="isSuccessTheRun">notes</span>
+          <span v-if="isSuccessTheRun">description</span>
           <span v-else>error_outline</span>
       </span>
       <!-- isWsView -->
@@ -19,7 +19,7 @@
         <span
           @click="showWsInfoDlg()"
           class="cell-icon-link material-icons"
-          alt="Description and notes" title="Description and notes">notes</span>
+          alt="Description and notes" title="Description and notes">description</span>
 
         <span v-if="!isWsEdit">
           <span
@@ -51,7 +51,7 @@
     <!-- !loadDone -->
     <span v-else
       class="cell-icon-empty material-icons"
-      title="Information not available" alt="Information not available" aria-hidden="true">notes</span>
+      title="Information not available" alt="Information not available" aria-hidden="true">description</span>
 
     <span v-if="loadDone" class="hdr-text">
       <span v-if="isNotEmptyHdr">

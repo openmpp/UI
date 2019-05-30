@@ -14,10 +14,13 @@
     <div class="note-row">
       <span class="note-cell">Name:</span><span class="note-cell">{{tableName}}</span>
     </div>
-    <div v-if="tableSize.rank !== 0" class="note-row">
-      <span class="note-cell">Dimensions:</span><span class="note-cell">{{tableSize.dimSize}}</span>
+    <div v-if="tableSize.rank > 1" class="note-row">
+      <span class="note-cell">Size:</span><span class="note-cell">{{tableSize.dimSize}} = {{tableSize.dimTotal}}</span>
     </div>
-    <div v-else class="note-row">
+    <div v-if="tableSize.rank === 1" class="note-row">
+      <span class="note-cell">Size:</span><span class="note-cell">{{tableSize.dimSize}}</span>
+    </div>
+    <div v-if="tableSize.rank <= 0" class="note-row">
       <span class="note-cell">Rank:</span><span class="note-cell">{{tableSize.rank}}</span>
     </div>
     <div class="note-row">

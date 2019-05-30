@@ -11,7 +11,7 @@
           @click="showTableInfo(t)"
           class="om-note-link material-icons mdc-list-item__graphic"
           :title="t.Table.Name + ' notes'"
-          :alt="t.Table.Name + ' notes'">notes</span>
+          :alt="t.Table.Name + ' notes'">description</span>
         <router-link
           :to="'/model/' + digest + '/run/' + pathNameDigest + '/table/' + t.Table.Name"
           class="ahref-next"

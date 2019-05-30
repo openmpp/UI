@@ -13,7 +13,7 @@ export const hasLength = (arr) => { return arr && arr.hasOwnProperty('length') }
 export const isLength = (arr) => { return arr && (arr.length || 0) > 0 }
 
 // return argument.length or zero if no length
-export const lengthOf = (arr) => { return isLength(arr) ? (arr.length || 0) : 0 }
+export const lengthOf = (arr) => { return isLength(arr) ? arr.length : 0 }
 
 // format date-time to timestamp string: YYYY-MM-DD hh:mm:ss.SSS
 export const dtToTimeStamp = (dt) => {

@@ -12,7 +12,7 @@
           class="om-note-link mdc-list-item__graphic material-icons"
           :title="r.Name + ' notes'"
           :alt="r.Name + ' notes'">
-            <span v-if="isSuccess(r)">notes</span>
+            <span v-if="isSuccess(r)">description</span>
             <span v-else>error_outline</span>
         </span>
         <span
