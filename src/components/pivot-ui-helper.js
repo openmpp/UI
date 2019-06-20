@@ -2,9 +2,17 @@
 
 // return function to produce multi-select label
 export const makeSelLabel = (isMulti, label) => {
-  return isMulti
-    ? (selection) => (selection.length > 0 ? label + ' (' + selection.length.toString() + ')' : 'Select ' + label + '\u2026')
-    : (selection) => (selection.length > 0 ? selection[0].text : 'Select ' + label + '\u2026')
+  if (!isMulti) {
+    return (selection) => (selection.length > 0 ? selection[0].text : 'Select ' + label + '\u2026')
+  }
+  // multiple selection
+  return (selection) => {
+    switch (selection.length) {
+      case 0: return 'Select ' + label + '\u2026'
+      case 1: return selection[0].text
+    }
+    return label + ' (' + selection.length.toString() + ')'
+  }
 }
 
 // make filter state: selection in other dimensions

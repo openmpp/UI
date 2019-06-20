@@ -20,6 +20,7 @@ const PROC_RUN_STEP = 2       // model run in progress
 const FINAL_RUN_STEP = 16     // final state of model run: completed or failed
 const MIN_LOG_PAGE_SIZE = 4   // min run log page size to read from the server
 const MAX_LOG_PAGE_SIZE = 10  // max run log page size to read from the server
+/* eslint-enable no-multi-spaces */
 
 export default {
   components: {

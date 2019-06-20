@@ -114,7 +114,7 @@
           :class="{'disable-item': !isModel}" class="mdc-list-item"
           alt="Output tables"
           role="menuitem">
-          <i :class="{'disable-icon': !isModel}" class="menu-start mdc-list-item__graphic material-icons" aria-hidden="true">web</i>
+          <i :class="{'disable-icon': !isModel}" class="menu-start mdc-list-item__graphic material-icons" aria-hidden="true">grid_on</i>
           <span class="mdc-list-item__text">Output tables</span>
           <span v-if="isModel" class="menu-count mdc-list-item__meta">{{outTableCount}}</span>
         </router-link>
@@ -169,7 +169,7 @@
       <router-view :refresh-tickle="refreshTickle"></router-view>
 
       <om-mcw-dialog ref="theModelInfoDlg" id="the-model-info-dlg" :scrollable="true" acceptText="OK">
-        <span slot="header">{{titleNoteDlg}}</span>
+        <template #header><span>{{titleNoteDlg}}</span></template>
         <div>{{textNoteDlg}}</div>
         <br/>
         <div class="mono">Name:&nbsp;&nbsp;&nbsp;&nbsp;{{nameNoteDlg}}</div>

@@ -22,9 +22,9 @@
 
     <span v-if="tv.kind!==2"
       @click="doAllAccumulatorPage()"
-      class="cell-icon-link material-icons" title="View all accumulators and sub-values" alt="View all accumulators and sub-values">flip_to_back</span>
+      class="cell-icon-link material-icons" title="View all accumulators and sub-values" alt="View all accumulators and sub-values">filter_9_plus</span>
     <span v-else
-      class="cell-icon-empty material-icons" title="View all accumulators and sub-values" alt="View all accumulators and sub-values">flip_to_back</span>
+      class="cell-icon-empty material-icons" title="View all accumulators and sub-values" alt="View all accumulators and sub-values">filter_9_plus</span>
 
     <span v-if="!pvtState.isAllDecimals"
       @click="showMoreDecimals()"

@@ -20,9 +20,33 @@
     <span
       @click="togglePivotControls()"
       class="cell-icon-link material-icons" title="Show / hide pivot controls" alt="Show / hide pivot controls">tune</span>
-    <span
+    <span v-if="ctrl.isRowColNamesToggle"
       @click="toggleRowColNames()"
       class="cell-icon-link material-icons" title="Show / hide rows and columns name" alt="Show / hide rows and columns name">view_quilt</span>
+    <span v-else
+      class="cell-icon-empty material-icons" title="Show / hide rows and columns name" alt="Show / hide rows and columns name">view_quilt</span>
+
+    <template v-if="ctrl.formatOpts">
+      <template v-if="ctrl.formatOpts.isDoMore">
+        <span v-if="ctrl.formatOpts.isSrcShow"
+          @click="showMoreFormat()"
+          class="cell-icon-link material-icons" title="Show source value" alt="Show source value">loupe</span>
+        <span v-else
+          @click="showMoreFormat()"
+          class="cell-icon-link material-icons" title="Show more details" alt="Show more details">zoom_in</span>
+      </template>
+      <template v-else>
+        <span
+          class="cell-icon-empty material-icons" title="Show more details" alt="Show more details">loupe</span>
+      </template>
+
+      <span v-if="ctrl.formatOpts.isDoLess"
+        @click="showLessFormat()"
+        class="cell-icon-link material-icons" title="Show less details" alt="Show less details">zoom_out</span>
+      <span v-else
+        class="cell-icon-empty material-icons" title="Show less details" alt="Show less details">zoom_out</span>
+    </template>
+
     <span
       @click="doResetView()"
       class="cell-icon-link material-icons" title="Reset parameter view to default" alt="Reset parameter view to default">settings_backup_restore</span>
@@ -41,7 +65,7 @@
   <!-- pivot table controls and view -->
   <div class="pv-container">
 
-    <div v-show="pvt.isShowControls" class="other-panel">
+    <div v-show="ctrl.isShowPvControls" class="other-panel">
       <draggable
         v-model="otherFields"
         group="fields"
@@ -51,7 +75,10 @@
         :class="{'drag-area-hint': !!multiSel.dragging}"
         >
         <div v-for="f in otherFields" :key="f.name" class="field-drag">
+          <i class="material-icons" aria-hidden="true">pan_tool</i>
+          <!--
           <i class="material-icons" aria-hidden="true">drag_indicator</i>
+          -->
           <multi-select
             v-model="f.selection"
             @input="onSelInput('other', f.name, f.selection)"
@@ -65,7 +92,7 @@
       </draggable>
     </div>
 
-    <div v-show="pvt.isShowControls" class="col-panel">
+    <div v-show="ctrl.isShowPvControls" class="col-panel">
       <draggable
         v-model="colFields"
         group="fields"
@@ -75,7 +102,7 @@
         :class="{'drag-area-hint': !!multiSel.dragging}"
         >
         <div v-for="f in colFields" :key="f.name" class="field-drag">
-          <i class="material-icons" aria-hidden="true">drag_indicator</i>
+          <i class="material-icons" aria-hidden="true">pan_tool</i>
           <multi-select
             v-model="f.selection"
             @input="onSelInput('col', f.name, f.selection)"
@@ -93,7 +120,7 @@
     <div class="pv-panel">
 
       <draggable
-        v-show="pvt.isShowControls"
+        v-show="ctrl.isShowPvControls"
         v-model="rowFields"
         group="fields"
         @start="onStart"
@@ -102,7 +129,7 @@
         :class="{'drag-area-hint': !!multiSel.dragging}"
         >
         <div v-for="f in rowFields" :key="f.name" class="field-drag">
-          <i class="material-icons" aria-hidden="true">drag_indicator</i>
+          <i class="material-icons" aria-hidden="true">pan_tool</i>
           <multi-select
             v-model="f.selection"
             @input="onSelInput('row', f.name, f.selection)"
@@ -120,13 +147,19 @@
         :showRowColNames="pvt.isRowColNames"
         :refreshTickle="pvt.isPvTickle"
         :refreshDimsTickle="pvt.isPvDimsTickle"
+        :refreshValuesTickle="pvt.isPvValsTickle"
         :rowFields="rowFields"
         :colFields="colFields"
         :otherFields="otherFields"
         :pv-data="inpData"
         :readValue="pvt.readValue"
         :processValue="pvt.processValue"
+        :formatValue="pvt.formatValue"
+        :cellClass="pvt.cellClass"
         >
+        <!--
+        <template #cell="cv"><td :class="pvt.cellClass">{{cv.value}}</td></template>
+        -->
       </pv-table>
 
     </div>
@@ -252,8 +285,9 @@
 }
 .field-drag i.material-icons {
   font-size: 1rem;
-  // padding: 0.25rem 0.25rem 0.5rem 0.0625rem;
-  padding: 0.375rem 0.25rem 0.375rem 0.25rem;
+  // pan_tool -> padding: 0.25rem 0.25rem 0.5rem 0.0625rem;
+  // drag_indicator -> padding: 0.375rem 0.25rem 0.375rem 0.25rem;
+  padding: 0.25rem 0.25rem 0.5rem 0.0625rem;
   vertical-align: middle;
   &:hover {
     @extend .mdc-theme--on-primary;

@@ -10,9 +10,8 @@
         <template v-if="isModel(m)">
           <a href="#"
             @click="showModelNote(m)"
-            class="om-note-link mdc-list-item__graphic material-icons"
             :title="m.Model.Name + ' notes'"
-            :alt="m.Model.Name + ' notes'">description</a>
+            :alt="m.Model.Name + ' notes'"><span class="om-note-link mdc-list-item__graphic material-icons">description</span></a>
           <router-link
             :to="'/model/' + m.Model.Digest"
             class="ahref-model"
@@ -35,7 +34,7 @@
   </div>
 
   <om-mcw-dialog ref="modelInfoDlg" id="model-info-dlg" :scrollable="true" acceptText="OK">
-    <span slot="header">{{titleNoteDlg}}</span>
+    <template #header><span>{{titleNoteDlg}}</span></template>
     <div>{{textNoteDlg}}</div>
     <br/>
     <div class="mono">Name:&nbsp;&nbsp;&nbsp;&nbsp;{{nameNoteDlg}}</div>

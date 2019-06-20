@@ -16,3 +16,4 @@ new Vue({
   router,
   render: h => h(App)
 })
+/* eslint-enable no-new */

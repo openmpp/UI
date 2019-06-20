@@ -1,7 +1,7 @@
 import axios from 'axios'
 import draggable from 'vuedraggable'
 import multiSelect from 'vue-multi-select'
-import 'vue-multi-select/dist/lib/vue-multi-select.min.css'
+import 'vue-multi-select/dist/lib/vue-multi-select.css'
 import { mapGetters } from 'vuex'
 
 import { GET } from '@/store'
@@ -43,14 +43,22 @@ export default {
       rowFields: [],
       otherFields: [],
       inpData: [],
+      ctrl: {
+        isShowPvControls: true,
+        isRowColNamesToggle: true,
+        formatter: void 0, // disable format() value by default
+        formatOpts: void 0 // hide format controls by default
+      },
       pvt: {
-        isShowControls: true,
         isRowColNames: true,
         isPvTickle: false,
         isPvDimsTickle: false,
+        isPvValsTickle: false,
         filterState: {},
         readValue: (r) => (!r.IsNull ? r.Value : (void 0)),
-        processValue: Pcvt.asIsPval
+        processValue: Pcvt.asIsPval,
+        formatValue: void 0, // disable format() value by default
+        cellClass: 'pv-val-num'
       },
       multiSel: {
         dragging: false,
@@ -115,10 +123,28 @@ export default {
       this.pvt.isRowColNames = !this.pvt.isRowColNames
     },
     togglePivotControls () {
-      this.pvt.isShowControls = !this.pvt.isShowControls
+      this.ctrl.isShowPvControls = !this.ctrl.isShowPvControls
+    },
+    // show more decimals or more details in table body
+    showMoreFormat () {
+      if (!this.ctrl.formatter) return
+      this.ctrl.formatter.doMore()
+      this.pvt.formatValue = !this.ctrl.formatOpts.isSrcValue ? this.ctrl.formatter.format : void 0
+      this.pvt.isPvValsTickle = !this.pvt.isPvValsTickle
+    },
+    // show less decimals or less details in table body
+    showLessFormat () {
+      if (!this.ctrl.formatter) return
+      this.ctrl.formatter.doLess()
+      this.pvt.formatValue = !this.ctrl.formatOpts.isSrcValue ? this.ctrl.formatter.format : void 0
+      this.pvt.isPvValsTickle = !this.pvt.isPvValsTickle
     },
     // reset table view to default
     doResetView () {
+      if (this.ctrl.formatter) {
+        this.ctrl.formatter.resetOptions()
+        this.pvt.formatValue = !this.ctrl.formatOpts.isSrcValue ? this.ctrl.formatter.format : void 0
+      }
       this.setDefaultPageView()
       this.doRefreshDataPage()
     },
@@ -199,8 +225,15 @@ export default {
         this.paramName)
       this.subCount = this.paramRunSet.SubCount || 0
       this.isNullable = this.paramText.Param.hasOwnProperty('IsExtendable') && (this.paramText.Param.IsExtendable || false)
+
+      // adjust controls
       // this.isEdit = this.isWsView && !this.theWorksetText.IsReadonly
       this.isEdit = false
+
+      let isRc = this.paramSize.rank > 0 || this.subCount > 1
+      this.pvt.isRowColNames = isRc
+      this.ctrl.isRowColNamesToggle = isRc
+      this.ctrl.isShowPvControls = isRc
 
       // make dimensions:
       //  [rank] of enum-based dimensions
@@ -250,14 +283,41 @@ export default {
       //  if parameter type is one of built-in then process value as float, int, boolen or string
       //  else parameter type is enum-based: process value as int enum id
       this.pvt.processValue = Pcvt.asIsPval
+      this.pvt.formatValue = void 0 // disable format() value by default
+      this.pvt.cellClass = 'pv-val-num' // numeric cell value style by default
+      this.ctrl.formatter = void 0
+      this.ctrl.formatOpts = void 0
 
       if (Mdf.isBuiltIn(this.paramType.Type)) {
-        if (Mdf.isFloat(this.paramType.Type)) this.pvt.processValue = Pcvt.asFloatPval
-        if (Mdf.isInt(this.paramType.Type)) this.pvt.processValue = Pcvt.asIntPval
-        if (Mdf.isBool(this.paramType.Type)) this.pvt.processValue = Pcvt.asBoolPval
-        // built-in string type: return value as is
+        if (Mdf.isFloat(this.paramType.Type)) {
+          this.pvt.processValue = Pcvt.asFloatPval
+          this.ctrl.formatter = Pcvt.formatFloat({nDecimal: -1, groupSep: ','}) // decimal: -1 is to show source float value
+        }
+        if (Mdf.isInt(this.paramType.Type)) {
+          this.pvt.processValue = Pcvt.asIntPval
+          this.ctrl.formatter = Pcvt.formatInt({groupSep: ','})
+        }
+        if (Mdf.isBool(this.paramType.Type)) {
+          this.pvt.processValue = Pcvt.asBoolPval
+          this.pvt.cellClass = 'pv-val-center'
+          this.ctrl.formatter = Pcvt.formatBool()
+        }
+        if (Mdf.isString(this.paramType.Type)) this.pvt.cellClass = 'pv-val-text'
       } else {
+        // if parameter is enum-based then value is integer enum id and format(value) should return enum description to display
+        const t = this.paramType
+        let enumLabels = {}
+        for (let j = 0; j < t.TypeEnumTxt.length; j++) {
+          let eId = t.TypeEnumTxt[j].Enum.EnumId
+          enumLabels[eId] = Mdf.enumDescrOrCodeById(t, eId) || t.TypeEnumTxt[j].Enum.Name || eId.toString()
+        }
         this.pvt.processValue = Pcvt.asIntPval
+        this.ctrl.formatter = Pcvt.formatEnum({labels: enumLabels})
+        this.pvt.cellClass = 'pv-val-text'
+      }
+      if (this.ctrl.formatter) {
+        this.ctrl.formatOpts = this.ctrl.formatter.options()
+        this.pvt.formatValue = !this.ctrl.formatOpts.isSrcValue ? this.ctrl.formatter.format : void 0
       }
 
       // set columns layout and refresh the data

@@ -32,7 +32,6 @@ module.exports = {
       : config.dev.assetsPublicPath
   },
   resolve: {
-    // extensions: ['.js', '.vue', '.json'],
     extensions: ['.js', '.vue', '.json', '.jsx'],
     alias: {
       'vue$': 'vue/dist/vue.esm.js',
@@ -48,6 +47,11 @@ module.exports = {
         options: vueLoaderConfig
       },
       {
+        test: /\.js$/,
+        loader: 'babel-loader',
+        include: [resolve('src'), resolve('test'), resolve('node_modules/webpack-dev-server/client')]
+      },
+      {
         test: /\.jsx?$/,
         use: {
           loader: 'babel-loader',
@@ -57,11 +61,6 @@ module.exports = {
           }
         },
         exclude: /node_modules/,
-      },
-      {
-        test: /\.js$/,
-        loader: 'babel-loader',
-        include: [resolve('src'), resolve('test'), resolve('node_modules/webpack-dev-server/client')]
       },
       {
         test: /\.(png|jpe?g|gif|svg)(\?.*)?$/,

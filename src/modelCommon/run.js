@@ -59,6 +59,7 @@ export const RUN_IN_PROGRESS = 'p'  // run in progress
 export const RUN_INITIAL = 'i'      // run not started yet
 export const RUN_FAILED = 'e'       // run falied (comleted with error)
 export const RUN_EXIT = 'x'         // run exit and not completed
+/* eslint-enable no-multi-spaces */
 
 // return run status description by code: i=init p=progress s=success x=exit e=error(failed)
 export const statusText = (rt) => {

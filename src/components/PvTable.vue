@@ -1,7 +1,8 @@
 <!-- pivot table view -->
 <!--
-Props:
-Array of dimensions (rowFields[], colFields[], otherFields[]) example:
+Properties:
+
+rowFields[], colFields[], otherFields[]: array of dimensions, example:
   {
     name: 'dim0',
     label: 'Salary',
@@ -14,7 +15,7 @@ Array of dimensions (rowFields[], colFields[], otherFields[]) example:
     ]
   }
 
-Array of table rows pvData example:
+pvData: array of table rows, example:
     { DimIds: [100, 0], IsNull: false, Value: 895.5, ExprId: 0 }
   or:
     { DimIds: [10, 0], IsNull: false, Value: 0.1, SubId: 0 }
@@ -22,12 +23,14 @@ Array of table rows pvData example:
   dimension read() function expected to return enum value from row
   readValue() function expected to return table cell value
   processValue functions are used to aggregate cell value(s)
+  formatValue function (if defined) is used to convert cell value to string
   dimension selection[] is an array of selected enums for each dimension
 
-Function readValue() example:
+readValue(): function, example:
   readValue: (r) => (!r.IsNull ? r.Value : (void 0))
 
-Object processValue{} example:
+processValue{}: object with two methods,
+  doNext() applied to each input row readValue() return, example:
   {
     // sum
     init: () => ({ result: void 0 }),
@@ -39,14 +42,18 @@ Object processValue{} example:
   }
   default processValue{} return value as is, (no conversion or aggregation)
 
-True/false showRowColNames: if true then show row and column field label
+formatValue(): function to convert cell value to display output, example:
+    formatValue: (val) => (val.toFixed(2))
+  if formatValue() undefined and it is not called
 
-Watch true/false refreshTickle: on change pivot table view updated
+showRowColNames: true/false, if true then show row and column field label
+
+refreshTickle: watch true/false, on change pivot table view updated
   it is recommended to set
     refreshTickle = !refreshTickle
   after pvData[] or any selection[] changed
 
-Watch true/false refreshDimsTickle: on change deimension properties updated
+refreshDimsTickle: watch true/false, on change deimension properties updated
   it is recommended to set
     refreshDimsTickle = !refreshDimsTickle
   after dimension arrays initialized (after init of: rowFields[], colFields[], otherFields[])
@@ -101,11 +108,15 @@ Watch true/false refreshDimsTickle: on change deimension properties updated
             </th>
           </template>
           <th v-if="!rowFields.length && !!colFields.length" class="pv-rc-pad"></th>
-          <td v-for="col in pvt.cols" :key="itKey(col)" class="pv-val-num">
-            {{pvt.vals[rcKey(row, col)]}}
+          <td v-for="col in pvt.cols" :key="itKey(col)" :class="cellClass">
+            <slot name="cell" :value="pvt.vals[rcKey(row, col)]">{{pvt.vals[rcKey(row, col)]}}</slot>
           </td>
         </tr>
-
+<!--
+          <template v-for="col in pvt.cols">
+            <slot name="cell" :value="pvt.vals[rcKey(row, col)]"><td class="pv-val-num" :key="itKey(col)">{{pvt.vals[rcKey(row, col)]}}</td></slot>
+          </template>
+-->
       </tbody>
 
     </template>
@@ -140,8 +151,8 @@ Watch true/false refreshDimsTickle: on change deimension properties updated
                 {{getEnumLabel(rf.name, row[nFld])}}
             </th>
           </template>
-          <td v-for="col in pvt.cols" :key="itKey(col)" class="pv-val-num">
-            {{pvt.vals[rcKey(row, col)]}}
+          <td v-for="col in pvt.cols" :key="itKey(col)" :class="cellClass">
+            <slot name="cell" :value="pvt.vals[rcKey(row, col)]">{{pvt.vals[rcKey(row, col)]}}</slot>
           </td>
         </tr>
       </tbody>
@@ -169,6 +180,9 @@ export default {
     refreshDimsTickle: {
       type: Boolean, required: true // on refreshDimsTickle change enum labels updated
     },
+    refreshValuesTickle: {
+      type: Boolean, required: true // on refreshValuesTickle change cell values updated
+    },
     rowFields: { type: Array, default: () => [] },
     colFields: { type: Array, default: () => [] },
     otherFields: { type: Array, default: () => [] },
@@ -181,8 +195,13 @@ export default {
     },
     processValue: {
       type: Object,
-      default: () => (Pcvt.asIsPval)
-    }
+      default: Pcvt.asIsPval
+    },
+    formatValue: {
+      type: Function,
+      default: void 0 // disable format() value by default
+    },
+    cellClass: { type: String, default: 'pv-val-num' }
   },
 
   data () {
@@ -191,6 +210,7 @@ export default {
         rows: [],
         cols: [],
         vals: {},
+        srcVals: {},
         labels: {},
         rowSpans: {},
         colSpans: {}
@@ -206,6 +226,10 @@ export default {
     },
     refreshDimsTickle () {
       this.setEnumLabels()
+    },
+    refreshValuesTickle () {
+      let vfmt = this.applyFormat(this.pvt.srcVals, this.formatValue)
+      this.pvt.vals = Object.freeze(vfmt)
     }
   },
 
@@ -240,9 +264,10 @@ export default {
       // clean existing view
       this.pvt.rows = []
       this.pvt.cols = []
+      this.pvt.vals = {}
+      this.pvt.srcVals = {}
       this.pvt.rowSpans = {}
       this.pvt.colSpans = {}
-      this.pvt.vals = {}
 
       // if response is empty or invalid: clean table
       const len = (!!d && (d.length || 0) > 0) ? d.length : 0
@@ -345,6 +370,9 @@ export default {
         vbody[rck] = this.processValue.doNext(v, vstate[rck])
       }
 
+      // if format() not empty then format values
+      let vfmt = this.applyFormat(vbody, this.formatValue)
+
       // sort row keys and column keys in the order of dimension items
       const cmpKeys = (aCmp) => {
         const keyLen = aCmp.length
@@ -396,7 +424,19 @@ export default {
       this.pvt.cols = vcols
       this.pvt.rowSpans = Object.freeze(rsp)
       this.pvt.colSpans = Object.freeze(csp)
-      this.pvt.vals = Object.freeze(vbody)
+      this.pvt.srcVals = Object.freeze(vbody)
+      this.pvt.vals = Object.freeze(vfmt)
+    },
+
+    // apply format() to all source values, if format defined else return source values as is
+    applyFormat (srcVals, format) {
+      if (!format) return srcVals
+
+      let vfmt = {}
+      for (let rck in srcVals) {
+        vfmt[rck] = format(srcVals[rck])
+      }
+      return vfmt
     }
   },
 
@@ -418,12 +458,12 @@ export default {
 .pv-cell {
   font-size: 0.875rem;
   padding: 0.25rem;
+  border: 1px solid lightgrey;
 }
 .pv-hdr {
   @extend .medium-wt;
   @extend .pv-cell;
   background-color: whitesmoke;
-  border: 1px solid lightgrey;
 }
 .pv-col-head {
   text-align: center;
@@ -448,7 +488,14 @@ export default {
 .pv-val-num {
   text-align: right;
   @extend .pv-cell;
-  border: 1px solid lightgrey;
+}
+.pv-val-text {
+  text-align: left;
+  @extend .pv-cell;
+}
+.pv-val-center {
+  text-align: center;
+  @extend .pv-cell;
 }
 
 </style>

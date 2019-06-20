@@ -2,7 +2,7 @@
 <template>
 
 <om-mcw-dialog :id="id" ref="noteDlg" :scrollable="true" acceptText="OK">
-  <span slot="header">{{wsDescr}}</span>
+  <template #header><span>{{wsDescr}}</span></template>
   <div v-if="wsNote">{{wsNote}}</div>
   <div class="note-table mono">
     <div class="note-row">

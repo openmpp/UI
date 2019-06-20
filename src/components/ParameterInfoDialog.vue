@@ -2,7 +2,7 @@
 <template>
 
 <om-mcw-dialog :id="id" ref="noteDlg" :scrollable="true" acceptText="OK">
-  <span slot="header">{{paramDescr}}</span>
+  <template #header><span>{{paramDescr}}</span></template>
   <div v-if="(paramNote !== '')">{{paramNote}}</div>
   <br/>
   <div class="note-table mono">
