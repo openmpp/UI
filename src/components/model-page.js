@@ -20,6 +20,13 @@ const PROC_RUN_STEP = 2       // model run in progress
 const FINAL_RUN_STEP = 16     // final state of model run: completed or failed
 const MIN_LOG_PAGE_SIZE = 4   // min run log page size to read from the server
 const MAX_LOG_PAGE_SIZE = 10  // max run log page size to read from the server
+
+const TABLE_LST_TAB_ID = '01' // output tables list tab id
+const PARAM_LST_TAB_ID = '02' // parameter list tab id
+const RUN_LST_TAB_ID = '03'   // model runs list tab id
+const WS_LST_TAB_ID = '04'    // worksets list tab id
+const N_FREE_TAB_ID = 16      // first unassigned tab id
+const FREE_TAB_ID = N_FREE_TAB_ID.toString()
 /* eslint-enable no-multi-spaces */
 
 export default {
@@ -67,7 +74,7 @@ export default {
       newRunLogStart: 0,
       newRunLogSize: 0,
       newRunLineLst: [],
-      tabCount: 0,
+      tabCount: N_FREE_TAB_ID + 1,
       tabLst: []
     }
   },
@@ -144,7 +151,7 @@ export default {
         //
         this.doTabHeaderRefresh()
         this.doTabPathRefresh()
-        this.doTabAdd(true, true, 'parameter-list')
+        this.doTabAdd(true, true, (this.isSuccessTheRun ? 'table-list' : 'parameter-list'))
       }
     },
 
@@ -389,9 +396,8 @@ export default {
       }
 
       // make new tab
-      this.tabCount++
       let t = {
-        id: 'tab-id-' + this.tabCount.toString(),
+        id: 'tab-id-' + (ti.id >= FREE_TAB_ID ? (this.tabCount++).toString() : ti.id),
         kind: kind,
         dn: (dn || ''),
         key: (ti.key || ''),
@@ -400,8 +406,22 @@ export default {
         title: (ti.title || '')
       }
 
+      // insert predefined tab into tab list or append to tab list
+      let nPos = -1
+      if (ti.id < FREE_TAB_ID) {
+        nPos = 0
+        while (nPos < this.tabLst.length) {
+          if (this.tabLst[nPos].id > t.id) break
+          nPos++
+        }
+      }
+      if (0 <= nPos && nPos < this.tabLst.length) {
+        this.tabLst.splice(nPos, 0, t)
+      } else {
+        this.tabLst.push(t)
+      }
+
       // activate new tab
-      this.tabLst.push(t)
       if (isActivate) {
         this.doTabLink(t.id, isRoute, t.path)
       } else {
@@ -427,24 +447,28 @@ export default {
       switch (kind) {
         case 'parameter-list':
           return {
+            id: PARAM_LST_TAB_ID,
             key: 'pl-' + this.digest,
             path: mp + rwp + '/parameter-list',
             title: 'Parameters: ' + Mdf.paramCount(this.theModel).toString()
           }
         case 'table-list':
           return {
+            id: TABLE_LST_TAB_ID,
             key: 'tl-' + this.digest,
             path: mp + '/run/' + rdn + '/table-list',
             title: 'Output tables: ' + Mdf.outTableCount(this.theModel).toString()
           }
         case 'run-list':
           return {
+            id: RUN_LST_TAB_ID,
             key: 'rtl-' + this.digest,
             path: mp + '/run-list',
             title: 'Model runs: ' + Mdf.runTextCount(this.runTextList).toString()
           }
         case 'workset-list':
           return {
+            id: WS_LST_TAB_ID,
             key: 'wtl-' + this.digest,
             path: mp + '/workset-list',
             title: 'Input sets: ' + Mdf.worksetTextCount(this.worksetTextList).toString()
@@ -453,6 +477,7 @@ export default {
           const pt = Mdf.paramTextByName(this.theModel, dn)
           let pds = Mdf.descrOfDescrNote(pt)
           return {
+            id: FREE_TAB_ID,
             key: 'p-' + this.digest + '-' + (dn || ''),
             path: mp + rwp + '/parameter/' + (dn || ''),
             title: (pds !== '') ? pds : (dn || '')
@@ -461,6 +486,7 @@ export default {
           const tt = Mdf.tableTextByName(this.theModel, dn)
           let tds = Mdf.descrOfDescrNote(tt)
           return {
+            id: FREE_TAB_ID,
             key: 't-' + this.digest + '-' + (dn || ''),
             path: mp + '/run/' + rdn + '/table/' + (dn || ''),
             title: (tds !== '') ? tds : (dn || '')
