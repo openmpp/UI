@@ -8,10 +8,11 @@
       <li v-for="m in modelList" :key="m.Model.Digest" class="mdc-list-item">
 
         <template v-if="isModel(m)">
-          <a href="#"
+          <span
             @click="showModelNote(m)"
+            class="om-note-link mdc-list-item__graphic material-icons"
             :title="m.Model.Name + ' notes'"
-            :alt="m.Model.Name + ' notes'"><span class="om-note-link mdc-list-item__graphic material-icons">description</span></a>
+            :alt="m.Model.Name + ' notes'">description</span>
           <router-link
             :to="'/model/' + m.Model.Digest"
             class="ahref-model"

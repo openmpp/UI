@@ -157,9 +157,17 @@
         :formatValue="pvt.formatValue"
         :cellClass="pvt.cellClass"
         >
-        <!--
-        <template #cell="cv"><td :class="pvt.cellClass">{{cv.value}}</td></template>
-        -->
+        <template #cell="c">
+          <span v-if="c.cell.key !== cellEdit.key"
+            style="width: 100%; height: 100%; display: inline-block;"
+            @dblclick="onCellClick(c)"
+            >{{c.cell.value}}</span>
+          <input v-else
+            style="width: 100%; height: 100%; display: inline-block; padding-right: 0.25rem;"
+            @dblclick="onCellClick(c)"
+            type="text"
+            :value="c.cell.value" />
+        </template>
       </pv-table>
 
     </div>

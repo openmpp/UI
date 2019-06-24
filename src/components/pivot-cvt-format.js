@@ -112,7 +112,7 @@ export const formatBool = (options) => {
 
   return {
     format: (val) => {
-      return (val !== void 0 && val !== null) ? (val ? '\u2713' : '-') || val : ''
+      return (val !== void 0 && val !== null) ? (val ? '\u2713' : 'x') || val : ''
     },
     options: () => opts,
     resetOptions: () => { moreOrLess.reset(opts) },

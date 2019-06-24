@@ -1,7 +1,8 @@
 import axios from 'axios'
 import draggable from 'vuedraggable'
 import multiSelect from 'vue-multi-select'
-import 'vue-multi-select/dist/lib/vue-multi-select.css'
+// import 'vue-multi-select/dist/lib/vue-multi-select.css'
+import 'vue-multi-select/dist/lib/vue-multi-select.min.css' // 3.15.0
 import { mapGetters } from 'vuex'
 
 import { GET } from '@/store'
@@ -60,6 +61,10 @@ export default {
         formatValue: void 0, // disable format() value by default
         cellClass: 'pv-val-num'
       },
+      cellEdit: {
+        key: '',
+        value: ''
+      },
       multiSel: {
         dragging: false,
         rcOpts: {
@@ -104,6 +109,8 @@ export default {
     saveDone () {
       let isDone = this.saveDone
       if (isDone) {
+        this.cellEdit.key = ''
+        this.cellEdit.value = ''
         this.isEditUpdated = false
         this.editCount = 0
         this.editRowCol = []
@@ -151,6 +158,15 @@ export default {
     // save if data editied
     doSave () {
       // this.doSaveDataPage()
+    },
+
+    onCellClick (c) {
+      if (c.cell.key === this.cellEdit.key) {
+        this.cellEdit.key = ''
+        return
+      }
+      this.cellEdit.key = c.cell.key
+      this.cellEdit.value = c.cell.value
     },
 
     onStart () {
@@ -279,9 +295,9 @@ export default {
         this.dimProp.push(f)
       }
 
-      // process value:
-      //  if parameter type is one of built-in then process value as float, int, boolen or string
-      //  else parameter type is enum-based: process value as int enum id
+      // setup process value and format value handlers:
+      //  if parameter type is one of built-in then process and format value as float, int, boolen or string
+      //  else parameter type is enum-based: process and format value as int enum id
       this.pvt.processValue = Pcvt.asIsPval
       this.pvt.formatValue = void 0 // disable format() value by default
       this.pvt.cellClass = 'pv-val-num' // numeric cell value style by default
@@ -302,7 +318,9 @@ export default {
           this.pvt.cellClass = 'pv-val-center'
           this.ctrl.formatter = Pcvt.formatBool()
         }
-        if (Mdf.isString(this.paramType.Type)) this.pvt.cellClass = 'pv-val-text'
+        if (Mdf.isString(this.paramType.Type)) {
+          this.pvt.cellClass = 'pv-val-text' // no process or format value required for string type
+        }
       } else {
         // if parameter is enum-based then value is integer enum id and format(value) should return enum description to display
         const t = this.paramType
@@ -315,6 +333,7 @@ export default {
         this.ctrl.formatter = Pcvt.formatEnum({labels: enumLabels})
         this.pvt.cellClass = 'pv-val-text'
       }
+
       if (this.ctrl.formatter) {
         this.ctrl.formatOpts = this.ctrl.formatter.options()
         this.pvt.formatValue = !this.ctrl.formatOpts.isSrcValue ? this.ctrl.formatter.format : void 0

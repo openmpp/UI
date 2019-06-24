@@ -75,7 +75,7 @@ refreshDimsTickle: watch true/false, on change deimension properties updated
             class="pv-rc-cell">{{cf.label}}</th>
           <template v-for="(col, nCol) in pvt.cols">
             <th
-              :key="itKey(col)"
+              :key="pvt.colKeys[nCol]"
               v-if="!!pvt.colSpans[nCol + '_' + nFld]"
               :colspan="pvt.colSpans[nCol + '_' + nFld]"
               :rowspan="(!!rowFields.length && nFld === colFields.length - 1) ? 2 : 1"
@@ -96,7 +96,7 @@ refreshDimsTickle: watch true/false, on change deimension properties updated
       </thead>
       <tbody>
 
-        <tr v-for="(row, nRow) in pvt.rows" :key="itKey(row)">
+        <tr v-for="(row, nRow) in pvt.rows" :key="pvt.rowKeys[nRow]">
           <template v-for="(rf, nFld) in rowFields">
             <th
               :key="rf.name"
@@ -108,15 +108,12 @@ refreshDimsTickle: watch true/false, on change deimension properties updated
             </th>
           </template>
           <th v-if="!rowFields.length && !!colFields.length" class="pv-rc-pad"></th>
-          <td v-for="col in pvt.cols" :key="itKey(col)" :class="cellClass">
-            <slot name="cell" :value="pvt.vals[rcKey(row, col)]">{{pvt.vals[rcKey(row, col)]}}</slot>
+          <td v-for="(col, nCol) in pvt.cols" :key="pvt.colKeys[nCol]" :class="cellClass">
+            <slot name="cell"
+              :cell="{key: pvt.valKeys[nRow * pvt.colCount + nCol], value: pvt.vals[pvt.valKeys[nRow * pvt.colCount + nCol]]}"
+              >{{pvt.vals[pvt.valKeys[nRow * pvt.colCount + nCol]]}}</slot>
           </td>
         </tr>
-<!--
-          <template v-for="col in pvt.cols">
-            <slot name="cell" :value="pvt.vals[rcKey(row, col)]"><td class="pv-val-num" :key="itKey(col)">{{pvt.vals[rcKey(row, col)]}}</td></slot>
-          </template>
--->
       </tbody>
 
     </template>
@@ -131,7 +128,7 @@ refreshDimsTickle: watch true/false, on change deimension properties updated
             class="pv-rc-pad"></th>
           <template v-for="(col, nCol) in pvt.cols">
             <th
-              :key="itKey(col)"
+              :key="pvt.colKeys[nCol]"
               v-if="!!pvt.colSpans[nCol + '_' + nFld]"
               :colspan="pvt.colSpans[nCol + '_' + nFld]"
               class="pv-col-head">
@@ -142,7 +139,7 @@ refreshDimsTickle: watch true/false, on change deimension properties updated
       </thead>
 
       <tbody>
-        <tr v-for="(row, nRow) in pvt.rows" :key="itKey(row)">
+        <tr v-for="(row, nRow) in pvt.rows" :key="pvt.rowKeys[nRow]">
           <template v-for="(rf, nFld) in rowFields">
             <th :key="rf.name"
               v-if="!!pvt.rowSpans[nRow + '_' + nFld]"
@@ -151,8 +148,10 @@ refreshDimsTickle: watch true/false, on change deimension properties updated
                 {{getEnumLabel(rf.name, row[nFld])}}
             </th>
           </template>
-          <td v-for="col in pvt.cols" :key="itKey(col)" :class="cellClass">
-            <slot name="cell" :value="pvt.vals[rcKey(row, col)]">{{pvt.vals[rcKey(row, col)]}}</slot>
+          <td v-for="(col, nCol) in pvt.cols" :key="pvt.colKeys[nCol]" :class="cellClass">
+            <slot name="cell"
+              :cell="{key: pvt.valKeys[nRow * pvt.colCount + nCol], value: pvt.vals[pvt.valKeys[nRow * pvt.colCount + nCol]]}"
+              >{{pvt.vals[pvt.valKeys[nRow * pvt.colCount + nCol]]}}</slot>
           </td>
         </tr>
       </tbody>
@@ -204,21 +203,28 @@ export default {
     cellClass: { type: String, default: 'pv-val-num' }
   },
 
+  /* eslint-disable no-multi-spaces */
   data () {
     return {
       pvt: {
-        rows: [],
-        cols: [],
-        vals: {},
-        srcVals: {},
-        labels: {},
-        rowSpans: {},
-        colSpans: {}
+        rows: [],     // for each row array of item keys
+        cols: [],     // for each column array of item keys
+        rowKeys: [],  // keys of table rows:    itKey(rows[i])
+        colKeys: [],  // keys of table columns: itKey(cols[j])
+        rowCount: 0,  // table row count
+        colCount: 0,  // table column count
+        vals: {},     // formatted body values, object key: rcKey()
+        srcVals: {},  // cource body values, object key: rcKey()
+        valKeys: [],  // keys of table body values: rcKey(row[i], cols[j])
+        labels: {},   // dimension (row, column, other) item labels, key: {dimensionName, itemCode}
+        rowSpans: {}, // row span for each row label
+        colSpans: {}  // column span for each column label
       },
       itKey: (it) => (it.join(KEY_ITEM_SEP)),
       rcKey: (row, col) => (this.itKey(row) + RC_KEY_SEP + this.itKey(col))
     }
   },
+  /* eslint-enable no-multi-spaces */
 
   watch: {
     refreshTickle () {
@@ -264,8 +270,13 @@ export default {
       // clean existing view
       this.pvt.rows = []
       this.pvt.cols = []
+      this.pvt.rowKeys = []
+      this.pvt.colKeys = []
+      this.pvt.rowCount = 0
+      this.pvt.colCount = 0
       this.pvt.vals = {}
       this.pvt.srcVals = {}
+      this.pvt.valKeys = []
       this.pvt.rowSpans = {}
       this.pvt.colSpans = {}
 
@@ -419,13 +430,39 @@ export default {
       let rsp = itemSpans(vrows)
       let csp = itemSpans(vcols)
 
+      // store keys: row keys, column keys, body value keys
+      let vrk = Array(vrows.length || 1)
+      let n = 0
+      for (let r of vrows) {
+        vrk[n++] = this.itKey(r)
+      }
+
+      let vck = Array(vcols.length || 1)
+      n = 0
+      for (let c of vcols) {
+        vck[n++] = this.itKey(c)
+      }
+
+      let vkeys = Array((vrows.length || 1) * (vcols.length || 1))
+      n = 0
+      for (let r of vrows) {
+        for (let c of vcols) {
+          vkeys[n++] = this.rcKey(r, c)
+        }
+      }
+
       // done
-      this.pvt.rows = vrows
-      this.pvt.cols = vcols
+      this.pvt.rowCount = vrows.length
+      this.pvt.colCount = vcols.length
+      this.pvt.rows = Object.freeze(vrows)
+      this.pvt.cols = Object.freeze(vcols)
+      this.pvt.rowKeys = Object.freeze(vrk)
+      this.pvt.colKeys = Object.freeze(vck)
       this.pvt.rowSpans = Object.freeze(rsp)
       this.pvt.colSpans = Object.freeze(csp)
       this.pvt.srcVals = Object.freeze(vbody)
       this.pvt.vals = Object.freeze(vfmt)
+      this.pvt.valKeys = Object.freeze(vkeys)
     },
 
     // apply format() to all source values, if format defined else return source values as is
