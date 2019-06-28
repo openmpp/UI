@@ -30,8 +30,6 @@ export default {
       loadWait: false,
       saveDone: false,
       saveWait: false,
-      isEdit: false,
-      isEditUpdated: false,
       isNullable: false, // if true then parameter value can be NULL
       isWsView: false, // if true then page view is a workset else model run
       paramText: Mdf.emptyParamText(),
@@ -48,7 +46,12 @@ export default {
         isShowPvControls: true,
         isRowColNamesToggle: true,
         formatter: void 0, // disable format() value by default
-        formatOpts: void 0 // hide format controls by default
+        formatOpts: void 0, // hide format controls by default
+        pvtSize: {
+          rowCount: 0, // table row count, expected at least 1 if data not empty
+          colCount: 0, // table coumns count, expected at least 1 if data not empty
+          valueLen: 0 // max length of table body value as string
+        }
       },
       pvt: {
         isRowColNames: true,
@@ -61,9 +64,14 @@ export default {
         formatValue: void 0, // disable format() value by default
         cellClass: 'pv-val-num'
       },
-      cellEdit: {
-        key: '',
-        value: ''
+      edt: {
+        isEnabled: false,
+        isUpdated: false,
+        cell: {
+          key: '',
+          value: '',
+          src: ''
+        }
       },
       multiSel: {
         dragging: false,
@@ -109,11 +117,12 @@ export default {
     saveDone () {
       let isDone = this.saveDone
       if (isDone) {
-        this.cellEdit.key = ''
-        this.cellEdit.value = ''
-        this.isEditUpdated = false
-        this.editCount = 0
-        this.editRowCol = []
+        this.edt.cell.key = ''
+        this.edt.cell.value = ''
+        this.edt.cell.src = ''
+        this.edt.isUpdated = false
+        this.edt.count = 0
+        this.edt.rowCol = []
       }
     }
   },
@@ -155,18 +164,67 @@ export default {
       this.setDefaultPageView()
       this.doRefreshDataPage()
     },
+    // pivot table view updated
+    onPvtSize (size) {
+      console.log('onPvtSize size:', size)
+      this.ctrl.pvtSize = size
+    },
     // save if data editied
     doSave () {
       // this.doSaveDataPage()
     },
 
-    onCellClick (c) {
-      if (c.cell.key === this.cellEdit.key) {
-        this.cellEdit.key = ''
-        return
+    // start cell edit: enter into input text
+    onCellKeyEnter (c) {
+      this.cellInputStart(c)
+    },
+    onCellDblClick (c) {
+      this.cellInputStart(c)
+    },
+    cellInputStart (c) {
+      this.edt.cell.key = c.cell.key
+      this.edt.cell.value = c.cell.value
+      this.edt.cell.src = c.cell.src
+
+      this.$nextTick(() => { this.$refs.cellInput.focus() })
+    },
+
+    // confirm on input text: finish cell edit and keep focus at the same cell
+    onCellInputConfirm (evt, c) {
+      if (evt.target) {
+        this.cellInputConfirm((evt.target.value || ''), c)
+      } else {
+        console.log('ERROR onCellInputConfirm evt.target.value empty')
       }
-      this.cellEdit.key = c.cell.key
-      this.cellEdit.value = c.cell.value
+      let ckey = this.edt.cell.key
+      this.edt.cell.key = ''
+
+      this.$nextTick(() => { if (this.$refs[ckey]) this.$refs[ckey].focus() })
+    },
+    // confirm on input text by lost focus
+    onCellInputBlur (evt, c) {
+      if (evt.target) {
+        this.cellInputConfirm((evt.target.value || ''), c)
+      } else {
+        console.log('ERROR onCellInputConfirm evt.target.value empty')
+      }
+      this.edt.cell.key = ''
+    },
+    cellInputConfirm (val, c) {
+      if (typeof val === typeof '') {
+        console.log('onCellInputConfirm value:', val)
+        console.log('onCellInputConfirm src:', c.cell.src)
+      } else {
+        console.log('ERROR onCellInputConfirm evt.target.value empty')
+      }
+    },
+
+    // cancel on input text by escape
+    onCellInputEscape () {
+      let ckey = this.edt.cell.key
+      this.edt.cell.key = ''
+
+      this.$nextTick(() => { if (this.$refs[ckey]) this.$refs[ckey].focus() })
     },
 
     onStart () {
@@ -243,13 +301,13 @@ export default {
       this.isNullable = this.paramText.Param.hasOwnProperty('IsExtendable') && (this.paramText.Param.IsExtendable || false)
 
       // adjust controls
-      // this.isEdit = this.isWsView && !this.theWorksetText.IsReadonly
-      this.isEdit = false
+      this.edt.isEnabled = this.isWsView && !this.theWorksetText.IsReadonly
 
       let isRc = this.paramSize.rank > 0 || this.subCount > 1
       this.pvt.isRowColNames = isRc
       this.ctrl.isRowColNamesToggle = isRc
       this.ctrl.isShowPvControls = isRc
+      this.ctrl.pvtSize = { rowCount: 0, colCount: 0, valueLen: 0 }
 
       // make dimensions:
       //  [rank] of enum-based dimensions

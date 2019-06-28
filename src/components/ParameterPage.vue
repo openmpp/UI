@@ -9,8 +9,8 @@
       @click="showParamInfo()"
       class="cell-icon-link material-icons" :alt="paramName + ' info'" :title="paramName + ' info'">description</span>
 
-    <span v-if="isEdit">
-      <span v-if="isEditUpdated"
+    <span v-if="edt.isEnabled">
+      <span v-if="edt.isUpdated"
         @click="doSave()"
         class="cell-icon-link material-icons" :alt="'Save ' + paramName" :title="'Save ' + paramName">save</span>
       <span v-else
@@ -155,24 +155,36 @@
         :readValue="pvt.readValue"
         :processValue="pvt.processValue"
         :formatValue="pvt.formatValue"
+        :isEditEnabled="edt.isEnabled"
         :cellClass="pvt.cellClass"
+        @pvt-size="onPvtSize"
         >
-        <template #cell="c">
-          <span v-if="c.cell.key !== cellEdit.key"
-            style="width: 100%; height: 100%; display: inline-block;"
-            @dblclick="onCellClick(c)"
+        <template v-if="edt.isEnabled" #cell="c">
+          <span v-if="c.cell.key !== edt.cell.key"
+            :ref="c.cell.key"
+            @keydown.enter="onCellKeyEnter(c)"
+            @dblclick="onCellDblClick(c)"
+            tabindex="0"
+            role="button"
+            class="pv-cell-view"
             >{{c.cell.value}}</span>
           <input v-else
-            style="width: 100%; height: 100%; display: inline-block; padding-right: 0.25rem;"
-            @dblclick="onCellClick(c)"
             type="text"
-            :value="c.cell.value" />
+            ref="cellInput"
+            @keydown.enter="onCellInputConfirm($event, c)"
+            @dblclick="onCellInputConfirm($event, c)"
+            @blur="onCellInputBlur($event, c)"
+            @keydown.esc="onCellInputEscape"
+            tabindex="0"
+            role="button"
+            class="pv-cell-input mdc-typography--body1"
+            :size="ctrl.pvtSize.valueLen"
+            :value="c.cell.src" />
         </template>
       </pv-table>
 
-    </div>
-
-  </div>
+    </div> <!-- pv-panel -->
+  </div> <!-- pv-container -->
 
   <param-info-dialog ref="noteDlg" id="param-note-dlg"></param-info-dialog>
 
@@ -297,11 +309,20 @@
   // drag_indicator -> padding: 0.375rem 0.25rem 0.375rem 0.25rem;
   padding: 0.25rem 0.25rem 0.5rem 0.0625rem;
   vertical-align: middle;
-  &:hover {
-    @extend .mdc-theme--on-primary;
-    @extend .mdc-theme--primary-bg;
-  }
   @extend .mdc-theme--on-primary;
-  @extend .om-theme-primary-light-bg;
+  @extend .mdc-theme--primary-bg;
+}
+
+// table body cell: readonly view, input text
+.pv-cell-view {
+  width: 100%;
+  height: 100%;
+  display: inline-block;
+}
+.pv-cell-input {
+  font-size: 0.875rem;
+  border: 0;
+  padding: 0px 1px;
+  background-color: #e6e6e6;
 }
 </style>

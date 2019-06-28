@@ -76,6 +76,7 @@ refreshDimsTickle: watch true/false, on change deimension properties updated
           <template v-for="(col, nCol) in pvt.cols">
             <th
               :key="pvt.colKeys[nCol]"
+              :ref="'cth-' + nCol.toString()"
               v-if="!!pvt.colSpans[nCol + '_' + nFld]"
               :colspan="pvt.colSpans[nCol + '_' + nFld]"
               :rowspan="(!!rowFields.length && nFld === colFields.length - 1) ? 2 : 1"
@@ -90,7 +91,7 @@ refreshDimsTickle: watch true/false, on change deimension properties updated
             class="pv-rc-cell">
               {{rf.label}}
           </th>
-          <th class="pv-rc-pad"></th>
+          <th ref="cthPad" class="pv-rc-pad"></th>
         </tr>
 
       </thead>
@@ -110,8 +111,8 @@ refreshDimsTickle: watch true/false, on change deimension properties updated
           <th v-if="!rowFields.length && !!colFields.length" class="pv-rc-pad"></th>
           <td v-for="(col, nCol) in pvt.cols" :key="pvt.colKeys[nCol]" :class="cellClass">
             <slot name="cell"
-              :cell="{key: pvt.valKeys[nRow * pvt.colCount + nCol], value: pvt.vals[pvt.valKeys[nRow * pvt.colCount + nCol]]}"
-              >{{pvt.vals[pvt.valKeys[nRow * pvt.colCount + nCol]]}}</slot>
+              :cell="{key: pvt.cellKeys[nRow * pvt.colCount + nCol], value: pvt.vals[pvt.cellKeys[nRow * pvt.colCount + nCol]], src: pvt.srcVals[pvt.cellKeys[nRow * pvt.colCount + nCol]]}"
+              >{{pvt.vals[pvt.cellKeys[nRow * pvt.colCount + nCol]]}}</slot>
           </td>
         </tr>
       </tbody>
@@ -129,6 +130,7 @@ refreshDimsTickle: watch true/false, on change deimension properties updated
           <template v-for="(col, nCol) in pvt.cols">
             <th
               :key="pvt.colKeys[nCol]"
+              :ref="'cth-' + nCol.toString()"
               v-if="!!pvt.colSpans[nCol + '_' + nFld]"
               :colspan="pvt.colSpans[nCol + '_' + nFld]"
               class="pv-col-head">
@@ -150,8 +152,8 @@ refreshDimsTickle: watch true/false, on change deimension properties updated
           </template>
           <td v-for="(col, nCol) in pvt.cols" :key="pvt.colKeys[nCol]" :class="cellClass">
             <slot name="cell"
-              :cell="{key: pvt.valKeys[nRow * pvt.colCount + nCol], value: pvt.vals[pvt.valKeys[nRow * pvt.colCount + nCol]]}"
-              >{{pvt.vals[pvt.valKeys[nRow * pvt.colCount + nCol]]}}</slot>
+              :cell="{key: pvt.cellKeys[nRow * pvt.colCount + nCol], value: pvt.vals[pvt.cellKeys[nRow * pvt.colCount + nCol]], src: pvt.srcVals[pvt.cellKeys[nRow * pvt.colCount + nCol]]}"
+              >{{pvt.vals[pvt.cellKeys[nRow * pvt.colCount + nCol]]}}</slot>
           </td>
         </tr>
       </tbody>
@@ -163,9 +165,6 @@ refreshDimsTickle: watch true/false, on change deimension properties updated
 
 <script>
 import * as Pcvt from './pivot-cvt'
-
-const RC_KEY_SEP = '|' + String.fromCharCode(2) + '|'
-const KEY_ITEM_SEP = String.fromCharCode(1) + '-'
 
 export default {
 
@@ -200,6 +199,7 @@ export default {
       type: Function,
       default: void 0 // disable format() value by default
     },
+    isEditEnabled: { type: Boolean, default: false }, // if true then edit value is enabled
     cellClass: { type: String, default: 'pv-val-num' }
   },
 
@@ -207,21 +207,21 @@ export default {
   data () {
     return {
       pvt: {
-        rows: [],     // for each row array of item keys
-        cols: [],     // for each column array of item keys
-        rowKeys: [],  // keys of table rows:    itKey(rows[i])
-        colKeys: [],  // keys of table columns: itKey(cols[j])
+        rows: [],     // for each row:    array of item keys
+        cols: [],     // for each column: array of item keys
+        rowKeys: [],  // for each table row:    itemsKey(rows[i])
+        colKeys: [],  // for each table column: itemsKey(cols[j])
         rowCount: 0,  // table row count
         colCount: 0,  // table column count
-        vals: {},     // formatted body values, object key: rcKey()
-        srcVals: {},  // cource body values, object key: rcKey()
-        valKeys: [],  // keys of table body values: rcKey(row[i], cols[j])
-        labels: {},   // dimension (row, column, other) item labels, key: {dimensionName, itemCode}
+        vals: {},     // formatted body cell values, object key: cellKey()
+        srcVals: {},  // source body cell values, object key: cellKey()
+        cellKeys: [], // keys of table body values ordered by row index, column index: cellKey(row[i], cols[j])
+        labels: {},   // row, column, other dimensions item labels, key: {dimensionName, itemCode}
         rowSpans: {}, // row span for each row label
         colSpans: {}  // column span for each column label
       },
-      itKey: (it) => (it.join(KEY_ITEM_SEP)),
-      rcKey: (row, col) => (this.itKey(row) + RC_KEY_SEP + this.itKey(col))
+      valueLen: 0,   // value input text size
+      isSizeUpdate: false // if true then recalculate size and emit size event to parent
     }
   },
   /* eslint-enable no-multi-spaces */
@@ -276,9 +276,11 @@ export default {
       this.pvt.colCount = 0
       this.pvt.vals = {}
       this.pvt.srcVals = {}
-      this.pvt.valKeys = []
+      this.pvt.cellKeys = []
       this.pvt.rowSpans = {}
       this.pvt.colSpans = {}
+      this.valueLen = 0
+      this.isSizeUpdate = false
 
       // if response is empty or invalid: clean table
       const len = (!!d && (d.length || 0) > 0) ? d.length : 0
@@ -359,12 +361,12 @@ export default {
         if (!isSel) continue // skip row: dimension item is not in filter values
 
         // build list of rows and columns keys
-        let rk = this.itKey(r)
+        let rk = Pcvt.itemsKey(r)
         if (!rKeys[rk]) {
           rKeys[rk] = true
           vrows.push(r)
         }
-        let ck = this.itKey(c)
+        let ck = Pcvt.itemsKey(c)
         if (!cKeys[ck]) {
           cKeys[ck] = true
           vcols.push(c)
@@ -374,7 +376,7 @@ export default {
         let v = this.readValue(d[k])
         if (v === void 0 || v === null) continue // skip: empty value
 
-        let rck = rk + RC_KEY_SEP + ck
+        let rck = Pcvt.cellKeyJoin(rk, ck)
         if (!vstate.hasOwnProperty(rck)) {
           vstate[rck] = this.processValue.init()
         }
@@ -430,30 +432,44 @@ export default {
       let rsp = itemSpans(vrows)
       let csp = itemSpans(vcols)
 
-      // store keys: row keys, column keys, body value keys
-      let vrk = Array(vrows.length || 1)
+      // table size and max length of cell value as string
+      let rowCount = vrows.length
+      let colCount = vcols.length
+
+      let valLen = 0
+      if (this.isEditEnabled) {
+        for (const rck in vbody) {
+          if (typeof vbody[rck] !== typeof void 0) {
+            let n = (vbody[rck].toString() || '').length
+            if (valLen < n) valLen = n
+          }
+        }
+      }
+
+      // sorted keys: row keys, column keys, body value keys
+      let vrk = Array(rowCount)
       let n = 0
-      for (let r of vrows) {
-        vrk[n++] = this.itKey(r)
+      for (const r of vrows) {
+        vrk[n++] = Pcvt.itemsKey(r)
       }
 
-      let vck = Array(vcols.length || 1)
+      let vck = Array(colCount)
       n = 0
-      for (let c of vcols) {
-        vck[n++] = this.itKey(c)
+      for (const c of vcols) {
+        vck[n++] = Pcvt.itemsKey(c)
       }
 
-      let vkeys = Array((vrows.length || 1) * (vcols.length || 1))
+      let vkeys = Array(rowCount * colCount)
       n = 0
-      for (let r of vrows) {
-        for (let c of vcols) {
-          vkeys[n++] = this.rcKey(r, c)
+      for (const r of vrows) {
+        for (const c of vcols) {
+          vkeys[n++] = Pcvt.cellKey(r, c)
         }
       }
 
       // done
-      this.pvt.rowCount = vrows.length
-      this.pvt.colCount = vcols.length
+      this.pvt.rowCount = rowCount
+      this.pvt.colCount = colCount
       this.pvt.rows = Object.freeze(vrows)
       this.pvt.cols = Object.freeze(vcols)
       this.pvt.rowKeys = Object.freeze(vrk)
@@ -462,7 +478,9 @@ export default {
       this.pvt.colSpans = Object.freeze(csp)
       this.pvt.srcVals = Object.freeze(vbody)
       this.pvt.vals = Object.freeze(vfmt)
-      this.pvt.valKeys = Object.freeze(vkeys)
+      this.pvt.cellKeys = Object.freeze(vkeys)
+      this.valueLen = valLen
+      this.isSizeUpdate = this.isEditEnabled // update size only if edit value eanbled
     },
 
     // apply format() to all source values, if format defined else return source values as is
@@ -470,11 +488,41 @@ export default {
       if (!format) return srcVals
 
       let vfmt = {}
-      for (let rck in srcVals) {
+      for (const rck in srcVals) {
         vfmt[rck] = format(srcVals[rck])
       }
       return vfmt
     }
+  },
+
+  updated () {
+    if (!this.isSizeUpdate) return // size update not required
+
+    // find max column client width
+    let mw = 0
+    for (let nCol = 0; nCol < this.pvt.colCount; nCol++) {
+      let thLst = this.$refs['cth-' + nCol.toString()]
+      if (thLst && (thLst.length || 0) > 0) {
+        let n = thLst[thLst.length - 1].clientWidth || 0
+        if (n > mw) mw = n
+      }
+    }
+
+    if (!mw) {
+      let thPad = this.$refs.cthPad
+      if (thPad) {
+        let n = thPad.clientWidth || 0
+        if (n > mw) mw = n
+      }
+    }
+
+    // estimate input text size
+    let nc = Math.floor((mw - 9) / 8) - 2
+    if (this.valueLen < nc) this.valueLen = nc
+
+    // send size info to parent
+    this.$emit('pvt-size', { rowCount: this.pvt.rowCount, colCount: this.pvt.colCount, valueLen: this.valueLen })
+    this.isSizeUpdate = false
   },
 
   mounted () {
