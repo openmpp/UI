@@ -56,8 +56,12 @@ export default {
         this.setRunText(response.data) // update run text in store
         this.loadDone = true
       } catch (e) {
+        let em = ''
+        try {
+          if (e.response) em = e.response.data || ''
+        } finally {}
         this.msgLoad = '<Server offline or model run not found>'
-        console.log('Server offline or model run not found')
+        console.log('Server offline or model run not found', em)
       }
       this.loadWait = false
       this.$emit('done', this.loadDone)

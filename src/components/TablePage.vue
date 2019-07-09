@@ -584,8 +584,12 @@ export default {
         this.setData(d)
         this.loadDone = true
       } catch (e) {
+        let em = ''
+        try {
+          if (e.response) em = e.response.data || ''
+        } finally {}
         this.msg = 'Server offline or output table data not found'
-        console.log('Server offline or output table data not found')
+        console.log('Server offline or output table data not found', em)
       }
       this.loadWait = false
     },

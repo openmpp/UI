@@ -1,5 +1,7 @@
 // pivot table value processing: formatters
 
+import * as PcvtHlp from './pivot-cvt-helper'
+
 // more-less options to control decimals for float number format or show "source" value without any formatting
 /* eslint-disable no-multi-spaces */
 export const moreLessDefault = () => ({
@@ -42,6 +44,10 @@ export const formatFloat = (options) => {
     format: (val) => {
       return formatNumber.format(val, opts)
     },
+    parse: (s) => {
+      const v = parseFloat(s)
+      return !isNaN(v) ? v : void 0
+    },
     options: () => opts,
     resetOptions: () => {
       Object.assign(opts, defaultOpts)
@@ -77,6 +83,10 @@ export const formatInt = (options) => {
     format: (val) => {
       return formatNumber.format(val, opts)
     },
+    parse: (s) => {
+      const v = parseInt(s, 10)
+      return !isNaN(v) ? v : void 0
+    },
     options: () => opts,
     resetOptions: () => {
       opts.nDecimal = 0
@@ -99,6 +109,10 @@ export const formatEnum = (options) => {
     format: (val) => {
       return (val !== void 0 && val !== null) ? opts.labels[val] || val : ''
     },
+    parse: (s) => {
+      const v = parseInt(s, 10)
+      return !isNaN(v) ? v : void 0
+    },
     options: () => opts,
     resetOptions: () => { moreOrLess.reset(opts) },
     doMore: () => { moreOrLess.doMore(opts) },
@@ -113,6 +127,9 @@ export const formatBool = (options) => {
   return {
     format: (val) => {
       return (val !== void 0 && val !== null) ? (val ? '\u2713' : 'x') || val : ''
+    },
+    parse: (s) => {
+      return PcvtHlp.parseBool(s)
     },
     options: () => opts,
     resetOptions: () => { moreOrLess.reset(opts) },

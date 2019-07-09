@@ -56,8 +56,12 @@ export default {
         this.setTheModel(response.data) // update current model in store
         this.loadDone = true
       } catch (e) {
+        let em = ''
+        try {
+          if (e.response) em = e.response.data || ''
+        } finally {}
         this.msgLoad = '<Server offline or model not found>'
-        console.log('Server offline or model not found')
+        console.log('Server offline or model not found', em)
       }
       this.loadWait = false
       this.$emit('done', this.loadDone)
@@ -68,7 +72,11 @@ export default {
         const response = await axios.get(uw)
         this.setWordList(response.data) // update model words list in store
       } catch (e) {
-        console.log('Model words refresh failed')
+        let em = ''
+        try {
+          if (e.response) em = e.response.data || ''
+        } finally {}
+        console.log('Model words refresh failed', em)
       }
     },
 

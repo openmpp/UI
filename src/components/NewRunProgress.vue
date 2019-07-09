@@ -86,8 +86,12 @@ export default {
         rlp = response.data
         this.loadDone = true
       } catch (e) {
+        let em = ''
+        try {
+          if (e.response) em = e.response.data || ''
+        } finally {}
         this.msgLoad = '<Server offline or run status retrive failed>'
-        console.log('Server offline or run status retrive failed')
+        console.log('Server offline or run status retrive failed', em)
       }
       this.loadWait = false
 

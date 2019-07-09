@@ -15,6 +15,18 @@
         class="cell-icon-link material-icons" :alt="'Save ' + paramName" :title="'Save ' + paramName">save</span>
       <span v-else
         class="cell-icon-empty material-icons" title="Save" alt="Save">save</span>
+
+      <span v-if="edt.lastHistory > 0"
+        @click="doUndo()"
+        class="cell-icon-link material-icons" alt="Undo" title="Undo">undo</span>
+      <span v-else
+        class="cell-icon-empty material-icons" alt="Undo" title="Undo">undo</span>
+
+      <span v-if="edt.lastHistory < edt.history.length"
+        @click="doRedo()"
+        class="cell-icon-link material-icons" alt="Redo" title="Redo">redo</span>
+      <span v-else
+        class="cell-icon-empty material-icons" alt="Redo" title="Redo">redo</span>
     </span>
 
     <span
@@ -69,19 +81,16 @@
       <draggable
         v-model="otherFields"
         group="fields"
-        @start="onStart"
-        @end="onEnd"
+        @start="onDrag"
+        @end="onDrop"
         class="other-fields other-drag"
         :class="{'drag-area-hint': !!multiSel.dragging}"
         >
         <div v-for="f in otherFields" :key="f.name" class="field-drag">
           <i class="material-icons" aria-hidden="true">pan_tool</i>
-          <!--
-          <i class="material-icons" aria-hidden="true">drag_indicator</i>
-          -->
           <multi-select
             v-model="f.selection"
-            @input="onSelInput('other', f.name, f.selection)"
+            @input="onSelectInput('other', f.name, f.selection)"
             :historyButton="true"
             :search="true"
             :btnLabel="f.selLabel"
@@ -96,8 +105,8 @@
       <draggable
         v-model="colFields"
         group="fields"
-        @start="onStart"
-        @end="onEnd"
+        @start="onDrag"
+        @end="onDrop"
         class="col-fields col-drag"
         :class="{'drag-area-hint': !!multiSel.dragging}"
         >
@@ -105,7 +114,7 @@
           <i class="material-icons" aria-hidden="true">pan_tool</i>
           <multi-select
             v-model="f.selection"
-            @input="onSelInput('col', f.name, f.selection)"
+            @input="onSelectInput('col', f.name, f.selection)"
             :historyButton="true"
             :search="true"
             :btnLabel="f.selLabel"
@@ -123,8 +132,8 @@
         v-show="ctrl.isShowPvControls"
         v-model="rowFields"
         group="fields"
-        @start="onStart"
-        @end="onEnd"
+        @start="onDrag"
+        @end="onDrop"
         class="row-fields row-drag"
         :class="{'drag-area-hint': !!multiSel.dragging}"
         >
@@ -132,7 +141,7 @@
           <i class="material-icons" aria-hidden="true">pan_tool</i>
           <multi-select
             v-model="f.selection"
-            @input="onSelInput('row', f.name, f.selection)"
+            @input="onSelectInput('row', f.name, f.selection)"
             :historyButton="true"
             :search="true"
             :btnLabel="f.selLabel"
@@ -167,7 +176,7 @@
             tabindex="0"
             role="button"
             class="pv-cell-view"
-            >{{c.cell.value}}</span>
+            >{{getUpdatedValue(c.cell.key, c.cell.value)}}</span>
           <input v-else
             type="text"
             ref="cellInput"
@@ -179,7 +188,7 @@
             role="button"
             class="pv-cell-input mdc-typography--body1"
             :size="ctrl.pvtSize.valueLen"
-            :value="c.cell.src" />
+            :value="getUpdatedSrc(c.cell.key, c.cell.src)" />
         </template>
       </pv-table>
 

@@ -46,23 +46,23 @@
         </span>
 
       </span>
-    </span>
 
+      <span class="hdr-text">
+        <span v-if="isNotEmptyHdr">
+          <span v-if="!isWsView && !isSuccessTheRun" class="cell-status medium-wt">{{statusOfTheRun}}</span>
+          <span class="mono">{{lastTimeOfHdr}}&nbsp;</span><span class="medium-wt">{{nameOfHdr}}</span>
+          <span>{{ descrOfHdr }}</span>
+        </span>
+        <span v-else>
+          <span class="medium-wt">{{emptyHdrMsg}}</span>
+        </span>
+      </span>
+
+    </span>
     <!-- !loadDone -->
     <span v-else
       class="cell-icon-empty material-icons"
       title="Information not available" alt="Information not available" aria-hidden="true">description</span>
-
-    <span v-if="loadDone" class="hdr-text">
-      <span v-if="isNotEmptyHdr">
-        <span v-if="!isWsView && !isSuccessTheRun" class="cell-status medium-wt">{{statusOfTheRun}}</span>
-        <span class="mono">{{lastTimeOfHdr}}&nbsp;</span><span class="medium-wt">{{nameOfHdr}}</span>
-        <span>{{ descrOfHdr }}</span>
-      </span>
-      <span v-else>
-        <span class="medium-wt">{{emptyHdrMsg}}</span>
-      </span>
-    </span>
 
     <span class="hdr-text medium-wt">
       <refresh-model
@@ -307,6 +307,7 @@
     flex-direction: row;
     overflow: hidden;
     margin-top: .5rem;
+    min-height: 1.75rem;
   }
   .hdr-text {
     overflow: hidden;

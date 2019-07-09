@@ -1,5 +1,7 @@
 // pivot table value processing: convertion and aggregation
 
+import * as PcvtHlp from './pivot-cvt-helper'
+
 // default process value: return source value as is
 export const asIsPval = {
   init: () => (
@@ -38,36 +40,8 @@ export const asBoolPval = {
   init: () => ({ result: void 0 }),
 
   doNext: (val, state) => {
-    switch (val) {
-      case true:
-      case 1:
-      case -1:
-        state.result = true
-        break
-      case false:
-      case 0:
-        state.result = false
-        break
-      default:
-        if (typeof val === typeof 'string') {
-          switch (val.toLocaleLowerCase()) {
-            case 'true':
-            case 't':
-            case '1':
-            case 'yes':
-            case 'y':
-              state.result = true
-              break
-            case 'false':
-            case 'f':
-            case '0':
-            case 'no':
-            case 'n':
-              state.result = false
-              break
-          }
-        }
-    }
+    const v = PcvtHlp.parseBool(val)
+    if (typeof v === typeof true) state.result = v
     return state.result
   }
 }

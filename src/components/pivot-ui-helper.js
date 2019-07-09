@@ -1,5 +1,7 @@
 // pivot table UI helper functions
 
+import * as Pcvt from './pivot-cvt'
+
 // return function to produce multi-select label
 export const makeSelLabel = (isMulti, label) => {
   if (!isMulti) {
@@ -16,12 +18,10 @@ export const makeSelLabel = (isMulti, label) => {
 }
 
 // make filter state: selection in other dimensions
-export const makeFilterState = (dims, skipDimName) => {
+export const makeFilterState = (dims) => {
   let fs = {}
 
   for (const d of dims) {
-    if (d.name === skipDimName) continue // do not filter by "measure" dimension
-
     fs[d.name] = []
     for (const e of d.selection) {
       fs[d.name].push(e.value)
@@ -34,6 +34,8 @@ export const makeFilterState = (dims, skipDimName) => {
 export const equalFilterState = (fs, dims, skipDimName) => {
   // check if all previous filter dimensions in the new list
   for (const p in fs) {
+    if (p === skipDimName) continue // do not filter by "measure" dimension
+
     let isFound = false
     for (let k = 0; !isFound && k < dims.length; k++) {
       isFound = dims[k].name === p
@@ -52,4 +54,120 @@ export const equalFilterState = (fs, dims, skipDimName) => {
     }
   }
   return true // identical filters
+}
+
+// return page layout to read parameter data
+// filter by other dimension(s) selected values
+export const makeSelectLayout = (paramName, otherFields, skipDimName) => {
+  let layout = {
+    Name: paramName,
+    Offset: 0,
+    Size: 0,
+    FilterById: []
+  }
+
+  // make filters for other dimensions to include selected value
+  for (const f of otherFields) {
+    if (f.name === skipDimName) continue // do not filter by "measure" dimension
+
+    let flt = {
+      DimName: f.name,
+      Op: 'IN_AUTO',
+      EnumIds: []
+    }
+    for (const e of f.selection) {
+      flt.EnumIds.push(e.value)
+    }
+    layout.FilterById.push(flt)
+  }
+  return layout
+}
+
+// prepare page of parameter data for save
+export const makePageForSave = (dimProp, keyPos, filterState, rank, subIdName, isNullable, updated) => {
+  //
+  // rows and columns dimension items are packed ino cell key ordered by dimension name
+  // other dimension(s) expected to be single value stored in filter state
+  // sub-id value is zero by default, if parameter has multiple sub-values
+  // then sub-id also can be a single value from filter or packed into cell key
+
+  // sub-id value by default =0
+  let subIdField = {
+    isConst: true,
+    srcPos: 0,
+    value: 0
+  }
+
+  // filter dimensions: name, value and destination position
+  let filterDims = []
+  for (const p in filterState) {
+    // filter value of sub-id dimension
+    if (p === subIdName) {
+      subIdField.isConst = true
+      if ((filterState[p].length || 0) > 0) subIdField.value = filterState[p][0]
+      continue
+    }
+    // filter value of regular dimensions
+    for (let j = 0; j < dimProp.length; j++) {
+      if (p === dimProp[j].name) {
+        filterDims.push({
+          name: p,
+          dstPos: j,
+          value: (filterState[p].length || 0) > 0 ? filterState[p][0] : void 0
+        })
+        break
+      }
+    }
+  }
+
+  // rows and columns: cell key contain items ordered by dimension names
+  // for each dimension find source and destination position
+  let keyDims = []
+  for (let k = 0; k < keyPos.length; k++) {
+    // sub-id dimension
+    if (keyPos[k].name === subIdName) {
+      subIdField.isConst = false
+      subIdField.srcPos = keyPos[k].pos
+      continue
+    }
+    // regular dimensions
+    for (let j = 0; j < dimProp.length; j++) {
+      if (keyPos[k].name === dimProp[j].name) {
+        keyDims.push({
+          name: keyPos[k].name,
+          srcPos: keyPos[k].pos,
+          dstPos: j
+        })
+        break
+      }
+    }
+  }
+
+  // for each updated cell find dimension items from cell key or from filter value
+  const pv = []
+  for (const bkey in updated) {
+    // get dimension items from filter values and split cell key into dimension items
+    let items = Pcvt.keyToItems(bkey)
+    let di = Array(rank)
+
+    for (const df of filterDims) {
+      di[df.dstPos] = df.value
+    }
+    for (const dk of keyDims) {
+      di[dk.dstPos] = parseInt(items[dk.srcPos], 10)
+    }
+
+    // get sub-value id from cell key, from filter value or use default zero value
+    // get cell value, for enum-based parameters expected to be enum id
+    let nSub = !subIdField.isConst ? parseInt(items[subIdField.srcPos], 10) : subIdField.value
+    let v = updated[bkey]
+
+    pv.push({
+      DimIds: di,
+      IsNull: isNullable && ((v || '') === ''),
+      Value: v,
+      SubId: nSub
+    })
+  }
+  return pv
 }

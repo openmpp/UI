@@ -62,8 +62,12 @@ export default {
         }
         this.loadDone = true
       } catch (e) {
+        let em = ''
+        try {
+          if (e.response) em = e.response.data || ''
+        } finally {}
         this.msgLoad = '<Server offline or no model input set not found>'
-        console.log('Server offline or no model input set not found')
+        console.log('Server offline or no model input set not found', em)
       }
       this.loadWait = false
       this.$emit('done', this.loadDone)

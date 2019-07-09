@@ -121,8 +121,12 @@ export default {
         this.setModelList(response.data) // update model list in store
         this.loadDone = true
       } catch (e) {
+        let em = ''
+        try {
+          if (e.response) em = e.response.data || ''
+        } finally {}
         this.msg = 'Server offline or no models published'
-        console.log('Server offline or no models published')
+        console.log('Server offline or no models published', em)
       }
       this.loadWait = false
     },

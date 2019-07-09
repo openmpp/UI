@@ -67,8 +67,12 @@ export default {
         rst = response.data
         this.loadDone = true
       } catch (e) {
+        let em = ''
+        try {
+          if (e.response) em = e.response.data || ''
+        } finally {}
         this.msgLoad = '<Server offline or run start failed>'
-        console.log('Server offline or run start failed')
+        console.log('Server offline or run start failed', em)
       }
       this.loadWait = false
 

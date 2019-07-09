@@ -50,7 +50,8 @@ export default {
         pvtSize: {
           rowCount: 0, // table row count, expected at least 1 if data not empty
           colCount: 0, // table coumns count, expected at least 1 if data not empty
-          valueLen: 0 // max length of table body value as string
+          valueLen: 0, // max length of table body value as string
+          keyPos: [] // position of each dimension item in cell key
         }
       },
       pvt: {
@@ -71,7 +72,10 @@ export default {
           key: '',
           value: '',
           src: ''
-        }
+        },
+        updated: {},
+        history: [],
+        lastHistory: 0
       },
       multiSel: {
         dragging: false,
@@ -111,19 +115,9 @@ export default {
 
   watch: {
     routeKey () {
+      this.resetEdit()
       this.initView()
       this.doRefreshDataPage()
-    },
-    saveDone () {
-      let isDone = this.saveDone
-      if (isDone) {
-        this.edt.cell.key = ''
-        this.edt.cell.value = ''
-        this.edt.cell.src = ''
-        this.edt.isUpdated = false
-        this.edt.count = 0
-        this.edt.rowCol = []
-      }
     }
   },
 
@@ -166,12 +160,11 @@ export default {
     },
     // pivot table view updated
     onPvtSize (size) {
-      console.log('onPvtSize size:', size)
       this.ctrl.pvtSize = size
     },
     // save if data editied
     doSave () {
-      // this.doSaveDataPage()
+      this.doSaveDataPage()
     },
 
     // start cell edit: enter into input text
@@ -189,37 +182,7 @@ export default {
       this.$nextTick(() => { this.$refs.cellInput.focus() })
     },
 
-    // confirm on input text: finish cell edit and keep focus at the same cell
-    onCellInputConfirm (evt, c) {
-      if (evt.target) {
-        this.cellInputConfirm((evt.target.value || ''), c)
-      } else {
-        console.log('ERROR onCellInputConfirm evt.target.value empty')
-      }
-      let ckey = this.edt.cell.key
-      this.edt.cell.key = ''
-
-      this.$nextTick(() => { if (this.$refs[ckey]) this.$refs[ckey].focus() })
-    },
-    // confirm on input text by lost focus
-    onCellInputBlur (evt, c) {
-      if (evt.target) {
-        this.cellInputConfirm((evt.target.value || ''), c)
-      } else {
-        console.log('ERROR onCellInputConfirm evt.target.value empty')
-      }
-      this.edt.cell.key = ''
-    },
-    cellInputConfirm (val, c) {
-      if (typeof val === typeof '') {
-        console.log('onCellInputConfirm value:', val)
-        console.log('onCellInputConfirm src:', c.cell.src)
-      } else {
-        console.log('ERROR onCellInputConfirm evt.target.value empty')
-      }
-    },
-
-    // cancel on input text by escape
+    // cancel input text edit by escape
     onCellInputEscape () {
       let ckey = this.edt.cell.key
       this.edt.cell.key = ''
@@ -227,21 +190,106 @@ export default {
       this.$nextTick(() => { if (this.$refs[ckey]) this.$refs[ckey].focus() })
     },
 
-    onStart () {
+    // confirm input text edit: finish cell edit and keep focus at the same cell
+    onCellInputConfirm (evt, c) {
+      if (evt.target) {
+        this.cellInputConfirm((evt.target.value || ''), c) // event target must be input text
+      }
+      let ckey = this.edt.cell.key
+      this.edt.cell.key = ''
+      this.$nextTick(() => { if (this.$refs[ckey]) this.$refs[ckey].focus() })
+    },
+    // confirm input text edit by lost focus
+    onCellInputBlur (evt, c) {
+      if (evt.target) {
+        this.cellInputConfirm((evt.target.value || ''), c) // event target must be input text
+      }
+      this.edt.cell.key = ''
+    },
+    cellInputConfirm (val, c) {
+      // compare input value with previous
+      const now = !!this.ctrl.formatter ? this.ctrl.formatter.parse(val) : val
+      const prev = this.edt.updated.hasOwnProperty(c.cell.key) ? this.edt.updated[c.cell.key] : c.cell.src
+
+      if (now === prev || (now === '' && prev === void 0)) return // exit if value not changed
+
+      // store updated value and append it change history
+      this.edt.updated[c.cell.key] = now
+      this.edt.isUpdated = !!this.edt.updated
+
+      if (this.edt.lastHistory < this.edt.history.length) {
+        this.edt.history.splice(this.edt.lastHistory)
+      }
+      this.edt.history.push({
+        key: c.cell.key,
+        now: now,
+        prev: prev
+      })
+      this.edt.lastHistory = this.edt.history.length
+    },
+
+    // undo last edit changes
+    doUndo () {
+      if (this.edt.lastHistory <= 0) return // exit: entire history already undone
+
+      let nPos = --this.edt.lastHistory
+      let key = this.edt.history[nPos].key
+
+      let isPrev = false
+      for (let k = 0; !isPrev && k < nPos; k++) {
+        isPrev = this.edt.history[k].key === key
+      }
+      if (isPrev) {
+        this.edt.updated[key] = this.edt.history[nPos].prev
+      } else {
+        delete this.edt.updated[key]
+      }
+    },
+    // redo most recent undo
+    doRedo () {
+      if (this.edt.lastHistory >= this.edt.history.length) return // exit: already at the end of history
+
+      let nPos = this.edt.lastHistory++
+      this.edt.updated[this.edt.history[nPos].key] = this.edt.history[nPos].now
+    },
+
+    // clean edit state and history
+    resetEdit () {
+      this.edt.cell.key = ''
+      this.edt.cell.value = ''
+      this.edt.cell.src = ''
+      this.edt.isUpdated = false
+      this.edt.updated = {}
+      this.edt.history = []
+      this.edt.lastHistory = 0
+    },
+
+    // return updated cell value or default if value not updated
+    getUpdatedSrc(key, defaultSrc) {
+      return this.edt.isUpdated && this.edt.updated.hasOwnProperty(key) ? this.edt.updated[key] : defaultSrc
+    },
+    getUpdatedValue(key, defaultVal) {
+      if (!this.edt.isUpdated || !this.edt.updated.hasOwnProperty(key)) return defaultVal
+      return !!this.pvt.formatValue ? this.pvt.formatValue(this.edt.updated[key]) : this.edt.updated[key]
+    },
+
+    onDrag () {
       // drag started
       this.multiSel.dragging = true
     },
-    onEnd () {
+    onDrop () {
       // drag completed: drop
       this.multiSel.dragging = false
 
       // other dimensions: use single-select dropdown
       // change dropdown label: for other dimensions use selected value
       let isSelUpdate = false
+      let isSubIdSelUpdate = false
       for (let f of this.otherFields) {
         if (f.selection.length > 1) {
           f.selection.splice(1)
           isSelUpdate = true
+          if (f.name === SUB_ID_DIM) isSubIdSelUpdate = true
         }
         f.selLabel = Puih.makeSelLabel(false, f.label, f.selection)
       }
@@ -256,6 +304,7 @@ export default {
         if (f.selection.length < 1) {
           f.selection.push(f.enums[0])
           isSelUpdate = true
+          if (f.name === SUB_ID_DIM) isSubIdSelUpdate = true
         }
       }
 
@@ -265,8 +314,11 @@ export default {
       //     if other dimesions filters same as before then update pivot table view now
       //     else refresh data
       if (!isSelUpdate) {
-        if (Puih.equalFilterState(this.pvt.filterState, this.otherFields)) {
+        if (Puih.equalFilterState(this.pvt.filterState, this.otherFields, SUB_ID_DIM)) {
           this.pvt.isPvTickle = !this.pvt.isPvTickle
+          if (isSubIdSelUpdate) {
+            this.pvt.filterState = Puih.makeFilterState(this.otherFields)
+          }
         } else {
           this.doRefreshDataPage()
         }
@@ -274,14 +326,17 @@ export default {
     },
 
     // multi-select input: drag-and-drop or selection changed
-    onSelInput (panel, name, vals) {
+    onSelectInput (panel, name, vals) {
       if (this.multiSel.dragging) return // exit: this is drag-and-drop, no changes in selection yet
 
       // update pivot view:
       //   if other dimesions filters same as before then update pivot table view now
       //   else refresh data
-      if (panel !== 'other' || Puih.equalFilterState(this.pvt.filterState, this.otherFields)) {
+      if (panel !== 'other' || Puih.equalFilterState(this.pvt.filterState, this.otherFields, SUB_ID_DIM)) {
         this.pvt.isPvTickle = !this.pvt.isPvTickle
+        if (name === SUB_ID_DIM) {
+          this.pvt.filterState = Puih.makeFilterState(this.otherFields)
+        }
       } else {
         this.doRefreshDataPage()
       }
@@ -307,7 +362,7 @@ export default {
       this.pvt.isRowColNames = isRc
       this.ctrl.isRowColNamesToggle = isRc
       this.ctrl.isShowPvControls = isRc
-      this.ctrl.pvtSize = { rowCount: 0, colCount: 0, valueLen: 0 }
+      this.ctrl.pvtSize = { rowCount: 0, colCount: 0, valueLen: 0, keyPos: [] }
 
       // make dimensions:
       //  [rank] of enum-based dimensions
@@ -420,14 +475,15 @@ export default {
 
         // rows and columns: multiple selection, other: single selection
         let isOther = k > 0 && k < this.dimProp.length - 1
-        if (!isOther) {
+        if (isOther) {
+          tf.push(f)
+          f.selection.push(f.enums[0])
+        } else {
           for (const e of f.enums) {
             f.selection.push(e)
           }
-        } else {
-          tf.push(f)
-          f.selection.push(f.enums[0])
         }
+
         f.selLabel = Puih.makeSelLabel(!isOther, f.label, f.selection)
       }
 
@@ -452,10 +508,10 @@ export default {
       }
 
       // save filters: other dimensions selected items
-      this.pvt.filterState = Puih.makeFilterState(this.otherFields, SUB_ID_DIM)
+      this.pvt.filterState = Puih.makeFilterState(this.otherFields)
 
       // make parameter read layout and url
-      let layout = this.makeSelectLayout()
+      let layout = Puih.makeSelectLayout(this.paramName, this.otherFields, SUB_ID_DIM)
       let u = this.omppServerUrl +
         '/api/model/' + (this.digest || '') +
         (this.isWsView ? '/workset/' : '/run/') + (this.nameDigest || '') +
@@ -475,42 +531,74 @@ export default {
         this.loadDone = true
         this.pvt.isPvTickle = !this.pvt.isPvTickle
       } catch (e) {
+        let em = ''
+        try {
+          if (e.response) em = e.response.data || ''
+        } finally {}
         this.msg = 'Server offline or parameter data not found'
-        console.log('Server offline or parameter data not found')
+        console.log('Server offline or parameter data not found', em)
       }
       this.loadWait = false
     },
 
-    // return page layout to read parameter data
-    // filter by other dimension(s) selected values
-    makeSelectLayout () {
-      let layout = {
-        Name: this.paramName,
-        Offset: 0,
-        Size: 0,
-        FilterById: []
+    // save page of parameter data into current workset
+    async doSaveDataPage () {
+      this.saveDone = false
+      this.saveWait = true
+      this.msg = 'Saving...'
+
+      // exit if parameter not found in model run or workset
+      if (!Mdf.isParamRunSet(this.paramRunSet)) {
+        let m = 'Parameter not found in ' + this.nameDigest
+        this.msg = m
+        console.log(m)
+        this.saveWait = false
+        return
       }
 
-      // make filters for other dimensions to include selected value
-      for (const f of this.otherFields) {
-        if (f.name === SUB_ID_DIM) continue // do not filter by "sub-value id" dimension
-
-        let flt = {
-          DimName: f.name,
-          Op: 'IN_AUTO',
-          EnumIds: []
-        }
-        for (const e of f.selection) {
-          flt.EnumIds.push(e.value)
-        }
-        layout.FilterById.push(flt)
+      // prepare parameter data for save, exit with error if no changes found
+      let pv = Puih.makePageForSave(
+        this.dimProp, this.ctrl.pvtSize.keyPos, this.pvt.filterState, this.paramSize.rank, SUB_ID_DIM, this.isNullable, this.edt.updated
+        )
+      if (!Mdf.lengthOf(pv)) {
+        this.msg = 'No parameter changes, nothing to save'
+        console.log('No parameter changes, nothing to save')
+        this.saveWait = false
+        return
       }
-      return layout
+
+      // url to update parameter data
+      let u = this.omppServerUrl +
+        '/api/model/' + (this.digest || '') +
+        '/workset/' + (this.nameDigest || '') +
+        '/parameter/' + (this.paramName || '') + '/new/value-id'
+
+      // send data page to the server, response body expected to be empty
+      try {
+        const response = await axios.patch(u, pv)
+        const rsp = response.data
+        if ((rsp || '') !== '') console.log('Server reply:', rsp)
+
+        // success: clear edit history and refersh data
+        this.saveDone = true
+        this.resetEdit()
+
+        this.$nextTick(() => { this.doRefreshDataPage() })
+      } catch (e) {
+        let em = ''
+        try {
+          if (e.response) em = e.response.data || ''
+        } finally {}
+        this.msg = 'Server offline or parameter save failed'
+        console.log('Server offline or parameter save failed', em)
+      }
+      this.saveWait = false
     }
   },
 
   mounted () {
     this.saveDone = true
+    this.resetEdit()
     this.initView()
     this.doRefreshDataPage()
     this.$emit('tab-mounted', 'parameter', this.paramName)
