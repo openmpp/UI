@@ -215,7 +215,7 @@ export default {
 
       // store updated value and append it change history
       this.edt.updated[c.cell.key] = now
-      this.edt.isUpdated = !!this.edt.updated
+      this.edt.isUpdated = true
 
       if (this.edt.lastHistory < this.edt.history.length) {
         this.edt.history.splice(this.edt.lastHistory)
@@ -243,6 +243,7 @@ export default {
         this.edt.updated[key] = this.edt.history[nPos].prev
       } else {
         delete this.edt.updated[key]
+        this.edt.isUpdated = !!this.edt.updated && this.edt.lastHistory > 0
       }
     },
     // redo most recent undo
@@ -251,6 +252,7 @@ export default {
 
       let nPos = this.edt.lastHistory++
       this.edt.updated[this.edt.history[nPos].key] = this.edt.history[nPos].now
+      this.edt.isUpdated = true
     },
 
     // clean edit state and history

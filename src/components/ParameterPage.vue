@@ -18,15 +18,15 @@
 
       <span v-if="edt.lastHistory > 0"
         @click="doUndo()"
-        class="cell-icon-link material-icons" alt="Undo" title="Undo">undo</span>
+        class="cell-icon-link material-icons" alt="Undo: Ctrl+Z" title="Undo: Ctrl+Z">undo</span>
       <span v-else
-        class="cell-icon-empty material-icons" alt="Undo" title="Undo">undo</span>
+        class="cell-icon-empty material-icons" alt="Undo: Ctrl+Z" title="Undo: Ctrl+Z">undo</span>
 
       <span v-if="edt.lastHistory < edt.history.length"
         @click="doRedo()"
-        class="cell-icon-link material-icons" alt="Redo" title="Redo">redo</span>
+        class="cell-icon-link material-icons" alt="Redo: Ctrl+Y" title="Redo: Ctrl+Y">redo</span>
       <span v-else
-        class="cell-icon-empty material-icons" alt="Redo" title="Redo">redo</span>
+        class="cell-icon-empty material-icons" alt="Redo: Ctrl+Y" title="Redo: Ctrl+Y">redo</span>
     </span>
 
     <span
@@ -173,6 +173,8 @@
             :ref="c.cell.key"
             @keydown.enter="onCellKeyEnter(c)"
             @dblclick="onCellDblClick(c)"
+            @keyup.ctrl.90="doUndo"
+            @keyup.ctrl.89="doRedo"
             tabindex="0"
             role="button"
             class="pv-cell-view"
