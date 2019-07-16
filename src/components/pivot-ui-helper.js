@@ -84,40 +84,15 @@ export const makeSelectLayout = (paramName, otherFields, skipDimName) => {
 }
 
 // prepare page of parameter data for save
-export const makePageForSave = (dimProp, keyPos, filterState, rank, subIdName, isNullable, updated) => {
-  //
-  // rows and columns dimension items are packed ino cell key ordered by dimension name
-  // other dimension(s) expected to be single value stored in filter state
-  // sub-id value is zero by default, if parameter has multiple sub-values
+// all dimension items are packed ino cell key ordered by dimension name
+export const makePageForSave = (dimProp, keyPos, rank, subIdName, isNullable, updated) => {
+  // sub-id value is zero by default
+  // if parameter has multiple sub-values
   // then sub-id also can be a single value from filter or packed into cell key
-
-  // sub-id value by default =0
   let subIdField = {
     isConst: true,
     srcPos: 0,
     value: 0
-  }
-
-  // filter dimensions: name, value and destination position
-  let filterDims = []
-  for (const p in filterState) {
-    // filter value of sub-id dimension
-    if (p === subIdName) {
-      subIdField.isConst = true
-      if ((filterState[p].length || 0) > 0) subIdField.value = filterState[p][0]
-      continue
-    }
-    // filter value of regular dimensions
-    for (let j = 0; j < dimProp.length; j++) {
-      if (p === dimProp[j].name) {
-        filterDims.push({
-          name: p,
-          dstPos: j,
-          value: (filterState[p].length || 0) > 0 ? filterState[p][0] : void 0
-        })
-        break
-      }
-    }
   }
 
   // rows and columns: cell key contain items ordered by dimension names
@@ -150,9 +125,6 @@ export const makePageForSave = (dimProp, keyPos, filterState, rank, subIdName, i
     let items = Pcvt.keyToItems(bkey)
     let di = Array(rank)
 
-    for (const df of filterDims) {
-      di[df.dstPos] = df.value
-    }
     for (const dk of keyDims) {
       di[dk.dstPos] = parseInt(items[dk.srcPos], 10)
     }

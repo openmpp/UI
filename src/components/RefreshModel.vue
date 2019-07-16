@@ -61,7 +61,7 @@ export default {
           if (e.response) em = e.response.data || ''
         } finally {}
         this.msgLoad = '<Server offline or model not found>'
-        console.log('Server offline or model not found', em)
+        console.log('Server offline or model not found.', em)
       }
       this.loadWait = false
       this.$emit('done', this.loadDone)
@@ -76,7 +76,7 @@ export default {
         try {
           if (e.response) em = e.response.data || ''
         } finally {}
-        console.log('Model words refresh failed', em)
+        console.log('Model words refresh failed.', em)
       }
     },
 

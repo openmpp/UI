@@ -34,11 +34,11 @@ export default {
         this.loadDone = true
       } catch (e) {
         let em = ''
-        this.msg = 'LICENSE.txt not found'
+        this.msg = 'Server offline or LICENSE.txt not found.'
         try {
           if (e.response) em = e.response.data || ''
         } finally {}
-        console.log('Server offline or LICENSE.txt not found', em)
+        console.log('Server offline or LICENSE.txt not found.', em)
       }
       this.loadWait = false
     }

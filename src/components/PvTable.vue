@@ -2,7 +2,7 @@
 <template>
 
   <table class="pv-main-table">
-    <template v-if="!!showRowColNames"><!-- if do show row and column fields name -->
+    <template v-if="pvControl.isRowColNames"><!-- if do show row and column fields name -->
 
       <thead>
 
@@ -22,7 +22,7 @@
               :colspan="pvt.colSpans[nCol * colFields.length + nFld]"
               :rowspan="(!!rowFields.length && nFld === colFields.length - 1) ? 2 : 1"
               class="pv-col-head">
-                {{getEnumLabel(cf.name, col[nFld])}}
+                {{getDimEnumLabel(cf.name, col[nFld])}}
             </th>
           </template>
         </tr>
@@ -46,11 +46,11 @@
               :colspan="(!!colFields.length && nFld === rowFields.length - 1) ? 2 : 1"
               :rowspan="pvt.rowSpans[nRow * rowFields.length + nFld]"
               class="pv-row-head">
-                {{getEnumLabel(rf.name, row[nFld])}}
+                {{getDimEnumLabel(rf.name, row[nFld])}}
             </th>
           </template>
           <th v-if="!rowFields.length && !!colFields.length" class="pv-rc-pad"></th>
-          <td v-for="(col, nCol) in pvt.cols" :key="pvt.colKeys[nCol]" :class="cellClass">
+          <td v-for="(col, nCol) in pvt.cols" :key="pvt.colKeys[nCol]" :class="pvControl.cellClass">
             <slot name="cell"
               :cell="pvt.cells[pvt.cellKeys[nRow * pvt.colCount + nCol]]">{{pvt.cells[pvt.cellKeys[nRow * pvt.colCount + nCol]].value}}</slot>
           </td>
@@ -74,7 +74,7 @@
               v-if="!!pvt.colSpans[nCol * colFields.length + nFld]"
               :colspan="pvt.colSpans[nCol * colFields.length + nFld]"
               class="pv-col-head">
-                {{getEnumLabel(cf.name, col[nFld])}}
+                {{getDimEnumLabel(cf.name, col[nFld])}}
             </th>
           </template>
         </tr>
@@ -87,10 +87,10 @@
               v-if="!!pvt.rowSpans[nRow * rowFields.length + nFld]"
               :rowspan="pvt.rowSpans[nRow * rowFields.length + nFld]"
               class="pv-row-head">
-                {{getEnumLabel(rf.name, row[nFld])}}
+                {{getDimEnumLabel(rf.name, row[nFld])}}
             </th>
           </template>
-          <td v-for="(col, nCol) in pvt.cols" :key="pvt.colKeys[nCol]" :class="cellClass">
+          <td v-for="(col, nCol) in pvt.cols" :key="pvt.colKeys[nCol]" :class="pvControl.cellClass">
             <slot name="cell"
               :cell="pvt.cells[pvt.cellKeys[nRow * pvt.colCount + nCol]]">{{pvt.cells[pvt.cellKeys[nRow * pvt.colCount + nCol]].value}}</slot>
           </td>

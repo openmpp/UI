@@ -589,7 +589,7 @@ export default {
           if (e.response) em = e.response.data || ''
         } finally {}
         this.msg = 'Server offline or output table data not found'
-        console.log('Server offline or output table data not found', em)
+        console.log('Server offline or output table data not found.', em)
       }
       this.loadWait = false
     },

@@ -125,8 +125,8 @@ export default {
         try {
           if (e.response) em = e.response.data || ''
         } finally {}
-        this.msg = 'Server offline or no models published'
-        console.log('Server offline or no models published', em)
+        this.msg = 'Server offline or no models published.'
+        console.log('Server offline or no models published.', em)
       }
       this.loadWait = false
     },

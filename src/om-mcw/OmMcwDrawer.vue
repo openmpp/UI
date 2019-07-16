@@ -2,16 +2,11 @@
 <template>
 
 <aside class="mdc-drawer">
+  <div v-if="$slots['header']" class="mdc-drawer__header">
+    <slot name="header"></slot>
+  </div>
   <div class="mdc-drawer__content">
-
-    <div v-if="$slots['header']" class="mdc-drawer__header">
-      <slot name="header"></slot>
-    </div>
-
-    <div class="mdc-drawer__content">
-        <slot></slot>
-    </div>
-
+    <slot></slot>
   </div>
 </aside>
 

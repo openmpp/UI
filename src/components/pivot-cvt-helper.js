@@ -1,6 +1,7 @@
 // pivot table value processing: helper functions
 
 export const PV_KEY_ITEM_SEP = String.fromCharCode(1) + '-'
+export const PV_KEY_SCALAR = 'SCALAR_KEY'
 
 // make row, column or body value key as join of row or column dimension items
 export const itemsToKey = (items) => items.join(PV_KEY_ITEM_SEP)

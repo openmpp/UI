@@ -12,6 +12,20 @@ export const moreLessDefault = () => ({
 })
 /* eslint-enable no-multi-spaces */
 
+// default format: do not convert value, only validate if empty value allowed (if parameter nullable)
+export const formatDefault = (options) => {
+  let opts = Object.assign({}, moreLessDefault(), { isNullable: false, isSrcValue: true }, options)
+  return {
+    format: void 0, // disable format() value by default
+    parse: void 0, // disable format() value by default
+    isValid: (s) => { return (s === void 0) ? opts.isNullable : true },
+    options: () => opts,
+    resetOptions: () => {},
+    doMore: () => {},
+    doLess: () => {}
+  }
+}
+
 // format number as float
 // options is a merge of formatNumber options (see below) and more-less options to control decimals
 export const formatFloat = (options) => {
@@ -47,6 +61,12 @@ export const formatFloat = (options) => {
     parse: (s) => {
       const v = parseFloat(s)
       return !isNaN(v) ? v : void 0
+    },
+    isValid: (s) => {
+      if (s === '' || s === void 0) return opts.isNullable
+      if (typeof s === typeof 1) return isFinite(s)
+      if (typeof s === typeof 'string') return /^[-+]?[0-9]+(\.[0-9]+)?([eE][-+]?[0-9]+)?$/.test(s)
+      return false
     },
     options: () => opts,
     resetOptions: () => {
@@ -87,6 +107,12 @@ export const formatInt = (options) => {
       const v = parseInt(s, 10)
       return !isNaN(v) ? v : void 0
     },
+    isValid: (s) => {
+      if (s === '' || s === void 0) return opts.isNullable
+      if (typeof s === typeof 1) return Number.isInteger(s)
+      if (typeof s === typeof 'string') return /^[-+]?[0-9]+$/.test(s)
+      return false
+    },
     options: () => opts,
     resetOptions: () => {
       opts.nDecimal = 0
@@ -113,6 +139,17 @@ export const formatEnum = (options) => {
       const v = parseInt(s, 10)
       return !isNaN(v) ? v : void 0
     },
+    isValid: (s) => {
+      if (s === '' || s === void 0) return opts.isNullable
+      if (typeof s === typeof 1) {
+        return opts.labels.hasOwnProperty(s)
+      }
+      if (typeof s === typeof 'string' && /^[-+]?[0-9]+$/.test(s)) {
+        const v = parseInt(s, 10)
+        return !isNaN(v) ? opts.labels.hasOwnProperty(v) : false
+      }
+      return false
+    },
     options: () => opts,
     resetOptions: () => { moreOrLess.reset(opts) },
     doMore: () => { moreOrLess.doMore(opts) },
@@ -131,6 +168,10 @@ export const formatBool = (options) => {
     parse: (s) => {
       return PcvtHlp.parseBool(s)
     },
+    isValid: (s) => {
+      if (s === '' || s === void 0) return opts.isNullable
+      return (typeof PcvtHlp.parseBool(s)) === typeof true
+    },
     options: () => opts,
     resetOptions: () => { moreOrLess.reset(opts) },
     doMore: () => { moreOrLess.doMore(opts) },
@@ -144,10 +185,11 @@ export const formatBool = (options) => {
 /* eslint-disable no-multi-spaces */
 const moreOrLess = {
   makeDefault: () => ({
-    isSrcValue: false, // if true then show "source" value, do not apply format(), this is final "more" state
-    isSrcShow: true,   // if true then show "source value" as "more" button
-    isDoMore: true,    // if true then "more" button enabled
-    isDoLess: false    // if true then "less" button enabled
+    isNullable: false,  // if true then allow empty (NULL) value
+    isSrcValue: false,  // if true then show "source" value, do not apply format(), this is final "more" state
+    isSrcShow: true,    // if true then show "source value" as "more" button
+    isDoMore: true,     // if true then "more" button enabled
+    isDoLess: false     // if true then "less" button enabled
   }),
   reset: (opts) => {
     return Object.assign(opts, moreOrLess.makeDefault())
@@ -173,19 +215,22 @@ const formatNumber = {
   makeOpts: (options) => {
     let opts = Object.assign({},
       {
-        isLocale: false,  // if true then return toLocaleString()
-        groupSep: '',     // if not empty then use as thousands group separator, ex: ',' = 1,234.5678
-        groupLen: 3,      // grouping size, by default =3 (thousands), ex: 2 = 12,34.5678
-        decimalSep: '.',  // decimals separator, ex: ',' = 1234,5678
-        nDecimal: -1,     // if >= 0 then number of decimals else show all decimals, ex: 2 => 1234.56
-        maxDecimal: 4     // max decimals to display, using toFixed(nDecimal) and nDecimal <= maxDecimal
+        isNullable: false,  // if true then allow empty (NULL) value
+        isLocale: false,    // if true then return toLocaleString()
+        groupSep: '',       // if not empty then use as thousands group separator, ex: ',' = 1,234.5678
+        groupLen: 3,        // grouping size, by default =3 (thousands), ex: 2 = 12,34.5678
+        decimalSep: '.',    // decimals separator, ex: ',' = 1234,5678
+        nDecimal: -1,       // if >= 0 then number of decimals else show all decimals, ex: 2 => 1234.56
+        maxDecimal: 4       // max decimals to display, using toFixed(nDecimal) and nDecimal <= maxDecimal
       },
       options)
     return opts
   },
 
   format: (val, opts) => {
-    if (typeof val !== typeof 1) return val // invalid or undefined value
+    if (typeof val !== typeof 1) {
+      return val !== void 0 ? val : '' // invalid or undefined value
+    }
     if (!opts) return val // no options: default output
 
     if (opts.isLocale) return val.toLocaleString() // localized numeric format

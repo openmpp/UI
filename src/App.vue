@@ -9,7 +9,7 @@
 
         <button
           @click="toggleDrawer"
-          class="material-icons mdc-top-app-bar__navigation-icon" title="Menu" alt="Menu">menu</button>
+          class="material-icons mdc-top-app-bar__navigation-icon mdc-icon-button" title="Menu" alt="Menu">menu</button>
 
         <router-link
           v-if="isModel"
@@ -28,17 +28,17 @@
         <button
           v-if="isModel"
           @click="showModelNote"
-          class="material-icons mdc-top-app-bar__action-item"
+          class="material-icons mdc-top-app-bar__action-item mdc-icon-button"
           :alt="modelName + ' notes'"
           :title="modelName + ' notes'">description</button>
         <button
           @click="doRefresh"
-          class="material-icons mdc-top-app-bar__action-item"
+          class="material-icons mdc-top-app-bar__action-item mdc-icon-button"
           title="Refresh"
           alt="Refresh">refresh</button>
         <button
           @click="toggleMore"
-          class="material-icons mdc-top-app-bar__action-item"
+          class="material-icons mdc-top-app-bar__action-item mdc-icon-button"
           title="More"
           alt="More">more_vert</button>
 
@@ -309,7 +309,7 @@ export default {
   }
   .topbar-container {
     flex: 0 0 auto;
-    z-index: 7;
+    z-index: 7; // from MCW documentation
   }
 
   /* disable drawer model menu and links if no current model selected */
@@ -369,6 +369,7 @@ export default {
   @import "@material/theme/mdc-theme";
   @import "@material/typography/mdc-typography";
   @import "@material/button/mdc-button";
+  @import '@material/icon-button/mdc-icon-button';
   @import "@material/dialog/mdc-dialog";
   @import "@material/top-app-bar/mdc-top-app-bar";
   @import "@material/drawer/mdc-drawer";

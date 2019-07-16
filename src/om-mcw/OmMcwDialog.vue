@@ -3,8 +3,8 @@
 
 <div
   :id="id"
-  class="mdc-dialog above-ht-table"
-  :class="classes"
+  class="mdc-dialog"
+  :class="{'mdc-dialog--open': opened}"
   @MDCDialog:closed="onClosed"
   role="alertdialog"
   aria-hidden="true"
@@ -20,19 +20,19 @@
         <h2 :id="labelId" class="mdc-dialog__title"><!-- --><slot name="header"></slot><!-- --></h2>
       </header>
 
-      <section :id="descrId" class="mdc-dialog__content" :class="bodyScrollable">
+      <section :id="descrId" class="mdc-dialog__content" :class="{'mdc-dialog__body--scrollable': scrollable}">
         <slot></slot>
       </section>
 
       <footer class="mdc-dialog__actions" v-if="cancelText || acceptText">
         <button
           v-if="cancelText"
-          type="button" class="mdc-button mdc-dialog__button" data-mdc-dialog-action="cancel">
-          <span class="mdc-button__label">{cancelText}}</span>
+          type="button" class="mdc-button mdc-dialog__button" data-mdc-dialog-action="cancel" :mdc-dialog__button--default="cancelByDefault">
+          <span class="mdc-button__label">{{cancelText}}</span>
         </button>
         <button
           v-if="acceptText"
-          type="button" class="mdc-button mdc-dialog__button" data-mdc-dialog-action="accept" mdc-dialog__button--default>
+          type="button" class="mdc-button mdc-dialog__button" data-mdc-dialog-action="accept" :mdc-dialog__button--default="!cancelByDefault">
           <span class="mdc-button__label">{{acceptText}}</span>
         </button>
       </footer>
@@ -51,11 +51,9 @@ import { MDCDialog } from '@material/dialog'
 
 export default {
   props: {
-    id: {
-      type: String,
-      required: true
-    },
-    opened: Boolean,
+    id: { type: String, required: true },
+    opened: { type: Boolean, default: false },
+    cancelByDefault: { type: Boolean, default: false },
     scrollable: Boolean,
     acceptText: String,
     cancelText: String
@@ -63,10 +61,6 @@ export default {
 
   data () {
     return {
-      classes: {
-        'mdc-dialog--open': this.opened
-      },
-      bodyScrollable: this.scrollable ? 'mdc-dialog__body--scrollable' : '',
       mdcDialog: void 0
     }
   },
@@ -99,14 +93,6 @@ export default {
   }
 }
 </script>
-
-<!-- local scope css: this component only -->
-<style lang="scss" scoped>
-  /* fix handsontable z-index: 101; */
-  .above-ht-table {
-    z-index: 204;
-  }
-</style>
 
 <!-- local scope css: this component only -->
 <style lang="scss" scoped>

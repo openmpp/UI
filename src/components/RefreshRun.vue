@@ -61,7 +61,7 @@ export default {
           if (e.response) em = e.response.data || ''
         } finally {}
         this.msgLoad = '<Server offline or model run not found>'
-        console.log('Server offline or model run not found', em)
+        console.log('Server offline or model run not found.', em)
       }
       this.loadWait = false
       this.$emit('done', this.loadDone)

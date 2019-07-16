@@ -9,9 +9,16 @@
       @click="showParamInfo()"
       class="cell-icon-link material-icons" :alt="paramName + ' info'" :title="paramName + ' info'">description</span>
 
-    <span v-if="edt.isEnabled">
+    <template v-if="edt.isEnabled">
+      <span v-if="!edt.isEdit"
+        @click="doEditToogle()"
+        class="cell-icon-link material-icons" :alt="'Edit ' + paramName" :title="'Edit ' + paramName">mode_edit</span>
+      <span v-else
+        @click="doEditToogle()"
+        class="cell-icon-link material-icons" :alt="'Discard changes of ' + paramName" :title="'Discard changes of ' + paramName">cancel</span>
+
       <span v-if="edt.isUpdated"
-        @click="doSave()"
+        @click="doEditSave()"
         class="cell-icon-link material-icons" :alt="'Save ' + paramName" :title="'Save ' + paramName">save</span>
       <span v-else
         class="cell-icon-empty material-icons" title="Save" alt="Save">save</span>
@@ -27,7 +34,7 @@
         class="cell-icon-link material-icons" alt="Redo: Ctrl+Y" title="Redo: Ctrl+Y">redo</span>
       <span v-else
         class="cell-icon-empty material-icons" alt="Redo: Ctrl+Y" title="Redo: Ctrl+Y">redo</span>
-    </span>
+    </template>
 
     <span
       @click="togglePivotControls()"
@@ -77,7 +84,7 @@
   <!-- pivot table controls and view -->
   <div class="pv-container">
 
-    <div v-show="ctrl.isShowPvControls" class="other-panel">
+    <div v-show="ctrl.isShowPvControls && !edt.isEdit" class="other-panel">
       <draggable
         v-model="otherFields"
         group="fields"
@@ -153,22 +160,19 @@
       </draggable>
 
       <pv-table
-        :showRowColNames="pvt.isRowColNames"
-        :refreshTickle="pvt.isPvTickle"
-        :refreshDimsTickle="pvt.isPvDimsTickle"
-        :refreshValuesTickle="pvt.isPvValsTickle"
         :rowFields="rowFields"
         :colFields="colFields"
         :otherFields="otherFields"
         :pv-data="inpData"
-        :readValue="pvt.readValue"
-        :processValue="pvt.processValue"
-        :formatValue="pvt.formatValue"
+        :pv-control="pvc"
+        :refreshTickle="ctrl.isPvTickle"
+        :refreshDimsTickle="ctrl.isPvDimsTickle"
+        :refreshValuesTickle="ctrl.isPvValsTickle"
         :isEditEnabled="edt.isEnabled"
-        :cellClass="pvt.cellClass"
-        @pvt-size="onPvtSize"
+        @pv-key-pos="onPvKeyPos"
+        @pv-size="onPvSize"
         >
-        <template v-if="edt.isEnabled" #cell="c">
+        <template v-if="edt.isEdit" #cell="c">
           <span v-if="c.cell.key !== edt.cell.key"
             :ref="c.cell.key"
             @keydown.enter="onCellKeyEnter(c)"
@@ -178,7 +182,7 @@
             tabindex="0"
             role="button"
             class="pv-cell-view"
-            >{{getUpdatedValue(c.cell.key, c.cell.value)}}</span>
+            >&nbsp;{{getUpdatedValue(c.cell.key, c.cell.value)}}</span>
           <input v-else
             type="text"
             ref="cellInput"
@@ -189,7 +193,7 @@
             tabindex="0"
             role="button"
             class="pv-cell-input mdc-typography--body1"
-            :size="ctrl.pvtSize.valueLen"
+            :size="pvSize.valueLen"
             :value="getUpdatedSrc(c.cell.key, c.cell.src)" />
         </template>
       </pv-table>
@@ -198,6 +202,13 @@
   </div> <!-- pv-container -->
 
   <param-info-dialog ref="noteDlg" id="param-note-dlg"></param-info-dialog>
+
+  <om-mcw-dialog id="param-edit-discard-dlg" ref="paramEditDiscardDlg" @closed="onEditDiscardClosed" cancelText="No" acceptText="Yes">
+    <template #header><span>{{paramName}}</span></template>
+    <div>Discard all changes?</div>
+  </om-mcw-dialog>
+
+  <om-mcw-snackbar id="param-snackbar-msg" ref="paramSnackbarMsg" labelText="..."></om-mcw-snackbar>
 
 </div>
 
