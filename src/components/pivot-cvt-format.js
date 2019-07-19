@@ -17,8 +17,8 @@ export const formatDefault = (options) => {
   let opts = Object.assign({}, moreLessDefault(), { isNullable: false, isSrcValue: true }, options)
   return {
     format: void 0, // disable format() value by default
-    parse: void 0, // disable format() value by default
-    isValid: (s) => { return (s === void 0) ? opts.isNullable : true },
+    parseValue: void 0, // disable parse() value by default
+    isValid: (s) => (s === void 0) ? opts.isNullable : true,
     options: () => opts,
     resetOptions: () => {},
     doMore: () => {},
@@ -65,7 +65,7 @@ export const formatFloat = (options) => {
     isValid: (s) => {
       if (s === '' || s === void 0) return opts.isNullable
       if (typeof s === typeof 1) return isFinite(s)
-      if (typeof s === typeof 'string') return /^[-+]?[0-9]+(\.[0-9]+)?([eE][-+]?[0-9]+)?$/.test(s)
+      if (typeof s === typeof 'string') return /^[-+]?[0-9]+(\.[0-9]+)?([eE][-+]?[0-9]+)?$/.test(s.trim())
       return false
     },
     options: () => opts,
@@ -110,7 +110,7 @@ export const formatInt = (options) => {
     isValid: (s) => {
       if (s === '' || s === void 0) return opts.isNullable
       if (typeof s === typeof 1) return Number.isInteger(s)
-      if (typeof s === typeof 'string') return /^[-+]?[0-9]+$/.test(s)
+      if (typeof s === typeof 'string') return /^[-+]?[0-9]+$/.test(s.trim())
       return false
     },
     options: () => opts,

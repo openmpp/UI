@@ -45,13 +45,14 @@ export default {
       rowFields: [],
       otherFields: [],
       filterState: {},
-      inpData: [],
+      pvRef: 'pv-' + this.digest + '-' + this.paramName + '-' + this.runOrSet + '-' + this.nameDigest,
+      inpData: Object.freeze([]),
       ctrl: {
         isShowPvControls: true,
         isRowColNamesToggle: true,
         isPvTickle: false,
         isPvDimsTickle: false,
-        isPvValsTickle: false,
+        isPvFmtTickle: false,
         formatter: void 0,  // disable format() value by default
         formatOpts: void 0  // hide format controls by default
       },
@@ -60,26 +61,23 @@ export default {
         readValue: (r) => (!r.IsNull ? r.Value : (void 0)),
         processValue: Pcvt.asIsPval,  // default value processing: return as is
         formatValue: void 0,          // disable format() value by default
+        parseValue: void 0,           // disable parse() value by default
+        isValidValue: () => true,     // valid by default
         cellClass: 'pv-val-num'       // default cell value style: right justified number
       },
       pvKeyPos: [],   // position of each dimension item in cell key
-      pvSize: {
-        rowCount: 0,  // table row count, expected at least 1 if data not empty
-        colCount: 0,  // table coumns count, expected at least 1 if data not empty
-        valueLen: 0,  // max length of table body value as string
-      },
-      edt: {
-        isEnabled: false,
-        isEdit: false,
-        isUpdated: false,
-        cell: {
-          key: '',
-          value: '',
-          src: ''
-        },
-        updated: {},
-        history: [],
-        lastHistory: 0
+      edt: {          // editor options and state shared with child
+        isEnabled: false,       // if true then edit value
+        enums: [],              // array of [value, text] for enum kind of parameter
+        kind: Pcvt.EDIT_NUMBER, // numeric float or integer editor
+        // current editor state
+        isEdit: false,    // if true then edit in progress
+        isUpdated: false, // if true then cell value(s) updated
+        cellKey: '',      // current eidtor focus cell
+        cellValue: '',    // current eidtor input value
+        updated: {},      // updated cells
+        history: [],      // update history
+        lastHistory: 0    // length of update history, changed by undo-redo
       },
       multiSel: {
         dragging: false,
@@ -145,14 +143,14 @@ export default {
       if (!this.ctrl.formatter) return
       this.ctrl.formatter.doMore()
       this.pvc.formatValue = !this.ctrl.formatOpts.isSrcValue ? this.ctrl.formatter.format : void 0
-      this.ctrl.isPvValsTickle = !this.ctrl.isPvValsTickle
+      this.ctrl.isPvFmtTickle = !this.ctrl.isPvFmtTickle
     },
     // show less decimals or less details in table body
     showLessFormat () {
       if (!this.ctrl.formatter) return
       this.ctrl.formatter.doLess()
       this.pvc.formatValue = !this.ctrl.formatOpts.isSrcValue ? this.ctrl.formatter.format : void 0
-      this.ctrl.isPvValsTickle = !this.ctrl.isPvValsTickle
+      this.ctrl.isPvFmtTickle = !this.ctrl.isPvFmtTickle
     },
     // reset table view to default
     doResetView () {
@@ -167,9 +165,9 @@ export default {
     onPvKeyPos (kp) {
       this.pvKeyPos = kp
     },
-    onPvSize (size) {
-      this.pvSize = size
-    },
+
+    // start of editor methods
+    //
     // start or stop parameter editing
     doEditToogle () {
       if (this.edt.isEdit && this.edt.isUpdated) {
@@ -183,125 +181,36 @@ export default {
     onEditDiscardClosed (e) {
       if ((e.action || '') === 'accept') this.resetEdit() // question: "discard changes?", user answer: "yes"
     },
+
     // save if data editied
     doEditSave () {
       this.doSaveDataPage()
     },
-
-    // start cell edit: enter into input text
-    onCellKeyEnter (c) {
-      this.cellInputStart(c)
-    },
-    onCellDblClick (c) {
-      this.cellInputStart(c)
-    },
-    cellInputStart (c) {
-      this.edt.cell.key = c.cell.key
-      this.edt.cell.value = c.cell.value
-      this.edt.cell.src = c.cell.src
-
-      this.$nextTick(() => { this.$refs.cellInput.focus() })
-    },
-
-    // cancel input text edit by escape
-    onCellInputEscape () {
-      let ckey = this.edt.cell.key
-      this.edt.cell.key = ''
-
-      this.$nextTick(() => { if (this.$refs[ckey]) this.$refs[ckey].focus() })
-    },
-
-    // confirm input text edit: finish cell edit and keep focus at the same cell
-    onCellInputConfirm (evt, c) {
-      if (evt.target) {
-        this.cellInputConfirm((evt.target.value || ''), c) // event target must be input text
-      }
-      let ckey = this.edt.cell.key
-      this.edt.cell.key = ''
-      this.$nextTick(() => { if (this.$refs[ckey]) this.$refs[ckey].focus() })
-    },
-    // confirm input text edit by lost focus
-    onCellInputBlur (evt, c) {
-      if (evt.target) {
-        this.cellInputConfirm((evt.target.value || ''), c) // event target must be input text
-      }
-      this.edt.cell.key = ''
-    },
-    cellInputConfirm (val, c) {
-      // validate input
-      if (this.ctrl.formatter && !this.ctrl.formatter.isValid(val)) {
-        this.$refs.paramSnackbarMsg.doOpen({labelText: 'Ivalid (or empty) value entered'})
-        return
-      }  
-
-      // compare input value with previous
-      const now = !!this.ctrl.formatter && !!this.ctrl.formatter.parse ? this.ctrl.formatter.parse(val) : val
-      const prev = this.edt.updated.hasOwnProperty(c.cell.key) ? this.edt.updated[c.cell.key] : c.cell.src
-
-      if (now === prev || (now === '' && prev === void 0)) return // exit if value not changed
-
-      // store updated value and append it change history
-      this.edt.updated[c.cell.key] = now
-      this.edt.isUpdated = true
-
-      if (this.edt.lastHistory < this.edt.history.length) {
-        this.edt.history.splice(this.edt.lastHistory)
-      }
-      this.edt.history.push({
-        key: c.cell.key,
-        now: now,
-        prev: prev
-      })
-      this.edt.lastHistory = this.edt.history.length
-    },
-
     // undo last edit changes
-    doUndo () {
-      if (this.edt.lastHistory <= 0) return // exit: entire history already undone
-
-      let n = --this.edt.lastHistory
-      let key = this.edt.history[n].key
-
-      let isPrev = false
-      for (let k = 0; !isPrev && k < n; k++) {
-        isPrev = this.edt.history[k].key === key
-      }
-      if (isPrev) {
-        this.edt.updated[key] = this.edt.history[n].prev
-      } else {
-        delete this.edt.updated[key]
-        this.edt.isUpdated = !!this.edt.updated && this.edt.lastHistory > 0
-      }
+    onUndo () {
+      this.$refs[this.pvRef].doUndo()
     },
-    // redo most recent undo
-    doRedo () {
-      if (this.edt.lastHistory >= this.edt.history.length) return // exit: already at the end of history
+    onRedo () {
+      this.$refs[this.pvRef].doRedo()
+    },
 
-      let n = this.edt.lastHistory++
-      this.edt.updated[this.edt.history[n].key] = this.edt.history[n].now
-      this.edt.isUpdated = true
+    // show message, ex: "invalid value entered"
+    onPvMessage (msg) {
+      this.$refs.paramSnackbarMsg.doOpen({labelText: msg})
     },
 
     // clean edit state and history
     resetEdit () {
       this.edt.isEdit = false
       this.edt.isUpdated = false
-      this.edt.cell.key = ''
-      this.edt.cell.value = ''
-      this.edt.cell.src = ''
+      this.edt.cellKey = ''
+      this.edt.cellValue = ''
       this.edt.updated = {}
       this.edt.history = []
       this.edt.lastHistory = 0
     },
-
-    // return updated cell value or default if value not updated
-    getUpdatedSrc(key, defaultSrc) {
-      return this.edt.isUpdated && this.edt.updated.hasOwnProperty(key) ? this.edt.updated[key] : defaultSrc
-    },
-    getUpdatedValue(key, defaultVal) {
-      if (!this.edt.isUpdated || !this.edt.updated.hasOwnProperty(key)) return defaultVal
-      return !!this.pvc.formatValue ? this.pvc.formatValue(this.edt.updated[key]) : this.edt.updated[key]
-    },
+    //
+    // end of editor methods
 
     onDrag () {
       // drag started
@@ -392,7 +301,6 @@ export default {
       this.pvc.isRowColNames = isRc
       this.ctrl.isRowColNamesToggle = isRc
       this.ctrl.isShowPvControls = isRc
-      this.pvSize = { rowCount: 0, colCount: 0, valueLen: 0 }
       this.pvKeyPos = []
 
       // make dimensions:
@@ -447,6 +355,8 @@ export default {
       this.pvc.cellClass = 'pv-val-num' // numeric cell value style by default
       this.ctrl.formatter = Pcvt.formatDefault({isNullable: this.isNullable})
       this.ctrl.formatOpts = void 0
+      this.edt.kind = Pcvt.EDIT_NUMBER
+      this.edt.enums = []
 
       if (Mdf.isBuiltIn(this.paramType.Type)) {
         if (Mdf.isFloat(this.paramType.Type)) {
@@ -461,25 +371,35 @@ export default {
           this.pvc.processValue = Pcvt.asBoolPval
           this.pvc.cellClass = 'pv-val-center'
           this.ctrl.formatter = Pcvt.formatBool()
+          this.edt.kind = Pcvt.EDIT_BOOL
         }
         if (Mdf.isString(this.paramType.Type)) {
           this.pvc.cellClass = 'pv-val-text' // no process or format value required for string type
+          this.edt.kind = Pcvt.EDIT_STRING
         }
       } else {
         // if parameter is enum-based then value is integer enum id and format(value) should return enum description to display
         const t = this.paramType
+        this.edt.enums = Array(t.TypeEnumTxt.length)
         let enumLabels = {}
         for (let j = 0; j < t.TypeEnumTxt.length; j++) {
           let eId = t.TypeEnumTxt[j].Enum.EnumId
-          enumLabels[eId] = Mdf.enumDescrOrCodeById(t, eId) || t.TypeEnumTxt[j].Enum.Name || eId.toString()
+          this.edt.enums[j] =  {
+            value: eId,
+            text: Mdf.enumDescrOrCodeById(t, eId) || t.TypeEnumTxt[j].Enum.Name || eId.toString()
+          }
+          enumLabels[eId] = this.edt.enums[j].text
         }
         this.pvc.processValue = Pcvt.asIntPval
         this.ctrl.formatter = Pcvt.formatEnum({labels: enumLabels})
         this.pvc.cellClass = 'pv-val-text'
+        this.edt.kind = Pcvt.EDIT_ENUM
       }
 
       this.ctrl.formatOpts = this.ctrl.formatter.options()
       this.pvc.formatValue = !this.ctrl.formatOpts.isSrcValue ? this.ctrl.formatter.format : void 0
+      this.pvc.parseValue = this.ctrl.formatter.parse
+      this.pvc.isValidValue = this.ctrl.formatter.isValid
 
       // set columns layout and refresh the data
       this.setDefaultPageView()

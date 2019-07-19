@@ -24,13 +24,13 @@
         class="cell-icon-empty material-icons" title="Save" alt="Save">save</span>
 
       <span v-if="edt.lastHistory > 0"
-        @click="doUndo()"
+        @click="onUndo()"
         class="cell-icon-link material-icons" alt="Undo: Ctrl+Z" title="Undo: Ctrl+Z">undo</span>
       <span v-else
         class="cell-icon-empty material-icons" alt="Undo: Ctrl+Z" title="Undo: Ctrl+Z">undo</span>
 
       <span v-if="edt.lastHistory < edt.history.length"
-        @click="doRedo()"
+        @click="onRedo()"
         class="cell-icon-link material-icons" alt="Redo: Ctrl+Y" title="Redo: Ctrl+Y">redo</span>
       <span v-else
         class="cell-icon-empty material-icons" alt="Redo: Ctrl+Y" title="Redo: Ctrl+Y">redo</span>
@@ -160,6 +160,7 @@
       </draggable>
 
       <pv-table
+        :ref="pvRef"
         :rowFields="rowFields"
         :colFields="colFields"
         :otherFields="otherFields"
@@ -167,35 +168,11 @@
         :pv-control="pvc"
         :refreshTickle="ctrl.isPvTickle"
         :refreshDimsTickle="ctrl.isPvDimsTickle"
-        :refreshValuesTickle="ctrl.isPvValsTickle"
-        :isEditEnabled="edt.isEnabled"
+        :refreshFormatTickle="ctrl.isPvFmtTickle"
+        :pv-edit="edt"
         @pv-key-pos="onPvKeyPos"
-        @pv-size="onPvSize"
+        @pv-message="onPvMessage"
         >
-        <template v-if="edt.isEdit" #cell="c">
-          <span v-if="c.cell.key !== edt.cell.key"
-            :ref="c.cell.key"
-            @keydown.enter="onCellKeyEnter(c)"
-            @dblclick="onCellDblClick(c)"
-            @keyup.ctrl.90="doUndo"
-            @keyup.ctrl.89="doRedo"
-            tabindex="0"
-            role="button"
-            class="pv-cell-view"
-            >&nbsp;{{getUpdatedValue(c.cell.key, c.cell.value)}}</span>
-          <input v-else
-            type="text"
-            ref="cellInput"
-            @keydown.enter="onCellInputConfirm($event, c)"
-            @dblclick="onCellInputConfirm($event, c)"
-            @blur="onCellInputBlur($event, c)"
-            @keydown.esc="onCellInputEscape"
-            tabindex="0"
-            role="button"
-            class="pv-cell-input mdc-typography--body1"
-            :size="pvSize.valueLen"
-            :value="getUpdatedSrc(c.cell.key, c.cell.src)" />
-        </template>
       </pv-table>
 
     </div> <!-- pv-panel -->
@@ -333,18 +310,5 @@
   vertical-align: middle;
   @extend .mdc-theme--on-primary;
   @extend .mdc-theme--primary-bg;
-}
-
-// table body cell: readonly view, input text
-.pv-cell-view {
-  width: 100%;
-  height: 100%;
-  display: inline-block;
-}
-.pv-cell-input {
-  font-size: 0.875rem;
-  border: 0;
-  padding: 0px 1px;
-  background-color: #e6e6e6;
 }
 </style>

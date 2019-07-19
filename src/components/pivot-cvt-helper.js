@@ -1,7 +1,15 @@
 // pivot table value processing: helper functions
 
+/* eslint-disable no-multi-spaces */
+// editor type
+export const EDIT_STRING = 0  // input type text
+export const EDIT_NUMBER = 1  // input type text for float or integer
+export const EDIT_BOOL = 2    // checkbox for boolean values
+export const EDIT_ENUM = 3    // select drop-down for enum [id, label] list
+
 export const PV_KEY_ITEM_SEP = String.fromCharCode(1) + '-'
 export const PV_KEY_SCALAR = 'SCALAR_KEY'
+/* eslint-enable no-multi-spaces */
 
 // make row, column or body value key as join of row or column dimension items
 export const itemsToKey = (items) => items.join(PV_KEY_ITEM_SEP)

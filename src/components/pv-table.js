@@ -26,7 +26,9 @@ pvControl: {
   isRowColNames: true/false, if true then show row and column field label
   readValue():   function expected to return table cell value
   processValue:  functions are used to aggregate cell value(s)
-  formatValue:   function (if defined) is used to convert cell value to string
+  formatValue:   function (if defined) to convert cell value to string
+  parseValue:    function (if defined) to convert cell string to value, ex: parseFloat(), used by editor only
+  isValidValue:  function to validate cell value, used by editor only
 
   readValue(): function, example:
     readValue: (r) => (!r.IsNull ? r.Value : (void 0))
@@ -59,12 +61,13 @@ refreshDimsTickle: watch true/false, on change dimension properties updated
     refreshDimsTickle = !refreshDimsTickle
   after dimension arrays initialized (after init of: rowFields[], colFields[], otherFields[])
 
-refreshValuesTickle: watch true/false, on change body cells value updated
+refreshFormatTickle: watch true/false, on change body cells formatted value updated
   it is recommended to set
-    refreshValuesTickle = !refreshValuesTickle
+    refreshFormatTickle = !refreshFormatTickle
   after format options updated
 */
 
+import OmMcwSnackbar from '@/om-mcw/OmMcwSnackbar'
 import * as Pcvt from './pivot-cvt'
 
 export default {
@@ -83,6 +86,8 @@ export default {
         readValue: (r) => (!r.IsNull ? r.Value : (void 0)),
         processValue: Pcvt.asIsPval,  // default value processing: return as is
         formatValue: void 0,          // disable format() value by default
+        parseValue: void 0,           // disable parse() value by default
+        isValidValue: () => true,     // valid by default
         cellClass: 'pv-val-num'       // default cell value style: right justified number
       })
     },
@@ -90,12 +95,27 @@ export default {
       type: Boolean, required: true // on refreshTickle change pivot table view updated
     },
     refreshDimsTickle: {
-      type: Boolean, required: true // on refreshDimsTickle change enum labels updated
+      type: Boolean, required: true // on refreshDimsTickle change items labels updated
     },
-    refreshValuesTickle: {
-      type: Boolean, required: true // on refreshValuesTickle change cell values updated
+    refreshFormatTickle: {
+      type: Boolean, required: true // on refreshFormatTickle change cell values updated
     },
-    isEditEnabled: { type: Boolean, default: false } // if true then edit value
+    pvEdit: { // editor options and state shared with parent
+      type: Object,
+      default: () => ({
+        isEnabled: false,       // if true then edit value
+        enums: [],              // array of [value, text] for enum kind of parameter
+        kind: Pcvt.EDIT_NUMBER, // numeric float or integer editor
+        // current editor state
+        isEdit: false,    // if true then edit in progress
+        isUpdated: false, // if true then cell value(s) updated
+        cellKey: '',      // current eidtor focus cell
+        cellValue: '',    // current eidtor input value
+        updated: {},      // updated cells
+        history: [],      // update history
+        lastHistory: 0    // length of update history, changed by undo-redo
+      })
+    },
   },
 
   data () {
@@ -103,15 +123,15 @@ export default {
       pvt: {
         rowCount: 0,  // table size: number of rows
         colCount: 0,  // table size: number of columns
-        rows: [],     // for each row:    array of item keys
-        cols: [],     // for each column: array of item keys
-        rowKeys: [],  // for each table row:    itemsToKey(rows[i])
-        colKeys: [],  // for each table column: itemsToKey(cols[j])
-        cells: {},    // body cells values, object key: cellKey
-        cellKeys: [], // keys of table body values ordered by [row index, column index]
         labels: {},   // row, column, other dimensions item labels, key: {dimensionName, itemCode}
-        rowSpans: {}, // row span for each row label
-        colSpans: {}  // column span for each column label
+        rows: Object.freeze([]),      // for each row:    array of item keys
+        cols: Object.freeze([]),      // for each column: array of item keys
+        rowKeys: Object.freeze([]),   // for each table row:    itemsToKey(rows[i])
+        colKeys: Object.freeze([]),   // for each table column: itemsToKey(cols[j])
+        cells: Object.freeze({}),     // body cells value, object key: cellKey
+        cellKeys: Object.freeze([]),  // keys of table body values ordered by [row index, column index]
+        rowSpans: Object.freeze({}),  // row span for each row label
+        colSpans: Object.freeze({})   // column span for each column label
       },
       keyPos: [],         // position of each dimension item in cell key
       valueLen: 0,        // value input text size
@@ -125,18 +145,151 @@ export default {
       this.setData(this.pvData)
     },
     refreshDimsTickle () {
-      this.setDimEnumLabels()
+      this.setDimItemLabels()
     },
-    refreshValuesTickle () {
+    refreshFormatTickle () {
+      let vcells = {}
       for (const bkey in this.pvt.cells) {
-        this.pvt.cells[bkey].value = this.pvControl.formatValue ? this.pvControl.formatValue(this.pvt.cells[bkey].src) : this.pvt.cells[bkey].src
+        let src = this.pvt.cells[bkey].src
+        vcells[bkey] = { src: src, fmt: this.pvControl.formatValue ? this.pvControl.formatValue(src) : src }
       }
+      this.pvt.cells = Object.freeze(vcells)
     }
   },
 
   methods: {
-    // set enum labels for all dimensions: rows, columns, other
-    setDimEnumLabels () {
+    // start of editor methods
+    //
+    // start cell edit: enter into input control
+    onCellKeyEnter (key) {
+      this.cellInputStart(key)
+    },
+    onCellDblClick (key) {
+      this.cellInputStart(key)
+    },
+    cellInputStart (key) {
+      this.pvEdit.cellKey = key
+      this.pvEdit.cellValue = this.getUpdatedSrc(key)
+      this.$nextTick(() => {
+        if (this.$refs[key] && (this.$refs[key].length || 0) > 0) this.$refs[key][0].focus()
+      })
+    },
+
+    // cancel input edit by escape
+    onCellInputEscape () {
+      const ckey = this.pvEdit.cellKey
+      this.$nextTick(() => {
+        this.$nextTick(() => {
+          if (this.$refs[ckey] && (this.$refs[ckey].length || 0) > 0) this.$refs[ckey][0].focus()
+        })
+      })
+      this.pvEdit.cellKey = ''
+      this.pvEdit.cellValue = ''
+    },
+
+    // confirm input edit: finish cell edit and keep focus at the same cell
+    onCellInputConfirm () {
+      const ckey = this.pvEdit.cellKey
+      this.cellInputConfirm(this.pvEdit.cellValue, ckey)
+      this.$nextTick(() => {
+        this.$nextTick(() => {
+          if (this.$refs[ckey] && (this.$refs[ckey].length || 0) > 0) this.$refs[ckey][0].focus()
+        })
+      })
+      this.pvEdit.cellKey = ''
+      this.pvEdit.cellValue = ''
+    },
+    // confirm input edit by lost focus
+    onCellInputBlur () {
+      const ckey = this.pvEdit.cellKey
+      this.cellInputConfirm(this.pvEdit.cellValue, ckey)
+      this.pvEdit.cellKey = ''
+      this.pvEdit.cellValue = ''
+    },
+
+    // confirm input edit: validate and save cnges in edit history
+    cellInputConfirm (val, key) {
+      // validate input
+      if (!this.pvControl.isValidValue(val)) {
+        this.$emit('pv-message', 'Ivalid (or empty) value entered')
+        return
+      }  
+
+      // compare input value with previous
+      const now = !!this.pvControl.parseValue ? this.pvControl.parseValue(val) : val
+      const prev = this.pvEdit.updated.hasOwnProperty(key) ? this.pvEdit.updated[key] : this.pvt.cells[key].src
+
+      if (now === prev || (now === '' && prev === void 0)) return // exit if value not changed
+
+      // store updated value and append it change history
+      this.pvEdit.updated[key] = now
+      this.pvEdit.isUpdated = true
+
+      if (this.pvEdit.lastHistory < this.pvEdit.history.length) {
+        this.pvEdit.history.splice(this.pvEdit.lastHistory)
+      }
+      this.pvEdit.history.push({
+        key: key,
+        now: now,
+        prev: prev
+      })
+      this.pvEdit.lastHistory = this.pvEdit.history.length
+    },
+
+    // return updated cell value or default if value not updated
+    getUpdatedSrc(key) {
+      return this.pvEdit.isUpdated && this.pvEdit.updated.hasOwnProperty(key) ? this.pvEdit.updated[key] : this.pvt.cells[key].src
+    },
+    getUpdatedFmt(key) {
+      if (!this.pvEdit.isUpdated || !this.pvEdit.updated.hasOwnProperty(key)) return this.pvt.cells[key].fmt
+      return !!this.pvControl.formatValue ? this.pvControl.formatValue(this.pvEdit.updated[key]) : this.pvEdit.updated[key]
+    },
+
+    // undo last edit changes
+    doUndo () {
+      if (this.pvEdit.lastHistory <= 0) return // exit: entire history already undone
+
+      let n = --this.pvEdit.lastHistory
+      let key = this.pvEdit.history[n].key
+
+      let isPrev = false
+      for (let k = 0; !isPrev && k < n; k++) {
+        isPrev = this.pvEdit.history[k].key === key
+      }
+      if (isPrev) {
+        this.pvEdit.updated[key] = this.pvEdit.history[n].prev
+      } else {
+        delete this.pvEdit.updated[key]
+        this.pvEdit.isUpdated = !!this.pvEdit.updated && this.pvEdit.lastHistory > 0
+      }
+      this.updatedNextTick(key)
+    },
+    // redo most recent undo
+    doRedo () {
+      if (this.pvEdit.lastHistory >= this.pvEdit.history.length) return // exit: already at the end of history
+
+      let n = this.pvEdit.lastHistory++
+      let key = this.pvEdit.history[n].key
+      this.pvEdit.updated[key] = this.pvEdit.history[n].now
+      this.pvEdit.isUpdated = true
+
+      this.updatedNextTick(key)
+    },
+    // show updated cell value
+    updatedNextTick (key) {
+      this.$nextTick(() => {
+        if (this.$refs[key] && (this.$refs[key].length || 0) === 1) {
+          let v = this.getUpdatedFmt(key)
+          this.$refs[key][0].textContent = (v !== void 0 && v !== '') ? v : '\u00a0'
+          this.$refs[key][0].focus()
+        }
+      })
+    },
+    //
+    // end of editor methods
+
+    // set item labels for for all dimensions: rows, columns, other
+    setDimItemLabels () {
       const makeLabels = (dims) => {
         for (let f of dims) {
           let ls = {}
@@ -155,8 +308,8 @@ export default {
       makeLabels(this.otherFields)
     },
 
-    // get enum label by dimension name and enum value
-    getDimEnumLabel (dimName, enumValue) {
+    // get enum label by dimension name and enum item value
+    getDimItemLabel (dimName, enumValue) {
       return this.pvt.labels.hasOwnProperty(dimName) ? (this.pvt.labels[dimName][enumValue] || '') : ''
     },
 
@@ -165,14 +318,14 @@ export default {
       // clean existing view
       this.pvt.rowCount = 0
       this.pvt.colCount = 0
-      this.pvt.rows = []
-      this.pvt.cols = []
-      this.pvt.rowKeys = []
-      this.pvt.colKeys = []
-      this.pvt.cells = {}
-      this.pvt.cellKeys = []
-      this.pvt.rowSpans = {}
-      this.pvt.colSpans = {}
+      this.pvt.rows = Object.freeze([])
+      this.pvt.cols = Object.freeze([])
+      this.pvt.rowKeys = Object.freeze([])
+      this.pvt.colKeys = Object.freeze([])
+      this.pvt.cells = Object.freeze({})
+      this.pvt.cellKeys = Object.freeze([])
+      this.pvt.rowSpans = Object.freeze({})
+      this.pvt.colSpans = Object.freeze({})
       this.keyPos = []
       this.valueLen = 0
       this.isSizeUpdate = false
@@ -291,16 +444,16 @@ export default {
         let bkey = isScalar ? Pcvt.PV_KEY_SCALAR : Pcvt.itemsToKey(b)
         if (!vstate.hasOwnProperty(bkey)) {
           vstate[bkey] = this.pvControl.processValue.init()
-          vcells[bkey] = {key: bkey, src: v, value: void 0}
+          vcells[bkey] = { src: void 0, fmt: void 0 }
         }
         if (v !== void 0 || v !== null) {
           vcells[bkey].src = this.pvControl.processValue.doNext(v, vstate[bkey])
         }
       }
 
-      // if format() not empty then format values
+      // if format() not empty then format values else use source value as formatted value
       for (const bkey in vcells) {
-        vcells[bkey].value = this.pvControl.formatValue ? this.pvControl.formatValue(vcells[bkey].src) : vcells[bkey].src
+        vcells[bkey].fmt = this.pvControl.formatValue ? this.pvControl.formatValue(vcells[bkey].src) : vcells[bkey].src
       }
 
       // sort row keys and column keys in the order of dimension items
@@ -345,17 +498,6 @@ export default {
 
       let rsp = itemSpans(rowKeyLen, vrows)
       let csp = itemSpans(colKeyLen, vcols)
-
-      // max length of cell value as string
-      let valLen = 0
-      if (this.isEditEnabled) {
-        for (const bkey in vcells) {
-          if (vcells[bkey].src !== void 0) {
-            let n = (vcells[bkey].src.toString() || '').length
-            if (valLen < n) valLen = n
-          }
-        }
-      }
 
       // sorted keys: row keys, column keys, body value keys
       const rowCount = vrows.length
@@ -419,8 +561,8 @@ export default {
       this.pvt.rowSpans = Object.freeze(rsp)
       this.pvt.colSpans = Object.freeze(csp)
       this.keyPos = nkp
-      this.valueLen = valLen
-      this.isSizeUpdate = this.isEditEnabled // update size only if edit value enabled
+      this.valueLen = 0
+      this.isSizeUpdate = this.pvEdit.isEnabled // update size only if edit value enabled
 
       this.$emit('pv-key-pos', this.keyPos)
     }
@@ -428,6 +570,16 @@ export default {
 
   updated () {
     if (!this.isSizeUpdate) return // size update not required
+
+    // max length of cell value as string
+    let ml = 0
+    for (const bkey in this.pvt.cells) {
+      if (this.pvt.cells[bkey].src !== void 0) {
+        let n = (this.pvt.cells[bkey].src.toString() || '').length
+        if (ml < n) ml = n
+      }
+    }
+    if (this.valueLen < ml) this.valueLen = ml
 
     // find max column client width
     let mw = 0
@@ -452,18 +604,16 @@ export default {
       }
     }
 
-    // estimate input text size and send to parent
+    // adjust input text size based on clientWidth
     if (mw) {
       let nc = Math.floor((mw - 9) / 9) - 1
       if (this.valueLen < nc) this.valueLen = nc
     }
-
-    this.$emit('pv-size', { rowCount: this.pvt.rowCount, colCount: this.pvt.colCount, valueLen: this.valueLen })
     this.isSizeUpdate = false
   },
 
   mounted () {
-    this.setDimEnumLabels()
+    this.setDimItemLabels()
     this.setData(this.pvData)
   }
 }
