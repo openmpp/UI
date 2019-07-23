@@ -53,17 +53,14 @@ export default {
         isPvTickle: false,
         isPvDimsTickle: false,
         isPvFmtTickle: false,
-        formatter: void 0,  // disable format() value by default
         formatOpts: void 0  // hide format controls by default
       },
       pvc: {
         isRowColNames: true,
         readValue: (r) => (!r.IsNull ? r.Value : (void 0)),
-        processValue: Pcvt.asIsPval,  // default value processing: return as is
-        formatValue: void 0,          // disable format() value by default
-        parseValue: void 0,           // disable parse() value by default
-        isValidValue: () => true,     // valid by default
-        cellClass: 'pv-val-num'       // default cell value style: right justified number
+        processValue: Pcvt.asIsPval,    // default value processing: return as is
+        formatter: Pcvt.formatDefault,  // disable format(), parse() and validation by default
+        cellClass: 'pv-val-num'         // default cell value style: right justified number
       },
       pvKeyPos: [],   // position of each dimension item in cell key
       edt: {          // editor options and state shared with child
@@ -140,23 +137,20 @@ export default {
     },
     // show more decimals or more details in table body
     showMoreFormat () {
-      if (!this.ctrl.formatter) return
-      this.ctrl.formatter.doMore()
-      this.pvc.formatValue = !this.ctrl.formatOpts.isSrcValue ? this.ctrl.formatter.format : void 0
+      if (!this.pvc.formatter) return
+      this.pvc.formatter.doMore()
       this.ctrl.isPvFmtTickle = !this.ctrl.isPvFmtTickle
     },
     // show less decimals or less details in table body
     showLessFormat () {
-      if (!this.ctrl.formatter) return
-      this.ctrl.formatter.doLess()
-      this.pvc.formatValue = !this.ctrl.formatOpts.isSrcValue ? this.ctrl.formatter.format : void 0
+      if (!this.pvc.formatter) return
+      this.pvc.formatter.doLess()
       this.ctrl.isPvFmtTickle = !this.ctrl.isPvFmtTickle
     },
     // reset table view to default
     doResetView () {
-      if (this.ctrl.formatter) {
-        this.ctrl.formatter.resetOptions()
-        this.pvc.formatValue = !this.ctrl.formatOpts.isSrcValue ? this.ctrl.formatter.format : void 0
+      if (this.pvc.formatter) {
+        this.pvc.formatter.resetOptions()
       }
       this.setDefaultPageView()
       this.doRefreshDataPage()
@@ -351,9 +345,8 @@ export default {
       //  if parameter type is one of built-in then process and format value as float, int, boolen or string
       //  else parameter type is enum-based: process and format value as int enum id
       this.pvc.processValue = Pcvt.asIsPval
-      this.pvc.formatValue = void 0 // disable format() value by default
+      this.pvc.formatter = Pcvt.formatDefault({isNullable: this.isNullable})
       this.pvc.cellClass = 'pv-val-num' // numeric cell value style by default
-      this.ctrl.formatter = Pcvt.formatDefault({isNullable: this.isNullable})
       this.ctrl.formatOpts = void 0
       this.edt.kind = Pcvt.EDIT_NUMBER
       this.edt.enums = []
@@ -361,16 +354,16 @@ export default {
       if (Mdf.isBuiltIn(this.paramType.Type)) {
         if (Mdf.isFloat(this.paramType.Type)) {
           this.pvc.processValue = Pcvt.asFloatPval
-          this.ctrl.formatter = Pcvt.formatFloat({isNullable: this.isNullable, nDecimal: -1, groupSep: ','}) // decimal: -1 is to show source float value
+          this.pvc.formatter = Pcvt.formatFloat({isNullable: this.isNullable, nDecimal: -1, groupSep: ','}) // decimal: -1 is to show source float value
         }
         if (Mdf.isInt(this.paramType.Type)) {
           this.pvc.processValue = Pcvt.asIntPval
-          this.ctrl.formatter = Pcvt.formatInt({isNullable: this.isNullable, groupSep: ','})
+          this.pvc.formatter = Pcvt.formatInt({isNullable: this.isNullable, groupSep: ','})
         }
         if (Mdf.isBool(this.paramType.Type)) {
           this.pvc.processValue = Pcvt.asBoolPval
           this.pvc.cellClass = 'pv-val-center'
-          this.ctrl.formatter = Pcvt.formatBool()
+          this.pvc.formatter = Pcvt.formatBool()
           this.edt.kind = Pcvt.EDIT_BOOL
         }
         if (Mdf.isString(this.paramType.Type)) {
@@ -391,15 +384,12 @@ export default {
           enumLabels[eId] = this.edt.enums[j].text
         }
         this.pvc.processValue = Pcvt.asIntPval
-        this.ctrl.formatter = Pcvt.formatEnum({labels: enumLabels})
+        this.pvc.formatter = Pcvt.formatEnum({labels: enumLabels})
         this.pvc.cellClass = 'pv-val-text'
         this.edt.kind = Pcvt.EDIT_ENUM
       }
 
-      this.ctrl.formatOpts = this.ctrl.formatter.options()
-      this.pvc.formatValue = !this.ctrl.formatOpts.isSrcValue ? this.ctrl.formatter.format : void 0
-      this.pvc.parseValue = this.ctrl.formatter.parse
-      this.pvc.isValidValue = this.ctrl.formatter.isValid
+      this.ctrl.formatOpts = this.pvc.formatter.options()
 
       // set columns layout and refresh the data
       this.setDefaultPageView()

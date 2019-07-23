@@ -16,9 +16,9 @@ export const moreLessDefault = () => ({
 export const formatDefault = (options) => {
   let opts = Object.assign({}, moreLessDefault(), { isNullable: false, isSrcValue: true }, options)
   return {
-    format: void 0, // disable format() value by default
-    parseValue: void 0, // disable parse() value by default
-    isValid: (s) => (s === void 0) ? opts.isNullable : true,
+    format: (val) => val, // disable format() value by default
+    parse: (s) => s, // disable parse() value by default
+    isValid: (s) => true, // disable validation by default
     options: () => opts,
     resetOptions: () => {},
     doMore: () => {},
@@ -56,9 +56,11 @@ export const formatFloat = (options) => {
 
   return {
     format: (val) => {
+      if (opts.isSrcValue) return val // return source value
       return formatNumber.format(val, opts)
     },
     parse: (s) => {
+      if (s === '' || s === void 0) return void 0
       const v = parseFloat(s)
       return !isNaN(v) ? v : void 0
     },
@@ -101,9 +103,11 @@ export const formatInt = (options) => {
   let opts = Object.assign({}, formatNumber.makeOpts(options), {nDecimal: 0, maxDecimal: 0}, moreOrLess.makeDefault())
   return {
     format: (val) => {
+      if (opts.isSrcValue) return val // return source value
       return formatNumber.format(val, opts)
     },
     parse: (s) => {
+      if (s === '' || s === void 0) return void 0
       const v = parseInt(s, 10)
       return !isNaN(v) ? v : void 0
     },
@@ -133,9 +137,11 @@ export const formatEnum = (options) => {
 
   return {
     format: (val) => {
+      if (opts.isSrcValue) return val // return source value
       return (val !== void 0 && val !== null) ? opts.labels[val] || val : ''
     },
     parse: (s) => {
+      if (s === '' || s === void 0) return void 0
       const v = parseInt(s, 10)
       return !isNaN(v) ? v : void 0
     },
@@ -163,6 +169,7 @@ export const formatBool = (options) => {
 
   return {
     format: (val) => {
+      if (opts.isSrcValue) return val // return source value
       return (val !== void 0 && val !== null) ? (val ? '\u2713' : 'x') || val : ''
     },
     parse: (s) => {

@@ -26,9 +26,11 @@ pvControl: {
   isRowColNames: true/false, if true then show row and column field label
   readValue():   function expected to return table cell value
   processValue:  functions are used to aggregate cell value(s)
-  formatValue:   function (if defined) to convert cell value to string
-  parseValue:    function (if defined) to convert cell string to value, ex: parseFloat(), used by editor only
-  isValidValue:  function to validate cell value, used by editor only
+  formatter: {
+    format():   function (if defined) to convert cell value to string
+    parse():    function (if defined) to convert cell string to value, ex: parseFloat(), used by editor only
+    isValid():  function to validate cell value, used by editor only
+  }
 
   readValue(): function, example:
     readValue: (r) => (!r.IsNull ? r.Value : (void 0))
@@ -45,10 +47,6 @@ pvControl: {
       }
     }
     default processValue{} return value as is, (no conversion or aggregation)
-
-  formatValue(): function to convert cell value to display output, example:
-      formatValue: (val) => (val.toFixed(2))
-  if formatValue() undefined and it is not called
 }
 
 refreshTickle: watch true/false, on change pivot table view updated
@@ -82,13 +80,11 @@ export default {
     pvControl: {
       type: Object,
       default: () => ({
-        isRowColNames: false,         // if true then show row and column field names
+        isRowColNames: false,           // if true then show row and column field names
         readValue: (r) => (!r.IsNull ? r.Value : (void 0)),
-        processValue: Pcvt.asIsPval,  // default value processing: return as is
-        formatValue: void 0,          // disable format() value by default
-        parseValue: void 0,           // disable parse() value by default
-        isValidValue: () => true,     // valid by default
-        cellClass: 'pv-val-num'       // default cell value style: right justified number
+        processValue: Pcvt.asIsPval,    // default value processing: return as is
+        formatter: Pcvt.formatDefault,  // disable format(), parse() and validation by default
+        cellClass: 'pv-val-num'         // default cell value style: right justified number
       })
     },
     refreshTickle: {
@@ -151,7 +147,7 @@ export default {
       let vcells = {}
       for (const bkey in this.pvt.cells) {
         let src = this.pvt.cells[bkey].src
-        vcells[bkey] = { src: src, fmt: this.pvControl.formatValue ? this.pvControl.formatValue(src) : src }
+        vcells[bkey] = { src: src, fmt: this.pvControl.formatter.format(src) }
       }
       this.pvt.cells = Object.freeze(vcells)
     }
@@ -210,13 +206,13 @@ export default {
     // confirm input edit: validate and save cnges in edit history
     cellInputConfirm (val, key) {
       // validate input
-      if (!this.pvControl.isValidValue(val)) {
+      if (!this.pvControl.formatter.isValid(val)) {
         this.$emit('pv-message', 'Ivalid (or empty) value entered')
         return
       }  
 
       // compare input value with previous
-      const now = !!this.pvControl.parseValue ? this.pvControl.parseValue(val) : val
+      const now = this.pvControl.formatter.parse(val)
       const prev = this.pvEdit.updated.hasOwnProperty(key) ? this.pvEdit.updated[key] : this.pvt.cells[key].src
 
       if (now === prev || (now === '' && prev === void 0)) return // exit if value not changed
@@ -241,8 +237,7 @@ export default {
       return this.pvEdit.isUpdated && this.pvEdit.updated.hasOwnProperty(key) ? this.pvEdit.updated[key] : this.pvt.cells[key].src
     },
     getUpdatedFmt(key) {
-      if (!this.pvEdit.isUpdated || !this.pvEdit.updated.hasOwnProperty(key)) return this.pvt.cells[key].fmt
-      return !!this.pvControl.formatValue ? this.pvControl.formatValue(this.pvEdit.updated[key]) : this.pvEdit.updated[key]
+      return this.pvEdit.isUpdated && this.pvEdit.updated.hasOwnProperty(key) ? this.pvControl.formatter.format(this.pvEdit.updated[key]) : this.pvt.cells[key].fmt
     },
 
     // undo last edit changes
@@ -453,7 +448,7 @@ export default {
 
       // if format() not empty then format values else use source value as formatted value
       for (const bkey in vcells) {
-        vcells[bkey].fmt = this.pvControl.formatValue ? this.pvControl.formatValue(vcells[bkey].src) : vcells[bkey].src
+        vcells[bkey].fmt = this.pvControl.formatter.format(vcells[bkey].src)
       }
 
       // sort row keys and column keys in the order of dimension items
