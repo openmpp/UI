@@ -100,7 +100,6 @@ export default {
       type: Object,
       default: () => ({
         isEnabled: false,       // if true then edit value
-        enums: [],              // array of [value, text] for enum kind of parameter
         kind: Pcvt.EDIT_NUMBER, // numeric float or integer editor
         // current editor state
         isEdit: false,    // if true then edit in progress
@@ -275,10 +274,31 @@ export default {
       this.$nextTick(() => {
         if (this.$refs[key] && (this.$refs[key].length || 0) === 1) {
           let v = this.getUpdatedFmt(key)
-          this.$refs[key][0].textContent = (v !== void 0 && v !== '') ? v : '\u00a0'
+          this.$refs[key][0].textContent = (v !== void 0 && v !== '') ? v : '\u00a0' // value or &nbsp;
           this.$refs[key][0].focus()
         }
       })
+    },
+
+    // arrows navigation
+    onLeftArrow(nRow, nCol) {
+      if (nCol > 0) this.focusToRowCol(nRow, nCol - 1)
+    },
+    onRightArrow(nRow, nCol) {
+      if (nCol < this.pvt.colCount - 1) this.focusToRowCol(nRow, nCol + 1)
+    },
+    onDownArrow(nRow, nCol) {
+      if (nRow < this.pvt.rowCount - 1) this.focusToRowCol(nRow + 1, nCol)
+    },
+    onUpArrow(nRow, nCol) {
+      if (nRow > 0) this.focusToRowCol(nRow - 1, nCol)
+    },
+    // set cell focus to rowNumber+columnNumber
+    focusToRowCol (nRow, nCol) {
+      if (nRow < 0 || nRow > this.pvt.rowCount - 1 || nCol < 0 || nCol > this.pvt.colCount - 1) return // at the edge of table body
+
+      let nextKey = this.pvt.cellKeys[nRow * this.pvt.colCount + nCol]
+      if (this.$refs[nextKey] && (this.$refs[nextKey].length || 0) === 1) this.$refs[nextKey][0].focus()
     },
     //
     // end of editor methods

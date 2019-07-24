@@ -65,7 +65,6 @@ export default {
       pvKeyPos: [],   // position of each dimension item in cell key
       edt: {          // editor options and state shared with child
         isEnabled: false,       // if true then edit value
-        enums: [],              // array of [value, text] for enum kind of parameter
         kind: Pcvt.EDIT_NUMBER, // numeric float or integer editor
         // current editor state
         isEdit: false,    // if true then edit in progress
@@ -349,7 +348,6 @@ export default {
       this.pvc.cellClass = 'pv-val-num' // numeric cell value style by default
       this.ctrl.formatOpts = void 0
       this.edt.kind = Pcvt.EDIT_NUMBER
-      this.edt.enums = []
 
       if (Mdf.isBuiltIn(this.paramType.Type)) {
         if (Mdf.isFloat(this.paramType.Type)) {
@@ -373,18 +371,16 @@ export default {
       } else {
         // if parameter is enum-based then value is integer enum id and format(value) should return enum description to display
         const t = this.paramType
-        this.edt.enums = Array(t.TypeEnumTxt.length)
-        let enumLabels = {}
+        let valEnums = Array(t.TypeEnumTxt.length)
         for (let j = 0; j < t.TypeEnumTxt.length; j++) {
           let eId = t.TypeEnumTxt[j].Enum.EnumId
-          this.edt.enums[j] =  {
+          valEnums[j] =  {
             value: eId,
             text: Mdf.enumDescrOrCodeById(t, eId) || t.TypeEnumTxt[j].Enum.Name || eId.toString()
           }
-          enumLabels[eId] = this.edt.enums[j].text
         }
         this.pvc.processValue = Pcvt.asIntPval
-        this.pvc.formatter = Pcvt.formatEnum({labels: enumLabels})
+        this.pvc.formatter = Pcvt.formatEnum({enums: valEnums})
         this.pvc.cellClass = 'pv-val-text'
         this.edt.kind = Pcvt.EDIT_ENUM
       }

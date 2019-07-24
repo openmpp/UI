@@ -130,15 +130,18 @@ export const formatInt = (options) => {
 
 // format enum value: return enum label by enum id
 export const formatEnum = (options) => {
-  let opts = Object.assign({},
-    moreOrLess.makeDefault(),
-    { labels: {} },
-    options)
+  let opts = Object.assign({}, moreOrLess.makeDefault(), { enums: [] }, options)
+
+  let labels = {} // enums as map of id to label
+  for (const e of opts.enums) {
+    labels[e.value] = e.text
+  }
 
   return {
+    getEnums: () => opts.enums, // return enum [value, text] for select dropdown
     format: (val) => {
       if (opts.isSrcValue) return val // return source value
-      return (val !== void 0 && val !== null) ? opts.labels[val] || val : ''
+      return (val !== void 0 && val !== null) ? labels[val] || val : ''
     },
     parse: (s) => {
       if (s === '' || s === void 0) return void 0
@@ -148,11 +151,11 @@ export const formatEnum = (options) => {
     isValid: (s) => {
       if (s === '' || s === void 0) return opts.isNullable
       if (typeof s === typeof 1) {
-        return opts.labels.hasOwnProperty(s)
+        return labels.hasOwnProperty(s)
       }
       if (typeof s === typeof 'string' && /^[-+]?[0-9]+$/.test(s)) {
         const v = parseInt(s, 10)
-        return !isNaN(v) ? opts.labels.hasOwnProperty(v) : false
+        return !isNaN(v) ? labels.hasOwnProperty(v) : false
       }
       return false
     },

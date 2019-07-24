@@ -83,13 +83,17 @@
           <td v-for="(col, nCol) in pvt.cols" :key="pvt.colKeys[nCol]"
             :class="pvControl.cellClass"
             >
-            <template v-if="pvt.cellKeys[nRow * pvt.colCount + nCol] !== pvEdit.cellKey">
+            <template v-if="pvt.cellKeys[nRow * pvt.colCount + nCol] !== pvEdit.cellKey"> <!-- eidtor: readonly cells -->
               <span
                 :ref="pvt.cellKeys[nRow * pvt.colCount + nCol]"
                 @keydown.enter="onCellKeyEnter(pvt.cellKeys[nRow * pvt.colCount + nCol])"
                 @dblclick="onCellDblClick(pvt.cellKeys[nRow * pvt.colCount + nCol])"
                 @keyup.ctrl.90="doUndo"
                 @keyup.ctrl.89="doRedo"
+                @keydown.left.exact="onLeftArrow(nRow, nCol)"
+                @keydown.right.exact="onRightArrow(nRow, nCol)"
+                @keydown.down.exact="onDownArrow(nRow, nCol)"
+                @keydown.up.exact="onUpArrow(nRow, nCol)"
                 tabindex="0"
                 role="button"
                 class="pv-cell-view">&nbsp;{{getUpdatedFmt(pvt.cellKeys[nRow * pvt.colCount + nCol])}}</span>
@@ -117,7 +121,7 @@
                   tabindex="0"
                   role="button"
                   class="pv-cell-font mdc-typography--body1">
-                    <option v-for="opt in pvEdit.enums" :key="opt.value" :value="opt.value">{{opt.text}}</option>
+                    <option v-for="opt in pvControl.formatter.getEnums()" :key="opt.value" :value="opt.value">{{opt.text}}</option>
                 </select>
               </template>
               <template v-else> <!-- default editor for float, integer or string value -->
