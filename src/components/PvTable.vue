@@ -86,7 +86,7 @@
             <template v-if="pvt.cellKeys[nRow * pvt.colCount + nCol] !== pvEdit.cellKey"> <!-- eidtor: readonly cells -->
               <span
                 :ref="pvt.cellKeys[nRow * pvt.colCount + nCol]"
-                @keydown.enter="onCellKeyEnter(pvt.cellKeys[nRow * pvt.colCount + nCol])"
+                @keydown.enter.exact="onCellKeyEnter(pvt.cellKeys[nRow * pvt.colCount + nCol])"
                 @dblclick="onCellDblClick(pvt.cellKeys[nRow * pvt.colCount + nCol])"
                 @keyup.ctrl.90="doUndo"
                 @keyup.ctrl.89="doRedo"
@@ -96,7 +96,7 @@
                 @keydown.up.exact="onUpArrow(nRow, nCol)"
                 tabindex="0"
                 role="button"
-                class="pv-cell-view">&nbsp;{{getUpdatedFmt(pvt.cellKeys[nRow * pvt.colCount + nCol])}}</span>
+                class="pv-cell-view">{{getUpdatedFmtToDisplay(pvt.cellKeys[nRow * pvt.colCount + nCol])}}</span>
             </template>
             <template v-else>
               <template v-if="pvEdit.kind === 2"> <!-- checkbox editor for boolean value -->
@@ -191,27 +191,27 @@
   text-align: left;
   @extend .pv-rc;
 }
-.pv-val-num {
+
+// table body cells: readonly view or editor input
+.pv-cell-right {
   text-align: right;
   @extend .pv-cell;
 }
-.pv-val-text {
+.pv-cell-left {
   text-align: left;
   @extend .pv-cell;
 }
-.pv-val-center {
+.pv-cell-center {
   text-align: center;
   @extend .pv-cell;
 }
-
-// table body cell: readonly view, input text
 .pv-cell-view {
   width: 100%;
   height: 100%;
   display: inline-block;
   @extend .pv-cell-font;
 }
-.pv-cell-input {
+.pv-cell-input { // input text
   border: 0;
   padding: 0px 1px;
   background-color: #e6e6e6;

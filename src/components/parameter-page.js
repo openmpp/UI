@@ -60,7 +60,7 @@ export default {
         readValue: (r) => (!r.IsNull ? r.Value : (void 0)),
         processValue: Pcvt.asIsPval,    // default value processing: return as is
         formatter: Pcvt.formatDefault,  // disable format(), parse() and validation by default
-        cellClass: 'pv-val-num'         // default cell value style: right justified number
+        cellClass: 'pv-cell-right'         // default cell value style: right justified number
       },
       pvKeyPos: [],   // position of each dimension item in cell key
       edt: {          // editor options and state shared with child
@@ -114,7 +114,6 @@ export default {
 
   watch: {
     routeKey () {
-      this.resetEdit()
       this.initView()
       this.doRefreshDataPage()
     }
@@ -157,6 +156,11 @@ export default {
     // pivot table view updated
     onPvKeyPos (kp) {
       this.pvKeyPos = kp
+    },
+
+    // copy tab separated values to clipboard
+    tsvToClipboard () {
+      this.$refs[this.pvRef].tsvToClipboard()
     },
 
     // start of editor methods
@@ -289,6 +293,7 @@ export default {
 
       // adjust controls
       this.edt.isEnabled = this.isWsView && !this.theWorksetText.IsReadonly
+      this.resetEdit() // clear editor state
 
       let isRc = this.paramSize.rank > 0 || this.subCount > 1
       this.pvc.isRowColNames = isRc
@@ -345,7 +350,7 @@ export default {
       //  else parameter type is enum-based: process and format value as int enum id
       this.pvc.processValue = Pcvt.asIsPval
       this.pvc.formatter = Pcvt.formatDefault({isNullable: this.isNullable})
-      this.pvc.cellClass = 'pv-val-num' // numeric cell value style by default
+      this.pvc.cellClass = 'pv-cell-right' // numeric cell value style by default
       this.ctrl.formatOpts = void 0
       this.edt.kind = Pcvt.EDIT_NUMBER
 
@@ -360,12 +365,12 @@ export default {
         }
         if (Mdf.isBool(this.paramType.Type)) {
           this.pvc.processValue = Pcvt.asBoolPval
-          this.pvc.cellClass = 'pv-val-center'
+          this.pvc.cellClass = 'pv-cell-center'
           this.pvc.formatter = Pcvt.formatBool()
           this.edt.kind = Pcvt.EDIT_BOOL
         }
         if (Mdf.isString(this.paramType.Type)) {
-          this.pvc.cellClass = 'pv-val-text' // no process or format value required for string type
+          this.pvc.cellClass = 'pv-cell-left' // no process or format value required for string type
           this.edt.kind = Pcvt.EDIT_STRING
         }
       } else {
@@ -381,7 +386,7 @@ export default {
         }
         this.pvc.processValue = Pcvt.asIntPval
         this.pvc.formatter = Pcvt.formatEnum({enums: valEnums})
-        this.pvc.cellClass = 'pv-val-text'
+        this.pvc.cellClass = 'pv-cell-left'
         this.edt.kind = Pcvt.EDIT_ENUM
       }
 
@@ -425,6 +430,8 @@ export default {
       this.rowFields = rf
       this.colFields = cf
       this.otherFields = tf
+
+      this.resetEdit() // clear editor state
     },
 
     // get page of parameter data from current model run or workset
@@ -533,7 +540,6 @@ export default {
 
   mounted () {
     this.saveDone = true
-    this.resetEdit()
     this.initView()
     this.doRefreshDataPage()
     this.$emit('tab-mounted', 'parameter', this.paramName)

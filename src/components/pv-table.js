@@ -65,7 +65,6 @@ refreshFormatTickle: watch true/false, on change body cells formatted value upda
   after format options updated
 */
 
-import OmMcwSnackbar from '@/om-mcw/OmMcwSnackbar'
 import * as Pcvt from './pivot-cvt'
 
 export default {
@@ -84,7 +83,7 @@ export default {
         readValue: (r) => (!r.IsNull ? r.Value : (void 0)),
         processValue: Pcvt.asIsPval,    // default value processing: return as is
         formatter: Pcvt.formatDefault,  // disable format(), parse() and validation by default
-        cellClass: 'pv-val-num'         // default cell value style: right justified number
+        cellClass: 'pv-cell-right'      // default cell value style: right justified number
       })
     },
     refreshTickle: {
@@ -130,7 +129,7 @@ export default {
       },
       keyPos: [],         // position of each dimension item in cell key
       valueLen: 0,        // value input text size
-      isSizeUpdate: false // if true then recalculate size and emit size event to parent
+      isSizeUpdate: false // if true then recalculate size
     }
   },
   /* eslint-enable no-multi-spaces */
@@ -206,7 +205,7 @@ export default {
     cellInputConfirm (val, key) {
       // validate input
       if (!this.pvControl.formatter.isValid(val)) {
-        this.$emit('pv-message', 'Ivalid (or empty) value entered')
+        this.$emit('pv-message', 'Invalid (or empty) value entered')
         return
       }  
 
@@ -237,6 +236,10 @@ export default {
     },
     getUpdatedFmt(key) {
       return this.pvEdit.isUpdated && this.pvEdit.updated.hasOwnProperty(key) ? this.pvControl.formatter.format(this.pvEdit.updated[key]) : this.pvt.cells[key].fmt
+    },
+    getUpdatedFmtToDisplay(key) {
+      let v = this.getUpdatedFmt(key)
+      return (v !== void 0 && v !== '') ? v : '\u00a0' // value or &nbsp;
     },
 
     // undo last edit changes
@@ -273,8 +276,7 @@ export default {
     updatedNextTick (key) {
       this.$nextTick(() => {
         if (this.$refs[key] && (this.$refs[key].length || 0) === 1) {
-          let v = this.getUpdatedFmt(key)
-          this.$refs[key][0].textContent = (v !== void 0 && v !== '') ? v : '\u00a0' // value or &nbsp;
+          this.$refs[key][0].textContent = this.getUpdatedFmtToDisplay(key) // value or &nbsp;
           this.$refs[key][0].focus()
         }
       })
@@ -302,6 +304,50 @@ export default {
     },
     //
     // end of editor methods
+
+    // copy tab separated values to clipboard
+    tsvToClipboard () {
+      let tsv = ''
+
+      // prefix for each column header: empty value * count of row dimensions
+      let cp = ''
+      for (let nFld = 0; nFld < this.rowFields.length; nFld++) {
+        cp += '\t'
+      }
+
+      // table header: items of column dimensions
+      for (let nFld = 0; nFld < this.colFields.length; nFld++) {
+        tsv += cp
+        for (let nCol = 0; nCol < this.pvt.colCount; nCol++) {
+          tsv += (this.pvt.labels[this.colFields[nFld].name][this.pvt.cols[nCol][nFld]] || '') + (nCol < this.pvt.colCount - 1 ? '\t' : '\r\n')
+        }
+      }
+
+      // table body: headers of each row and body cell values
+      for (let nRow = 0; nRow < this.pvt.rowCount; nRow++) {
+        // items of row dimemensions
+        for (let nFld = 0; nFld < this.rowFields.length; nFld++) {
+          tsv += (this.pvt.labels[this.rowFields[nFld].name][this.pvt.rows[nRow][nFld]] || '') + '\t'
+        }
+
+        // body cell values
+        if (!this.pvEdit.isEdit) {
+          for (let nCol = 0; nCol < this.pvt.colCount; nCol++) {
+            tsv += this.pvt.cells[this.pvt.cellKeys[nRow * this.pvt.colCount + nCol]].fmt + (nCol < this.pvt.colCount - 1 ? '\t' : '\r\n')
+          }
+        } else {
+          for (let nCol = 0; nCol < this.pvt.colCount; nCol++) {
+            tsv += this.getUpdatedFmt(this.pvt.cellKeys[nRow * this.pvt.colCount + nCol]) + (nCol < this.pvt.colCount - 1 ? '\t' : '\r\n')
+          }
+        }
+      }
+
+      // copy to clipboard
+      let isOk = Pcvt.toClipboard(tsv)
+
+      this.$emit('pv-message', isOk ? 'Copy tab separated values to clipboard: ' + tsv.length + ' characters' : 'Failed to copy tab separated values to clipboard')
+      return isOk
+    },
 
     // set item labels for for all dimensions: rows, columns, other
     setDimItemLabels () {
@@ -583,6 +629,7 @@ export default {
     }
   },
 
+  // on table html updated: if required for editor then recalculate size of input text
   updated () {
     if (!this.isSizeUpdate) return // size update not required
 

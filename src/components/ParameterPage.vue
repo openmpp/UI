@@ -39,11 +39,19 @@
     <span
       @click="togglePivotControls()"
       class="cell-icon-link material-icons" title="Show / hide pivot controls" alt="Show / hide pivot controls">tune</span>
-    <span v-if="ctrl.isRowColNamesToggle"
-      @click="toggleRowColNames()"
-      class="cell-icon-link material-icons" title="Show / hide rows and columns name" alt="Show / hide rows and columns name">view_quilt</span>
-    <span v-else
-      class="cell-icon-empty material-icons" title="Show / hide rows and columns name" alt="Show / hide rows and columns name">view_quilt</span>
+
+    <template v-if="ctrl.isRowColNamesToggle">
+      <span v-if="pvc.isRowColNames"
+        @click="toggleRowColNames()"
+        class="cell-icon-link material-icons" title="Hide rows and columns name" alt="Hide rows and columns name">view_list</span>
+      <span v-else
+        @click="toggleRowColNames()"
+        class="cell-icon-link material-icons" title="Show rows and columns name" alt="Show rows and columns name">view_quilt</span>
+    </template>
+    <template v-else>
+      <span
+        class="cell-icon-empty material-icons" title="Show / hide rows and columns name" alt="Show / hide rows and columns name">view_list</span>
+    </template>
 
     <template v-if="ctrl.formatOpts">
       <template v-if="ctrl.formatOpts.isDoMore">
@@ -67,15 +75,26 @@
     </template>
 
     <span
+      @click="tsvToClipboard()"
+      class="cell-icon-link material-icons" title="Copy TSV to clipboard" alt="Copy TSV to clipboard">file_copy</span>
+
+    <span v-if="!edt.isEdit"
       @click="doResetView()"
       class="cell-icon-link material-icons" title="Reset parameter view to default" alt="Reset parameter view to default">settings_backup_restore</span>
+    <span v-else
+      class="cell-icon-empty material-icons" title="Reset parameter view to default" alt="Reset parameter view to default">settings_backup_restore</span>
 
     <span class="medium-wt">{{ paramName }}: </span>
     <span>{{ paramDescr() }}</span>
 
   </div>
-  <div v-else class="hdr-row medium-wt">
-    <span class="cell-icon-empty material-icons" aria-hidden="true">refresh</span>
+  <div v-else class="hdr-row medium-wt"> <!-- v-else of: loadDone && saveDone -->
+    <span v-if="saveWait"
+      @click="doEditSave()"
+      class="cell-icon-link material-icons" :alt="'Save ' + paramName" :title="'Save ' + paramName">save</span>
+    <span v-if="loadWait || saveWait"
+      @click="doResetView()"
+      class="cell-icon-link material-icons" title="Discard all changes and reset view to default" alt="Discard all changes and reset view to default">settings_backup_restore</span>
     <span v-if="loadWait || saveWait" class="material-icons om-mcw-spin">hourglass_empty</span>
     <span class="mdc-typography--caption">{{msg}}</span>
   </div>
