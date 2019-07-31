@@ -75,8 +75,14 @@
     </template>
 
     <span
-      @click="tsvToClipboard()"
-      class="cell-icon-link material-icons" title="Copy TSV to clipboard" alt="Copy TSV to clipboard">file_copy</span>
+      @click="copyToClipboard()"
+      class="cell-icon-link material-icons" title="Copy tab separated values: Ctrl+C" alt="Copy tab separated values: Ctrl+C">file_copy</span>
+
+    <span v-if="edt.isEdit"
+      @click="pasteFromClipboard()"
+      class="cell-icon-link material-icons" title="Paste tab separated values: Ctrl+V" alt="Paste tab separated values: Ctrl+V">assignment</span>
+    <span v-else
+      class="cell-icon-empty material-icons" title="Paste tab separated values: Ctrl+V" alt="Paste tab separated values: Ctrl+V">assignment</span>
 
     <span v-if="!edt.isEdit"
       @click="doResetView()"

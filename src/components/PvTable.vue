@@ -1,7 +1,9 @@
 <!-- pivot table view -->
 <template>
 
-  <table class="pv-main-table">
+  <table
+    class="pv-main-table"
+    @copy="tsvToClipboard">
 
     <thead v-if="pvControl.isRowColNames"><!-- if do show row and column fields name -->
 
@@ -56,7 +58,8 @@
       </tr>
 
     </thead>
-    <tbody>
+
+    <tbody v-if="!pvEdit.isEdit">
 
       <tr v-for="(row, nRow) in pvt.rows" :key="pvt.rowKeys[nRow]">
         <template v-for="(rf, nFld) in rowFields">
@@ -72,75 +75,93 @@
         <!-- empty row headers if all dimensions on the columns and "show dimensions name" enabled -->
         <th v-if="pvControl.isRowColNames && !rowFields.length && !!colFields.length" class="pv-rc-pad"></th>
 
-        <!-- body value cells: pivot view -->
-        <template v-if="!pvEdit.isEdit">
+        <template>
           <td v-for="(col, nCol) in pvt.cols" :key="pvt.colKeys[nCol]"
             :class="pvControl.cellClass">{{pvt.cells[pvt.cellKeys[nRow * pvt.colCount + nCol]].fmt}}</td>
         </template>
+      </tr>
 
-        <!-- body value cells: pivot editor -->
-        <template v-else>
-          <td v-for="(col, nCol) in pvt.cols" :key="pvt.colKeys[nCol]"
-            :class="pvControl.cellClass"
-            >
-            <template v-if="pvt.cellKeys[nRow * pvt.colCount + nCol] !== pvEdit.cellKey"> <!-- eidtor: readonly cells -->
-              <span
+    </tbody>
+    <!-- table body: pivot editor -->
+    <tbody v-else
+      @paste.prevent="onPaste($event)">
+
+      <tr v-for="(row, nRow) in pvt.rows" :key="pvt.rowKeys[nRow]">
+        <template v-for="(rf, nFld) in rowFields">
+          <th
+            :key="rf.name"
+            v-if="!!pvt.rowSpans[nRow * rowFields.length + nFld]"
+            :rowspan="pvt.rowSpans[nRow * rowFields.length + nFld]"
+            :colspan="(pvControl.isRowColNames && !!colFields.length && nFld === rowFields.length - 1) ? 2 : 1"
+            class="pv-row-head">
+              {{getDimItemLabel(rf.name, row[nFld])}}
+          </th>
+        </template>
+        <!-- empty row headers if all dimensions on the columns and "show dimensions name" enabled -->
+        <th v-if="pvControl.isRowColNames && !rowFields.length && !!colFields.length" class="pv-rc-pad"></th>
+
+        <td v-for="(col, nCol) in pvt.cols" :key="pvt.colKeys[nCol]"
+          :class="pvControl.cellClass"
+          >
+          <template v-if="pvt.cellKeys[nRow * pvt.colCount + nCol] !== pvEdit.cellKey"> <!-- eidtor: readonly cells -->
+            <span
+              :ref="pvt.cellKeys[nRow * pvt.colCount + nCol]"
+              @keydown.enter.exact="onCellKeyEnter(pvt.cellKeys[nRow * pvt.colCount + nCol])"
+              @dblclick="onCellDblClick(pvt.cellKeys[nRow * pvt.colCount + nCol])"
+              @keyup.ctrl.90="doUndo"
+              @keyup.ctrl.89="doRedo"
+              @keydown.left.exact="onLeftArrow(nRow, nCol)"
+              @keydown.right.exact="onRightArrow(nRow, nCol)"
+              @keydown.down.exact="onDownArrow(nRow, nCol)"
+              @keydown.up.exact="onUpArrow(nRow, nCol)"
+              :data-om-nrow="nRow"
+              :data-om-ncol="nCol"
+              tabindex="0"
+              role="button"
+              class="pv-cell-view">{{getUpdatedFmtToDisplay(pvt.cellKeys[nRow * pvt.colCount + nCol])}}</span>
+          </template>
+          <template v-else>
+            <template v-if="pvEdit.kind === 2"> <!-- checkbox editor for boolean value -->
+              <input
+                type="checkbox"
+                v-model.lazy="pvEdit.cellValue"
                 :ref="pvt.cellKeys[nRow * pvt.colCount + nCol]"
-                @keydown.enter.exact="onCellKeyEnter(pvt.cellKeys[nRow * pvt.colCount + nCol])"
-                @dblclick="onCellDblClick(pvt.cellKeys[nRow * pvt.colCount + nCol])"
-                @keyup.ctrl.90="doUndo"
-                @keyup.ctrl.89="doRedo"
-                @keydown.left.exact="onLeftArrow(nRow, nCol)"
-                @keydown.right.exact="onRightArrow(nRow, nCol)"
-                @keydown.down.exact="onDownArrow(nRow, nCol)"
-                @keydown.up.exact="onUpArrow(nRow, nCol)"
+                @keydown.enter="onCellInputConfirm"
+                @blur="onCellInputBlur"
+                @keydown.esc="onCellInputEscape"
                 tabindex="0"
                 role="button"
-                class="pv-cell-view">{{getUpdatedFmtToDisplay(pvt.cellKeys[nRow * pvt.colCount + nCol])}}</span>
+                class="mdc-typography--body1" />
             </template>
-            <template v-else>
-              <template v-if="pvEdit.kind === 2"> <!-- checkbox editor for boolean value -->
-                <input
-                  type="checkbox"
-                  v-model.lazy="pvEdit.cellValue"
-                  :ref="pvt.cellKeys[nRow * pvt.colCount + nCol]"
-                  @keydown.enter="onCellInputConfirm"
-                  @blur="onCellInputBlur"
-                  @keydown.esc="onCellInputEscape"
-                  tabindex="0"
-                  role="button"
-                  class="mdc-typography--body1" />
-              </template>
-              <template v-else-if="pvEdit.kind === 3"> <!-- select dropdown editor for enum value -->
-                <select
-                  v-model.lazy="pvEdit.cellValue"
-                  :ref="pvt.cellKeys[nRow * pvt.colCount + nCol]"
-                  @keydown.enter="onCellInputConfirm"
-                  @blur="onCellInputBlur"
-                  @keydown.esc="onCellInputEscape"
-                  tabindex="0"
-                  role="button"
-                  class="pv-cell-font mdc-typography--body1">
-                    <option v-for="opt in pvControl.formatter.getEnums()" :key="opt.value" :value="opt.value">{{opt.text}}</option>
-                </select>
-              </template>
-              <template v-else> <!-- default editor for float, integer or string value -->
-                <input
-                  type="text"
-                  v-model="pvEdit.cellValue"
-                  :ref="pvt.cellKeys[nRow * pvt.colCount + nCol]"
-                  @keydown.enter="onCellInputConfirm"
-                  @dblclick="onCellInputConfirm"
-                  @blur="onCellInputBlur"
-                  @keydown.esc="onCellInputEscape"
-                  tabindex="0"
-                  role="button"
-                  class="pv-cell-input mdc-typography--body1"
-                  :size="valueLen" />
-              </template>
+            <template v-else-if="pvEdit.kind === 3"> <!-- select dropdown editor for enum value -->
+              <select
+                v-model.lazy="pvEdit.cellValue"
+                :ref="pvt.cellKeys[nRow * pvt.colCount + nCol]"
+                @keydown.enter="onCellInputConfirm"
+                @blur="onCellInputBlur"
+                @keydown.esc="onCellInputEscape"
+                tabindex="0"
+                role="button"
+                class="pv-cell-font mdc-typography--body1">
+                  <option v-for="opt in pvControl.formatter.getEnums()" :key="opt.value" :value="opt.value">{{opt.text}}</option>
+              </select>
             </template>
-          </td>
-        </template>
+            <template v-else> <!-- default editor for float, integer or string value -->
+              <input
+                type="text"
+                v-model="pvEdit.cellValue"
+                :ref="pvt.cellKeys[nRow * pvt.colCount + nCol]"
+                @keydown.enter="onCellInputConfirm"
+                @dblclick="onCellInputConfirm"
+                @blur="onCellInputBlur"
+                @keydown.esc="onCellInputEscape"
+                tabindex="0"
+                role="button"
+                class="pv-cell-input mdc-typography--body1"
+                :size="valueLen" />
+            </template>
+          </template>
+        </td>
       </tr>
 
     </tbody>

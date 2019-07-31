@@ -139,6 +139,14 @@ export const formatEnum = (options) => {
 
   return {
     getEnums: () => opts.enums, // return enum [value, text] for select dropdown
+    // return enum id by enum label or void 0 if not found
+    enumIdByLabel: (label) => {
+      if (label === void 0 || label === '' || typeof label !== typeof 'string') return void 0 // invalid or empty label
+      for (const e of opts.enums) {
+        if (e.text === label) return e.value
+      }
+      return void 0 // not found
+    },
     format: (val) => {
       if (opts.isSrcValue) return val // return source value
       return (val !== void 0 && val !== null) ? labels[val] || val : ''

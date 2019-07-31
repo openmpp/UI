@@ -99,7 +99,7 @@ export default {
       type: Object,
       default: () => ({
         isEnabled: false,       // if true then edit value
-        kind: Pcvt.EDIT_NUMBER, // numeric float or integer editor
+        kind: Pcvt.EDIT_NUMBER, // default: numeric float or integer editor
         // current editor state
         isEdit: false,    // if true then edit in progress
         isUpdated: false, // if true then cell value(s) updated
@@ -201,19 +201,19 @@ export default {
       this.pvEdit.cellValue = ''
     },
 
-    // confirm input edit: validate and save cnges in edit history
+    // confirm input edit: validate and save changes in edit history
     cellInputConfirm (val, key) {
       // validate input
       if (!this.pvControl.formatter.isValid(val)) {
         this.$emit('pv-message', 'Invalid (or empty) value entered')
-        return
+        return false
       }  
 
       // compare input value with previous
       const now = this.pvControl.formatter.parse(val)
       const prev = this.pvEdit.updated.hasOwnProperty(key) ? this.pvEdit.updated[key] : this.pvt.cells[key].src
 
-      if (now === prev || (now === '' && prev === void 0)) return // exit if value not changed
+      if (now === prev || (now === '' && prev === void 0)) return true // exit if value not changed
 
       // store updated value and append it change history
       this.pvEdit.updated[key] = now
@@ -228,6 +228,8 @@ export default {
         prev: prev
       })
       this.pvEdit.lastHistory = this.pvEdit.history.length
+
+      return true
     },
 
     // return updated cell value or default if value not updated
@@ -302,6 +304,85 @@ export default {
       let nextKey = this.pvt.cellKeys[nRow * this.pvt.colCount + nCol]
       if (this.$refs[nextKey] && (this.$refs[nextKey].length || 0) === 1) this.$refs[nextKey][0].focus()
     },
+
+    // paste tab separated values from clipboard, event.preventDefault done by event modifier
+    onPaste (e) {
+      if (!e || !e.target) {
+        console.log('Paste error: event target unknown')
+        return false
+      }
+      let t = e.target
+
+      const nTop = parseInt((t.getAttribute('data-om-nrow') || ''), 10)
+      const nLeft = parseInt((t.getAttribute('data-om-ncol') || ''), 10)
+      if (isNaN(nTop) || isNaN(nLeft)) {
+        console.log('Paste error: event target row or column undefined')
+        return false
+      }
+
+      // get clipboard values
+      let pv = ''
+      if (e.clipboardData && e.clipboardData.getData) {
+        pv = e.clipboardData.getData('text') || ''
+      } else {
+        if (window.clipboardData && window.clipboardData.getData) pv = window.clipboardData.getData('Text') || ''
+      }
+      if (!pv || typeof pv !== typeof 'string') {
+        this.$emit('pv-message', 'Empty (or invalid) paste: tab separated value(s) expected')
+        return false
+      }
+
+      // parse tab separated values
+      let lines = pv.split(/\r\n|\r|\n/)
+      let nL = (lines.length || 0)
+      if (nL > 0 && lines[nL - 1] === '') nL-- // ignore last line if it is empty
+      if (nL < 1) {
+        this.$emit('pv-message', 'Empty (or invalid) paste: tab separated value(s) expected')
+        return false
+      }
+      if (nTop + nL > this.pvt.rowCount) {
+        this.$emit('pv-message', 'Too many rows pasted: ' + nL.toString())
+        return false
+      }
+
+      let apv = Array(nL)
+      for (let k = 0; k < nL; k++) {
+        let la = lines[k].split('\t')
+        if (nLeft + (la.length || 0) > this.pvt.colCount) {
+          this.$emit('pv-message', 'Too many columns pasted: ' + la.length.toString() + ' at row: ' + k.toString())
+          return false
+        }
+        apv[k] = (la.length || 0) > 0 ? la : ['']
+      }
+
+      // for each value do input into the cell
+      // if this is enum based parameter and cell values are labels then convert enum labels to enum id's
+      let isToEnumId = this.pvEdit.kind === Pcvt.EDIT_ENUM && !this.pvControl.formatter.options().isSrcValue
+
+      for (let k = 0; k < nL; k++) {
+        for (let j = 0; j < apv[k].length; j++) {
+          let ckey = this.pvt.cellKeys[(nTop + k) * this.pvt.colCount + (nLeft + j)]
+          
+          let val = apv[k][j]
+          if (isToEnumId) {
+            val = this.pvControl.formatter.enumIdByLabel(val)
+            if (val === void 0 || val === '') {
+              this.$emit('pv-message', 'Inavlid enum label at row: ' + k.toString() + ' column: ' + j.toString())
+              return false
+            }
+          }
+
+          // do input into the cell
+          if (!this.cellInputConfirm(val, ckey)) return false // input validation failed
+          this.updatedNextTick(ckey)
+        }
+      }
+      return true // success
+    },
+    tsvFromClipboard () {
+      // TODO: keep cell focus before button click
+      console.log('tsvFromClipboard')
+    },
     //
     // end of editor methods
 
@@ -309,7 +390,7 @@ export default {
     tsvToClipboard () {
       let tsv = ''
 
-      // prefix for each column header: empty value * count of row dimensions
+      // prefix for each column header: empty '' value * by count of row dimensions
       let cp = ''
       for (let nFld = 0; nFld < this.rowFields.length; nFld++) {
         cp += '\t'

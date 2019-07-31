@@ -65,7 +65,7 @@ export default {
       pvKeyPos: [],   // position of each dimension item in cell key
       edt: {          // editor options and state shared with child
         isEnabled: false,       // if true then edit value
-        kind: Pcvt.EDIT_NUMBER, // numeric float or integer editor
+        kind: Pcvt.EDIT_NUMBER, // default: numeric float or integer editor
         // current editor state
         isEdit: false,    // if true then edit in progress
         isUpdated: false, // if true then cell value(s) updated
@@ -159,8 +159,12 @@ export default {
     },
 
     // copy tab separated values to clipboard
-    tsvToClipboard () {
+    copyToClipboard () {
       this.$refs[this.pvRef].tsvToClipboard()
+    },
+    // paste tab separated values from clipboard
+    pasteFromClipboard () {
+      this.$refs[this.pvRef].tsvFromClipboard()
     },
 
     // start of editor methods
