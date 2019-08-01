@@ -47,3 +47,33 @@ export const parseBool = (val) => {
   }
   return void 0
 }
+
+// parse tab separated values into array
+// return ragged array of [rows][columns], row count and max column size
+export const parseTsv = (src, rowLimit = -1, colLimit = -1) => {
+  // string expected as source
+  let ret = {
+    rowSize: 0, colSize: 0, arr: []
+  }
+  if (!src || typeof src !== typeof 'string') return ret // source is empty or invalid type
+
+  // lines separated by cr-lf
+  let lines = src.split(/\r\n|\r|\n/)
+  ret.rowSize = (lines.length || 0)
+  if (ret.rowSize > 0 && lines[ret.rowSize - 1] === '') ret.rowSize-- // ignore last line if it is empty
+
+  if (ret.rowSize < 1 || (rowLimit > 0 && ret.rowSize > rowLimit)) return ret // source is empty or exceeded max row limit
+
+  // columns separated by tab
+  ret.arr = Array(ret.rowSize)
+  for (let k = 0; k < ret.rowSize; k++) {
+    let la = lines[k].split('\t')
+    let n = la.length || 0
+
+    if (ret.colSize < n) ret.colSize = n
+    if (colLimit > 0 && ret.colSize > colLimit) return ret // exceeded max column size limit
+
+    ret.arr[k] = n > 0 ? la : ['']
+  }
+  return ret
+}

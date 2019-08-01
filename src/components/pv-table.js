@@ -58,11 +58,6 @@ refreshDimsTickle: watch true/false, on change dimension properties updated
   it is recommended to set
     refreshDimsTickle = !refreshDimsTickle
   after dimension arrays initialized (after init of: rowFields[], colFields[], otherFields[])
-
-refreshFormatTickle: watch true/false, on change body cells formatted value updated
-  it is recommended to set
-    refreshFormatTickle = !refreshFormatTickle
-  after format options updated
 */
 
 import * as Pcvt from './pivot-cvt'
@@ -91,9 +86,6 @@ export default {
     },
     refreshDimsTickle: {
       type: Boolean, required: true // on refreshDimsTickle change items labels updated
-    },
-    refreshFormatTickle: {
-      type: Boolean, required: true // on refreshFormatTickle change cell values updated
     },
     pvEdit: { // editor options and state shared with parent
       type: Object,
@@ -127,6 +119,8 @@ export default {
         rowSpans: Object.freeze({}),  // row span for each row label
         colSpans: Object.freeze({})   // column span for each column label
       },
+      keyUpdateCount : 0, // table body cell key suffix to force update
+      updatedKeys: {},    // for each cellKey string of: 'cellKey-keyUpdateCount'
       keyPos: [],         // position of each dimension item in cell key
       valueLen: 0,        // value input text size
       isSizeUpdate: false // if true then recalculate size
@@ -140,18 +134,36 @@ export default {
     },
     refreshDimsTickle () {
       this.setDimItemLabels()
-    },
-    refreshFormatTickle () {
-      let vcells = {}
-      for (const bkey in this.pvt.cells) {
-        let src = this.pvt.cells[bkey].src
-        vcells[bkey] = { src: src, fmt: this.pvControl.formatter.format(src) }
-      }
-      this.pvt.cells = Object.freeze(vcells)
     }
   },
 
   methods: {
+    // update all formatted cell values
+    doRefreshFormat () {
+      this.keyUpdateCount++ // force update for all table body cells
+
+      let vcells = {}
+      let vupd = {}
+      for (const bkey in this.pvt.cells) {
+        let src = this.pvt.cells[bkey].src
+        vcells[bkey] = { src: src, fmt: this.pvControl.formatter.format(src) }
+        vupd[bkey] = this.makeUpdatedKey(bkey)
+      }
+      this.pvt.cells = Object.freeze(vcells)
+      this.updatedKeys = vupd // force update
+    },
+
+    // table body cell keys to force update
+    makeUpdatedKey (key) {
+      return [key, this.keyUpdateCount].join('-')
+    },
+    getUpdatedKey (key) {
+      return this.updatedKeys.hasOwnProperty(key) ? this.updatedKeys[key] : void 0
+    },
+    nextUpdatedKey (key) {
+      this.updatedKeys[key] = [key, ++this.keyUpdateCount].join('-')
+    },
+
     // start of editor methods
     //
     // start cell edit: enter into input control
@@ -164,18 +176,14 @@ export default {
     cellInputStart (key) {
       this.pvEdit.cellKey = key
       this.pvEdit.cellValue = this.getUpdatedSrc(key)
-      this.$nextTick(() => {
-        if (this.$refs[key] && (this.$refs[key].length || 0) > 0) this.$refs[key][0].focus()
-      })
+      this.focusNextTick(key)
     },
 
     // cancel input edit by escape
     onCellInputEscape () {
       const ckey = this.pvEdit.cellKey
       this.$nextTick(() => {
-        this.$nextTick(() => {
-          if (this.$refs[ckey] && (this.$refs[ckey].length || 0) > 0) this.$refs[ckey][0].focus()
-        })
+        this.focusNextTick(ckey)
       })
       this.pvEdit.cellKey = ''
       this.pvEdit.cellValue = ''
@@ -186,9 +194,7 @@ export default {
       const ckey = this.pvEdit.cellKey
       this.cellInputConfirm(this.pvEdit.cellValue, ckey)
       this.$nextTick(() => {
-        this.$nextTick(() => {
-          if (this.$refs[ckey] && (this.$refs[ckey].length || 0) > 0) this.$refs[ckey][0].focus()
-        })
+        this.focusNextTick(ckey)
       })
       this.pvEdit.cellKey = ''
       this.pvEdit.cellValue = ''
@@ -229,6 +235,7 @@ export default {
       })
       this.pvEdit.lastHistory = this.pvEdit.history.length
 
+      this.nextUpdatedKey(key)
       return true
     },
 
@@ -239,7 +246,7 @@ export default {
     getUpdatedFmt(key) {
       return this.pvEdit.isUpdated && this.pvEdit.updated.hasOwnProperty(key) ? this.pvControl.formatter.format(this.pvEdit.updated[key]) : this.pvt.cells[key].fmt
     },
-    getUpdatedFmtToDisplay(key) {
+    getUpdatedToDisplay(key) {
       let v = this.getUpdatedFmt(key)
       return (v !== void 0 && v !== '') ? v : '\u00a0' // value or &nbsp;
     },
@@ -249,39 +256,35 @@ export default {
       if (this.pvEdit.lastHistory <= 0) return // exit: entire history already undone
 
       let n = --this.pvEdit.lastHistory
-      let key = this.pvEdit.history[n].key
+      const ckey = this.pvEdit.history[n].key
 
       let isPrev = false
       for (let k = 0; !isPrev && k < n; k++) {
-        isPrev = this.pvEdit.history[k].key === key
+        isPrev = this.pvEdit.history[k].key === ckey
       }
       if (isPrev) {
-        this.pvEdit.updated[key] = this.pvEdit.history[n].prev
+        this.pvEdit.updated[ckey] = this.pvEdit.history[n].prev
       } else {
-        delete this.pvEdit.updated[key]
+        delete this.pvEdit.updated[ckey]
         this.pvEdit.isUpdated = !!this.pvEdit.updated && this.pvEdit.lastHistory > 0
       }
-      this.updatedNextTick(key)
+      
+      // update display value
+      this.nextUpdatedKey(ckey)
+      this.focusNextTick(ckey)
     },
     // redo most recent undo
     doRedo () {
       if (this.pvEdit.lastHistory >= this.pvEdit.history.length) return // exit: already at the end of history
 
       let n = this.pvEdit.lastHistory++
-      let key = this.pvEdit.history[n].key
-      this.pvEdit.updated[key] = this.pvEdit.history[n].now
+      let ckey = this.pvEdit.history[n].key
+      this.pvEdit.updated[ckey] = this.pvEdit.history[n].now
       this.pvEdit.isUpdated = true
 
-      this.updatedNextTick(key)
-    },
-    // show updated cell value
-    updatedNextTick (key) {
-      this.$nextTick(() => {
-        if (this.$refs[key] && (this.$refs[key].length || 0) === 1) {
-          this.$refs[key][0].textContent = this.getUpdatedFmtToDisplay(key) // value or &nbsp;
-          this.$refs[key][0].focus()
-        }
-      })
+      // update display value
+      this.nextUpdatedKey(ckey)
+      this.focusNextTick(ckey)
     },
 
     // arrows navigation
@@ -296,6 +299,13 @@ export default {
     },
     onUpArrow(nRow, nCol) {
       if (nRow > 0) this.focusToRowCol(nRow - 1, nCol)
+    },
+
+    // set cell focus on next tick
+    focusNextTick (key) {
+      this.$nextTick(() => {
+        if (this.$refs[key] && (this.$refs[key].length || 0) === 1) this.$refs[key][0].focus()
+      })
     },
     // set cell focus to rowNumber+columnNumber
     focusToRowCol (nRow, nCol) {
@@ -320,50 +330,39 @@ export default {
         return false
       }
 
-      // get clipboard values
-      let pv = ''
+      // get pasted clipboard values
+      let pasted = ''
       if (e.clipboardData && e.clipboardData.getData) {
-        pv = e.clipboardData.getData('text') || ''
+        pasted = e.clipboardData.getData('text') || ''
       } else {
-        if (window.clipboardData && window.clipboardData.getData) pv = window.clipboardData.getData('Text') || ''
-      }
-      if (!pv || typeof pv !== typeof 'string') {
-        this.$emit('pv-message', 'Empty (or invalid) paste: tab separated value(s) expected')
-        return false
+        if (window.clipboardData && window.clipboardData.getData) pasted = window.clipboardData.getData('Text') || ''
       }
 
       // parse tab separated values
-      let lines = pv.split(/\r\n|\r|\n/)
-      let nL = (lines.length || 0)
-      if (nL > 0 && lines[nL - 1] === '') nL-- // ignore last line if it is empty
-      if (nL < 1) {
+      let pv = Pcvt.parseTsv(pasted, this.pvt.rowCount - nTop, this.pvt.colCount - nLeft)
+
+      if (!pv || pv.rowSize <= 0 || (pv.colSize <= 0 && nTop + pv.rowSize <= this.pvt.rowCount)) {
         this.$emit('pv-message', 'Empty (or invalid) paste: tab separated value(s) expected')
         return false
       }
-      if (nTop + nL > this.pvt.rowCount) {
-        this.$emit('pv-message', 'Too many rows pasted: ' + nL.toString())
+      if (nTop + pv.rowSize > this.pvt.rowCount) {
+        this.$emit('pv-message', 'Too many rows pasted: ' + pv.rowSize.toString())
         return false
       }
-
-      let apv = Array(nL)
-      for (let k = 0; k < nL; k++) {
-        let la = lines[k].split('\t')
-        if (nLeft + (la.length || 0) > this.pvt.colCount) {
-          this.$emit('pv-message', 'Too many columns pasted: ' + la.length.toString() + ' at row: ' + k.toString())
-          return false
-        }
-        apv[k] = (la.length || 0) > 0 ? la : ['']
+      if (nLeft + pv.colSize > this.pvt.colCount) {
+        this.$emit('pv-message', 'Too many columns pasted: ' + pv.colSize.toString())
+        return false
       }
 
       // for each value do input into the cell
       // if this is enum based parameter and cell values are labels then convert enum labels to enum id's
       let isToEnumId = this.pvEdit.kind === Pcvt.EDIT_ENUM && !this.pvControl.formatter.options().isSrcValue
 
-      for (let k = 0; k < nL; k++) {
-        for (let j = 0; j < apv[k].length; j++) {
+      for (let k = 0; k < pv.arr.length; k++) {
+        for (let j = 0; j < pv.arr[k].length; j++) {
           let ckey = this.pvt.cellKeys[(nTop + k) * this.pvt.colCount + (nLeft + j)]
           
-          let val = apv[k][j]
+          let val = pv.arr[k][j]
           if (isToEnumId) {
             val = this.pvControl.formatter.enumIdByLabel(val)
             if (val === void 0 || val === '') {
@@ -374,14 +373,14 @@ export default {
 
           // do input into the cell
           if (!this.cellInputConfirm(val, ckey)) return false // input validation failed
-          this.updatedNextTick(ckey)
+          this.focusNextTick(ckey)
         }
       }
       return true // success
     },
     tsvFromClipboard () {
       // TODO: keep cell focus before button click
-      console.log('tsvFromClipboard')
+      console.log('TODO: tsvFromClipboard')
     },
     //
     // end of editor methods
@@ -468,6 +467,7 @@ export default {
       this.pvt.cellKeys = Object.freeze([])
       this.pvt.rowSpans = Object.freeze({})
       this.pvt.colSpans = Object.freeze({})
+      this.updatedKeys = {}
       this.keyPos = []
       this.valueLen = 0
       this.isSizeUpdate = false
@@ -691,6 +691,11 @@ export default {
         if (vkeys[0] === '') vkeys[0] = Pcvt.PV_KEY_SCALAR
       }
 
+      let vupd = {}
+      for (const bkey of vkeys) {
+        vupd[bkey] = this.makeUpdatedKey(bkey)
+      }
+
       // done
       this.pvt.rowCount = rowCount
       this.pvt.colCount = colCount
@@ -702,6 +707,7 @@ export default {
       this.pvt.cellKeys = Object.freeze(vkeys)
       this.pvt.rowSpans = Object.freeze(rsp)
       this.pvt.colSpans = Object.freeze(csp)
+      this.updatedKeys = vupd
       this.keyPos = nkp
       this.valueLen = 0
       this.isSizeUpdate = this.pvEdit.isEnabled // update size only if edit value enabled
@@ -756,6 +762,7 @@ export default {
   },
 
   mounted () {
+    this.keyUpdateCount = 0
     this.setDimItemLabels()
     this.setData(this.pvData)
   }

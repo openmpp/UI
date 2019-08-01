@@ -193,7 +193,6 @@
         :pv-control="pvc"
         :refreshTickle="ctrl.isPvTickle"
         :refreshDimsTickle="ctrl.isPvDimsTickle"
-        :refreshFormatTickle="ctrl.isPvFmtTickle"
         :pv-edit="edt"
         @pv-key-pos="onPvKeyPos"
         @pv-message="onPvMessage"

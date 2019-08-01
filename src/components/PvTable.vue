@@ -106,6 +106,7 @@
           <template v-if="pvt.cellKeys[nRow * pvt.colCount + nCol] !== pvEdit.cellKey"> <!-- eidtor: readonly cells -->
             <span
               :ref="pvt.cellKeys[nRow * pvt.colCount + nCol]"
+              :key="getUpdatedKey(pvt.cellKeys[nRow * pvt.colCount + nCol])"
               @keydown.enter.exact="onCellKeyEnter(pvt.cellKeys[nRow * pvt.colCount + nCol])"
               @dblclick="onCellDblClick(pvt.cellKeys[nRow * pvt.colCount + nCol])"
               @keyup.ctrl.90="doUndo"
@@ -118,7 +119,7 @@
               :data-om-ncol="nCol"
               tabindex="0"
               role="button"
-              class="pv-cell-view">{{getUpdatedFmtToDisplay(pvt.cellKeys[nRow * pvt.colCount + nCol])}}</span>
+              class="pv-cell-view">{{getUpdatedToDisplay(pvt.cellKeys[nRow * pvt.colCount + nCol])}}</span>
           </template>
           <template v-else>
             <template v-if="pvEdit.kind === 2"> <!-- checkbox editor for boolean value -->
