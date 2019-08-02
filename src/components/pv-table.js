@@ -133,8 +133,8 @@ export default {
         rowSpans: Object.freeze({}),  // row span for each row label
         colSpans: Object.freeze({})   // column span for each column label
       },
-      keyUpdateCount : 0, // table body cell key suffix to force update
-      updatedKeys: {},    // for each cellKey string of: 'cellKey-keyUpdateCount'
+      keyRenderCount : 0, // table body cell key suffix to force update
+      renderKeys: {},     // for each cellKey string of: 'cellKey-keyRenderCount'
       keyPos: [],         // position of each dimension item in cell key
       valueLen: 0,        // value input text size
       isDataUpdate: false // if true then pivot data updated
@@ -161,28 +161,28 @@ export default {
   methods: {
     // update all formatted cell values
     doRefreshFormat () {
-      this.keyUpdateCount++ // force update for all table body cells
+      this.keyRenderCount++ // force update for all table body cells
 
       let vcells = {}
       let vupd = {}
       for (const bkey in this.pvt.cells) {
         let src = this.pvt.cells[bkey].src
         vcells[bkey] = { src: src, fmt: this.pvControl.formatter.format(src) }
-        vupd[bkey] = this.makeUpdatedKey(bkey)
+        vupd[bkey] = this.makeRenderKey(bkey)
       }
       this.pvt.cells = Object.freeze(vcells)
-      this.updatedKeys = vupd // force update
+      this.renderKeys = vupd // force update
     },
 
-    // table body cell keys to force update
-    makeUpdatedKey (key) {
-      return [key, this.keyUpdateCount].join('-')
+    // table body cell render keys to force update
+    makeRenderKey (key) {
+      return [key, this.keyRenderCount].join('-')
     },
-    getUpdatedKey (key) {
-      return this.updatedKeys.hasOwnProperty(key) ? this.updatedKeys[key] : void 0
+    getRenderKey (key) {
+      return this.renderKeys.hasOwnProperty(key) ? this.renderKeys[key] : void 0
     },
-    changeUpdatedKey (key) {
-      this.updatedKeys[key] = [key, ++this.keyUpdateCount].join('-')
+    changeRenderKey (key) {
+      this.renderKeys[key] = [key, ++this.keyRenderCount].join('-')
     },
 
     // start of editor methods
@@ -256,7 +256,7 @@ export default {
       })
       this.pvEdit.lastHistory = this.pvEdit.history.length
 
-      this.changeUpdatedKey(key)
+      this.changeRenderKey(key)
       return true
     },
 
@@ -291,7 +291,7 @@ export default {
       }
       
       // update display value
-      this.changeUpdatedKey(ckey)
+      this.changeRenderKey(ckey)
       this.focusNextTick(ckey)
     },
     // redo most recent undo
@@ -304,7 +304,7 @@ export default {
       this.pvEdit.isUpdated = true
 
       // update display value
-      this.changeUpdatedKey(ckey)
+      this.changeRenderKey(ckey)
       this.focusNextTick(ckey)
     },
 
@@ -488,7 +488,7 @@ export default {
       this.pvt.cellKeys = Object.freeze([])
       this.pvt.rowSpans = Object.freeze({})
       this.pvt.colSpans = Object.freeze({})
-      this.updatedKeys = {}
+      this.renderKeys = {}
       this.keyPos = []
       this.valueLen = 0
       this.isDataUpdate = true
@@ -714,7 +714,7 @@ export default {
 
       let vupd = {}
       for (const bkey of vkeys) {
-        vupd[bkey] = this.makeUpdatedKey(bkey)
+        vupd[bkey] = this.makeRenderKey(bkey)
       }
 
       // done
@@ -728,7 +728,7 @@ export default {
       this.pvt.cellKeys = Object.freeze(vkeys)
       this.pvt.rowSpans = Object.freeze(rsp)
       this.pvt.colSpans = Object.freeze(csp)
-      this.updatedKeys = vupd
+      this.renderKeys = vupd
       this.keyPos = nkp
       this.valueLen = 0
 
