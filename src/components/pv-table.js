@@ -58,6 +58,20 @@ refreshDimsTickle: watch true/false, on change dimension properties updated
   it is recommended to set
     refreshDimsTickle = !refreshDimsTickle
   after dimension arrays initialized (after init of: rowFields[], colFields[], otherFields[])
+
+if you are using pivot table editor then pvEdit is editor options and state shared with parent
+pvEdit: {
+  isEnabled: false,       // if true then edit value
+  kind: Pcvt.EDIT_NUMBER, // numeric editor by default, other kinds: text, bool checkbox or enums dropdown
+        // current editor state
+  isEdit: false,    // if true then edit in progress
+  isUpdated: false, // if true then cell value(s) updated
+  cellKey: '',      // current eidtor focus cell
+  cellValue: '',    // current eidtor input value
+  updated: {},      // updated cells
+  history: [],      // update history
+  lastHistory: 0    // length of update history, changed by undo-redo
+}
 */
 
 import * as Pcvt from './pivot-cvt'
@@ -135,16 +149,13 @@ export default {
     refreshDimsTickle () {
       this.setDimItemLabels()
     },
-    isEditNow () {
-      if (this.pvEdit.isEdit) { // on edit start: set focus on top left cell
-        this.$nextTick(() => {
-          this.focusToRowCol(0, 0)
-        })
-      }
+    // on edit started event: set focus on top left cell
+    isPvEditNow () {
+      if (this.pvEdit.isEdit) this.$nextTick(() => { this.focusToRowCol(0, 0) })
     }
   },
   computed: {
-    isEditNow () { return this.pvEdit.isEdit }
+    isPvEditNow () { return this.pvEdit.isEdit }
   },
 
   methods: {

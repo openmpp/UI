@@ -240,7 +240,7 @@
   display: inline-block;
   @extend .pv-cell-font;
   &:focus {
-    background-color: gainsboro; // #9fa8da;
+    background-color: gainsboro;
   }
 }
 .pv-cell-input { // input text
