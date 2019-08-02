@@ -132,13 +132,13 @@ export default {
     togglePivotControls () {
       this.ctrl.isShowPvControls = !this.ctrl.isShowPvControls
     },
-    // show more decimals or more details in table body
+    // show more decimals (or more details) in table body
     showMoreFormat () {
       if (!this.pvc.formatter) return
       this.pvc.formatter.doMore()
       this.$refs[this.pvRef].doRefreshFormat()
     },
-    // show less decimals or less details in table body
+    // show less decimals (or less details) in table body
     showLessFormat () {
       if (!this.pvc.formatter) return
       this.pvc.formatter.doLess()
@@ -170,13 +170,13 @@ export default {
     //
     // start or stop parameter editing
     doEditToogle () {
-      if (this.edt.isEdit && this.edt.isUpdated) {
-        this.$refs.paramEditDiscardDlg.open() // ask user to confirm changes discard
+      if (this.edt.isEdit && this.edt.isUpdated) { // redirect to dialog to confirm "discard changes?"
+        this.$refs.paramEditDiscardDlg.open()
         return
       }
-      let isEdit = !this.edt.isEdit
+      let isEditNow = this.edt.isEdit
       this.resetEdit()
-      this.edt.isEdit = isEdit
+      this.edt.isEdit = !isEditNow
     },
     onEditDiscardClosed (e) {
       if ((e.action || '') === 'accept') this.resetEdit() // question: "discard changes?", user answer: "yes"

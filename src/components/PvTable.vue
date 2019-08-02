@@ -59,9 +59,12 @@
 
     </thead>
 
+    <!-- table body: pivot view -->
     <tbody v-if="!pvEdit.isEdit">
 
       <tr v-for="(row, nRow) in pvt.rows" :key="pvt.rowKeys[nRow]">
+
+        <!-- row headers: row dimension(s) item label -->
         <template v-for="(rf, nFld) in rowFields">
           <th
             :key="rf.name"
@@ -75,6 +78,7 @@
         <!-- empty row headers if all dimensions on the columns and "show dimensions name" enabled -->
         <th v-if="pvControl.isRowColNames && !rowFields.length && !!colFields.length" class="pv-rc-pad"></th>
 
+        <!-- table body value cells -->
         <template>
           <td v-for="(col, nCol) in pvt.cols" :key="pvt.colKeys[nCol]"
             :class="pvControl.cellClass">{{pvt.cells[pvt.cellKeys[nRow * pvt.colCount + nCol]].fmt}}</td>
@@ -87,6 +91,8 @@
       @paste.prevent="onPaste($event)">
 
       <tr v-for="(row, nRow) in pvt.rows" :key="pvt.rowKeys[nRow]">
+
+        <!-- row headers: row dimension(s) item label -->
         <template v-for="(rf, nFld) in rowFields">
           <th
             :key="rf.name"
@@ -100,6 +106,7 @@
         <!-- empty row headers if all dimensions on the columns and "show dimensions name" enabled -->
         <th v-if="pvControl.isRowColNames && !rowFields.length && !!colFields.length" class="pv-rc-pad"></th>
 
+        <!-- table body value cells: readonly cells and edit input cell (if edit in progress) -->
         <td v-for="(col, nCol) in pvt.cols" :key="pvt.colKeys[nCol]"
           :class="pvControl.cellClass"
           >
@@ -232,6 +239,9 @@
   height: 100%;
   display: inline-block;
   @extend .pv-cell-font;
+  &:focus {
+    background-color: gainsboro; // #9fa8da;
+  }
 }
 .pv-cell-input { // input text
   border: 0;

@@ -123,7 +123,7 @@ export default {
       updatedKeys: {},    // for each cellKey string of: 'cellKey-keyUpdateCount'
       keyPos: [],         // position of each dimension item in cell key
       valueLen: 0,        // value input text size
-      isSizeUpdate: false // if true then recalculate size
+      isDataUpdate: false // if true then pivot data updated
     }
   },
   /* eslint-enable no-multi-spaces */
@@ -134,7 +134,17 @@ export default {
     },
     refreshDimsTickle () {
       this.setDimItemLabels()
+    },
+    isEditNow () {
+      if (this.pvEdit.isEdit) { // on edit start: set focus on top left cell
+        this.$nextTick(() => {
+          this.focusToRowCol(0, 0)
+        })
+      }
     }
+  },
+  computed: {
+    isEditNow () { return this.pvEdit.isEdit }
   },
 
   methods: {
@@ -160,7 +170,7 @@ export default {
     getUpdatedKey (key) {
       return this.updatedKeys.hasOwnProperty(key) ? this.updatedKeys[key] : void 0
     },
-    nextUpdatedKey (key) {
+    changeUpdatedKey (key) {
       this.updatedKeys[key] = [key, ++this.keyUpdateCount].join('-')
     },
 
@@ -235,7 +245,7 @@ export default {
       })
       this.pvEdit.lastHistory = this.pvEdit.history.length
 
-      this.nextUpdatedKey(key)
+      this.changeUpdatedKey(key)
       return true
     },
 
@@ -270,7 +280,7 @@ export default {
       }
       
       // update display value
-      this.nextUpdatedKey(ckey)
+      this.changeUpdatedKey(ckey)
       this.focusNextTick(ckey)
     },
     // redo most recent undo
@@ -283,7 +293,7 @@ export default {
       this.pvEdit.isUpdated = true
 
       // update display value
-      this.nextUpdatedKey(ckey)
+      this.changeUpdatedKey(ckey)
       this.focusNextTick(ckey)
     },
 
@@ -301,18 +311,18 @@ export default {
       if (nRow > 0) this.focusToRowCol(nRow - 1, nCol)
     },
 
+    // set cell focus to rowNumber+columnNumber
+    focusToRowCol (nRow, nCol) {
+      if (nRow < 0 || nRow > this.pvt.rowCount - 1 || nCol < 0 || nCol > this.pvt.colCount - 1) return // at the edge of table body
+
+      let cKey = this.pvt.cellKeys[nRow * this.pvt.colCount + nCol]
+      if (this.$refs[cKey] && (this.$refs[cKey].length || 0) === 1) this.$refs[cKey][0].focus()
+    },
     // set cell focus on next tick
     focusNextTick (key) {
       this.$nextTick(() => {
         if (this.$refs[key] && (this.$refs[key].length || 0) === 1) this.$refs[key][0].focus()
       })
-    },
-    // set cell focus to rowNumber+columnNumber
-    focusToRowCol (nRow, nCol) {
-      if (nRow < 0 || nRow > this.pvt.rowCount - 1 || nCol < 0 || nCol > this.pvt.colCount - 1) return // at the edge of table body
-
-      let nextKey = this.pvt.cellKeys[nRow * this.pvt.colCount + nCol]
-      if (this.$refs[nextKey] && (this.$refs[nextKey].length || 0) === 1) this.$refs[nextKey][0].focus()
     },
 
     // paste tab separated values from clipboard, event.preventDefault done by event modifier
@@ -470,7 +480,7 @@ export default {
       this.updatedKeys = {}
       this.keyPos = []
       this.valueLen = 0
-      this.isSizeUpdate = false
+      this.isDataUpdate = true
 
       // if response is empty or invalid: clean table
       const len = (!!d && (d.length || 0) > 0) ? d.length : 0
@@ -710,15 +720,18 @@ export default {
       this.updatedKeys = vupd
       this.keyPos = nkp
       this.valueLen = 0
-      this.isSizeUpdate = this.pvEdit.isEnabled // update size only if edit value enabled
 
       this.$emit('pv-key-pos', this.keyPos)
     }
   },
 
-  // on table html updated: if required for editor then recalculate size of input text
+  // on table html updated: if it is an editor then recalculate size of input text and set focus
   updated () {
-    if (!this.isSizeUpdate) return // size update not required
+    if (!this.isDataUpdate) return // data not updated
+
+    this.isDataUpdate = false // do it only once after data update
+
+    if (!this.pvEdit.isEnabled) return // exit: it is not an editor
 
     // max length of cell value as string
     let ml = 0
@@ -758,7 +771,6 @@ export default {
       let nc = Math.floor((mw - 9) / 9) - 1
       if (this.valueLen < nc) this.valueLen = nc
     }
-    this.isSizeUpdate = false
   },
 
   mounted () {
