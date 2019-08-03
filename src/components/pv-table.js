@@ -170,6 +170,7 @@ export default {
         vcells[bkey] = { src: src, fmt: this.pvControl.formatter.format(src) }
         vupd[bkey] = this.makeRenderKey(bkey)
       }
+
       this.pvt.cells = Object.freeze(vcells)
       this.renderKeys = vupd // force update
     },
@@ -188,13 +189,20 @@ export default {
     // start of editor methods
     //
     // start cell edit: enter into input control
-    onCellKeyEnter (key) {
-      this.cellInputStart(key)
+    onKeyEnter(e) {
+      let rc = this.rowColAttrs(e)
+      if (rc) this.cellInputStart(rc.cRow, rc.cCol) // if this is table body cell then start input
     },
-    onCellDblClick (key) {
-      this.cellInputStart(key)
+    onDblClick (e) {
+      let rc = this.rowColAttrs(e)
+      if (rc) this.cellInputStart(rc.cRow, rc.cCol) // if this is table body cell then start input
     },
-    cellInputStart (key) {
+    cellInputStart (nRow, nCol) {
+      if (typeof nRow !== typeof 1 || typeof nCol !== typeof 1) {
+        console.warn('Fail to start cell editing: invalid or undefined row or column')
+        return
+      }
+      let key = this.pvt.cellKeys[nRow * this.pvt.colCount + nCol]
       this.pvEdit.cellKey = key
       this.pvEdit.cellValue = this.getUpdatedSrc(key)
       this.focusNextTick(key)
@@ -274,7 +282,7 @@ export default {
 
     // undo last edit changes
     doUndo () {
-      if (this.pvEdit.lastHistory <= 0) return // exit: entire history already undone
+      if (!this.pvEdit.isEdit || this.pvEdit.lastHistory <= 0) return // exit: entire history already undone
 
       let n = --this.pvEdit.lastHistory
       const ckey = this.pvEdit.history[n].key
@@ -296,7 +304,7 @@ export default {
     },
     // redo most recent undo
     doRedo () {
-      if (this.pvEdit.lastHistory >= this.pvEdit.history.length) return // exit: already at the end of history
+      if (!this.pvEdit.isEdit || this.pvEdit.lastHistory >= this.pvEdit.history.length) return // exit: already at the end of history
 
       let n = this.pvEdit.lastHistory++
       let ckey = this.pvEdit.history[n].key
@@ -309,25 +317,27 @@ export default {
     },
 
     // arrows navigation
-    onLeftArrow(nRow, nCol) {
-      if (nCol > 0) this.focusToRowCol(nRow, nCol - 1)
+    onLeftArrow(e) {
+      let rc = this.rowColAttrs(e)
+      if (rc && rc.cCol > 0) this.focusToRowCol(rc.cRow, rc.cCol - 1) // move focus left if this is table body cell
     },
-    onRightArrow(nRow, nCol) {
-      if (nCol < this.pvt.colCount - 1) this.focusToRowCol(nRow, nCol + 1)
+    onRightArrow(e) {
+      let rc = this.rowColAttrs(e)
+      if (rc && rc.cCol  < this.pvt.colCount - 1) this.focusToRowCol(rc.cRow, rc.cCol + 1) // move focus right if this is table body cell
     },
-    onDownArrow(nRow, nCol) {
-      if (nRow < this.pvt.rowCount - 1) this.focusToRowCol(nRow + 1, nCol)
+    onDownArrow(e) {
+      let rc = this.rowColAttrs(e)
+      if (rc && rc.cRow < this.pvt.rowCount - 1) this.focusToRowCol(rc.cRow + 1, rc.cCol) // move focus down if this is table body cell
     },
-    onUpArrow(nRow, nCol) {
-      if (nRow > 0) this.focusToRowCol(nRow - 1, nCol)
+    onUpArrow(e) {
+      let rc = this.rowColAttrs(e)
+      if (rc && rc.cRow > 0) this.focusToRowCol(rc.cRow - 1, rc.cCol) // move focus up if this is table body cell
     },
 
-    // set cell focus to rowNumber+columnNumber
+    // set cell focus to (rowNumber,columnNumber) coordinates
     focusToRowCol (nRow, nCol) {
-      if (nRow < 0 || nRow > this.pvt.rowCount - 1 || nCol < 0 || nCol > this.pvt.colCount - 1) return // at the edge of table body
-
-      let cKey = this.pvt.cellKeys[nRow * this.pvt.colCount + nCol]
-      if (this.$refs[cKey] && (this.$refs[cKey].length || 0) === 1) this.$refs[cKey][0].focus()
+      let cKey = this.cellKeyByRowCol(nRow, nCol)
+      if (cKey && this.$refs[cKey] && (this.$refs[cKey].length || 0) === 1) this.$refs[cKey][0].focus()
     },
     // set cell focus on next tick
     focusNextTick (key) {
@@ -335,21 +345,30 @@ export default {
         if (this.$refs[key] && (this.$refs[key].length || 0) === 1) this.$refs[key][0].focus()
       })
     },
+    // get cell key by (row, column)
+    cellKeyByRowCol (nRow, nCol) {
+      if (typeof nRow !== typeof 1 || typeof nCol !== typeof 1) return void 0
+      if (nRow < 0 || nRow > this.pvt.rowCount - 1 || nCol < 0 || nCol > this.pvt.colCount - 1) return void 0 // outside of table body
+
+      return this.pvt.cellKeys[nRow * this.pvt.colCount + nCol]
+    },
+
+    // get body cell {row,column} from event target attributes
+    rowColAttrs (e) {
+      if (!e || !e.target) {
+        console.warn('Failed to get row and column: event target unknown')
+        return void 0
+      }
+      const nRow = parseInt((e.target.getAttribute('data-om-nrow') || ''), 10)
+      const nCol = parseInt((e.target.getAttribute('data-om-ncol') || ''), 10)
+
+      return (!isNaN(nRow) && !isNaN(nCol)) ? { cRow: nRow, cCol: nCol } : void 0 // return undefined if taregt has no row or column attribute
+    },
 
     // paste tab separated values from clipboard, event.preventDefault done by event modifier
     onPaste (e) {
-      if (!e || !e.target) {
-        console.log('Paste error: event target unknown')
-        return false
-      }
-      let t = e.target
-
-      const nTop = parseInt((t.getAttribute('data-om-nrow') || ''), 10)
-      const nLeft = parseInt((t.getAttribute('data-om-ncol') || ''), 10)
-      if (isNaN(nTop) || isNaN(nLeft)) {
-        console.log('Paste error: event target row or column undefined')
-        return false
-      }
+      let rc = this.rowColAttrs(e)
+      if (!rc) return false // current cell is unknown: paste must be done into table cell
 
       // get pasted clipboard values
       let pasted = ''
@@ -360,17 +379,17 @@ export default {
       }
 
       // parse tab separated values
-      let pv = Pcvt.parseTsv(pasted, this.pvt.rowCount - nTop, this.pvt.colCount - nLeft)
+      let pv = Pcvt.parseTsv(pasted, this.pvt.rowCount - rc.cRow, this.pvt.colCount - rc.cCol)
 
-      if (!pv || pv.rowSize <= 0 || (pv.colSize <= 0 && nTop + pv.rowSize <= this.pvt.rowCount)) {
+      if (!pv || pv.rowSize <= 0 || (pv.colSize <= 0 && rc.cRow + pv.rowSize <= this.pvt.rowCount)) {
         this.$emit('pv-message', 'Empty (or invalid) paste: tab separated value(s) expected')
         return false
       }
-      if (nTop + pv.rowSize > this.pvt.rowCount) {
+      if (rc.cRow + pv.rowSize > this.pvt.rowCount) {
         this.$emit('pv-message', 'Too many rows pasted: ' + pv.rowSize.toString())
         return false
       }
-      if (nLeft + pv.colSize > this.pvt.colCount) {
+      if (rc.cCol + pv.colSize > this.pvt.colCount) {
         this.$emit('pv-message', 'Too many columns pasted: ' + pv.colSize.toString())
         return false
       }
@@ -381,7 +400,7 @@ export default {
 
       for (let k = 0; k < pv.arr.length; k++) {
         for (let j = 0; j < pv.arr[k].length; j++) {
-          let ckey = this.pvt.cellKeys[(nTop + k) * this.pvt.colCount + (nLeft + j)]
+          let ckey = this.pvt.cellKeys[(rc.cRow + k) * this.pvt.colCount + (rc.cCol + j)]
           
           let val = pv.arr[k][j]
           if (isToEnumId) {
@@ -712,6 +731,7 @@ export default {
         if (vkeys[0] === '') vkeys[0] = Pcvt.PV_KEY_SCALAR
       }
 
+      this.keyRenderCount++
       let vupd = {}
       for (const bkey of vkeys) {
         vupd[bkey] = this.makeRenderKey(bkey)
@@ -758,12 +778,10 @@ export default {
     let mw = 0
 
     if (this.colFields.length > 0) {
-      let prf = 'cth-' + (this.colFields.length - 1).toString() + '-'
-
       for (let nCol = 0; nCol < this.pvt.colCount; nCol++) {
-        let thLst = this.$refs[prf + nCol.toString()]
-        if (thLst && (thLst.length || 0) > 0) {
-          let n = thLst[thLst.length - 1].clientWidth || 0
+        let thLst = this.$refs['cth-' + (this.colFields.length - 1) + '-' + nCol]
+        if (thLst && (thLst.length || 0) === 1) {
+          let n = thLst[0].clientWidth || 0
           if (n > mw) mw = n
         }
       }
@@ -785,7 +803,7 @@ export default {
   },
 
   mounted () {
-    this.keyUpdateCount = 0
+    this.keyRenderCount = 0
     this.setDimItemLabels()
     this.setData(this.pvData)
   }

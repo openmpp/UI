@@ -18,7 +18,7 @@
         <template v-for="(col, nCol) in pvt.cols">
           <th
             :key="pvt.colKeys[nCol]"
-            :ref="'cth-' + nFld.toString() + '-' + nCol.toString()"
+            :ref="'cth-' + nFld + '-' + nCol"
             v-if="!!pvt.colSpans[nCol * colFields.length + nFld]"
             :colspan="pvt.colSpans[nCol * colFields.length + nFld]"
             :rowspan="(!!rowFields.length && nFld === colFields.length - 1) ? 2 : 1"
@@ -48,7 +48,7 @@
         <template v-for="(col, nCol) in pvt.cols">
           <th
             :key="pvt.colKeys[nCol]"
-            :ref="'cth-' + nFld.toString() + '-' + nCol.toString()"
+            :ref="'cth-' + nFld + '-' + nCol"
             v-if="!!pvt.colSpans[nCol * colFields.length + nFld]"
             :colspan="pvt.colSpans[nCol * colFields.length + nFld]"
             class="pv-col-head">
@@ -67,7 +67,7 @@
         <!-- row headers: row dimension(s) item label -->
         <template v-for="(rf, nFld) in rowFields">
           <th
-            :key="rf.name"
+            :key="pvt.rowKeys[nRow] + '-' + nFld"
             v-if="!!pvt.rowSpans[nRow * rowFields.length + nFld]"
             :rowspan="pvt.rowSpans[nRow * rowFields.length + nFld]"
             :colspan="(pvControl.isRowColNames && !!colFields.length && nFld === rowFields.length - 1) ? 2 : 1"
@@ -80,7 +80,7 @@
 
         <!-- table body value cells -->
         <template>
-          <td v-for="(col, nCol) in pvt.cols" :key="pvt.colKeys[nCol]"
+          <td v-for="(col, nCol) in pvt.cols" :key="pvt.cellKeys[nRow * pvt.colCount + nCol]"
             :class="pvControl.cellClass">{{pvt.cells[pvt.cellKeys[nRow * pvt.colCount + nCol]].fmt}}</td>
         </template>
       </tr>
@@ -88,14 +88,23 @@
     </tbody>
     <!-- table body: pivot editor -->
     <tbody v-else
-      @paste.prevent="onPaste($event)">
+      @paste.prevent="onPaste($event)"
+      @keydown.enter.exact="onKeyEnter($event)"
+      @dblclick="onDblClick($event)"
+      @keyup.ctrl.90="doUndo"
+      @keyup.ctrl.89="doRedo"
+      @keydown.left.exact="onLeftArrow($event)"
+      @keydown.right.exact="onRightArrow($event)"
+      @keydown.down.exact="onDownArrow($event)"
+      @keydown.up.exact="onUpArrow($event)"
+      >
 
       <tr v-for="(row, nRow) in pvt.rows" :key="pvt.rowKeys[nRow]">
 
         <!-- row headers: row dimension(s) item label -->
         <template v-for="(rf, nFld) in rowFields">
           <th
-            :key="rf.name"
+            :key="pvt.rowKeys[nRow] + '-' + nFld"
             v-if="!!pvt.rowSpans[nRow * rowFields.length + nFld]"
             :rowspan="pvt.rowSpans[nRow * rowFields.length + nFld]"
             :colspan="(pvControl.isRowColNames && !!colFields.length && nFld === rowFields.length - 1) ? 2 : 1"
@@ -107,21 +116,12 @@
         <th v-if="pvControl.isRowColNames && !rowFields.length && !!colFields.length" class="pv-rc-pad"></th>
 
         <!-- table body value cells: readonly cells and edit input cell (if edit in progress) -->
-        <td v-for="(col, nCol) in pvt.cols" :key="pvt.colKeys[nCol]"
+        <td v-for="(col, nCol) in pvt.cols" :key="getRenderKey(pvt.cellKeys[nRow * pvt.colCount + nCol])"
           :class="pvControl.cellClass"
           >
           <template v-if="pvt.cellKeys[nRow * pvt.colCount + nCol] !== pvEdit.cellKey"> <!-- eidtor: readonly cells -->
             <span
               :ref="pvt.cellKeys[nRow * pvt.colCount + nCol]"
-              :key="getRenderKey(pvt.cellKeys[nRow * pvt.colCount + nCol])"
-              @keydown.enter.exact="onCellKeyEnter(pvt.cellKeys[nRow * pvt.colCount + nCol])"
-              @dblclick="onCellDblClick(pvt.cellKeys[nRow * pvt.colCount + nCol])"
-              @keyup.ctrl.90="doUndo"
-              @keyup.ctrl.89="doRedo"
-              @keydown.left.exact="onLeftArrow(nRow, nCol)"
-              @keydown.right.exact="onRightArrow(nRow, nCol)"
-              @keydown.down.exact="onDownArrow(nRow, nCol)"
-              @keydown.up.exact="onUpArrow(nRow, nCol)"
               :data-om-nrow="nRow"
               :data-om-ncol="nCol"
               tabindex="0"
@@ -134,7 +134,7 @@
                 type="checkbox"
                 v-model.lazy="pvEdit.cellValue"
                 :ref="pvt.cellKeys[nRow * pvt.colCount + nCol]"
-                @keydown.enter="onCellInputConfirm"
+                @keydown.enter.stop="onCellInputConfirm"
                 @blur="onCellInputBlur"
                 @keydown.esc="onCellInputEscape"
                 tabindex="0"
@@ -145,7 +145,7 @@
               <select
                 v-model.lazy="pvEdit.cellValue"
                 :ref="pvt.cellKeys[nRow * pvt.colCount + nCol]"
-                @keydown.enter="onCellInputConfirm"
+                @keydown.enter.stop="onCellInputConfirm"
                 @blur="onCellInputBlur"
                 @keydown.esc="onCellInputEscape"
                 tabindex="0"
@@ -159,8 +159,8 @@
                 type="text"
                 v-model="pvEdit.cellValue"
                 :ref="pvt.cellKeys[nRow * pvt.colCount + nCol]"
-                @keydown.enter="onCellInputConfirm"
-                @dblclick="onCellInputConfirm"
+                @keydown.enter.stop="onCellInputConfirm"
+                @dblclick.stop="onCellInputConfirm"
                 @blur="onCellInputBlur"
                 @keydown.esc="onCellInputEscape"
                 tabindex="0"

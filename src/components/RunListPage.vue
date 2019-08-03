@@ -5,7 +5,7 @@
   <div v-if="isRunList">
     <ul class="main-list mdc-list mdc-list--two-line">
 
-      <li v-for="(r, idx) in runTextList" :key="'rt-' + idx.toString()" class="mdc-list-item">
+      <li v-for="(r, idx) in runTextList" :key="'rt-' + idx" class="mdc-list-item">
 
         <span
           @click="showRunInfo(r)"

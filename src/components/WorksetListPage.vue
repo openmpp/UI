@@ -5,7 +5,7 @@
   <div v-if="isWsList">
     <ul class="main-list mdc-list mdc-list--two-line">
 
-      <li v-for="(w, idx) in worksetTextList" :key="'wt-' + idx.toString()" class="mdc-list-item">
+      <li v-for="(w, idx) in worksetTextList" :key="'wt-' + idx" class="mdc-list-item">
 
         <span
           @click="showWsInfo(w)"

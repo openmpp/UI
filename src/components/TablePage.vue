@@ -29,16 +29,16 @@
     <span v-if="!pvtState.isAllDecimals"
       @click="showMoreDecimals()"
       class="cell-icon-link material-icons"
-      :title="'Show more decimals, now: ' + (!pvtState.isAllDecimals ? pvtState.nDecimals.toString() : 'show all')"
-      :alt="'Show more decimals, now: ' + (!pvtState.isAllDecimals ? pvtState.nDecimals.toString() : 'show all')">zoom_in</span>
+      :title="'Show more decimals, now: ' + (!pvtState.isAllDecimals ? pvtState.nDecimals : 'show all')"
+      :alt="'Show more decimals, now: ' + (!pvtState.isAllDecimals ? pvtState.nDecimals : 'show all')">zoom_in</span>
     <span v-else
       class="cell-icon-empty material-icons" title="Show more decimals" alt="Show more decimals">zoom_in</span>
 
     <span v-if="pvtState.nDecimals > 0 || pvtState.isAllDecimals"
       @click="showLessDecimals()"
       class="cell-icon-link material-icons"
-      :title="'Show less decimals, now: ' + (!pvtState.isAllDecimals ? pvtState.nDecimals.toString() : 'show all')"
-      :alt="'Show less decimals, now: ' + (!pvtState.isAllDecimals ? pvtState.nDecimals.toString() : 'show all')">zoom_out</span>
+      :title="'Show less decimals, now: ' + (!pvtState.isAllDecimals ? pvtState.nDecimals : 'show all')"
+      :alt="'Show less decimals, now: ' + (!pvtState.isAllDecimals ? pvtState.nDecimals : 'show all')">zoom_out</span>
     <span v-else
       class="cell-icon-empty material-icons" title="Show less decimals" alt="Show less decimals">zoom_out</span>
 
