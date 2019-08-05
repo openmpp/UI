@@ -553,7 +553,6 @@ export default {
       this.pvt.colSpans = Object.freeze({})
       this.renderKeys = {}
       this.keyPos = []
-      this.valueLen = 0
 
       // if response is empty or invalid: clean table
       const len = (!!d && (d.length || 0) > 0) ? d.length : 0
@@ -572,6 +571,11 @@ export default {
           selected[k] = field.selection[k].value
         }
 
+        let enumIdsIndex = {}
+        for (let k = 0; k < field.enums.length; k++) {
+          enumIdsIndex[field.enums[k].value] = k
+        }
+
         return {
           isRow: isRow,
           isCol: isCol,
@@ -581,9 +585,9 @@ export default {
           keyPos: 0,
           read: field.read,
           filter: (v) => selected.includes(v),
-          compare: (left, right) => {
-            const nL = field.enums.findIndex(e => (left === e.value))
-            const nR = field.enums.findIndex(e => (right === e.value))
+          compareEnumIdByIndex: (left, right) => {
+            const nL = enumIdsIndex.hasOwnProperty(left) ? enumIdsIndex[left] : -1
+            const nR = enumIdsIndex.hasOwnProperty(right) ? enumIdsIndex[right] : -1
             if (nL >= 0 && nR >= 0) {
               return nL - nR
             }
@@ -600,12 +604,12 @@ export default {
       for (const f of this.rowFields) {
         let p = makeProc(f, true, false)
         recProc.push(p)
-        rCmp.push(p.compare)
+        rCmp.push(p.compareEnumIdByIndex)
       }
       for (const f of this.colFields) {
         let p = makeProc(f, false, true)
         recProc.push(p)
-        cCmp.push(p.compare)
+        cCmp.push(p.compareEnumIdByIndex)
       }
       for (const f of this.otherFields) {
         recProc.push(makeProc(f, false, false))
@@ -781,6 +785,7 @@ export default {
       }
 
       // max length of cell value as string
+      this.valueLen = 0
       let ml = 0
       for (const bkey in vcells) {
         if (vcells[bkey].src !== void 0) {

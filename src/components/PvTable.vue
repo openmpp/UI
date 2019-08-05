@@ -238,10 +238,10 @@
   width: 100%;
   height: 100%;
   display: inline-block;
-  @extend .pv-cell-font;
   &:focus {
     background-color: gainsboro;
   }
+  @extend .pv-cell-font;
 }
 .pv-cell-input { // input text
   border: 0;
