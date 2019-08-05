@@ -151,7 +151,10 @@ export default {
     },
     // on edit started event: set focus on top left cell
     isPvEditNow () {
-      if (this.pvEdit.isEdit) this.$nextTick(() => { this.focusToRowCol(0, 0) })
+      if (this.pvEdit.isEdit) this.$nextTick(() => {
+        this.focusToRowCol(0, 0)
+        this.updateValueLenByRowCol(0, 0)
+      })
     }
   },
   computed: {
@@ -203,6 +206,7 @@ export default {
         return
       }
       let key = this.pvt.cellKeys[nRow * this.pvt.colCount + nCol]
+      this.updateValueLenByKey(key)
       this.pvEdit.cellKey = key
       this.pvEdit.cellValue = this.getUpdatedSrc(key)
       this.focusNextTick(key)
@@ -265,6 +269,7 @@ export default {
       this.pvEdit.lastHistory = this.pvEdit.history.length
 
       this.changeRenderKey(key)
+      this.updateValueLenByValue(now)
       return true
     },
 
@@ -319,19 +324,31 @@ export default {
     // arrows navigation
     onLeftArrow(e) {
       let rc = this.rowColAttrs(e)
-      if (rc && rc.cCol > 0) this.focusToRowCol(rc.cRow, rc.cCol - 1) // move focus left if this is table body cell
+      if (rc && rc.cCol > 0) {
+        this.focusToRowCol(rc.cRow, rc.cCol - 1) // move focus left if this is table body cell
+        this.updateValueLenByRowCol(rc.cRow, rc.cCol - 1)
+      }
     },
     onRightArrow(e) {
       let rc = this.rowColAttrs(e)
-      if (rc && rc.cCol  < this.pvt.colCount - 1) this.focusToRowCol(rc.cRow, rc.cCol + 1) // move focus right if this is table body cell
+      if (rc && rc.cCol  < this.pvt.colCount - 1) {
+        this.focusToRowCol(rc.cRow, rc.cCol + 1) // move focus right if this is table body cell
+        this.updateValueLenByRowCol(rc.cRow, rc.cCol + 1)
+      }
     },
     onDownArrow(e) {
       let rc = this.rowColAttrs(e)
-      if (rc && rc.cRow < this.pvt.rowCount - 1) this.focusToRowCol(rc.cRow + 1, rc.cCol) // move focus down if this is table body cell
+      if (rc && rc.cRow < this.pvt.rowCount - 1) {
+        this.focusToRowCol(rc.cRow + 1, rc.cCol) // move focus down if this is table body cell
+        this.updateValueLenByRowCol(rc.cRow + 1, rc.cCol)
+      }
     },
     onUpArrow(e) {
       let rc = this.rowColAttrs(e)
-      if (rc && rc.cRow > 0) this.focusToRowCol(rc.cRow - 1, rc.cCol) // move focus up if this is table body cell
+      if (rc && rc.cRow > 0) {
+        this.focusToRowCol(rc.cRow - 1, rc.cCol) // move focus up if this is table body cell
+        this.updateValueLenByRowCol(rc.cRow - 1, rc.cCol)
+      }
     },
 
     // set cell focus to (rowNumber,columnNumber) coordinates
@@ -363,6 +380,27 @@ export default {
       const nCol = parseInt((e.target.getAttribute('data-om-ncol') || ''), 10)
 
       return (!isNaN(nRow) && !isNaN(nCol)) ? { cRow: nRow, cCol: nCol } : void 0 // return undefined if taregt has no row or column attribute
+    },
+
+    // on recalculate size of input text value based on client width
+    updateValueLenByRowCol (nRow, nCol) {
+      this.updateValueLenByKey(this.cellKeyByRowCol(nRow, nCol))
+    },
+    updateValueLenByKey (key) {
+      if (key && this.$refs[key] && (this.$refs[key].length || 0) === 1) {
+        let n = this.$refs[key][0].clientWidth || 0
+        if (n) {
+          let nc = Math.floor((n - 9) / 9) - 1
+          if (this.valueLen < nc) this.valueLen = nc
+        }
+      }
+    },
+    // on recalculate size of input text value
+    updateValueLenByValue (val) {
+      if (val !== void 0 && val !== '') {
+        let n = (val.toString() || '').length
+        if (this.valueLen < n) this.valueLen = n
+      }
     },
 
     // paste tab separated values from clipboard, event.preventDefault done by event modifier
@@ -397,10 +435,11 @@ export default {
       // for each value do input into the cell
       // if this is enum based parameter and cell values are labels then convert enum labels to enum id's
       let isToEnumId = this.pvEdit.kind === Pcvt.EDIT_ENUM && !this.pvControl.formatter.options().isSrcValue
+      let lastKey = ''
 
       for (let k = 0; k < pv.arr.length; k++) {
         for (let j = 0; j < pv.arr[k].length; j++) {
-          let ckey = this.pvt.cellKeys[(rc.cRow + k) * this.pvt.colCount + (rc.cCol + j)]
+          let cKey = this.pvt.cellKeys[(rc.cRow + k) * this.pvt.colCount + (rc.cCol + j)]
           
           let val = pv.arr[k][j]
           if (isToEnumId) {
@@ -412,10 +451,15 @@ export default {
           }
 
           // do input into the cell
-          if (!this.cellInputConfirm(val, ckey)) return false // input validation failed
-          this.focusNextTick(ckey)
+          if (!this.cellInputConfirm(val, cKey)) return false // input validation failed
+          this.focusNextTick(cKey)
+          lastKey = cKey
         }
       }
+
+      if (lastKey) this.$nextTick(() => {
+        this.updateValueLenByKey(lastKey)
+      })
       return true // success
     },
     tsvFromClipboard () {
@@ -510,7 +554,6 @@ export default {
       this.renderKeys = {}
       this.keyPos = []
       this.valueLen = 0
-      this.isDataUpdate = true
 
       // if response is empty or invalid: clean table
       const len = (!!d && (d.length || 0) > 0) ? d.length : 0
@@ -737,6 +780,16 @@ export default {
         vupd[bkey] = this.makeRenderKey(bkey)
       }
 
+      // max length of cell value as string
+      let ml = 0
+      for (const bkey in vcells) {
+        if (vcells[bkey].src !== void 0) {
+          let n = (vcells[bkey].src.toString() || '').length
+          if (ml < n) ml = n
+        }
+      }
+      if (this.valueLen < ml) this.valueLen = ml
+  
       // done
       this.pvt.rowCount = rowCount
       this.pvt.colCount = colCount
@@ -750,55 +803,8 @@ export default {
       this.pvt.colSpans = Object.freeze(csp)
       this.renderKeys = vupd
       this.keyPos = nkp
-      this.valueLen = 0
 
       this.$emit('pv-key-pos', this.keyPos)
-    }
-  },
-
-  // on table html updated: if it is an editor then recalculate size of input text and set focus
-  updated () {
-    if (!this.isDataUpdate) return // data not updated
-
-    this.isDataUpdate = false // do it only once after data update
-
-    if (!this.pvEdit.isEnabled) return // exit: it is not an editor
-
-    // max length of cell value as string
-    let ml = 0
-    for (const bkey in this.pvt.cells) {
-      if (this.pvt.cells[bkey].src !== void 0) {
-        let n = (this.pvt.cells[bkey].src.toString() || '').length
-        if (ml < n) ml = n
-      }
-    }
-    if (this.valueLen < ml) this.valueLen = ml
-
-    // find max column client width
-    let mw = 0
-
-    if (this.colFields.length > 0) {
-      for (let nCol = 0; nCol < this.pvt.colCount; nCol++) {
-        let thLst = this.$refs['cth-' + (this.colFields.length - 1) + '-' + nCol]
-        if (thLst && (thLst.length || 0) === 1) {
-          let n = thLst[0].clientWidth || 0
-          if (n > mw) mw = n
-        }
-      }
-    }
-
-    if (!mw) {
-      let thPad = this.$refs.cthPad
-      if (thPad) {
-        let n = thPad.clientWidth || 0
-        if (n > mw) mw = n
-      }
-    }
-
-    // adjust input text size based on clientWidth
-    if (mw) {
-      let nc = Math.floor((mw - 9) / 9) - 1
-      if (this.valueLen < nc) this.valueLen = nc
     }
   },
 
