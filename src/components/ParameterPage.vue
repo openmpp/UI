@@ -40,17 +40,20 @@
       @click="togglePivotControls()"
       class="cell-icon-link material-icons" title="Show / hide pivot controls" alt="Show / hide pivot controls">tune</span>
 
-    <template v-if="ctrl.isRowColNamesToggle">
-      <span v-if="pvc.isRowColNames"
-        @click="toggleRowColNames()"
+    <template v-if="ctrl.isRowColModeToggle">
+      <span v-if="pvc.rowColMode === 2"
+        @click="toggleRowColMode()"
         class="cell-icon-link material-icons" title="Hide rows and columns name" alt="Hide rows and columns name">view_list</span>
+      <span v-else-if="pvc.rowColMode === 1"
+        @click="toggleRowColMode()"
+        class="cell-icon-link material-icons" title="Table view: always show rows and columns item" alt="Table view: always show rows and columns item">view_module</span>
       <span v-else
-        @click="toggleRowColNames()"
-        class="cell-icon-link material-icons" title="Show rows and columns name" alt="Show rows and columns name">view_quilt</span>
+        @click="toggleRowColMode()"
+        class="cell-icon-link material-icons" title="Switch to default pivot view" alt="Switch to default pivot view">view_quilt</span>
     </template>
     <template v-else>
       <span
-        class="cell-icon-empty material-icons" title="Show / hide rows and columns name" alt="Show / hide rows and columns name">view_list</span>
+        class="cell-icon-empty material-icons" title="Switch to default pivot view" alt="Switch to default pivot view">view_quilt</span>
     </template>
 
     <template v-if="ctrl.formatOpts">

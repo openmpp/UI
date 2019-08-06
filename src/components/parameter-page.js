@@ -49,17 +49,17 @@ export default {
       inpData: Object.freeze([]),
       ctrl: {
         isShowPvControls: true,
-        isRowColNamesToggle: true,
+        isRowColModeToggle: true,
         isPvTickle: false,
         isPvDimsTickle: false,
         formatOpts: void 0  // hide format controls by default
       },
       pvc: {
-        isRowColNames: true,
+        rowColMode: 2, // row and columns mode: 2 = use spans and show dim names, 1 = use spans and hide dim names, 0 = no spans and hide dim names
         readValue: (r) => (!r.IsNull ? r.Value : (void 0)),
         processValue: Pcvt.asIsPval,    // default value processing: return as is
         formatter: Pcvt.formatDefault,  // disable format(), parse() and validation by default
-        cellClass: 'pv-cell-right'         // default cell value style: right justified number
+        cellClass: 'pv-cell-right'      // default cell value style: right justified number
       },
       pvKeyPos: [],   // position of each dimension item in cell key
       edt: {          // editor options and state shared with child
@@ -126,8 +126,8 @@ export default {
       this.$refs.noteDlg.showParamInfo(this.paramName, this.subCount)
     },
     // show or hide extra controls
-    toggleRowColNames () {
-      this.pvc.isRowColNames = !this.pvc.isRowColNames
+    toggleRowColMode () {
+      this.pvc.rowColMode = (3 + (this.pvc.rowColMode - 1)) % 3
     },
     togglePivotControls () {
       this.ctrl.isShowPvControls = !this.ctrl.isShowPvControls
@@ -295,8 +295,8 @@ export default {
       this.resetEdit() // clear editor state
 
       let isRc = this.paramSize.rank > 0 || this.subCount > 1
-      this.pvc.isRowColNames = isRc
-      this.ctrl.isRowColNamesToggle = isRc
+      this.pvc.rowColMode = isRc ? 2 : 0
+      this.ctrl.isRowColModeToggle = isRc
       this.ctrl.isShowPvControls = isRc
       this.pvKeyPos = []
 

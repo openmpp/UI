@@ -23,9 +23,9 @@ pvData: array of table rows, example:
   dimension selection[] is an array of selected enums for each dimension
 
 pvControl: {
-  isRowColNames: true/false, if true then show row and column field label
-  readValue():   function expected to return table cell value
-  processValue:  functions are used to aggregate cell value(s)
+  rowColMode:   row and columns mode: 2 = use spans, show dim names, 1 = use spans, hide dim names, 0 = no spans, hide dim names
+  readValue():  function expected to return table cell value
+  processValue: functions are used to aggregate cell value(s)
   formatter: {
     format():   function (if defined) to convert cell value to string
     parse():    function (if defined) to convert cell string to value, ex: parseFloat(), used by editor only
@@ -88,7 +88,7 @@ export default {
     pvControl: {
       type: Object,
       default: () => ({
-        isRowColNames: false,           // if true then show row and column field names
+        rowColMode: 0, // row and columns mode: 2 = use spans and show dim names, 1 = use spans and hide dim names, 0 = no spans and hide dim names
         readValue: (r) => (!r.IsNull ? r.Value : (void 0)),
         processValue: Pcvt.asIsPval,    // default value processing: return as is
         formatter: Pcvt.formatDefault,  // disable format(), parse() and validation by default
