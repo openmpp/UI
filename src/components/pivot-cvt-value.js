@@ -1,4 +1,4 @@
-// pivot table value processing: conversion and aggregation
+// pivot table record processing: value conversion and aggregation
 
 import * as PcvtHlp from './pivot-cvt-helper'
 

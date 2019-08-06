@@ -18,7 +18,6 @@
         <template v-for="(col, nCol) in pvt.cols">
           <th
             :key="pvt.colKeys[nCol]"
-            :ref="'cth-' + nFld + '-' + nCol"
             v-if="!!pvt.colSpans[nCol * colFields.length + nFld]"
             :colspan="pvt.colSpans[nCol * colFields.length + nFld]"
             :rowspan="(!!rowFields.length && nFld === colFields.length - 1) ? 2 : 1"
@@ -33,7 +32,7 @@
           class="pv-rc-cell">
             {{rf.label}}
         </th>
-        <th ref="cthPad" class="pv-rc-pad"></th>
+        <th class="pv-rc-pad"></th>
       </tr>
 
     </thead>
@@ -48,7 +47,6 @@
         <template v-for="(col, nCol) in pvt.cols">
           <th
             :key="pvt.colKeys[nCol]"
-            :ref="'cth-' + nFld + '-' + nCol"
             v-if="!!pvt.colSpans[nCol * colFields.length + nFld]"
             :colspan="pvt.colSpans[nCol * colFields.length + nFld]"
             class="pv-col-head">

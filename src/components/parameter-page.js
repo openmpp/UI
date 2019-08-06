@@ -161,10 +161,6 @@ export default {
     copyToClipboard () {
       this.$refs[this.pvRef].tsvToClipboard()
     },
-    // paste tab separated values from clipboard
-    pasteFromClipboard () {
-      this.$refs[this.pvRef].tsvFromClipboard()
-    },
 
     // start of editor methods
     //

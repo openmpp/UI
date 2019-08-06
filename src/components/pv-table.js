@@ -324,31 +324,19 @@ export default {
     // arrows navigation
     onLeftArrow(e) {
       let rc = this.rowColAttrs(e)
-      if (rc && rc.cCol > 0) {
-        this.focusToRowCol(rc.cRow, rc.cCol - 1) // move focus left if this is table body cell
-        this.updateValueLenByRowCol(rc.cRow, rc.cCol - 1)
-      }
+      if (rc && rc.cCol > 0) this.focusToRowCol(rc.cRow, rc.cCol - 1) // move focus left if this is table body cell
     },
     onRightArrow(e) {
       let rc = this.rowColAttrs(e)
-      if (rc && rc.cCol  < this.pvt.colCount - 1) {
-        this.focusToRowCol(rc.cRow, rc.cCol + 1) // move focus right if this is table body cell
-        this.updateValueLenByRowCol(rc.cRow, rc.cCol + 1)
-      }
+      if (rc && rc.cCol  < this.pvt.colCount - 1) this.focusToRowCol(rc.cRow, rc.cCol + 1) // move focus right if this is table body cell
     },
     onDownArrow(e) {
       let rc = this.rowColAttrs(e)
-      if (rc && rc.cRow < this.pvt.rowCount - 1) {
-        this.focusToRowCol(rc.cRow + 1, rc.cCol) // move focus down if this is table body cell
-        this.updateValueLenByRowCol(rc.cRow + 1, rc.cCol)
-      }
+      if (rc && rc.cRow < this.pvt.rowCount - 1) this.focusToRowCol(rc.cRow + 1, rc.cCol) // move focus down if this is table body cell
     },
     onUpArrow(e) {
       let rc = this.rowColAttrs(e)
-      if (rc && rc.cRow > 0) {
-        this.focusToRowCol(rc.cRow - 1, rc.cCol) // move focus up if this is table body cell
-        this.updateValueLenByRowCol(rc.cRow - 1, rc.cCol)
-      }
+      if (rc && rc.cRow > 0) this.focusToRowCol(rc.cRow - 1, rc.cCol) // move focus up if this is table body cell
     },
 
     // set cell focus to (rowNumber,columnNumber) coordinates
@@ -406,7 +394,9 @@ export default {
     // paste tab separated values from clipboard, event.preventDefault done by event modifier
     onPaste (e) {
       let rc = this.rowColAttrs(e)
-      if (!rc) return false // current cell is unknown: paste must be done into table cell
+      if (!rc) {
+        return false // current cell is unknown: paste must be done into table cell
+      }
 
       // get pasted clipboard values
       let pasted = ''
@@ -435,7 +425,6 @@ export default {
       // for each value do input into the cell
       // if this is enum based parameter and cell values are labels then convert enum labels to enum id's
       let isToEnumId = this.pvEdit.kind === Pcvt.EDIT_ENUM && !this.pvControl.formatter.options().isSrcValue
-      let lastKey = ''
 
       for (let k = 0; k < pv.arr.length; k++) {
         for (let j = 0; j < pv.arr[k].length; j++) {
@@ -453,20 +442,10 @@ export default {
           // do input into the cell
           if (!this.cellInputConfirm(val, cKey)) return false // input validation failed
           this.focusNextTick(cKey)
-          lastKey = cKey
         }
       }
-
-      if (lastKey) this.$nextTick(() => {
-        this.updateValueLenByKey(lastKey)
-      })
       return true // success
     },
-    tsvFromClipboard () {
-      // TODO: keep cell focus before button click
-      console.log('TODO: tsvFromClipboard')
-    },
-    //
     // end of editor methods
 
     // copy tab separated values to clipboard
@@ -560,68 +539,31 @@ export default {
         return
       }
 
-      // make dimensions field selector:
-      //  read dimension items from input record
-      //  check if item is in dropdown filter values
-      //  return comparator to sort items in the order of dimension enums
-      const makeProc = (field, isRow = false, isCol = false) => {
-        //
-        let selected = Array(field.selection.length)
-        for (let k = 0; k < field.selection.length; k++) {
-          selected[k] = field.selection[k].value
-        }
-
-        let enumIdsIndex = {}
-        for (let k = 0; k < field.enums.length; k++) {
-          enumIdsIndex[field.enums[k].value] = k
-        }
-
-        return {
-          isRow: isRow,
-          isCol: isCol,
-          name: field.name,
-          isCellKey: isRow || isCol || selected.length === 1, // use field item as body cell key
-          cellKeyItem: selected.length === 1 ? selected[0] : void 0, // if only single item selected then use it as body cell key
-          keyPos: 0,
-          read: field.read,
-          filter: (v) => selected.includes(v),
-          compareEnumIdByIndex: (left, right) => {
-            const nL = enumIdsIndex.hasOwnProperty(left) ? enumIdsIndex[left] : -1
-            const nR = enumIdsIndex.hasOwnProperty(right) ? enumIdsIndex[right] : -1
-            if (nL >= 0 && nR >= 0) {
-              return nL - nR
-            }
-            if (nL >= 0 && nR < 0) return -1
-            if (nL < 0 && nR >= 0) return 1
-            return left < right ? -1 : (left > right ? 1 : 0)
-          }
-        }
-      }
-
-      let recProc = []
+      // make dimensions field selectors to read, filter and sort dimension fields
+      let dimProc = []
       let rCmp = []
       let cCmp = []
       for (const f of this.rowFields) {
-        let p = makeProc(f, true, false)
-        recProc.push(p)
+        let p = Pcvt.dimField(f, true, false)
+        dimProc.push(p)
         rCmp.push(p.compareEnumIdByIndex)
       }
       for (const f of this.colFields) {
-        let p = makeProc(f, false, true)
-        recProc.push(p)
+        let p = Pcvt.dimField(f, false, true)
+        dimProc.push(p)
         cCmp.push(p.compareEnumIdByIndex)
       }
       for (const f of this.otherFields) {
-        recProc.push(makeProc(f, false, false))
+        dimProc.push(Pcvt.dimField(f, false, false))
       }
 
-      const isScalar = recProc.length === 0 // scalar parameter with only one sub-value
+      const isScalar = dimProc.length === 0 // scalar parameter with only one sub-value
 
       let cellKeyLen = 0
-      for (const p of recProc) {
+      for (const p of dimProc) {
         if (!p.isCellKey) continue
         cellKeyLen++
-        for (const rp of recProc) {
+        for (const rp of dimProc) {
           if (!rp.isCellKey) continue
           if (p.name > rp.name) p.keyPos++
         }
@@ -645,7 +587,7 @@ export default {
         let b = Array(cellKeyLen)
         let i = 0
         let j = 0
-        for (const p of recProc) {
+        for (const p of dimProc) {
           let v = p.read(d[nSrc])
           isSel = p.filter(v)
           if (!isSel) break
@@ -686,47 +628,12 @@ export default {
       }
 
       // sort row keys and column keys in the order of dimension items
-      const cmpKeys = (keyLen, aCmp) => {
-        return (leftKey, rightKey) => {
-          for (let k = 0; k < keyLen; k++) {
-            let v = aCmp[k](leftKey[k], rightKey[k])
-            if (v !== 0) return v
-          }
-          return 0
-        }
-      }
-      vrows.sort(cmpKeys(rowKeyLen, rCmp))
-      vcols.sort(cmpKeys(colKeyLen, cCmp))
+      vrows.sort(Pcvt.compareKeys(rowKeyLen, rCmp))
+      vcols.sort(Pcvt.compareKeys(colKeyLen, cCmp))
 
       // calculate span for rows and columns
-      const itemSpans = (keyLen, itemArr) => {
-        if (!itemArr || itemArr.length < 1) return {} // no items: no rows or columns
-
-        let prev = Array(keyLen).fill('')
-        let idx = Array(keyLen).fill(0)
-        let itSpan = {}
-
-        for (let i = 0; i < itemArr.length; i++) {
-          for (let j = 0; j < keyLen; j++) {
-            if (itemArr[i][j] === prev[j]) { // if value same as previous then increase span
-              itSpan[idx[j] * keyLen + j]++
-              continue
-            }
-            // else new value: new span of all fields at this field and after
-            for (let k = j; k < keyLen; k++) {
-              prev[k] = itemArr[i][k]
-              idx[k] = i
-              itSpan[i * keyLen + k] = 1
-            }
-            break // next line: done with current fields - new span strated
-          }
-        }
-
-        return itSpan
-      }
-
-      let rsp = itemSpans(rowKeyLen, vrows)
-      let csp = itemSpans(colKeyLen, vcols)
+      let rsp = Pcvt.itemSpans(rowKeyLen, vrows)
+      let csp = Pcvt.itemSpans(colKeyLen, vcols)
 
       // sorted keys: row keys, column keys, body value keys
       const rowCount = vrows.length
@@ -749,14 +656,15 @@ export default {
       let b = Array(cellKeyLen)
       let nkp = Array(cellKeyLen)
       let kp = {}
-      for (let k = 0; k < recProc.length; k++) {
-        if (!recProc[k].isCellKey) continue
-        nkp[recProc[k].keyPos] = {
-          name: recProc[k].name, pos: recProc[k].keyPos
+      for (let k = 0; k < dimProc.length; k++) {
+        if (!dimProc[k].isCellKey) continue
+        nkp[dimProc[k].keyPos] = {
+          name: dimProc[k].name,
+          pos: dimProc[k].keyPos
         }
-        kp[recProc[k].name] = recProc[k].keyPos
-        if (!recProc[k].isRow && !recProc[k].isCol) {
-          b[recProc[k].keyPos] = recProc[k].cellKeyItem // add selected item to cell key
+        kp[dimProc[k].name] = dimProc[k].keyPos
+        if (dimProc[k].isSingleKey) {
+          b[dimProc[k].keyPos] = dimProc[k].singleKey // add selected item to cell key
         }
       }
 
