@@ -162,22 +162,6 @@ export default {
   },
 
   methods: {
-    // update all formatted cell values
-    doRefreshFormat () {
-      this.keyRenderCount++ // force update for all table body cells
-
-      let vcells = {}
-      let vupd = {}
-      for (const bkey in this.pvt.cells) {
-        let src = this.pvt.cells[bkey].src
-        vcells[bkey] = { src: src, fmt: this.pvControl.formatter.format(src) }
-        vupd[bkey] = this.makeRenderKey(bkey)
-      }
-
-      this.pvt.cells = Object.freeze(vcells)
-      this.renderKeys = vupd // force update
-    },
-
     // table body cell render keys to force update
     makeRenderKey (key) {
       return [key, this.keyRenderCount].join('-')
@@ -250,7 +234,7 @@ export default {
 
       // compare input value with previous
       const now = this.pvControl.formatter.parse(val)
-      const prev = this.pvEdit.updated.hasOwnProperty(key) ? this.pvEdit.updated[key] : this.pvt.cells[key].src
+      const prev = this.pvEdit.updated.hasOwnProperty(key) ? this.pvEdit.updated[key] : this.pvt.cells[key]
 
       if (now === prev || (now === '' && prev === void 0)) return true // exit if value not changed
 
@@ -275,10 +259,12 @@ export default {
 
     // return updated cell value or default if value not updated
     getUpdatedSrc(key) {
-      return this.pvEdit.isUpdated && this.pvEdit.updated.hasOwnProperty(key) ? this.pvEdit.updated[key] : this.pvt.cells[key].src
+      return this.pvEdit.isUpdated && this.pvEdit.updated.hasOwnProperty(key) ? this.pvEdit.updated[key] : this.pvt.cells[key]
     },
     getUpdatedFmt(key) {
-      return this.pvEdit.isUpdated && this.pvEdit.updated.hasOwnProperty(key) ? this.pvControl.formatter.format(this.pvEdit.updated[key]) : this.pvt.cells[key].fmt
+      return this.pvEdit.isUpdated && this.pvEdit.updated.hasOwnProperty(key) ? 
+        this.pvControl.formatter.format(this.pvEdit.updated[key]) :
+        this.pvControl.formatter.format(this.pvt.cells[key])
     },
     getUpdatedToDisplay(key) {
       let v = this.getUpdatedFmt(key)
@@ -476,7 +462,7 @@ export default {
         // body cell values
         if (!this.pvEdit.isEdit) {
           for (let nCol = 0; nCol < this.pvt.colCount; nCol++) {
-            tsv += this.pvt.cells[this.pvt.cellKeys[nRow * this.pvt.colCount + nCol]].fmt + (nCol < this.pvt.colCount - 1 ? '\t' : '\r\n')
+            tsv += this.pvControl.formatter.format(this.pvt.cells[this.pvt.cellKeys[nRow * this.pvt.colCount + nCol]]) + (nCol < this.pvt.colCount - 1 ? '\t' : '\r\n')
           }
         } else {
           for (let nCol = 0; nCol < this.pvt.colCount; nCol++) {
@@ -615,16 +601,11 @@ export default {
         let bkey = isScalar ? Pcvt.PV_KEY_SCALAR : Pcvt.itemsToKey(b)
         if (!vstate.hasOwnProperty(bkey)) {
           vstate[bkey] = this.pvControl.processValue.init()
-          vcells[bkey] = { src: void 0, fmt: void 0 }
+          vcells[bkey] = void 0
         }
         if (v !== void 0 || v !== null) {
-          vcells[bkey].src = this.pvControl.processValue.doNext(v, vstate[bkey])
+          vcells[bkey] = this.pvControl.processValue.doNext(v, vstate[bkey])
         }
-      }
-
-      // if format() not empty then format values else use source value as formatted value
-      for (const bkey in vcells) {
-        vcells[bkey].fmt = this.pvControl.formatter.format(vcells[bkey].src)
       }
 
       // sort row keys and column keys in the order of dimension items
@@ -696,8 +677,8 @@ export default {
       this.valueLen = 0
       let ml = 0
       for (const bkey in vcells) {
-        if (vcells[bkey].src !== void 0) {
-          let n = (vcells[bkey].src.toString() || '').length
+        if (vcells[bkey] !== void 0) {
+          let n = (vcells[bkey].toString() || '').length
           if (ml < n) ml = n
         }
       }

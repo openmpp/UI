@@ -136,13 +136,11 @@ export default {
     showMoreFormat () {
       if (!this.pvc.formatter) return
       this.pvc.formatter.doMore()
-      this.$refs[this.pvRef].doRefreshFormat()
     },
     // show less decimals (or less details) in table body
     showLessFormat () {
       if (!this.pvc.formatter) return
       this.pvc.formatter.doLess()
-      this.$refs[this.pvRef].doRefreshFormat()
     },
     // reset table view to default
     doResetView () {

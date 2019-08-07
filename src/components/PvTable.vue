@@ -96,7 +96,7 @@
 
         <!-- table body value cells -->
         <td v-for="(col, nCol) in pvt.cols" :key="pvt.cellKeys[nRow * pvt.colCount + nCol]"
-          :class="pvControl.cellClass">{{pvt.cells[pvt.cellKeys[nRow * pvt.colCount + nCol]].fmt}}</td>
+          :class="pvControl.cellClass">{{pvControl.formatter.format(pvt.cells[pvt.cellKeys[nRow * pvt.colCount + nCol]])}}</td>
 
       </tr>
 
