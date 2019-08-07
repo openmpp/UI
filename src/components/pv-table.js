@@ -153,7 +153,7 @@ export default {
     isPvEditNow () {
       if (this.pvEdit.isEdit) this.$nextTick(() => {
         this.focusToRowCol(0, 0)
-        this.updateValueLenByRowCol(0, 0)
+        // this.updateValueLenByRowCol(0, 0)
       })
     }
   },
@@ -163,11 +163,11 @@ export default {
 
   methods: {
     // table body cell render keys to force update
-    makeRenderKey (key) {
-      return [key, this.keyRenderCount].join('-')
-    },
     getRenderKey (key) {
       return this.renderKeys.hasOwnProperty(key) ? this.renderKeys[key] : void 0
+    },
+    makeRenderKey (key) {
+      return [key, this.keyRenderCount].join('-')
     },
     changeRenderKey (key) {
       this.renderKeys[key] = [key, ++this.keyRenderCount].join('-')
@@ -193,7 +193,7 @@ export default {
       this.updateValueLenByKey(key)
       this.pvEdit.cellKey = key
       this.pvEdit.cellValue = this.getUpdatedSrc(key)
-      this.focusNextTick(key)
+      this.focusNextTick('input-cell')
     },
 
     // cancel input edit by escape

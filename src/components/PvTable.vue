@@ -131,59 +131,66 @@
         <th v-if="pvControl.rowColMode === 2 && !rowFields.length && !!colFields.length" class="pv-rc-pad"></th>
 
         <!-- table body value cells: readonly cells and edit input cell (if edit in progress) -->
-        <td v-for="(col, nCol) in pvt.cols" :key="getRenderKey(pvt.cellKeys[nRow * pvt.colCount + nCol])"
+        <td v-for="(col, nCol) in pvt.cols"
+          :key="getRenderKey(pvt.cellKeys[nRow * pvt.colCount + nCol])"
+          :ref="pvt.cellKeys[nRow * pvt.colCount + nCol]"
+          :data-om-nrow="nRow"
+          :data-om-ncol="nCol"
+          :tabindex="(pvt.cellKeys[nRow * pvt.colCount + nCol] !== pvEdit.cellKey) ? 0 : void 0"
+          role="button"
           :class="pvControl.cellClass"
+          class="pv-cell-view"
           >
-          <template v-if="pvt.cellKeys[nRow * pvt.colCount + nCol] !== pvEdit.cellKey"> <!-- eidtor: readonly cells -->
-            <span
-              :ref="pvt.cellKeys[nRow * pvt.colCount + nCol]"
-              :data-om-nrow="nRow"
-              :data-om-ncol="nCol"
-              tabindex="0"
-              role="button"
-              class="pv-cell-view">{{getUpdatedToDisplay(pvt.cellKeys[nRow * pvt.colCount + nCol])}}</span>
+
+          <!-- eidtor: readonly cells -->
+          <template v-if="pvt.cellKeys[nRow * pvt.colCount + nCol] !== pvEdit.cellKey">
+            {{getUpdatedToDisplay(pvt.cellKeys[nRow * pvt.colCount + nCol])}}
           </template>
           <template v-else>
-            <template v-if="pvEdit.kind === 2"> <!-- checkbox editor for boolean value -->
+
+            <!-- checkbox editor for boolean value -->
+            <template v-if="pvEdit.kind === 2">
               <input
                 type="checkbox"
+                ref="input-cell"
                 v-model.lazy="pvEdit.cellValue"
-                :ref="pvt.cellKeys[nRow * pvt.colCount + nCol]"
                 @keydown.enter.stop="onCellInputConfirm"
                 @blur="onCellInputBlur"
                 @keydown.esc="onCellInputEscape"
                 tabindex="0"
-                role="button"
                 class="mdc-typography--body1" />
             </template>
-            <template v-else-if="pvEdit.kind === 3"> <!-- select dropdown editor for enum value -->
+
+            <!-- select dropdown editor for enum value -->
+            <template v-else-if="pvEdit.kind === 3">
               <select
+                ref="input-cell"
                 v-model.lazy="pvEdit.cellValue"
-                :ref="pvt.cellKeys[nRow * pvt.colCount + nCol]"
                 @keydown.enter.stop="onCellInputConfirm"
                 @blur="onCellInputBlur"
                 @keydown.esc="onCellInputEscape"
                 tabindex="0"
-                role="button"
                 class="pv-cell-font mdc-typography--body1">
                   <option v-for="opt in pvControl.formatter.getEnums()" :key="opt.value" :value="opt.value">{{opt.text}}</option>
               </select>
             </template>
-            <template v-else> <!-- default editor for float, integer or string value -->
+
+              <!-- default editor for float, integer or string value -->
+            <template v-else>
               <input
                 type="text"
+                ref="input-cell"
                 v-model="pvEdit.cellValue"
-                :ref="pvt.cellKeys[nRow * pvt.colCount + nCol]"
                 @keydown.enter.stop="onCellInputConfirm"
                 @dblclick.stop="onCellInputConfirm"
                 @blur="onCellInputBlur"
                 @keydown.esc="onCellInputEscape"
                 tabindex="0"
-                role="button"
                 class="pv-cell-input mdc-typography--body1"
                 :size="valueLen" />
             </template>
           </template>
+
         </td>
       </tr>
 
@@ -250,9 +257,6 @@
   @extend .pv-cell;
 }
 .pv-cell-view {
-  width: 100%;
-  height: 100%;
-  display: inline-block;
   &:focus {
     background-color: gainsboro;
   }
