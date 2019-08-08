@@ -158,7 +158,14 @@ export default {
     }
   },
   computed: {
-    isPvEditNow () { return this.pvEdit.isEdit }
+    // return true if pivot table in edit mode
+    isPvEditNow () {
+      return this.pvEdit.isEdit
+    },
+    // return true if pivot table in edit mode and cell input mode
+    isEditInput () {
+      return this.pvEdit.isEdit && typeof this.pvEdit.cellKey === typeof 'string' && this.pvEdit.cellKey !== ''
+    }
   },
 
   methods: {
@@ -172,9 +179,27 @@ export default {
     changeRenderKey (key) {
       this.renderKeys[key] = [key, ++this.keyRenderCount].join('-')
     },
+    // return formatted cell value
+    getCellValueFmt(key) {
+      return this.pvControl.formatter.format(this.pvt.cells[key])
+    },
 
     // start of editor methods
     //
+    // return updated cell value or default if value not updated
+    getUpdatedSrc(key) {
+      return this.pvEdit.isUpdated && this.pvEdit.updated.hasOwnProperty(key) ? this.pvEdit.updated[key] : this.pvt.cells[key]
+    },
+    getUpdatedFmt(key) {
+      return this.pvEdit.isUpdated && this.pvEdit.updated.hasOwnProperty(key) ? 
+        this.pvControl.formatter.format(this.pvEdit.updated[key]) :
+        this.pvControl.formatter.format(this.pvt.cells[key])
+    },
+    getUpdatedToDisplay(key) {
+      let v = this.getUpdatedFmt(key)
+      return (v !== void 0 && v !== '') ? v : '\u00a0' // value or &nbsp;
+    },
+
     // start cell edit: enter into input control
     onKeyEnter(e) {
       let rc = this.rowColAttrs(e)
@@ -255,20 +280,6 @@ export default {
       this.changeRenderKey(key)
       this.updateValueLenByValue(now)
       return true
-    },
-
-    // return updated cell value or default if value not updated
-    getUpdatedSrc(key) {
-      return this.pvEdit.isUpdated && this.pvEdit.updated.hasOwnProperty(key) ? this.pvEdit.updated[key] : this.pvt.cells[key]
-    },
-    getUpdatedFmt(key) {
-      return this.pvEdit.isUpdated && this.pvEdit.updated.hasOwnProperty(key) ? 
-        this.pvControl.formatter.format(this.pvEdit.updated[key]) :
-        this.pvControl.formatter.format(this.pvt.cells[key])
-    },
-    getUpdatedToDisplay(key) {
-      let v = this.getUpdatedFmt(key)
-      return (v !== void 0 && v !== '') ? v : '\u00a0' // value or &nbsp;
     },
 
     // undo last edit changes
@@ -377,8 +388,61 @@ export default {
       }
     },
 
+    // keyup event handler in editor mode: capture hot keys if it is not input text
+    onKeyUpEdit (e) {
+      if (e.defaultPrevented) return
+
+      // capture hot keys: ctrl-z and ctrl-y
+      if (!e.ctrlKey || e.altKey || e.shiftKey || e.metaKey) return
+      switch (e.key) {
+        case 'z':
+        case 'Z':
+          this.doUndo()
+          break
+        case 'y':
+        case 'Y':
+          this.doRedo()
+          break
+        default:
+          return // not a hot key: pass to default
+      }
+      e.preventDefault() // done with hot keys
+    },
+
+    // keydown event handler in editor mode: capture hot keys if it is not input text
+    onKeyDownEdit (e) {
+      if (e.defaultPrevented) return
+
+      // capture hot keys: enter and arrows
+      if (e.ctrlKey || e.altKey || e.shiftKey || e.metaKey) return
+      switch (e.key) {
+        case 'Enter':
+          this.onKeyEnter(e)
+          break
+        case 'Left':
+        case 'ArrowLeft':
+          this.onLeftArrow(e)
+          break
+        case 'Right':
+        case 'ArrowRight':
+          this.onRightArrow(e)
+          break
+        case 'Up':
+        case 'ArrowUp':
+          this.onUpArrow(e)
+          break
+        case 'Down':
+        case 'ArrowDown':
+          this.onDownArrow(e)
+          break
+        default:
+          return // not a hot key: pass to default
+      }
+      e.preventDefault() // done with hot keys
+    },
+
     // paste tab separated values from clipboard, event.preventDefault done by event modifier
-    onPaste (e) {
+    onPasteTsv (e) {
       let rc = this.rowColAttrs(e)
       if (!rc) {
         return false // current cell is unknown: paste must be done into table cell
@@ -432,10 +496,11 @@ export default {
       }
       return true // success
     },
+    //
     // end of editor methods
 
     // copy tab separated values to clipboard
-    tsvToClipboard () {
+    onCopyTsv () {
       let tsv = ''
 
       // prefix for each column header: empty '' value * by count of row dimensions

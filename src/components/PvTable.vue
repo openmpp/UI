@@ -3,7 +3,7 @@
 
   <table
     class="pv-main-table"
-    @copy="tsvToClipboard">
+    v-on="!isEditInput ? {'copy': onCopyTsv} : {}">
 
     <thead v-if="pvControl.rowColMode === 2"><!-- use spans and show dim names -->
 
@@ -96,22 +96,15 @@
 
         <!-- table body value cells -->
         <td v-for="(col, nCol) in pvt.cols" :key="pvt.cellKeys[nRow * pvt.colCount + nCol]"
-          :class="pvControl.cellClass">{{pvControl.formatter.format(pvt.cells[pvt.cellKeys[nRow * pvt.colCount + nCol]])}}</td>
+          :class="pvControl.cellClass">{{getCellValueFmt(pvt.cellKeys[nRow * pvt.colCount + nCol])}}</td>
 
       </tr>
 
     </tbody>
     <!-- table body: pivot editor -->
     <tbody v-else
-      @paste.prevent="onPaste($event)"
-      @keydown.enter.exact="onKeyEnter($event)"
       @dblclick="onDblClick($event)"
-      @keyup.ctrl.90="doUndo"
-      @keyup.ctrl.89="doRedo"
-      @keydown.left.exact="onLeftArrow($event)"
-      @keydown.right.exact="onRightArrow($event)"
-      @keydown.down.exact="onDownArrow($event)"
-      @keydown.up.exact="onUpArrow($event)"
+      v-on="!isEditInput ? {'paste': onPasteTsv, 'keyup': onKeyUpEdit, 'keydown': onKeyDownEdit} : {}"
       >
 
       <tr v-for="(row, nRow) in pvt.rows" :key="pvt.rowKeys[nRow]">
