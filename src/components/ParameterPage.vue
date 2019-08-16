@@ -3,7 +3,7 @@
 <div id="parameter-page" class="main-container mdc-typography mdc-typography--body1">
 
   <!-- header row: name, controls, load status -->
-  <div v-if="loadDone && saveDone" class="hdr-row mdc-typography--body1">
+  <div v-if="loadDone && !saveStarted" class="hdr-row mdc-typography--body1">
 
     <span
       @click="showParamInfo()"
@@ -37,7 +37,7 @@
     </template>
 
     <span
-      @click="togglePivotControls()"
+      @click="toggleRowColControls()"
       class="cell-icon-link material-icons" title="Show / hide pivot controls" alt="Show / hide pivot controls">tune</span>
 
     <template v-if="ctrl.isRowColModeToggle">
@@ -82,22 +82,22 @@
       class="cell-icon-link material-icons" title="Copy tab separated values: Ctrl+C" alt="Copy tab separated values: Ctrl+C">file_copy</span>
 
     <span v-if="!edt.isEdit"
-      @click="doResetView()"
-      class="cell-icon-link material-icons" title="Reset parameter view to default" alt="Reset parameter view to default">settings_backup_restore</span>
+      @click="doReload()"
+      class="cell-icon-link material-icons" :title="'Reload ' + paramName" :alt="'Reload ' + paramName">settings_backup_restore</span>
     <span v-else
-      class="cell-icon-empty material-icons" title="Reset parameter view to default" alt="Reset parameter view to default">settings_backup_restore</span>
+      class="cell-icon-empty material-icons" :title="'Reload ' + paramName" :alt="'Reload ' + paramName">settings_backup_restore</span>
 
     <span class="medium-wt">{{ paramName }}: </span>
     <span>{{ paramDescr() }}</span>
 
   </div>
-  <div v-else class="hdr-row medium-wt"> <!-- v-else of: loadDone && saveDone -->
+  <div v-else class="hdr-row medium-wt"> <!-- v-else of: loadDone && !saveStarted -->
     <span v-if="saveWait"
       @click="doEditSave()"
       class="cell-icon-link material-icons" :alt="'Save ' + paramName" :title="'Save ' + paramName">save</span>
     <span v-if="loadWait || saveWait"
-      @click="doResetView()"
-      class="cell-icon-link material-icons" title="Discard all changes and reset view to default" alt="Discard all changes and reset view to default">settings_backup_restore</span>
+      @click="doReload()"
+      class="cell-icon-link material-icons" :title="'Discard all changes and reload ' + paramName" :alt="'Discard all changes and reload ' + paramName">settings_backup_restore</span>
     <span v-if="loadWait || saveWait" class="material-icons om-mcw-spin">hourglass_empty</span>
     <span class="mdc-typography--caption">{{msg}}</span>
   </div>
@@ -106,7 +106,7 @@
   <!-- pivot table controls and view -->
   <div class="pv-container">
 
-    <div v-show="ctrl.isShowPvControls && !edt.isEdit" class="other-panel">
+    <div v-show="ctrl.isRowColControls && !edt.isEdit" class="other-panel">
       <draggable
         v-model="otherFields"
         group="fields"
@@ -130,7 +130,7 @@
       </draggable>
     </div>
 
-    <div v-show="ctrl.isShowPvControls" class="col-panel">
+    <div v-show="ctrl.isRowColControls" class="col-panel">
       <draggable
         v-model="colFields"
         group="fields"
@@ -158,7 +158,7 @@
     <div class="pv-panel">
 
       <draggable
-        v-show="ctrl.isShowPvControls"
+        v-show="ctrl.isRowColControls"
         v-model="rowFields"
         group="fields"
         @start="onDrag"
@@ -192,6 +192,7 @@
         :refreshDimsTickle="ctrl.isPvDimsTickle"
         :pv-edit="edt"
         @pv-key-pos="onPvKeyPos"
+        @pv-edit="onPvEdit"
         @pv-message="onPvMessage"
         >
       </pv-table>
@@ -288,9 +289,9 @@
   flex: 0 0 auto;
 }
 .drag-area {
-  min-height: 3rem;
+  min-height: 2.5rem;
+  padding: 0.125rem;
   border: 1px dashed lightgrey;
-  padding: 0.25rem;
 }
 .drag-area-hint {
   background-color: whitesmoke;
@@ -315,7 +316,7 @@
 
 .field-drag {
   display: inline-block;
-  margin: 0.25rem;
+  margin-left: 0.25rem;
   padding: 0.25rem;
   border-radius: 0.25rem;
   font-weight: 500;
@@ -327,7 +328,7 @@
   font-size: 1rem;
   // pan_tool -> padding: 0.25rem 0.25rem 0.5rem 0.0625rem;
   // drag_indicator -> padding: 0.375rem 0.25rem 0.375rem 0.25rem;
-  padding: 0.25rem 0.25rem 0.5rem 0.0625rem;
+  padding: 0.25rem 0.25rem 0.5rem 1px;
   vertical-align: middle;
   @extend .mdc-theme--on-primary;
   @extend .mdc-theme--primary-bg;

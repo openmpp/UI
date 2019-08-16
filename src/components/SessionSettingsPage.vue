@@ -77,7 +77,7 @@
 
 <script>
 import { mapGetters, mapActions } from 'vuex'
-import { GET, SET } from '@/store'
+import { GET, DISPATCH } from '@/store'
 import * as Mdf from '@/modelCommon'
 import OmMcwIconButton from '@/om-mcw/OmMcwIconButton'
 
@@ -121,19 +121,19 @@ export default {
   },
 
   methods: {
-    doUiLangClear () { this.setUiLang('') },
-    doModelClear () { this.setEmptyModel() },
-    doModelListClear () { this.setEmptyModelList() },
-    doRunClear () { this.setEmptyRunTextList() },
-    doWsClear () { this.setEmptyWorksetTextList() },
+    doUiLangClear () { this.dispatchUiLang('') },
+    doModelClear () { this.dispatchEmptyModel() },
+    doModelListClear () { this.dispatchEmptyModelList() },
+    doRunClear () { this.dispatchEmptyRunTextList() },
+    doWsClear () { this.dispatchEmptyWorksetTextList() },
 
     ...mapActions({
-      setUiLang: SET.UI_LANG,
-      setTheModel: SET.THE_MODEL,
-      setEmptyModel: SET.EMPTY_MODEL,
-      setEmptyModelList: SET.EMPTY_MODEL_LIST,
-      setEmptyRunTextList: SET.EMPTY_RUN_TEXT_LIST,
-      setEmptyWorksetTextList: SET.EMPTY_WORKSET_TEXT_LIST
+      dispatchUiLang: DISPATCH.UI_LANG,
+      dispatchTheModel: DISPATCH.THE_MODEL,
+      dispatchEmptyModel: DISPATCH.EMPTY_MODEL,
+      dispatchEmptyModelList: DISPATCH.EMPTY_MODEL_LIST,
+      dispatchEmptyRunTextList: DISPATCH.EMPTY_RUN_TEXT_LIST,
+      dispatchEmptyWorksetTextList: DISPATCH.EMPTY_WORKSET_TEXT_LIST
     })
   },
 

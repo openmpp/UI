@@ -6,14 +6,14 @@
 
     <span v-if="loadDone">
 
-      <span v-if="!isWsView"
+      <span v-if="!isFromWs"
         @click="showRunInfoDlg()"
         class="cell-icon-link material-icons"
         alt="Description and notes" title="Description and notes">
           <span v-if="isSuccessTheRun">description</span>
           <span v-else>error_outline</span>
       </span>
-      <!-- isWsView -->
+      <!-- isFromWs -->
       <span v-else>
 
         <span
@@ -49,8 +49,9 @@
 
       <span class="hdr-text">
         <span v-if="isNotEmptyHdr">
-          <span v-if="!isWsView && !isSuccessTheRun" class="cell-status medium-wt">{{statusOfTheRun}}</span>
-          <span class="mono">{{lastTimeOfHdr}}&nbsp;</span><span class="medium-wt">{{nameOfHdr}}</span>
+          <span v-if="!isFromWs && !isSuccessTheRun" class="cell-status medium-wt">{{statusOfTheRun}}</span>
+          <span v-if="!isFromWs" class="mono">{{lastTimeOfHdr}}&nbsp;</span>
+          <span class="medium-wt">{{nameOfHdr}}</span>
           <span>{{ descrOfHdr }}</span>
         </span>
         <span v-else>
@@ -200,23 +201,25 @@
       </div>
     </div>
 
-  <!-- isRunPanel -->
   </template>
+  <!-- end of isRunPanel -->
 
   <nav class="tab-container medium-wt">
     <div
-      v-for="t in tabLst" :key="t.key" :id="t.id"
-      :class="t.active ? 'tab-item-active' : 'tab-item-inactive'" class="tab-item">
+      v-for="t in tabLst" :key="t.key"
+      :class="{'tab-item-active': t.active, 'tab-item-inactive': !t.active}"
+      class="tab-item">
 
         <router-link
           :to="t.path"
-          @click.native="doTabLink(t.id)"
+          @click.native="doTabLink(t.key, t.path)"
           :alt="t.title"
           :title="t.title"
-          class="tab-link">{{t.title}}</router-link>
-
+          class="tab-link">{{(t.updated ? '*' : '') + t.title}}</router-link>
+        <span v-if="t.updated">&nbsp;</span>
         <button
-          @click="doTabClose(t.id)"
+          v-else
+          @click="doTabClose(t.key)"
           class="mdc-button mdc-button-dense tab-close-button"
           :alt="'Close ' + t.title"
           :title="'Close ' + t.title"><i class="tab-close-icon material-icons mdc-button__icon">close</i>
@@ -229,7 +232,8 @@
     <router-view
       @tab-mounted="doTabMounted"
       @run-select="doRunSelect"
-      @workset-select="doWsSelect"></router-view>
+      @workset-select="doWsSelect"
+      @edit-updated="onEditUpdated"></router-view>
   </main>
 
   <run-info-dialog ref="theRunInfoDlg" id="the-run-info-dlg"></run-info-dialog>
@@ -272,15 +276,13 @@
     align-items: center;
     padding-left: .5rem;
     margin-right: 1px;
-    border-top-right-radius: 1rem;
-  }
-  .tab-item-inactive {
-    @extend .tab-item;
-    @extend .om-theme-primary-light-bg;
+    border-top-right-radius: 0.5rem;
   }
   .tab-item-active {
-    @extend .tab-item;
     @extend .mdc-theme--primary-bg;
+  }
+  .tab-item-inactive {
+    @extend .om-theme-primary-light-bg;
   }
   .tab-link {
     white-space: nowrap;

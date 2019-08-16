@@ -39,7 +39,7 @@
 
 <script>
 import { mapGetters, mapActions } from 'vuex'
-import { GET, SET } from '@/store'
+import { GET, DISPATCH } from '@/store'
 import * as Mdf from '@/modelCommon'
 import WorksetInfoDialog from './WorksetInfoDialog'
 
@@ -79,7 +79,7 @@ export default {
       this.prevName = (name || '')
       this.prevIndex = (idx || 0)
       // select new current workset by index
-      this.setTheWorksetTextByIdx(idx)
+      this.dispatchTheWorksetTextByIdx(idx)
       this.$emit('workset-select', name)
     },
 
@@ -89,7 +89,7 @@ export default {
     },
 
     ...mapActions({
-      setTheWorksetTextByIdx: SET.THE_WORKSET_TEXT_BY_IDX
+      dispatchTheWorksetTextByIdx: DISPATCH.THE_WORKSET_TEXT_BY_IDX
     })
   },
 

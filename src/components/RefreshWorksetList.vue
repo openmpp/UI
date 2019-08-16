@@ -10,7 +10,7 @@
 <script>
 import axios from 'axios'
 import { mapGetters, mapActions } from 'vuex'
-import { GET, SET } from '@/store'
+import { GET, DISPATCH } from '@/store'
 
 export default {
   props: {
@@ -52,7 +52,7 @@ export default {
       let u = this.omppServerUrl + '/api/model/' + (this.digest || '') + '/workset-list/text' + (this.uiLang !== '' ? '/lang/' + this.uiLang : '')
       try {
         const response = await axios.get(u)
-        this.setWorksetTextList(response.data) // update workset list in store
+        this.dispatchWorksetTextList(response.data) // update workset list in store
         this.loadDone = true
       } catch (e) {
         let em = ''
@@ -67,7 +67,7 @@ export default {
     },
 
     ...mapActions({
-      setWorksetTextList: SET.WORKSET_TEXT_LIST
+      dispatchWorksetTextList: DISPATCH.WORKSET_TEXT_LIST
     })
   },
 

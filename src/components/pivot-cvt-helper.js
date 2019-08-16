@@ -77,3 +77,63 @@ export const parseTsv = (src, rowLimit = -1, colLimit = -1) => {
   }
   return ret
 }
+
+// return empty pivot editor state
+/* eslint-disable no-multi-spaces */
+export const emptyEdit = () => {
+  return {
+    isEnabled: false,   // if true then edit value
+    kind: EDIT_STRING,  // default: string text input editor
+    // current editor state
+    isEdit: false,      // if true then edit in progress
+    isUpdated: false,   // if true then cell value(s) updated
+    cellKey: '',        // current eidtor focus cell
+    cellValue: '',      // current eidtor input value
+    updated: {},        // updated cells
+    history: [],        // update history
+    lastHistory: 0      // length of update history, changed by undo-redo
+  }
+}
+/* eslint-enable no-multi-spaces */
+
+// clean edit state and history
+export const resetEdit = (edit) => {
+  edit.isEdit = false
+  edit.isUpdated = false
+  edit.cellKey = ''
+  edit.cellValue = ''
+  edit.updated = {}
+  edit.history = []
+  edit.lastHistory = 0
+}
+
+// make pivot state as rows, columns, others dimensions: name and selected items value(s) and editor state
+export const pivotState = (rows, cols, others, isRowColControls, rowColMode, edit) => {
+  let state = {
+    rows: pivotStateFields(rows),
+    cols: pivotStateFields(cols),
+    others: pivotStateFields(others),
+    isRowColControls: !!isRowColControls,
+    rowColMode: typeof rowColMode === typeof 1 ? rowColMode : 0,
+    edit: emptyEdit()
+  }
+
+  // update editor state
+  if (edit) state.edit = edit
+
+  return state
+}
+
+// make pivot state fields part (rows or columns or others dimensions): name and selected items value(s)
+export const pivotStateFields = (fields) => {
+  if (!fields) return []
+  let dst = []
+  for (const f of fields) {
+    let p = { name: f.name, values: [] }
+    for (const v of f.selection) {
+      p.values.push(v.value)
+    }
+    dst.push(p)
+  }
+  return dst
+}

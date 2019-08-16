@@ -10,7 +10,7 @@
 <script>
 import axios from 'axios'
 import { mapGetters, mapActions } from 'vuex'
-import { GET, SET } from '@/store'
+import { GET, DISPATCH } from '@/store'
 
 export default {
   props: {
@@ -52,7 +52,7 @@ export default {
       let u = this.omppServerUrl + '/api/model/' + (this.digest || '') + '/run-list/text' + (this.uiLang !== '' ? '/lang/' + this.uiLang : '')
       try {
         const response = await axios.get(u)
-        this.setRunTextList(response.data) // update run list in store
+        this.dispatchRunTextList(response.data) // update run list in store
         this.loadDone = true
       } catch (e) {
         let em = ''
@@ -67,7 +67,7 @@ export default {
     },
 
     ...mapActions({
-      setRunTextList: SET.RUN_TEXT_LIST
+      dispatchRunTextList: DISPATCH.RUN_TEXT_LIST
     })
   },
 

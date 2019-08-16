@@ -10,7 +10,7 @@
 <script>
 import axios from 'axios'
 import { mapGetters, mapActions } from 'vuex'
-import { GET, SET } from '@/store'
+import { GET, DISPATCH } from '@/store'
 import * as Mdf from '@/modelCommon'
 
 export default {
@@ -53,7 +53,7 @@ export default {
       let u = this.omppServerUrl + '/api/model/' + (this.digest || '') + '/text' + (this.uiLang !== '' ? '/lang/' + this.uiLang : '')
       try {
         const response = await axios.get(u)
-        this.setTheModel(response.data) // update current model in store
+        this.dispatchTheModel(response.data) // update current model in store
         this.loadDone = true
       } catch (e) {
         let em = ''
@@ -70,7 +70,7 @@ export default {
       let uw = this.omppServerUrl + '/api/model/' + (this.digest || '') + '/word-list' + (this.uiLang !== '' ? '/lang/' + this.uiLang : '')
       try {
         const response = await axios.get(uw)
-        this.setWordList(response.data) // update model words list in store
+        this.dispatchWordList(response.data) // update model words list in store
       } catch (e) {
         let em = ''
         try {
@@ -81,8 +81,8 @@ export default {
     },
 
     ...mapActions({
-      setTheModel: SET.THE_MODEL,
-      setWordList: SET.WORD_LIST
+      dispatchTheModel: DISPATCH.THE_MODEL,
+      dispatchWordList: DISPATCH.WORD_LIST
     })
   },
 

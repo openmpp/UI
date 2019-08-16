@@ -12,23 +12,27 @@
           class="om-note-link material-icons mdc-list-item__graphic"
           :title="p.Param.Name + ' info'"
           :alt="p.Param.Name + ' info'">description</span>
-        <router-link v-if="pathRunSet !== '/'"
-          :to="'/model/' + digest + '/' + pathRunSet + '/parameter/' + p.Param.Name"
-          class="ahref-next"
-          :title="p.Param.Name"
-          :alt="p.Param.Name"
-          >
-          <span class="mdc-list-item__text">
-            <span class="mdc-list-item__primary-text">{{ p.Param.Name }}</span>
-            <span class="mdc-list-item__secondary-text">{{ descrOf(p) }}</span>
+        <template v-if="pathRunSet !== '/'">
+          <router-link
+            :to="'/model/' + digest + '/' + pathRunSet + '/parameter/' + p.Param.Name"
+            class="ahref-next"
+            :title="p.Param.Name"
+            :alt="p.Param.Name"
+            >
+            <span class="mdc-list-item__text">
+              <span class="mdc-list-item__primary-text">{{ p.Param.Name }}</span>
+              <span class="mdc-list-item__secondary-text">{{ descrOf(p) }}</span>
+            </span>
+          </router-link>
+        </template>
+        <template v-else>
+          <span class="ahref-next">
+            <span class="mdc-list-item__text">
+              <span class="mdc-list-item__primary-text">{{ p.Param.Name }}</span>
+              <span class="mdc-list-item__secondary-text">{{ descrOf(p) }}</span>
+            </span>
           </span>
-        </router-link>
-        <span v-else class="ahref-next">
-          <span class="mdc-list-item__text">
-            <span class="mdc-list-item__primary-text">{{ p.Param.Name }}</span>
-            <span class="mdc-list-item__secondary-text">{{ descrOf(p) }}</span>
-          </span>
-        </span>
+        </template>
 
       </li>
 

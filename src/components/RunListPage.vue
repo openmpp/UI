@@ -40,7 +40,7 @@
 
 <script>
 import { mapGetters, mapActions } from 'vuex'
-import { GET, SET } from '@/store'
+import { GET, DISPATCH } from '@/store'
 import * as Mdf from '@/modelCommon'
 import RunInfoDialog from './RunInfoDialog'
 
@@ -81,7 +81,7 @@ export default {
       this.prevDigest = (runDigest || '')
       this.prevIndex = (idx || 0)
       // select new current run by index
-      this.setTheRunTextByIdx(idx)
+      this.dispatchTheRunTextByIdx(idx)
       this.$emit('run-select', runDigest)
     },
 
@@ -91,7 +91,7 @@ export default {
     },
 
     ...mapActions({
-      setTheRunTextByIdx: SET.THE_RUN_TEXT_BY_IDX
+      dispatchTheRunTextByIdx: DISPATCH.THE_RUN_TEXT_BY_IDX
     })
   },
 

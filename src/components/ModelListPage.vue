@@ -50,7 +50,7 @@
 <script>
 import axios from 'axios'
 import { mapGetters, mapActions } from 'vuex'
-import { GET, SET } from '@/store'
+import { GET, DISPATCH } from '@/store'
 import * as Mdf from '@/modelCommon'
 import OmMcwDialog from '@/om-mcw/OmMcwDialog'
 
@@ -118,7 +118,7 @@ export default {
       let u = this.omppServerUrl + '/api/model-list/text' + (this.uiLang !== '' ? '/lang/' + this.uiLang : '')
       try {
         const response = await axios.get(u)
-        this.setModelList(response.data) // update model list in store
+        this.dispatchModelList(response.data) // update model list in store
         this.loadDone = true
       } catch (e) {
         let em = ''
@@ -132,7 +132,7 @@ export default {
     },
 
     ...mapActions({
-      setModelList: SET.MODEL_LIST
+      dispatchModelList: DISPATCH.MODEL_LIST
     })
   },
 

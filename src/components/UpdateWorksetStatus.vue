@@ -10,7 +10,7 @@
 <script>
 import axios from 'axios'
 import { mapGetters, mapActions } from 'vuex'
-import { GET, SET } from '@/store'
+import { GET, DISPATCH } from '@/store'
 
 export default {
   props: {
@@ -57,7 +57,7 @@ export default {
         // expected workserRow json, it must be same name as workset requested
         if (rsp && rsp.hasOwnProperty('Name') && rsp.hasOwnProperty('IsReadonly')) {
           if ((rsp.Name || '') === (this.worksetName || '_EMPTY_NAME_')) {
-            this.setWorksetStatus(rsp) // update current workset status in store
+            this.dispatchWorksetStatus(rsp) // update current workset status in store
           }
         }
         this.loadDone = true
@@ -74,7 +74,7 @@ export default {
     },
 
     ...mapActions({
-      setWorksetStatus: SET.THE_WORKSET_STATUS
+      dispatchWorksetStatus: DISPATCH.THE_WORKSET_STATUS
     })
   },
 

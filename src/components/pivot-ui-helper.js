@@ -3,11 +3,7 @@
 import * as Pcvt from './pivot-cvt'
 
 // return function to produce multi-select label
-export const makeSelLabel = (isMulti, label) => {
-  if (!isMulti) {
-    return (selection) => (selection.length > 0 ? selection[0].text : 'Select ' + label + '\u2026')
-  }
-  // multiple selection
+export const makeSelLabel = (label) => {
   return (selection) => {
     switch (selection.length) {
       case 0: return 'Select ' + label + '\u2026'

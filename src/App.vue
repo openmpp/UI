@@ -194,7 +194,7 @@
 
 <script>
 import { mapGetters, mapActions } from 'vuex'
-import { GET, SET } from './store'
+import { GET, DISPATCH } from './store'
 import * as Mdf from './modelCommon'
 import OmMcwDrawer from '@/om-mcw/OmMcwDrawer'
 import OmMcwMenu from '@/om-mcw/OmMcwMenu'
@@ -253,7 +253,7 @@ export default {
       let txt = evt.item.textContent || ''
       let lc = txt.substring(txt, txt.indexOf('_lang_change_')).trim()
       if (lc) {
-        this.setUiLang(lc)
+        this.dispatchUiLang(lc)
         return
       }
       // if this is action button click
@@ -279,7 +279,7 @@ export default {
     },
 
     ...mapActions({
-      setUiLang: SET.UI_LANG
+      dispatchUiLang: DISPATCH.UI_LANG
     })
   },
 

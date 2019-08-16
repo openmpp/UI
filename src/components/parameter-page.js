@@ -3,11 +3,11 @@ import draggable from 'vuedraggable'
 import multiSelect from 'vue-multi-select'
 // import 'vue-multi-select/dist/lib/vue-multi-select.css'
 import 'vue-multi-select/dist/lib/vue-multi-select.min.css' // 3.15.0
-import { mapGetters } from 'vuex'
+import { mapGetters, mapActions } from 'vuex'
 import OmMcwDialog from '@/om-mcw/OmMcwDialog'
 import OmMcwSnackbar from '@/om-mcw/OmMcwSnackbar'
 
-import { GET } from '@/store'
+import { GET, DISPATCH } from '@/store'
 import * as Mdf from '@/modelCommon'
 import * as Pcvt from './pivot-cvt'
 import * as Puih from './pivot-ui-helper'
@@ -31,10 +31,10 @@ export default {
     return {
       loadDone: false,
       loadWait: false,
-      saveDone: false,
+      saveStarted: false,
       saveWait: false,
       isNullable: false,  // if true then parameter value can be NULL
-      isWsView: false,    // if true then page view is a workset else model run
+      isFromWs: false,    // if true then page view is a workset else model run
       paramText: Mdf.emptyParamText(),
       paramSize: Mdf.emptyParamSize(),
       paramType: Mdf.emptyTypeText(),
@@ -48,7 +48,7 @@ export default {
       pvRef: 'pv-' + this.digest + '-' + this.paramName + '-' + this.runOrSet + '-' + this.nameDigest,
       inpData: Object.freeze([]),
       ctrl: {
-        isShowPvControls: true,
+        isRowColControls: true,
         isRowColModeToggle: true,
         isPvTickle: false,
         isPvDimsTickle: false,
@@ -61,19 +61,8 @@ export default {
         formatter: Pcvt.formatDefault,  // disable format(), parse() and validation by default
         cellClass: 'pv-cell-right'      // default cell value style: right justified number
       },
-      pvKeyPos: [],   // position of each dimension item in cell key
-      edt: {          // editor options and state shared with child
-        isEnabled: false,       // if true then edit value
-        kind: Pcvt.EDIT_NUMBER, // default: numeric float or integer editor
-        // current editor state
-        isEdit: false,    // if true then edit in progress
-        isUpdated: false, // if true then cell value(s) updated
-        cellKey: '',      // current eidtor focus cell
-        cellValue: '',    // current eidtor input value
-        updated: {},      // updated cells
-        history: [],      // update history
-        lastHistory: 0    // length of update history, changed by undo-redo
-      },
+      pvKeyPos: [],          // position of each dimension item in cell key
+      edt: Pcvt.emptyEdit(), // editor options and state shared with child
       multiSel: {
         dragging: false,
         rcOpts: {
@@ -99,23 +88,30 @@ export default {
   },
   /* eslint-enable no-multi-spaces */
 
+  watch: {
+    routeKey () {
+      this.initView()
+      this.doRefreshDataPage()
+      this.$emit('edit-updated', this.edt.isUpdated, this.paramName)
+    },
+    isEditUpdated () {
+      this.$emit('edit-updated', this.edt.isUpdated, this.paramName)
+    }
+  },
   computed: {
     routeKey () {
       return [this.digest, this.paramName, this.runOrSet, this.nameDigest].toString()
+    },
+    isEditUpdated () {
+      return this.edt.isUpdated
     },
     ...mapGetters({
       theModel: GET.THE_MODEL,
       theRunText: GET.THE_RUN_TEXT,
       theWorksetText: GET.THE_WORKSET_TEXT,
+      paramView: GET.PARAM_VIEW,
       omppServerUrl: GET.OMPP_SRV_URL
     })
-  },
-
-  watch: {
-    routeKey () {
-      this.initView()
-      this.doRefreshDataPage()
-    }
   },
 
   methods: {
@@ -128,9 +124,11 @@ export default {
     // show or hide extra controls
     toggleRowColMode () {
       this.pvc.rowColMode = (3 + (this.pvc.rowColMode - 1)) % 3
+      this.dispatchParamView({ key: this.routeKey, rowColMode: this.pvc.rowColMode })
     },
-    togglePivotControls () {
-      this.ctrl.isShowPvControls = !this.ctrl.isShowPvControls
+    toggleRowColControls () {
+      this.ctrl.isRowColControls = !this.ctrl.isRowColControls
+      this.dispatchParamView({ key: this.routeKey, isRowColControls: this.ctrl.isRowColControls })
     },
     // show more decimals (or more details) in table body
     showMoreFormat () {
@@ -142,8 +140,8 @@ export default {
       if (!this.pvc.formatter) return
       this.pvc.formatter.doLess()
     },
-    // reset table view to default
-    doResetView () {
+    // reload parameter data and reset pivot view to default
+    doReload () {
       if (this.pvc.formatter) {
         this.pvc.formatter.resetOptions()
       }
@@ -168,12 +166,17 @@ export default {
         this.$refs.paramEditDiscardDlg.open()
         return
       }
+      // else: start editing or stop editing (no changes in data)
       let isEditNow = this.edt.isEdit
-      this.resetEdit()
+      Pcvt.resetEdit(this.edt)
       this.edt.isEdit = !isEditNow
+      this.dispatchParamView({ key: this.routeKey, edit: this.edt })
     },
     onEditDiscardClosed (e) {
-      if ((e.action || '') === 'accept') this.resetEdit() // question: "discard changes?", user answer: "yes"
+      if ((e.action || '') === 'accept') {
+        Pcvt.resetEdit(this.edt) // question: "discard changes?", user answer: "yes"
+        this.dispatchParamView({ key: this.routeKey, edit: this.edt })
+      }
     },
 
     // save if data editied
@@ -188,20 +191,14 @@ export default {
       this.$refs[this.pvRef].doRedo()
     },
 
+    // on edit events: input confirm (data entered), undo, redo, paste
+    onPvEdit () {
+      this.dispatchParamView({ key: this.routeKey, edit: this.edt })
+    },
+
     // show message, ex: "invalid value entered"
     onPvMessage (msg) {
       this.$refs.paramSnackbarMsg.doOpen({labelText: msg})
-    },
-
-    // clean edit state and history
-    resetEdit () {
-      this.edt.isEdit = false
-      this.edt.isUpdated = false
-      this.edt.cellKey = ''
-      this.edt.cellValue = ''
-      this.edt.updated = {}
-      this.edt.history = []
-      this.edt.lastHistory = 0
     },
     //
     // end of editor methods
@@ -214,31 +211,26 @@ export default {
       // drag completed: drop
       this.multiSel.dragging = false
 
+      // make sure at least one item selected in each dimension
       // other dimensions: use single-select dropdown
-      // change dropdown label: for other dimensions use selected value
       let isSelUpdate = false
       let isSubIdSelUpdate = false
-      for (let f of this.otherFields) {
-        if (f.selection.length > 1) {
-          f.selection.splice(1)
-          isSelUpdate = true
-          if (f.name === SUB_ID_DIM) isSubIdSelUpdate = true
-        }
-        f.selLabel = Puih.makeSelLabel(false, f.label, f.selection)
-      }
-      for (let f of this.colFields) {
-        f.selLabel = Puih.makeSelLabel(true, f.label, f.selection)
-      }
-      for (let f of this.rowFields) {
-        f.selLabel = Puih.makeSelLabel(true, f.label, f.selection)
-      }
-      // make sure at least one item selected in each dimension
       for (let f of this.dimProp) {
         if (f.selection.length < 1) {
           f.selection.push(f.enums[0])
           isSelUpdate = true
           if (f.name === SUB_ID_DIM) isSubIdSelUpdate = true
         }
+      }
+      for (let f of this.otherFields) {
+        if (f.selection.length > 1) {
+          f.selection.splice(1)
+          isSelUpdate = true
+          if (f.name === SUB_ID_DIM) isSubIdSelUpdate = true
+        }
+      }
+      for (let f of this.dimProp) {
+        f.selLabel = Puih.makeSelLabel(f.label, f.selection)
       }
 
       // update pivot view:
@@ -256,6 +248,13 @@ export default {
           this.doRefreshDataPage()
         }
       }
+      // update pivot view rows, columns, other dimensions
+      this.dispatchParamView({
+        key: this.routeKey,
+        rows: Pcvt.pivotStateFields(this.rowFields),
+        cols: Pcvt.pivotStateFields(this.colFields),
+        others: Pcvt.pivotStateFields(this.otherFields)
+      })
     },
 
     // multi-select input: drag-and-drop or selection changed
@@ -273,29 +272,36 @@ export default {
       } else {
         this.doRefreshDataPage()
       }
+      // update pivot view rows, columns, other dimensions
+      this.dispatchParamView({
+        key: this.routeKey,
+        rows: Pcvt.pivotStateFields(this.rowFields),
+        cols: Pcvt.pivotStateFields(this.colFields),
+        others: Pcvt.pivotStateFields(this.otherFields)
+      })
     },
 
     // initialize current page view on mounted or tab switch
     initView () {
       // find parameter, parameter type and size, including run sub-values count
-      this.isWsView = ((this.runOrSet || '') === Mdf.SET_OF_RUNSET)
+      this.isFromWs = ((this.runOrSet || '') === Mdf.SET_OF_RUNSET)
       this.paramText = Mdf.paramTextByName(this.theModel, this.paramName)
       this.paramSize = Mdf.paramSizeByName(this.theModel, this.paramName)
       this.paramType = Mdf.typeTextById(this.theModel, (this.paramText.Param.TypeId || 0))
       this.paramRunSet = Mdf.paramRunSetByName(
-        this.isWsView ? this.theWorksetText : this.theRunText,
+        this.isFromWs ? this.theWorksetText : this.theRunText,
         this.paramName)
       this.subCount = this.paramRunSet.SubCount || 0
       this.isNullable = this.paramText.Param.hasOwnProperty('IsExtendable') && (this.paramText.Param.IsExtendable || false)
 
       // adjust controls
-      this.edt.isEnabled = this.isWsView && !this.theWorksetText.IsReadonly
-      this.resetEdit() // clear editor state
+      this.edt.isEnabled = this.isFromWs && !this.theWorksetText.IsReadonly
+      Pcvt.resetEdit(this.edt) // clear editor state
 
       let isRc = this.paramSize.rank > 0 || this.subCount > 1
       this.pvc.rowColMode = isRc ? 2 : 0
       this.ctrl.isRowColModeToggle = isRc
-      this.ctrl.isShowPvControls = isRc
+      this.ctrl.isRowColControls = isRc
       this.pvKeyPos = []
 
       // make dimensions:
@@ -390,8 +396,51 @@ export default {
       this.ctrl.formatOpts = this.pvc.formatter.options()
 
       // set columns layout and refresh the data
-      this.setDefaultPageView()
+      this.setPageView()
       this.ctrl.isPvDimsTickle = !this.ctrl.isPvDimsTickle
+    },
+
+    // set page view: use previous page view from store or default
+    setPageView () {
+      // if previous page view not exist then set default view and store it
+      const pv = this.paramView(this.routeKey)
+      if (!pv) {
+        this.setDefaultPageView()
+        return
+      }
+      // else: restore previous view
+
+      // restore rows, columns, others layout and items selection
+      const restore = (pvSrc) => {
+        let dst = []
+        for (const p of pvSrc) {
+          let f = this.dimProp.find((d) => d.name === p.name)
+          if (!f) continue
+          
+          f.selection = []
+          for (const v of p.values) {
+            let e = f.enums.find((fe) => fe.value === v)
+            if (e) f.selection.push(e)
+          }
+
+          f.selLabel = Puih.makeSelLabel(f.label, f.selection)
+          dst.push(f)
+        }
+        return dst
+      }
+      this.rowFields = restore(pv.rows)
+      this.colFields = restore(pv.cols)
+      this.otherFields = restore(pv.others)
+
+      // restore edit state and controls state
+      let isEnabled = this.edt.isEnabled
+      if (isEnabled) {
+        this.edt = pv.edit
+        this.edt.isEnabled = isEnabled
+      }
+
+      this.ctrl.isRowColControls = !!pv.isRowColControls
+      this.pvc.rowColMode = typeof pv.rowColMode === typeof 1 ? pv.rowColMode : 0
     },
 
     // set default page view parameters
@@ -410,9 +459,8 @@ export default {
         let f = this.dimProp[k]
         f.selection = []
 
-        // rows and columns: multiple selection, other: single selection
-        let isOther = k > 0 && k < this.dimProp.length - 1
-        if (isOther) {
+        // if other then single selection else rows and columns: multiple selection
+        if (k > 0 && k < this.dimProp.length - 1) {
           tf.push(f)
           f.selection.push(f.enums[0])
         } else {
@@ -421,14 +469,20 @@ export default {
           }
         }
 
-        f.selLabel = Puih.makeSelLabel(!isOther, f.label, f.selection)
+        f.selLabel = Puih.makeSelLabel(f.label, f.selection)
       }
 
       this.rowFields = rf
       this.colFields = cf
       this.otherFields = tf
 
-      this.resetEdit() // clear editor state
+      Pcvt.resetEdit(this.edt) // clear editor state
+
+      // store pivot view
+      this.dispatchParamView({
+        key: this.routeKey,
+        view: Pcvt.pivotState(this.rowFields, this.colFields, this.otherFields, this.ctrl.isRowColControls, this.pvc.rowColMode, this.edt)
+      })
     },
 
     // get page of parameter data from current model run or workset
@@ -453,7 +507,7 @@ export default {
       let layout = Puih.makeSelectLayout(this.paramName, this.otherFields, SUB_ID_DIM)
       let u = this.omppServerUrl +
         '/api/model/' + (this.digest || '') +
-        (this.isWsView ? '/workset/' : '/run/') + (this.nameDigest || '') +
+        (this.isFromWs ? '/workset/' : '/run/') + (this.nameDigest || '') +
         '/parameter/value-id'
 
       // retrieve page from server, it must be: {Layout: {...}, Page: [...]}
@@ -482,7 +536,7 @@ export default {
 
     // save page of parameter data into current workset
     async doSaveDataPage () {
-      this.saveDone = false
+      this.saveStarted = true
       this.saveWait = true
       this.msg = 'Saving...'
 
@@ -519,10 +573,12 @@ export default {
         if ((rsp || '') !== '') console.log('Server reply:', rsp)
 
         // success: clear edit history and refersh data
-        this.saveDone = true
-        this.resetEdit()
-
-        this.$nextTick(() => { this.doRefreshDataPage() })
+        this.saveStarted = false
+        Pcvt.resetEdit(this.edt)
+        this.dispatchParamView({ key: this.routeKey, edit: this.edt })
+        this.$nextTick(() => {
+          this.doRefreshDataPage()
+        })
       } catch (e) {
         let em = ''
         try {
@@ -532,13 +588,17 @@ export default {
         console.log('Server offline or parameter save failed.', em)
       }
       this.saveWait = false
-    }
+    },
+
+    ...mapActions({
+      dispatchParamView: DISPATCH.PARAM_VIEW
+    })
   },
 
   mounted () {
-    this.saveDone = true
     this.initView()
     this.doRefreshDataPage()
     this.$emit('tab-mounted', 'parameter', this.paramName)
+    this.$nextTick(() => { this.$emit('edit-updated', this.edt.isUpdated, this.paramName) })
   }
 }

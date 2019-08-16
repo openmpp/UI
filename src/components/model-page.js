@@ -21,12 +21,11 @@ const FINAL_RUN_STEP = 16     // final state of model run: completed or failed
 const MIN_LOG_PAGE_SIZE = 4   // min run log page size to read from the server
 const MAX_LOG_PAGE_SIZE = 10  // max run log page size to read from the server
 
-const TABLE_LST_TAB_ID = '01' // output tables list tab id
-const PARAM_LST_TAB_ID = '02' // parameter list tab id
-const RUN_LST_TAB_ID = '03'   // model runs list tab id
-const WS_LST_TAB_ID = '04'    // worksets list tab id
-const N_FREE_TAB_ID = 16      // first unassigned tab id
-const FREE_TAB_ID = N_FREE_TAB_ID.toString()
+const TABLE_LST_TAB_POS = 1 // output tables list tab position
+const PARAM_LST_TAB_POS = 2 // parameter list tab position
+const RUN_LST_TAB_POS = 3   // model runs list tab position
+const WS_LST_TAB_POS = 4    // worksets list tab position
+const FREE_TAB_POS = 16     // first unassigned tab position
 /* eslint-enable no-multi-spaces */
 
 export default {
@@ -65,7 +64,7 @@ export default {
       modelName: '',
       runDigest: '',
       wsName: '',
-      isWsView: false,            // if true then page view is a workset else run
+      isFromWs: false,            // if true then page view is a workset else run
       isRunPanel: false,          // if true then run panel is visible
       newRunStep: EMPTY_RUN_STEP, // model run step: initial, start new, view progress
       newRunName: '',
@@ -74,7 +73,6 @@ export default {
       newRunLogStart: 0,
       newRunLogSize: 0,
       newRunLineLst: [],
-      tabCount: N_FREE_TAB_ID + 1,
       tabLst: []
     }
   },
@@ -85,11 +83,11 @@ export default {
         this.loadModelDone && this.loadRunDone && this.loadRunListDone && this.loadWsDone && this.loadWsListDone
     },
     isSuccessTheRun () { return Mdf.isRunSuccess(this.theRunText) },
-    currentRunSetKey () { return [this.runDigest, this.wsName, this.isWsView].toString() },
+    currentRunSetKey () { return [this.runDigest, this.wsName, this.isFromWs].toString() },
 
     // if true then workset edit mode else readonly and model run enabled
     isWsEdit () {
-      return this.isWsView && Mdf.isNotEmptyWorksetText(this.theWorksetText) && !this.theWorksetText.IsReadonly
+      return this.isFromWs && Mdf.isNotEmptyWorksetText(this.theWorksetText) && !this.theWorksetText.IsReadonly
     },
     // make new model run name
     autoNewRunName () {
@@ -104,19 +102,19 @@ export default {
 
     // view header line
     isNotEmptyHdr () {
-      return this.isWsView ? Mdf.isNotEmptyWorksetText(this.theWorksetText) : Mdf.isNotEmptyRunText(this.theRunText)
+      return this.isFromWs ? Mdf.isNotEmptyWorksetText(this.theWorksetText) : Mdf.isNotEmptyRunText(this.theRunText)
     },
     lastTimeOfHdr () {
-      return this.isWsView ? Mdf.dtStr(this.theWorksetText.UpdateDateTime) : Mdf.dtStr(this.theRunText.UpdateDateTime)
+      return this.isFromWs ? Mdf.dtStr(this.theWorksetText.UpdateDateTime) : Mdf.dtStr(this.theRunText.UpdateDateTime)
     },
     nameOfHdr () {
-      return this.isWsView ? (this.theWorksetText.Name || '') : (this.theRunText.Name || '')
+      return this.isFromWs ? (this.theWorksetText.Name || '') : (this.theRunText.Name || '')
     },
     descrOfHdr () {
-      return this.isWsView ? Mdf.descrOfTxt(this.theWorksetText) : Mdf.descrOfTxt(this.theRunText)
+      return this.isFromWs ? Mdf.descrOfTxt(this.theWorksetText) : Mdf.descrOfTxt(this.theRunText)
     },
     emptyHdrMsg () {
-      return this.isWsView ? 'No input set of parameters found' : 'No model run results'
+      return this.isFromWs ? 'No input set of parameters found' : 'No model run results'
     },
     statusOfTheRun () { return Mdf.statusText(this.theRunText) },
 
@@ -172,7 +170,7 @@ export default {
     },
     doneRunLoad (isSuccess) {
       this.loadRunDone = true
-      this.isWsView = !isSuccess
+      this.isFromWs = !isSuccess
     },
     doneRunListLoad (isSuccess) {
       this.loadRunListDone = true
@@ -180,7 +178,7 @@ export default {
       if (ok) {
         this.runDigest = this.theRunText.Digest
       } else {
-        this.isWsView = true
+        this.isFromWs = true
         this.loadRunDone = true // do not refresh run: run list empty
       }
     },
@@ -201,20 +199,20 @@ export default {
     // run selected from the list: reload run info
     doRunSelect (dgst) {
       if ((dgst || '') === '') {
-        console.log('run digest is empty')
+        console.warn('run digest is empty')
         return
       }
       this.runDigest = dgst
-      this.isWsView = false
+      this.isFromWs = false
     },
     // workset selected from the list: reload workset info
     doWsSelect (name) {
       if ((name || '') === '') {
-        console.log('workset name is empty')
+        console.warn('workset name is empty')
         return
       }
       this.wsName = name
-      this.isWsView = true
+      this.isFromWs = true
     },
 
     // toggle workset readonly status
@@ -222,6 +220,15 @@ export default {
       this.saveWsStatusTickle = !this.saveWsStatusTickle
     },
 
+    // on parameter updated (data dirty flag) change
+    onEditUpdated (isUpdated, name) {
+      const ti = this.makeTabInfo('parameter', name)
+      let k = this.tabLst.findIndex((t) => t.key === ti.key)
+      if (k >= 0) this.tabLst[k].updated = isUpdated
+    },
+
+    // model run methods
+    //
     // show or close model run panel
     showRunPanel () { this.isRunPanel = true },
     hideRunPanel () {
@@ -302,6 +309,8 @@ export default {
         this.newRunStep = FINAL_RUN_STEP
       }
     },
+    //
+    // end of model run methods
 
     // show currently selected run info
     showRunInfoDlg () {
@@ -315,7 +324,7 @@ export default {
     // tab mounted: handle tabs mounted by direct link
     doTabMounted (kind, dn = '') {
       if ((kind || '') === '') {
-        console.log('invalid (empty) kind of tab mounted')
+        console.warn('invalid (empty) kind of tab mounted')
         return
       }
       if (!this.loadDone) {
@@ -325,34 +334,32 @@ export default {
     },
 
     // click on tab link: activate that tab
-    doTabLink (tabId, isRoute = false, path = '') {
+    doTabLink (tabKey, isToNewRoute = false, path = '') {
       for (let k = 0; k < this.tabLst.length; k++) {
-        this.tabLst[k].active = this.tabLst[k].id === tabId
+        this.tabLst[k].active = this.tabLst[k].key === tabKey
       }
       // if new path is a result of tab add or close then route to new path
-      if (isRoute && (path || '') !== '') {
+      if (isToNewRoute && (path || '') !== '') {
         this.$router.push(path)
       }
     },
 
     // close tab and if tab was active then activate other tab
-    doTabClose (tabId) {
+    doTabClose (tabKey) {
       // do not close last tab
       if (this.tabLst.length <= 1) return
 
       // remove tab from the list
-      let n = -1
-      for (let k = 0; k < this.tabLst.length; k++) {
-        if (this.tabLst[k].id === tabId) {
-          if (this.tabLst[k].active) n = (k < this.tabLst.length - 1) ? k : this.tabLst.length - 2
-          this.tabLst.splice(k, 1)
-          break
-        }
+      let n = -1 
+      let k = this.tabLst.findIndex((t) => t.key === tabKey)
+      if (k >= 0) {
+        if (this.tabLst[k].active) n = (k < this.tabLst.length - 1) ? k : this.tabLst.length - 2
+        this.tabLst.splice(k, 1)
       }
 
       // if it was an active tab then actvate tab at the same position: previous tab or last tab
-      if (n >= 0 && n < this.tabLst.length) {
-        this.doTabLink(this.tabLst[n].id, true, this.tabLst[n].path)
+      if (0 <= n && n < this.tabLst.length) {
+        this.doTabLink(this.tabLst[n].key, true, this.tabLst[n].path)
       }
     },
 
@@ -377,41 +384,40 @@ export default {
     },
 
     // if tab not exist then add new tab and make it active else activate existing tab
-    doTabAdd (isActivate, isRoute, kind, dn = '') {
+    doTabAdd (isActivate, isToNewRoute, kind, dn = '') {
       // make tab key path and title
       const ti = this.makeTabInfo(kind, dn)
       if (!kind || (kind || '') === '' || !ti) {
-        console.log('tab kind is empty or invalid')
+        console.warn('tab kind is empty or invalid')
         return
       }
 
       // find existing tab by key and activate if required
-      for (let k = 0; k < this.tabLst.length; k++) {
-        if (this.tabLst[k].key === ti.key) {
-          if (isActivate) {
-            this.doTabLink(this.tabLst[k].id, isRoute, this.tabLst[k].path) // activate existing tab
-          }
-          return // done: tab already exist
+      let k = this.tabLst.findIndex((t) => t.key === ti.key)
+      if (k >= 0) {
+        if (isActivate) {
+          this.doTabLink(this.tabLst[k].key, isToNewRoute, this.tabLst[k].path) // activate existing tab
         }
+        return // done: tab already exist
       }
 
       // make new tab
       let t = {
-        id: 'tab-id-' + (ti.id >= FREE_TAB_ID ? (this.tabCount++).toString() : ti.id),
         kind: kind,
         dn: (dn || ''),
         key: (ti.key || ''),
         path: (ti.path || ''),
         active: false,
+        updated: false,
         title: (ti.title || '')
       }
 
       // insert predefined tab into tab list or append to tab list
       let nPos = -1
-      if (ti.id < FREE_TAB_ID) {
+      if (ti.pos < FREE_TAB_POS) {
         nPos = 0
         while (nPos < this.tabLst.length) {
-          if (this.tabLst[nPos].id > t.id) break
+          if (this.tabLst[nPos].pos > t.pos) break
           nPos++
         }
       }
@@ -423,10 +429,10 @@ export default {
 
       // activate new tab
       if (isActivate) {
-        this.doTabLink(t.id, isRoute, t.path)
+        this.doTabLink(t.key, isToNewRoute, t.path)
       } else {
         if (this.tabLst.length === 1) {
-          this.doTabLink(t.id, true, t.path)
+          this.doTabLink(t.key, true, t.path)
         }
       }
     },
@@ -442,54 +448,54 @@ export default {
       let mp = '/model/' + this.digest
       let rdn = (this.theRunText.Digest || '') !== '' ? (this.theRunText.Digest || '') : (this.theRunText.Name || '')
       let rwp = '/' +
-        (this.isWsView ? Mdf.SET_OF_RUNSET + '/' + (this.theWorksetText.Name || '') : Mdf.RUN_OF_RUNSET + '/' + rdn)
+        (this.isFromWs ? Mdf.SET_OF_RUNSET + '/' + (this.theWorksetText.Name || '') : Mdf.RUN_OF_RUNSET + '/' + rdn)
 
       switch (kind) {
         case 'parameter-list':
           return {
-            id: PARAM_LST_TAB_ID,
             key: 'pl-' + this.digest,
             path: mp + rwp + '/parameter-list',
-            title: 'Parameters: ' + Mdf.paramCount(this.theModel).toString()
+            title: 'Parameters: ' + Mdf.paramCount(this.theModel).toString(),
+            pos: PARAM_LST_TAB_POS
           }
         case 'table-list':
           return {
-            id: TABLE_LST_TAB_ID,
             key: 'tl-' + this.digest,
             path: mp + '/run/' + rdn + '/table-list',
-            title: 'Output tables: ' + Mdf.outTableCount(this.theModel).toString()
+            title: 'Output tables: ' + Mdf.outTableCount(this.theModel).toString(),
+            pos: TABLE_LST_TAB_POS
           }
         case 'run-list':
           return {
-            id: RUN_LST_TAB_ID,
             key: 'rtl-' + this.digest,
             path: mp + '/run-list',
-            title: 'Model runs: ' + Mdf.runTextCount(this.runTextList).toString()
+            title: 'Model runs: ' + Mdf.runTextCount(this.runTextList).toString(),
+            pos: RUN_LST_TAB_POS
           }
         case 'workset-list':
           return {
-            id: WS_LST_TAB_ID,
             key: 'wtl-' + this.digest,
             path: mp + '/workset-list',
-            title: 'Input sets: ' + Mdf.worksetTextCount(this.worksetTextList).toString()
+            title: 'Input sets: ' + Mdf.worksetTextCount(this.worksetTextList).toString(),
+            pos: WS_LST_TAB_POS
           }
         case 'parameter':
           const pt = Mdf.paramTextByName(this.theModel, dn)
           let pds = Mdf.descrOfDescrNote(pt)
           return {
-            id: FREE_TAB_ID,
             key: 'p-' + this.digest + '-' + (dn || ''),
             path: mp + rwp + '/parameter/' + (dn || ''),
-            title: (pds !== '') ? pds : (dn || '')
+            title: (pds !== '') ? pds : (dn || ''),
+            pos: FREE_TAB_POS
           }
         case 'table':
           const tt = Mdf.tableTextByName(this.theModel, dn)
           let tds = Mdf.descrOfDescrNote(tt)
           return {
-            id: FREE_TAB_ID,
             key: 't-' + this.digest + '-' + (dn || ''),
             path: mp + '/run/' + rdn + '/table/' + (dn || ''),
-            title: (tds !== '') ? tds : (dn || '')
+            title: (tds !== '') ? tds : (dn || ''),
+            pos: FREE_TAB_POS
           }
       }
       // default
@@ -498,7 +504,7 @@ export default {
     },
 
     // empty tab info: invalid default value
-    emptyTabInfo () { return { key: '', path: '', title: '' } }
+    emptyTabInfo () { return { key: '', path: '', title: '', pos: 0 } }
   },
 
   mounted () {

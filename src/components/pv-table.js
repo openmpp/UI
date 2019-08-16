@@ -103,18 +103,7 @@ export default {
     },
     pvEdit: { // editor options and state shared with parent
       type: Object,
-      default: () => ({
-        isEnabled: false,       // if true then edit value
-        kind: Pcvt.EDIT_NUMBER, // default: numeric float or integer editor
-        // current editor state
-        isEdit: false,    // if true then edit in progress
-        isUpdated: false, // if true then cell value(s) updated
-        cellKey: '',      // current eidtor focus cell
-        cellValue: '',    // current eidtor input value
-        updated: {},      // updated cells
-        history: [],      // update history
-        lastHistory: 0    // length of update history, changed by undo-redo
-      })
+      default: Pcvt.emptyEdit
     },
   },
 
@@ -136,8 +125,7 @@ export default {
       keyRenderCount : 0, // table body cell key suffix to force update
       renderKeys: {},     // for each cellKey string of: 'cellKey-keyRenderCount'
       keyPos: [],         // position of each dimension item in cell key
-      valueLen: 0,        // value input text size
-      isDataUpdate: false // if true then pivot data updated
+      valueLen: 0         // value input text size
     }
   },
   /* eslint-enable no-multi-spaces */
@@ -240,6 +228,7 @@ export default {
       })
       this.pvEdit.cellKey = ''
       this.pvEdit.cellValue = ''
+      this.$emit('pv-edit')
     },
     // confirm input edit by lost focus
     onCellInputBlur () {
@@ -247,6 +236,7 @@ export default {
       this.cellInputConfirm(this.pvEdit.cellValue, ckey)
       this.pvEdit.cellKey = ''
       this.pvEdit.cellValue = ''
+      this.$emit('pv-edit')
     },
 
     // confirm input edit: validate and save changes in edit history
@@ -303,6 +293,7 @@ export default {
       // update display value
       this.changeRenderKey(ckey)
       this.focusNextTick(ckey)
+      this.$emit('pv-edit')
     },
     // redo most recent undo
     doRedo () {
@@ -316,6 +307,7 @@ export default {
       // update display value
       this.changeRenderKey(ckey)
       this.focusNextTick(ckey)
+      this.$emit('pv-edit')
     },
 
     // arrows navigation
@@ -491,6 +483,7 @@ export default {
 
           // do input into the cell
           if (!this.cellInputConfirm(val, cKey)) return false // input validation failed
+          this.$emit('pv-edit')
           this.focusNextTick(cKey)
         }
       }

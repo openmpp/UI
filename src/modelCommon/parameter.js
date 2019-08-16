@@ -116,7 +116,7 @@ export const paramRunSetByName = (rsl, name) => {
   if (!Hlpr.isLength(rsl.Param)) return emptyParamRunSet()
   for (let k = 0; k < rsl.Param.length; k++) {
     if (isParamRunSet(rsl.Param[k]) && rsl.Param[k].Name === name) {
-      return JSON.parse(JSON.stringify(rsl.Param[k]))
+      return Hlpr._cloneDeep(rsl.Param[k])
     }
   }
   return emptyParamRunSet() // not found

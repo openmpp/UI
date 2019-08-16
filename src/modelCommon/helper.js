@@ -1,4 +1,7 @@
 // db structures common functions: helpers
+import cloneDeep from 'lodash/cloneDeep'
+
+export const _cloneDeep = cloneDeep
 
 export const RUN_OF_RUNSET = 'run'
 export const SET_OF_RUNSET = 'set'
