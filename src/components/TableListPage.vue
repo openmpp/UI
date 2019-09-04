@@ -55,21 +55,16 @@ export default {
   },
 
   computed: {
+    // part of the route path: model run digest or run name if digest empty
     pathNameDigest () {
       let nd = this.nameDigest || ''
-      if (nd === '') {
-        nd = this.theRunText.Digest
-        if (nd === '') nd = this.theRunText.Name
-      }
+      if (nd === '') nd = this.theSelected.runDigestName
       return nd
     },
     ...mapGetters({
       theModel: GET.THE_MODEL,
-      theRunText: GET.THE_RUN_TEXT
+      theSelected: GET.THE_SELECTED
     })
-  },
-
-  watch: {
   },
 
   methods: {
@@ -92,7 +87,7 @@ export default {
   },
 
   mounted () {
-    this.$emit('tab-mounted', 'table-list', '')
+    this.$emit('tab-mounted', 'table-list', {digest: this.digest, runOrSet: Mdf.RUN_OF_RUNSET, runSetKey: this.nameDigest})
   }
 }
 </script>

@@ -5,7 +5,7 @@
   <div v-if="isRunList">
     <ul class="main-list mdc-list mdc-list--two-line">
 
-      <li v-for="(r, idx) in runTextList" :key="'rt-' + idx" class="mdc-list-item">
+      <li v-for="(r, idx) in runTextList" :key="'rt-' + idx + '-' + (r.Digest === digestSelected ? updateCount: 0) + '-' + r.Digest" class="mdc-list-item">
 
         <span
           @click="showRunInfo(r)"
@@ -16,7 +16,7 @@
             <span v-else>error_outline</span>
         </span>
         <span
-          @click="doRunClick(idx, r.Digest)"
+          @click="doRunClick(r.Digest)"
           class="link-next"
           :title="r.Name"
           :alt="r.Name"
@@ -39,8 +39,8 @@
 </template>
 
 <script>
-import { mapGetters, mapActions } from 'vuex'
-import { GET, DISPATCH } from '@/store'
+import { mapGetters } from 'vuex'
+import { GET } from '@/store'
 import * as Mdf from '@/modelCommon'
 import RunInfoDialog from './RunInfoDialog'
 
@@ -53,8 +53,8 @@ export default {
 
   data () {
     return {
-      prevDigest: '',
-      prevIndex: -1
+      digestSelected: '',
+      updateCount: 0
     }
   },
 
@@ -66,37 +66,30 @@ export default {
     })
   },
 
-  watch: {
-    // refresh button handler
-  },
-
   methods: {
     lastTime (rt) { return Mdf.dtStr(rt.UpdateDateTime) },
     isSuccess (rt) { return Mdf.isRunSuccess(rt) },
     descrOf (rt) { return Mdf.descrOfTxt(rt) },
 
     // click on run: select this run as current run
-    doRunClick (idx, runDigest) {
-      if (idx === this.prevIndex && runDigest === this.prevDigest) return // exit: click on same item in the list
-      this.prevDigest = (runDigest || '')
-      this.prevIndex = (idx || 0)
-      // select new current run by index
-      this.dispatchTheRunTextByIdx(idx)
-      this.$emit('run-select', runDigest)
+    doRunClick (runDigest) {
+      if ((runDigest || '') !== '') this.$emit('run-select', runDigest)
+    },
+
+    // update selected item: handle for workset text loaded
+    refreshItem (dgst) {
+      this.digestSelected = dgst || ''
+      this.updateCount++
     },
 
     // show run info
     showRunInfo (rt) {
       this.$refs.runInfoDlg.showRunInfo(rt)
-    },
-
-    ...mapActions({
-      dispatchTheRunTextByIdx: DISPATCH.THE_RUN_TEXT_BY_IDX
-    })
+    }
   },
 
   mounted () {
-    this.$emit('tab-mounted', 'run-list', '')
+    this.$emit('tab-mounted', 'run-list', {digest: this.digest})
   }
 }
 </script>

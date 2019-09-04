@@ -92,21 +92,22 @@ export default {
 
   computed: {
     uiLangTitle () { return this.uiLang !== '' ? this.uiLang : 'Default' },
-    modelTitle () {
-      if (!Mdf.isModel(this.theModel)) return 'Not selected'
-      return Mdf.modelTitle(this.theModel)
-    },
+    modelTitle () { return Mdf.isModel(this.theModel) ? Mdf.modelTitle(this.theModel) : 'Not selected' },
     modelCount () { return this.modelListCount },
     runCount () { return Mdf.runTextCount(this.runTextList) },
     worksetCount () { return Mdf.worksetTextCount(this.worksetTextList) },
-    isNotEmptyRun () { return Mdf.isNotEmptyRunText(this.theRunText) },
-    lastTimeOfRun () { return Mdf.dtStr(this.theRunText.UpdateDateTime) },
-    nameOfRun () { return this.theRunText.Name || '' },
-    descrOfRun () { return Mdf.descrOfTxt(this.theRunText) },
-    isNotEmptyWorkset () { return Mdf.isNotEmptyWorksetText(this.theWorksetText) },
-    lastTimeOfWorkset () { return Mdf.dtStr(this.theWorksetText.UpdateDateTime) },
-    nameOfWorkset () { return this.theWorksetText.Name || '' },
-    descrOfWorkset () { return Mdf.descrOfTxt(this.theWorksetText) },
+
+    runSelected () { return this.runTextByDigestOrName(this.theSelected.runDigestName) },
+    isNotEmptyRun () { return Mdf.isNotEmptyRunText(this.runSelected) },
+    lastTimeOfRun () { return Mdf.dtStr(this.runSelected.UpdateDateTime) },
+    nameOfRun () { return this.runSelected.Name || '' },
+    descrOfRun () { return Mdf.descrOfTxt(this.runSelected) },
+
+    wsSelected () { return this.worksetTextByName(this.theSelected.worksetName) },
+    isNotEmptyWorkset () { return Mdf.isNotEmptyWorksetText(this.wsSelected) },
+    lastTimeOfWorkset () { return Mdf.dtStr(this.wsSelected.UpdateDateTime) },
+    nameOfWorkset () { return this.wsSelected.Name || '' },
+    descrOfWorkset () { return Mdf.descrOfTxt(this.wsSelected) },
 
     ...mapGetters({
       uiLang: GET.UI_LANG,
@@ -114,8 +115,9 @@ export default {
       modelListCount: GET.MODEL_LIST_COUNT,
       runTextList: GET.RUN_TEXT_LIST,
       worksetTextList: GET.WORKSET_TEXT_LIST,
-      theRunText: GET.THE_RUN_TEXT,
-      theWorksetText: GET.THE_WORKSET_TEXT,
+      runTextByDigestOrName: GET.RUN_TEXT_BY_DIGEST_OR_NAME,
+      worksetTextByName: GET.WORKSET_TEXT_BY_NAME,
+      theSelected: GET.THE_SELECTED,
       omppServerUrl: GET.OMPP_SRV_URL
     })
   },

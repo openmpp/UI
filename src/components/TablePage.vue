@@ -90,9 +90,9 @@ export default {
   components: { TableInfoDialog, 'pivot-react': PivotReact },
 
   props: {
-    digest: '',
-    tableName: '',
-    nameDigest: ''
+    digest: '',     // model digest or name
+    tableName: '',  // output table name
+    nameDigest: ''  // model run digest or name
   },
 
   data () {
@@ -136,18 +136,21 @@ export default {
 
   computed: {
     routeKey () {
-      return [this.digest, this.tableName, this.nameDigest].toString()
+      return Mdf.tableRouteKey(this.digest, this.tableName, this.nameDigest)
     },
     ...mapGetters({
       theModel: GET.THE_MODEL,
-      theRunText: GET.THE_RUN_TEXT,
+      runTextByDigestOrName: GET.RUN_TEXT_BY_DIGEST_OR_NAME,
       wordList: GET.WORD_LIST,
       omppServerUrl: GET.OMPP_SRV_URL
     })
   },
 
   watch: {
-    routeKey () { this.refreshView() }
+    routeKey () {
+      this.refreshView()
+      this.$emit('tab-new-route', 'table', {digest: this.digest, runOrSet: Mdf.RUN_OF_RUNSET, runSetKey: this.nameDigest, ptName: this.tableName})
+    }
   },
 
   methods: {
@@ -215,7 +218,8 @@ export default {
       // find table and table size, including run sub-values count
       this.tableText = Mdf.tableTextByName(this.theModel, this.tableName)
       this.tableSize = Mdf.tableSizeByName(this.theModel, this.tableName)
-      this.subCount = this.theRunText.SubCount || 0
+      const runSrc = this.runTextByDigestOrName(this.nameDigest)
+      this.subCount = runSrc.SubCount || 0
       this.totalEnumLabel = Mdf.wordByCode(this.wordList, Mdf.ALL_WORD_CODE)
 
       // find dimension type for each dimension and collect dimension lables
@@ -549,9 +553,10 @@ export default {
       this.msg = 'Loading...'
 
       // exit if model run empty: must be found (not found run is empty)
-      if (!Mdf.isNotEmptyRunText(this.theRunText)) {
-        this.msg = 'Model run is not completed'
-        console.log('Model run is not completed (empty)')
+      const runSrc = this.runTextByDigestOrName(this.nameDigest)
+      if (!Mdf.isNotEmptyRunText(runSrc) || (runSrc.Digest || '') === '') {
+        this.msg = 'Model run not found or not completed'
+        console.log('Model run not found or not completed (empty)')
         this.loadWait = false
         return
       }
@@ -559,7 +564,7 @@ export default {
       // make output table read layout and url
       let layout = this.makeSelectLayout()
       let u = this.omppServerUrl +
-        '/api/model/' + (this.digest || '') + '/run/' + (this.theRunText.Digest || '') + '/table/value-id'
+        '/api/model/' + (this.digest || '') + '/run/' + (runSrc.Digest || '') + '/table/value-id'
 
       // retrieve page from server, it must be: {Layout: {...}, Page: [...]}
       try {
@@ -632,8 +637,9 @@ export default {
 
   mounted () {
     this.refreshView()
-    this.$emit('tab-mounted', 'table', this.tableName)
+    this.$emit('tab-mounted', 'table', {digest: this.digest, runOrSet: Mdf.RUN_OF_RUNSET, runSetKey: this.nameDigest, ptName: this.tableName})
   }
+  /* eslint-enable no-multi-spaces */
 }
 </script>
 

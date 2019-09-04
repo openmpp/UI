@@ -107,7 +107,7 @@
           :class="{'disable-item': !isModel}" class="mdc-list-item"
           alt="Model parameters"
           role="menuitem">
-          <i :class="{'disable-icon': !isModel}" class="menu-start mdc-list-item__graphic material-icons" aria-hidden="true">input</i>
+          <i :class="{'disable-icon': !isModel}" class="menu-start mdc-list-item__graphic material-icons" aria-hidden="true">directions_run</i>
           <span class="mdc-list-item__text">Parameters</span>
           <span v-if="isModel" class="menu-count mdc-list-item__meta">{{paramCount}}</span>
         </router-link>
@@ -117,7 +117,7 @@
           :class="{'disable-item': !isModel}" class="mdc-list-item"
           alt="Output tables"
           role="menuitem">
-          <i :class="{'disable-icon': !isModel}" class="menu-start mdc-list-item__graphic material-icons" aria-hidden="true">grid_on</i>
+          <i :class="{'disable-icon': !isModel}" class="menu-start mdc-list-item__graphic material-icons" aria-hidden="true">directions_run</i>
           <span class="mdc-list-item__text">Output tables</span>
           <span v-if="isModel" class="menu-count mdc-list-item__meta">{{outTableCount}}</span>
         </router-link>
@@ -335,7 +335,7 @@ export default {
 
   /* adjust drawer model menu margins */
   .menu-start {
-    margin-right: .5rem;
+    margin-right: 0.5rem;
   }
   span.menu-count.mdc-list-item__meta {
     width: 3rem;

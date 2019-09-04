@@ -7,19 +7,20 @@ const COMMIT = {
   WORD_LIST_ON_NEW: 'commitWordListOnNew',
   MODEL_LIST: 'commitModelList',
   THE_MODEL: 'commitModel',
-  THE_RUN_TEXT: 'commitRunText',
-  THE_RUN_TEXT_ON_NEW: 'commitRunTextOnNew',
-  THE_RUN_TEXT_BY_IDX: 'commitRunTextByIdx',
+  RUN_TEXT: 'commitRunText',
+  RUN_TEXT_DELETE: 'commitRunTextDelete',
   RUN_TEXT_LIST: 'commitRunTextList',
   RUN_TEXT_LIST_ON_NEW: 'commitRunTextListOnNew',
-  THE_WORKSET_TEXT: 'commitWorksetText',
-  THE_WORKSET_TEXT_ON_NEW: 'commitWorksetTextOnNew',
-  THE_WORKSET_TEXT_BY_IDX: 'commitWorksetTextByIdx',
-  THE_WORKSET_STATUS: 'commitWorksetStatus',
+  WORKSET_TEXT: 'commitWorksetText',
+  WORKSET_TEXT_DELETE: 'commitWorksetTextDelete',
+  WORKSET_STATUS: 'commitWorksetStatus',
   WORKSET_TEXT_LIST: 'commitWorksetTextList',
   WORKSET_TEXT_LIST_ON_NEW: 'commitWorksetTextListOnNew',
+  THE_SELECTED: 'commitTheSelected',
+  THE_SELECTED_ON_NEW: 'commitTheSelectedOnNew',
   PARAM_VIEW: 'paramView',
-  PARAM_VIEW_DELETE: 'paramViewDelete'
+  PARAM_VIEW_DELETE: 'paramViewDelete',
+  PARAM_VIEW_DELETE_BY_PREFIX: 'paramViewDeleteByPrefix'
 }
 
 // mutations: synchronized updates
@@ -58,79 +59,22 @@ const mutations = {
     if (Mdf.isModelList(ml)) state.modelList = ml
   },
 
-  // set current run
-  [COMMIT.THE_RUN_TEXT] (state, rt) {
-    if (!Mdf.isRunText(rt)) {
-      state.theRunText = Mdf.emptyRunText()
-      return
-    }
-    // update current model run
-    state.theRunText = rt
-
-    // find current model run in the list and update it
+  // update run text
+  [COMMIT.RUN_TEXT] (state, rt) {
+    if (!Mdf.isRunText(rt)) return
     if (!Mdf.isNotEmptyRunText(rt) || !Mdf.isLength(state.runTextList)) return
 
-    for (let k = 0; k < state.runTextList.length; k++) {
-      if (state.runTextList[k].ModelDigest === rt.ModelDigest &&
-        ((rt.Digest !== '' && state.runTextList[k].Digest === rt.Digest) ||
-        (rt.Digest === '' &&
-        state.runTextList[k].Digest === rt.Digest &&
-        state.runTextList[k].Name === rt.Name &&
-        state.runTextList[k].Status === rt.Status &&
-        state.runTextList[k].SubCount === rt.SubCount &&
-        state.runTextList[k].CreateDateTime === rt.CreateDateTime &&
-        state.runTextList[k].UpdateDateTime === rt.UpdateDateTime))) {
-        // update run list with current value
-        state.runTextList.splice(k, 1, Mdf._cloneDeep(rt))
-        break
-      }
-    }
+    let k = state.runTextList.findIndex((r) => Mdf.runTextEqual(r, rt))
+    if (k >= 0) state.runTextList[k] = Mdf._cloneDeep(rt)
   },
 
-  // set current run by index in run list or empty if index out of range
-  [COMMIT.THE_RUN_TEXT_BY_IDX] (state, idx) {
-    // if index out of range then set current run to empty value
-    if (idx < 0 || idx >= state.runTextList.length) {
-      state.theRunText = Mdf.emptyRunText()
-      return
-    }
-    // if current run same as index run then return
-    if (Mdf.isNotEmptyRunText(state.theRunText) &&
-      state.theRunText.ModelDigest === state.runTextList[idx].ModelDigest &&
-      state.theRunText.Name === state.runTextList[idx].Name &&
-      state.theRunText.Digest === state.runTextList[idx].Digest &&
-      state.theRunText.Status === state.runTextList[idx].Status &&
-      state.theRunText.SubCount === state.runTextList[idx].SubCount &&
-      (state.theRunText.CreateDateTime || '') === (state.runTextList[idx].CreateDateTime || '') &&
-      (state.theRunText.UpdateDateTime || '') === (state.runTextList[idx].UpdateDateTime || '')) {
-      return // same model run
-    }
-    // update current run to run at the index
-    state.theRunText = Mdf._cloneDeep(state.runTextList[idx])
-  },
+  // delete run text
+  [COMMIT.RUN_TEXT_DELETE] (state, rt) {
+    if (!Mdf.isRunText(rt)) return
+    if (!Mdf.isNotEmptyRunText(rt) || !Mdf.isLength(state.runTextList)) return
 
-  // clear current run if model digest not the same else set current run to first in run list
-  [COMMIT.THE_RUN_TEXT_ON_NEW] (state, modelDigest) {
-    if ((modelDigest || '') !== state.theRunText.ModelDigest) {
-      state.theRunText = Mdf.emptyRunText()
-      return
-    }
-    if (!Mdf.isLength(state.runTextList)) return // model run list empty
-
-    // if current run same as index run then return
-    if (Mdf.isNotEmptyRunText(state.theRunText) &&
-      state.theRunText.ModelDigest === state.runTextList[0].ModelDigest &&
-      state.theRunText.Name === state.runTextList[0].Name &&
-      state.theRunText.Digest === state.runTextList[0].Digest &&
-      state.theRunText.Status === state.runTextList[0].Status &&
-      state.theRunText.SubCount === state.runTextList[0].SubCount &&
-      (state.theRunText.CreateDateTime || '') === (state.runTextList[0].CreateDateTime || '') &&
-      (state.theRunText.UpdateDateTime || '') === (state.runTextList[0].UpdateDateTime || '')) {
-      return // same model run
-    }
-
-    // update current model run to the first in model run list
-    state.theRunText = Mdf._cloneDeep(state.runTextList[0])
+    let k = state.runTextList.findIndex((r) => Mdf.runTextEqual(r, rt))
+    if (k >= 0) state.runTextList.splice(k, 1)
   },
 
   // assign new value to run list, if (rl) is a model run text list
@@ -147,70 +91,31 @@ const mutations = {
     if ((modelDigest || '') !== digest) state.runTextList = []
   },
 
-  // set current workset
-  [COMMIT.THE_WORKSET_TEXT] (state, wt) {
-    if (!Mdf.isWorksetText(wt)) {
-      state.theWorksetText = Mdf.emptyWorksetText()
-      return
-    }
-    // update current workset
-    state.theWorksetText = wt
-
-    // find current workset in the list and update it
+  // update workset text
+  [COMMIT.WORKSET_TEXT] (state, wt) {
+    if (!Mdf.isWorksetText(wt)) return
     if (!Mdf.isNotEmptyWorksetText(wt) || !Mdf.isLength(state.worksetTextList)) return
 
-    for (let k = 0; k < state.worksetTextList.length; k++) {
-      if (state.worksetTextList[k].ModelDigest === wt.ModelDigest &&
-        state.worksetTextList[k].Name === wt.Name) {
-        // update workset list with current value
-        state.worksetTextList.splice(k, 1, Mdf._cloneDeep(wt))
-        break
-      }
-    }
+    let k = state.worksetTextList.findIndex((w) => w.ModelDigest === wt.ModelDigest && w.Name === wt.Name)
+    if (k >= 0) state.worksetTextList[k] = Mdf._cloneDeep(wt)
   },
 
-  // set current workset by index in workset list or empty if index out of range
-  [COMMIT.THE_WORKSET_TEXT_BY_IDX] (state, idx) {
-    // if index out of range then set current workset to empty value
-    if (idx < 0 || idx >= state.worksetTextList.length) {
-      state.theWorksetText = Mdf.emptyWorksetText()
-      return
-    }
-    // if current workset same as index workset then return
-    if (Mdf.isNotEmptyWorksetText(state.theWorksetText) &&
-      state.theWorksetText.ModelDigest === state.worksetTextList[idx].ModelDigest &&
-      state.theWorksetText.Name === state.worksetTextList[idx].Name) {
-      return // same workset
-    }
-    // update current workset to workset at the index
-    state.theWorksetText = Mdf._cloneDeep(state.worksetTextList[idx])
+  // delete workset text by model digest and workset name
+  [COMMIT.WORKSET_TEXT_DELETE] (state, wt) {
+    if (!wt.hasOwnProperty('ModelDigest') || !wt.hasOwnProperty('Name')) return
+
+    let k = state.worksetTextList.findIndex((w) => w.ModelDigest === wt.ModelDigest && w.Name === wt.Name)
+    if (k >= 0) state.worksetTextList.splice(k, 1)
   },
 
-  // clear current workset if model digest not the same else set current workset to first in workset list
-  [COMMIT.THE_WORKSET_TEXT_ON_NEW] (state, modelDigest) {
-    if ((modelDigest || '') !== state.theWorksetText.ModelDigest) {
-      state.theWorksetText = Mdf.emptyWorksetText()
-      return
-    }
-    if (!Mdf.isLength(state.worksetTextList)) return // workset list empty
+  // update workset status: set readonly status and update date-time
+  [COMMIT.WORKSET_STATUS] (state, ws) {
+    if (!Mdf.isWorksetStatus(ws) || !Mdf.isLength(state.worksetTextList)) return
 
-    // if current workset has same model and name then exit
-    if (Mdf.isNotEmptyWorksetText(state.theWorksetText) &&
-      state.theWorksetText.ModelDigest === modelDigest &&
-      state.theWorksetText.Name === state.worksetTextList[0].Name) {
-      return // same workset
-    }
-
-    // update current workset to the first in workset list
-    state.theWorksetText = Mdf._cloneDeep(state.worksetTextList[0])
-  },
-
-  // update current workset status: if name the same as current set name then set readonly status and update date-time
-  [COMMIT.THE_WORKSET_STATUS] (state, ws) {
-    if (!Mdf.isWorksetStatus(ws)) return
-    if ((ws.Name || '') === state.theWorksetText.Name) {
-      state.theWorksetText.IsReadonly = !!ws.IsReadonly
-      state.theWorksetText.UpdateDateTime = (ws.UpdateDateTime || '')
+    let k = state.worksetTextList.findIndex((w) => w.ModelDigest === ws.ModelDigest && w.Name === ws.Name)
+    if (k >= 0) {
+      state.worksetTextList[k].IsReadonly = !!ws.IsReadonly
+      state.worksetTextList[k].UpdateDateTime = (ws.UpdateDateTime || '')
     }
   },
 
@@ -226,6 +131,56 @@ const mutations = {
       if (Mdf.isWorksetText(state.worksetTextList[0])) digest = state.worksetTextList[0].ModelDigest || ''
     }
     if ((modelDigest || '') !== digest) state.worksetTextList = []
+  },
+
+  // if model digest not the same then clear current selection: clear run and workset
+  [COMMIT.THE_SELECTED_ON_NEW] (state, modelDigest) {
+    if ((modelDigest || '') !== state.theSelected.ModelDigest) {
+      state.theSelected = emptyTheSelected()
+      state.theSelected.ModelDigest = modelDigest || ''
+    }
+    // if workset list not empty then select first workset name
+    if (Mdf.isLength(state.worksetTextList)) {
+      const ws0 = state.worksetTextList[0]
+      if (Mdf.isNotEmptyWorksetText(ws0) && ws0.ModelDigest === modelDigest) state.theSelected.worksetName = ws0.Name
+    }
+    // if run list not empty and first run completed then select first run digest
+    if (Mdf.isLength(state.runTextList)) {
+      const r0 = state.runTextList[0]
+      if (Mdf.isNotEmptyRunText(r0) && r0.ModelDigest === modelDigest) state.theSelected.runDigestName = r0.Digest
+      state.theSelected.isRun = state.theSelected.runDigestName !== ''
+    }
+  },
+
+  // update current selection: run and workset if model digest not the same
+  [COMMIT.THE_SELECTED] (state, sel) {
+    if (!sel || !sel.hasOwnProperty('ModelDigest') || typeof sel.ModelDigest !== typeof 'string') return
+
+    if ((sel.ModelDigest || '') !== state.theSelected.ModelDigest) {
+      state.theSelected = emptyTheSelected()
+      state.theSelected.ModelDigest = sel.ModelDigest || ''
+    }
+    if (state.theSelected.ModelDigest === '') return // model digest must be defined for non-empty selection
+
+    // select workset by name
+    if (sel.hasOwnProperty('worksetName') && typeof sel.worksetName === typeof 'string' && Mdf.isLength(state.worksetTextList)) {
+      const k = state.worksetTextList.findIndex((w) => w.Name === sel.worksetName)
+      if (k >= 0) {
+        state.theSelected.worksetName = sel.worksetName
+        state.theSelected.isRun = false
+      }
+    }
+    // select run by digest or name
+    if (sel.hasOwnProperty('runDigestName') && typeof sel.runDigestName === typeof 'string' && Mdf.isLength(state.runTextList)) {
+      let k = state.runTextList.findIndex((r) => r.Digest === sel.runDigestName)
+      if (k < 0) k = state.runTextList.findIndex((r) => r.Name === sel.runDigestName)
+      if (k >= 0) {
+        state.theSelected.runDigestName = sel.runDigestName
+        state.theSelected.isRun = true
+      }
+    }
+    // if isRun option explicitly specified then use it
+    if (sel.hasOwnProperty('isRun') && typeof sel.isRun === typeof true) state.theSelected.isRun = sel.isRun
   },
 
   // insert, replace or update parameter view by route key (key must be non-empty string)
@@ -268,6 +223,27 @@ const mutations = {
   // delete parameter view by route key, if exist (key must be a string)
   [COMMIT.PARAM_VIEW_DELETE] (state, key) {
     if (typeof key === typeof 'string' && state.paramViews.hasOwnProperty[key]) delete state.paramViews[key]
+  },
+
+  // delete parameter view by model prefix of route key (it must be a string), if prefix '' empty then delete all
+  [COMMIT.PARAM_VIEW_DELETE_BY_PREFIX] (state, prefix) {
+    if (typeof prefix !== typeof 'string') return
+
+    for (const key in state.paramViews) {
+      if (!state.paramViews.hasOwnProperty(key)) continue
+      if (prefix && !key.startsWith(prefix)) continue
+      delete state.paramViews[key]
+    }
+  }
+}
+
+// empty current selection
+const emptyTheSelected = () => {
+  return {
+    ModelDigest: '',
+    isRun: false,
+    runDigestName: '',
+    worksetName: ''
   }
 }
 

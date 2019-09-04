@@ -40,8 +40,9 @@ export const emptyWorksetText = () => {
 // if this is workset status row
 export const isWorksetStatus = (ws) => {
   if (!ws) return false
+  if (!ws.hasOwnProperty('ModelName') || !ws.hasOwnProperty('ModelDigest')) return false
   if (!ws.hasOwnProperty('Name') || !ws.hasOwnProperty('IsReadonly') || !ws.hasOwnProperty('UpdateDateTime')) return false
-  return (ws.Name || '') !== '' && (typeof ws.IsReadonly === typeof true) && (ws.UpdateDateTime || '') !== ''
+  return (ws.ModelName || '') !== '' && (ws.ModelDigest || '') !== '' && (ws.Name || '') !== '' && (typeof ws.IsReadonly === typeof true) && (ws.UpdateDateTime || '') !== ''
 }
 
 // return true if each list element isWorksetText()

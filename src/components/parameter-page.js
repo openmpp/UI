@@ -3,12 +3,12 @@ import draggable from 'vuedraggable'
 import multiSelect from 'vue-multi-select'
 // import 'vue-multi-select/dist/lib/vue-multi-select.css'
 import 'vue-multi-select/dist/lib/vue-multi-select.min.css' // 3.15.0
-import { mapGetters, mapActions } from 'vuex'
-import OmMcwDialog from '@/om-mcw/OmMcwDialog'
-import OmMcwSnackbar from '@/om-mcw/OmMcwSnackbar'
 
+import { mapGetters, mapActions } from 'vuex'
 import { GET, DISPATCH } from '@/store'
 import * as Mdf from '@/modelCommon'
+import OmMcwDialog from '@/om-mcw/OmMcwDialog'
+import OmMcwSnackbar from '@/om-mcw/OmMcwSnackbar'
 import * as Pcvt from './pivot-cvt'
 import * as Puih from './pivot-ui-helper'
 import PvTable from './PvTable'
@@ -19,14 +19,14 @@ const SUB_ID_DIM = 'SubId' // sub-value id dminesion name
 export default {
   components: { multiSelect, draggable, PvTable, ParamInfoDialog, OmMcwDialog, OmMcwSnackbar },
 
+  /* eslint-disable no-multi-spaces */
   props: {
-    digest: '',
-    paramName: '',
-    runOrSet: '',
-    nameDigest: ''
+    digest: '',     // model digest or name
+    paramName: '',  // parameter name
+    runOrSet: '',   // if "run" then model run if "set" then workset
+    nameDigest: ''  // workset name or model run digest or name
   },
 
-  /* eslint-disable no-multi-spaces */
   data () {
     return {
       loadDone: false,
@@ -92,23 +92,24 @@ export default {
     routeKey () {
       this.initView()
       this.doRefreshDataPage()
-      this.$emit('edit-updated', this.edt.isUpdated, this.paramName)
+      this.$emit('tab-new-route', 'parameter', {digest: this.digest, runOrSet: this.runOrSet, runSetKey: this.nameDigest, ptName: this.paramName})
+      this.$emit('edit-updated', this.edt.isUpdated, this.routeKey)
     },
     isEditUpdated () {
-      this.$emit('edit-updated', this.edt.isUpdated, this.paramName)
+      this.$emit('edit-updated', this.edt.isUpdated, this.routeKey)
     }
   },
   computed: {
     routeKey () {
-      return [this.digest, this.paramName, this.runOrSet, this.nameDigest].toString()
+      return Mdf.paramRouteKey(this.digest, this.paramName, this.runOrSet, this.nameDigest)
     },
     isEditUpdated () {
       return this.edt.isUpdated
     },
     ...mapGetters({
       theModel: GET.THE_MODEL,
-      theRunText: GET.THE_RUN_TEXT,
-      theWorksetText: GET.THE_WORKSET_TEXT,
+      runTextByDigest: GET.RUN_TEXT_BY_DIGEST,
+      worksetTextByName: GET.WORKSET_TEXT_BY_NAME,
       paramView: GET.PARAM_VIEW,
       omppServerUrl: GET.OMPP_SRV_URL
     })
@@ -284,18 +285,20 @@ export default {
     // initialize current page view on mounted or tab switch
     initView () {
       // find parameter, parameter type and size, including run sub-values count
-      this.isFromWs = ((this.runOrSet || '') === Mdf.SET_OF_RUNSET)
       this.paramText = Mdf.paramTextByName(this.theModel, this.paramName)
       this.paramSize = Mdf.paramSizeByName(this.theModel, this.paramName)
       this.paramType = Mdf.typeTextById(this.theModel, (this.paramText.Param.TypeId || 0))
+
+      this.isFromWs = ((this.runOrSet || '') === Mdf.SET_OF_RUNSET)
+      const wsSrc = this.isFromWs ? this.worksetTextByName(this.nameDigest) : Mdf.emptyWorksetText()
       this.paramRunSet = Mdf.paramRunSetByName(
-        this.isFromWs ? this.theWorksetText : this.theRunText,
+        this.isFromWs ? wsSrc : this.runTextByDigest(this.nameDigest),
         this.paramName)
       this.subCount = this.paramRunSet.SubCount || 0
       this.isNullable = this.paramText.Param.hasOwnProperty('IsExtendable') && (this.paramText.Param.IsExtendable || false)
 
       // adjust controls
-      this.edt.isEnabled = this.isFromWs && !this.theWorksetText.IsReadonly
+      this.edt.isEnabled = this.isFromWs && Mdf.isNotEmptyWorksetText(wsSrc) && !wsSrc.IsReadonly
       Pcvt.resetEdit(this.edt) // clear editor state
 
       let isRc = this.paramSize.rank > 0 || this.subCount > 1
@@ -598,7 +601,9 @@ export default {
   mounted () {
     this.initView()
     this.doRefreshDataPage()
-    this.$emit('tab-mounted', 'parameter', this.paramName)
-    this.$nextTick(() => { this.$emit('edit-updated', this.edt.isUpdated, this.paramName) })
+    this.$emit('tab-mounted', 'parameter', {digest: this.digest, runOrSet: this.runOrSet, runSetKey: this.nameDigest, ptName: this.paramName})
+    this.$nextTick(() => {
+      this.$emit('edit-updated', this.edt.isUpdated, this.routeKey)
+    })
   }
 }

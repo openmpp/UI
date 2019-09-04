@@ -46,10 +46,11 @@ export default {
       this.loadWait = true
       this.msgLoad = 'Updating workset...'
       this.$emit('wait')
+      const name = (this.worksetName || '')
 
       const u = this.omppServerUrl +
         '/api/model/' + (this.modelDigest || '') +
-        '/workset/' + (this.worksetName || '') +
+        '/workset/' + name +
         '/readonly/' + (!this.enableEdit).toString()
       try {
         const response = await axios.post(u)
@@ -70,11 +71,11 @@ export default {
         console.log('Server offline or no model input set not found.', em)
       }
       this.loadWait = false
-      this.$emit('done', this.loadDone)
+      this.$emit('done', this.loadDone, name)
     },
 
     ...mapActions({
-      dispatchWorksetStatus: DISPATCH.THE_WORKSET_STATUS
+      dispatchWorksetStatus: DISPATCH.WORKSET_STATUS
     })
   },
 

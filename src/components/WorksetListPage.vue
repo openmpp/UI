@@ -5,7 +5,7 @@
   <div v-if="isWsList">
     <ul class="main-list mdc-list mdc-list--two-line">
 
-      <li v-for="(w, idx) in worksetTextList" :key="'wt-' + idx" class="mdc-list-item">
+      <li v-for="w in worksetTextList" :key="'wt-' + (w.Name === nameSelected ? updateCount.toString() : '') + '-' + w.Name" class="mdc-list-item">
 
         <span
           @click="showWsInfo(w)"
@@ -13,15 +13,15 @@
           :title="w.Name + ' notes'"
           :alt="w.Name + ' notes'">description</span>
         <span
-          @click="doWsClick(idx, w.Name)"
+          @click="doWsClick(w.Name)"
           class="link-next"
           :title="w.Name"
           :alt="w.Name"
           >
           <span class="mdc-list-item__text">
-            <span class="mdc-list-item__primary-text">{{ w.Name }}</span>
+            <span class="mdc-list-item__primary-text">{{w.Name}}</span>
             <span class="item-line mdc-list-item__secondary-text">
-              <span class="mono">{{lastTime(w)}} </span>{{ descrOf(w) }}
+              <span class="mono">{{lastTime(w)}} </span>{{descrOf(w)}}
             </span>
           </span>
         </span>
@@ -38,8 +38,8 @@
 </template>
 
 <script>
-import { mapGetters, mapActions } from 'vuex'
-import { GET, DISPATCH } from '@/store'
+import { mapGetters } from 'vuex'
+import { GET } from '@/store'
 import * as Mdf from '@/modelCommon'
 import WorksetInfoDialog from './WorksetInfoDialog'
 
@@ -52,8 +52,8 @@ export default {
 
   data () {
     return {
-      prevName: '',
-      prevIndex: -1
+      nameSelected: '',
+      updateCount: 0
     }
   },
 
@@ -61,12 +61,9 @@ export default {
     isWsList () { return Mdf.isWorksetTextList(this.worksetTextList) },
 
     ...mapGetters({
-      worksetTextList: GET.WORKSET_TEXT_LIST
+      worksetTextList: GET.WORKSET_TEXT_LIST,
+      worksetTextByName: GET.WORKSET_TEXT_BY_NAME
     })
-  },
-
-  watch: {
-    // refresh button handler
   },
 
   methods: {
@@ -74,27 +71,24 @@ export default {
     descrOf (wt) { return Mdf.descrOfTxt(wt) },
 
     // click on workset: select this workset as current
-    doWsClick (idx, name) {
-      if (idx === this.prevIndex && name === this.prevName) return // exit: click on same item in the list
-      this.prevName = (name || '')
-      this.prevIndex = (idx || 0)
-      // select new current workset by index
-      this.dispatchTheWorksetTextByIdx(idx)
-      this.$emit('workset-select', name)
+    doWsClick (name) {
+      if ((name || '') !== '') this.$emit('workset-select', name)
     },
 
-    // show workset info
+    // update selected item: handle for workset text loaded
+    refreshItem (name) {
+      this.nameSelected = name || ''
+      this.updateCount = 2 - (this.updateCount + 1)
+    },
+
+    // on click: show workset info dialog
     showWsInfo (wt) {
       this.$refs.wsInfoDlg.showWsInfo(wt)
-    },
-
-    ...mapActions({
-      dispatchTheWorksetTextByIdx: DISPATCH.THE_WORKSET_TEXT_BY_IDX
-    })
+    }
   },
 
   mounted () {
-    this.$emit('tab-mounted', 'workset-list', '')
+    this.$emit('tab-mounted', 'workset-list', {digest: this.digest})
   }
 }
 </script>

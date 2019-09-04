@@ -21,16 +21,16 @@ export const isRunText = (rt) => {
   if (!rt) return false
   if (!rt.hasOwnProperty('ModelName') || !rt.hasOwnProperty('ModelDigest')) return false
   if (!rt.hasOwnProperty('Name') || !rt.hasOwnProperty('Digest') || !rt.hasOwnProperty('RunStamp')) return false
-  if (!rt.hasOwnProperty('SubCount') || !rt.hasOwnProperty('Status')) return false
+  if (!rt.hasOwnProperty('SubCount') || !rt.hasOwnProperty('Status') || !rt.hasOwnProperty('CreateDateTime')) return false
   if (!Hlpr.hasLength(rt.Param) || !Hlpr.hasLength(rt.Txt)) return false
   return true
 }
 
-// if this is not empty run text: model name, model digest, run name, status, sub-count and run text not empty
+// if this is not empty run text: model name, model digest, run name, run stamp, status, sub-count, create date-time
 export const isNotEmptyRunText = (rt) => {
   if (!isRunText(rt)) return false
   return (rt.ModelName || '') !== '' && (rt.ModelDigest || '') !== '' &&
-    (rt.Name || '') !== '' && (rt.Status || '') !== '' && (rt.SubCount || 0) !== 0
+    (rt.Name || '') !== '' && (rt.RunStamp || '') !== '' && (rt.Status || '') !== '' && (rt.SubCount || 0) !== 0 && (rt.CreateDateTime || '') !== ''
 }
 
 // return empty run text
@@ -43,9 +43,25 @@ export const emptyRunText = () => {
     RunStamp: '',
     SubCount: 0,
     Status: '',
+    CreateDateTime: '',
     Param: [],
     Txt: []
   }
+}
+
+// run text equality comparator:
+// return true if both run texts has same non-empty digest or if digest is empty then same name and other attributes
+export const runTextEqual = (rt, rtOther) => {
+  if (!isRunText(rt) || !isRunText(rtOther)) return false
+  if (!isNotEmptyRunText(rt) && !isNotEmptyRunText(rtOther)) return true
+
+  return rt.ModelDigest === rtOther.ModelDigest &&
+    ((rt.Digest !== '' && rt.Digest === rtOther.Digest) ||
+    (rt.Digest === '' && rt.Digest === rtOther.Digest &&
+    rt.Name === rtOther.Name &&
+    rt.RunStamp === rtOther.RunStamp &&
+    rt.SubCount === rtOther.SubCount &&
+    rt.CreateDateTime === rtOther.CreateDateTime))
 }
 
 // retrun true if run completed successfuly

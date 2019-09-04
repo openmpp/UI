@@ -28,16 +28,6 @@ export default new Router({
       props: true,
       children: [
         {
-          path: ':runOrSet/:nameDigest/parameter-list',
-          component: ParameterListPage,
-          props: true
-        },
-        {
-          path: 'run/:nameDigest/table-list',
-          component: TableListPage,
-          props: true
-        },
-        {
           path: 'run-list',
           component: RunListPage,
           props: true
@@ -45,6 +35,16 @@ export default new Router({
         {
           path: 'workset-list',
           component: WorksetListPage,
+          props: true
+        },
+        {
+          path: ':runOrSet/:nameDigest/parameter-list',
+          component: ParameterListPage,
+          props: true
+        },
+        {
+          path: 'run/:nameDigest/table-list',
+          component: TableListPage,
           props: true
         },
         {
@@ -69,7 +69,7 @@ export default new Router({
         },
         {
           path: '',
-          component: ParameterListPage,
+          component: RunListPage,
           props: true
         }
       ]

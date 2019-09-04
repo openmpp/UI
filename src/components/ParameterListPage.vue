@@ -1,6 +1,6 @@
 <template>
 
-<div id="parameter-list-page" class="mdc-typography mdc-typography--body1">
+<div :id="'parameter-list-page-' + runOrSet" class="mdc-typography mdc-typography--body1">
 
   <div v-if="isParamList()">
     <ul class="main-list mdc-list mdc-list--two-line">
@@ -12,9 +12,9 @@
           class="om-note-link material-icons mdc-list-item__graphic"
           :title="p.Param.Name + ' info'"
           :alt="p.Param.Name + ' info'">description</span>
-        <template v-if="pathRunSet !== '/'">
+        <template v-if="pathNameDigest !== '/'">
           <router-link
-            :to="'/model/' + digest + '/' + pathRunSet + '/parameter/' + p.Param.Name"
+            :to="'/model/' + digest + '/' + runOrSet + '/' + pathNameDigest + '/parameter/' + p.Param.Name"
             class="ahref-next"
             :title="p.Param.Name"
             :alt="p.Param.Name"
@@ -65,29 +65,27 @@ export default {
     }
   },
 
+  watch: {
+    routeKey () {
+      this.$emit('tab-new-route',
+        this.runOrSet === Mdf.RUN_OF_RUNSET ? 'parameter-run-list' : 'parameter-set-list',
+        {digest: this.digest, runOrSet: this.runOrSet, runSetKey: this.nameDigest, ptName: this.paramName})
+    }
+  },
   computed: {
-    pathRunSet () {
-      let rs = this.runOrSet || ''
+    routeKey () {
+      return Mdf.paramRouteKey(this.digest, this.paramName, this.runOrSet, this.nameDigest)
+    },
+    // part of the route path: model run digest or workset name
+    pathNameDigest () {
       let nd = this.nameDigest || ''
-      if (nd === '') {
-        if (rs === Mdf.SET_OF_RUNSET) {
-          nd = this.theWorksetText.Name
-        } else {
-          nd = this.theRunText.Digest
-          if (nd === '') nd = this.theRunText.Name
-          if (rs === '' && nd !== '') rs = Mdf.RUN_OF_RUNSET
-        }
-      }
-      return rs + '/' + nd
+      if (nd === '') nd = this.runOrSet === Mdf.RUN_OF_RUNSET ? this.theSelected.runDigestName : this.theSelected.worksetName
+      return nd
     },
     ...mapGetters({
       theModel: GET.THE_MODEL,
-      theRunText: GET.THE_RUN_TEXT,
-      theWorksetText: GET.THE_WORKSET_TEXT
+      theSelected: GET.THE_SELECTED
     })
-  },
-
-  watch: {
   },
 
   methods: {
@@ -107,7 +105,9 @@ export default {
   },
 
   mounted () {
-    this.$emit('tab-mounted', 'parameter-list', '')
+    this.$emit('tab-mounted',
+      this.runOrSet === Mdf.RUN_OF_RUNSET ? 'parameter-run-list' : 'parameter-set-list',
+      {digest: this.digest, runOrSet: this.runOrSet, runSetKey: this.nameDigest})
   }
 }
 </script>

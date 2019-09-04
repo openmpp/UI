@@ -39,6 +39,5 @@ export const noteOfTxt = (tdn) => {
 export const isNoteOfTxt = (tdn) => {
   if (!tdn) return false
   if (!tdn.hasOwnProperty('Txt')) return false
-  if (!Hlpr.hasLength(tdn.Txt)) return false
   return Hlpr.isLength(tdn.Txt) ? (tdn.Txt[0].Note || '') !== '' : false
 }

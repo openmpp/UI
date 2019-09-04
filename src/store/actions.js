@@ -9,17 +9,17 @@ const DISPATCH = {
   THE_MODEL: 'dispatchModel',
   EMPTY_MODEL: 'dispatchEmptyModel',
   EMPTY_MODEL_LIST: 'dispatchEmptyModelList',
-  THE_RUN_TEXT: 'dispatchRunText',
-  THE_RUN_TEXT_BY_IDX: 'dispatchRunTextByIdx',
+  RUN_TEXT: 'dispatchRunText',
   RUN_TEXT_LIST: 'dispatchRunTextList',
   EMPTY_RUN_TEXT_LIST: 'dispatchEmptyRunTextList',
-  THE_WORKSET_TEXT: 'dispatchWorksetText',
-  THE_WORKSET_TEXT_BY_IDX: 'dispatchWorksetTextByIdx',
-  THE_WORKSET_STATUS: 'dispatchWorksetStatus',
+  WORKSET_TEXT: 'dispatchWorksetText',
+  WORKSET_STATUS: 'dispatchWorksetStatus',
   WORKSET_TEXT_LIST: 'dispatchWorksetTextList',
   EMPTY_WORKSET_TEXT_LIST: 'dispatchEmptyWorksetTextList',
+  THE_SELECTED: 'dispatchTheSelected',
   PARAM_VIEW: 'paramView',
-  PARAM_VIEW_DELETE: 'paramViewDelete'
+  PARAM_VIEW_DELETE: 'paramViewDelete',
+  PARAM_VIEW_DELETE_BY_PREFIX: 'paramViewDeleteByPrefix'
 }
 
 // actions: combine multiple mutations or async updates
@@ -40,9 +40,8 @@ const actions = {
     commit(COMMIT.THE_MODEL, md)
     commit(COMMIT.WORD_LIST_ON_NEW, digest)
     commit(COMMIT.RUN_TEXT_LIST_ON_NEW, digest)
-    commit(COMMIT.THE_RUN_TEXT_ON_NEW, digest)
     commit(COMMIT.WORKSET_TEXT_LIST_ON_NEW, digest)
-    commit(COMMIT.THE_WORKSET_TEXT_ON_NEW, digest)
+    commit(COMMIT.THE_SELECTED_ON_NEW, digest)
   },
 
   // clear the model: set current model to empty value
@@ -61,20 +60,14 @@ const actions = {
     dispatch(DISPATCH.MODEL_LIST, [])
   },
 
-  // set current run
-  [DISPATCH.THE_RUN_TEXT] ({ commit }, rt) {
-    commit(COMMIT.THE_RUN_TEXT, rt)
-  },
-
-  // set current run by index in run list or empty if index out of range
-  [DISPATCH.THE_RUN_TEXT_BY_IDX] ({ commit }, idx) {
-    commit(COMMIT.THE_RUN_TEXT_BY_IDX, idx)
+  // update run text
+  [DISPATCH.RUN_TEXT] ({ commit }, rt) {
+    commit(COMMIT.RUN_TEXT, rt)
   },
 
   // set new value to run list
   [DISPATCH.RUN_TEXT_LIST] ({ commit, dispatch }, rl) {
     commit(COMMIT.RUN_TEXT_LIST, rl)
-    dispatch(DISPATCH.THE_RUN_TEXT_BY_IDX, 0)
   },
 
   // clear run list: set to empty value
@@ -82,29 +75,30 @@ const actions = {
     dispatch(DISPATCH.RUN_TEXT_LIST, [])
   },
 
-  // set current workset
-  [DISPATCH.THE_WORKSET_TEXT] ({ commit }, wt) {
-    commit(COMMIT.THE_WORKSET_TEXT, wt)
-  },
-
-  // set current workset by index in workset list or empty if index out of range
-  [DISPATCH.THE_WORKSET_TEXT_BY_IDX] ({ commit }, idx) {
-    commit(COMMIT.THE_WORKSET_TEXT_BY_IDX, idx)
+  // update workset text
+  [DISPATCH.WORKSET_TEXT] ({ commit }, wt) {
+    commit(COMMIT.WORKSET_TEXT, wt)
   },
 
   // set current workset status: set readonly status and update date-time
-  [DISPATCH.THE_WORKSET_STATUS] ({ commit }, ws) {
-    commit(COMMIT.THE_WORKSET_STATUS, ws)
+  [DISPATCH.WORKSET_STATUS] ({ commit }, ws) {
+    commit(COMMIT.WORKSET_STATUS, ws)
   },
 
   [DISPATCH.WORKSET_TEXT_LIST] ({ commit, dispatch }, wl) {
     commit(COMMIT.WORKSET_TEXT_LIST, wl)
-    dispatch(DISPATCH.THE_WORKSET_TEXT_BY_IDX, 0)
   },
 
   // clear workset list: set to empty value
   [DISPATCH.EMPTY_WORKSET_TEXT_LIST] ({ dispatch }) {
     dispatch(DISPATCH.WORKSET_TEXT_LIST, [])
+  },
+
+  // update or clear current selection of model run or workset
+  // payload must have sel.ModelDigest property
+  // if sel.ModelDiges empty '' string then clear current selection
+  [DISPATCH.THE_SELECTED] ({ commit }, sel) {
+    commit(COMMIT.THE_SELECTED, sel)
   },
 
   // insert or update parameter view by route key
@@ -115,6 +109,11 @@ const actions = {
   // delete parameter view by route key, if exist
   [DISPATCH.PARAM_VIEW_DELETE] ({ commit }, key) {
     commit(COMMIT.PARAM_VIEW_DELETE, key)
+  },
+
+  // delete parameter view by model prefix, if prefix '' empty then delete all
+  [DISPATCH.PARAM_VIEW_DELETE_BY_PREFIX] ({ commit }, prefix) {
+    commit(COMMIT.PARAM_VIEW_DELETE_BY_PREFIX, prefix)
   }
 }
 

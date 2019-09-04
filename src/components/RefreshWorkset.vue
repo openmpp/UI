@@ -49,8 +49,9 @@ export default {
       this.loadWait = true
       this.msgLoad = 'Loading workset...'
       this.$emit('wait')
+      const name = (this.worksetName || '')
 
-      let u = this.omppServerUrl + '/api/model/' + (this.modelDigest || '') + '/workset/' + (this.worksetName || '') + '/text' + (this.uiLang !== '' ? '/lang/' + this.uiLang : '')
+      let u = this.omppServerUrl + '/api/model/' + (this.modelDigest || '') + '/workset/' + name + '/text' + (this.uiLang !== '' ? '/lang/' + this.uiLang : '')
       try {
         const response = await axios.get(u)
         this.dispatchWorksetText(response.data) // update workset text in store
@@ -64,11 +65,11 @@ export default {
         console.log('Server offline or no model input set not found.', em)
       }
       this.loadWait = false
-      this.$emit('done', this.loadDone)
+      this.$emit('done', this.loadDone, name)
     },
 
     ...mapActions({
-      dispatchWorksetText: DISPATCH.THE_WORKSET_TEXT
+      dispatchWorksetText: DISPATCH.WORKSET_TEXT
     })
   },
 

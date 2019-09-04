@@ -49,8 +49,9 @@ export default {
       this.loadWait = true
       this.msgLoad = 'Loading model run...'
       this.$emit('wait')
+      const dgst = (this.runDigest || '')
 
-      let u = this.omppServerUrl + '/api/model/' + (this.modelDigest || '') + '/run/' + (this.runDigest || '') + '/text' + (this.uiLang !== '' ? '/lang/' + this.uiLang : '')
+      let u = this.omppServerUrl + '/api/model/' + (this.modelDigest || '') + '/run/' + dgst + '/text' + (this.uiLang !== '' ? '/lang/' + this.uiLang : '')
       try {
         const response = await axios.get(u)
         this.dispatchRunText(response.data) // update run text in store
@@ -64,11 +65,11 @@ export default {
         console.log('Server offline or model run not found.', em)
       }
       this.loadWait = false
-      this.$emit('done', this.loadDone)
+      this.$emit('done', this.loadDone, dgst)
     },
 
     ...mapActions({
-      dispatchRunText: DISPATCH.THE_RUN_TEXT
+      dispatchRunText: DISPATCH.RUN_TEXT
     })
   },
 

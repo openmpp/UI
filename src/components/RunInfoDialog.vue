@@ -109,7 +109,7 @@ export default {
   /* note dialog */
   .note-table {
     display: table;
-    margin-top: .5rem;
+    margin-top: 0.5rem;
   }
   .note-row {
     display: table-row;
@@ -118,7 +118,7 @@ export default {
     display: table-cell;
     white-space: nowrap;
     &:first-child {
-      padding-right: .5rem;
+      padding-right: 0.5rem;
     }
   }
 </style>
