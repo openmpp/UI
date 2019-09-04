@@ -1,8 +1,7 @@
 import axios from 'axios'
 import draggable from 'vuedraggable'
 import multiSelect from 'vue-multi-select'
-// import 'vue-multi-select/dist/lib/vue-multi-select.css'
-import 'vue-multi-select/dist/lib/vue-multi-select.min.css' // 3.15.0
+import 'vue-multi-select/dist/lib/vue-multi-select.css'
 
 import { mapGetters, mapActions } from 'vuex'
 import { GET, DISPATCH } from '@/store'
