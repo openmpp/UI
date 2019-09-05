@@ -103,9 +103,19 @@
           :title="t.title"
           :class="{ 'tab-link-updated': t.updated }"
           class="tab-link">
-            <span v-if="t.runOrSet === 'run'" class="tab-icon material-icons">directions_run</span>
-            <span v-if="t.runOrSet === 'set' && !t.updated" class="tab-icon material-icons">mode_edit</span>
-            <span v-if="t.runOrSet === 'set' && t.updated" class="tab-icon material-icons">save</span>
+            <template v-if="t.kind === 'run-list' || t.kind === 'workset-list'">
+                <span class="tab-icon material-icons">folder</span>
+            </template>
+            <template v-else>
+              <span v-if="t.kind === 'table-list' || t.kind === 'table'" class="tab-icon material-icons">grid_on</span>
+              <span v-if="t.kind === 'parameter-run-list'" class="tab-icon material-icons">input</span>
+              <span v-if="t.kind === 'parameter-set-list'" class="tab-icon material-icons">mode_edit</span>
+              <template v-if="t.kind === 'parameter'">
+                <span v-if="t.runOrSet === 'run'" class="tab-icon material-icons">input</span>
+                <span v-if="t.runOrSet === 'set' && !t.updated" class="tab-icon material-icons">mode_edit</span>
+                <span v-if="t.runOrSet === 'set' && t.updated" class="tab-icon material-icons">save</span>
+              </template>
+            </template>
             <span>{{t.title}}</span>
           </router-link>
         <button
@@ -113,7 +123,7 @@
           @click="onTabClose(t.key)"
           class="mdc-button mdc-button-dense tab-close-button"
           :alt="'Close ' + t.title"
-          :title="'Close ' + t.title"><i class="tab-icon material-icons mdc-button__icon">close</i>
+          :title="'Close ' + t.title"><i class="tab-close-icon material-icons mdc-button__icon">close</i>
         </button>
 
     </div>
@@ -313,8 +323,13 @@
     padding: 0 0 0 0.5rem;
     min-width: 1rem;
   }
+  .tab-close-icon {
+    @extend .mdc-theme--on-primary;
+  }
   .tab-icon {
-    vertical-align: middle;
+    vertical-align: text-bottom;
+    padding-left: 0.125rem;
+    font-size: 1.25rem;
     @extend .mdc-theme--on-primary;
   }
 

@@ -107,7 +107,7 @@
           :class="{'disable-item': !isModel}" class="mdc-list-item"
           alt="Model parameters"
           role="menuitem">
-          <i :class="{'disable-icon': !isModel}" class="menu-start mdc-list-item__graphic material-icons" aria-hidden="true">directions_run</i>
+          <i :class="{'disable-icon': !isModel}" class="menu-start mdc-list-item__graphic material-icons" aria-hidden="true">input</i>
           <span class="mdc-list-item__text">Parameters</span>
           <span v-if="isModel" class="menu-count mdc-list-item__meta">{{paramCount}}</span>
         </router-link>
@@ -117,7 +117,7 @@
           :class="{'disable-item': !isModel}" class="mdc-list-item"
           alt="Output tables"
           role="menuitem">
-          <i :class="{'disable-icon': !isModel}" class="menu-start mdc-list-item__graphic material-icons" aria-hidden="true">directions_run</i>
+          <i :class="{'disable-icon': !isModel}" class="menu-start mdc-list-item__graphic material-icons" aria-hidden="true">grid_on</i>
           <span class="mdc-list-item__text">Output tables</span>
           <span v-if="isModel" class="menu-count mdc-list-item__meta">{{outTableCount}}</span>
         </router-link>
