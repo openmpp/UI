@@ -147,7 +147,7 @@
                 type="checkbox"
                 ref="input-cell"
                 v-model.lazy="pvEdit.cellValue"
-                @keydown.enter.stop="onCellInputConfirm"
+                @keydown.enter.stop="onCellInputEnter(nRow, nCol)"
                 @blur="onCellInputBlur"
                 @keydown.esc="onCellInputEscape"
                 tabindex="0"
@@ -159,7 +159,7 @@
               <select
                 ref="input-cell"
                 v-model.lazy="pvEdit.cellValue"
-                @keydown.enter.stop="onCellInputConfirm"
+                @keydown.enter.stop="onCellInputEnter(nRow, nCol)"
                 @blur="onCellInputBlur"
                 @keydown.esc="onCellInputEscape"
                 tabindex="0"
@@ -168,13 +168,13 @@
               </select>
             </template>
 
-              <!-- default editor for float, integer or string value -->
+            <!-- default editor for float, integer or string value -->
             <template v-else>
               <input
                 type="text"
                 ref="input-cell"
                 v-model="pvEdit.cellValue"
-                @keydown.enter.stop="onCellInputConfirm"
+                @keydown.enter.stop="onCellInputEnter(nRow, nCol)"
                 @dblclick.stop="onCellInputConfirm"
                 @blur="onCellInputBlur"
                 @keydown.esc="onCellInputEscape"

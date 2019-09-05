@@ -168,28 +168,28 @@ export default {
       this.renderKeys[key] = [key, ++this.keyRenderCount].join('-')
     },
     // return formatted cell value
-    getCellValueFmt(key) {
+    getCellValueFmt (key) {
       return this.pvControl.formatter.format(this.pvt.cells[key])
     },
 
     // start of editor methods
     //
     // return updated cell value or default if value not updated
-    getUpdatedSrc(key) {
+    getUpdatedSrc (key) {
       return this.pvEdit.isUpdated && this.pvEdit.updated.hasOwnProperty(key) ? this.pvEdit.updated[key] : this.pvt.cells[key]
     },
-    getUpdatedFmt(key) {
+    getUpdatedFmt (key) {
       return this.pvEdit.isUpdated && this.pvEdit.updated.hasOwnProperty(key) ? 
         this.pvControl.formatter.format(this.pvEdit.updated[key]) :
         this.pvControl.formatter.format(this.pvt.cells[key])
     },
-    getUpdatedToDisplay(key) {
+    getUpdatedToDisplay (key) {
       let v = this.getUpdatedFmt(key)
       return (v !== void 0 && v !== '') ? v : '\u00a0' // value or &nbsp;
     },
 
     // start cell edit: enter into input control
-    onKeyEnter(e) {
+    onKeyEnter (e) {
       let rc = this.rowColAttrs(e)
       if (rc) this.cellInputStart(rc.cRow, rc.cCol) // if this is table body cell then start input
     },
@@ -219,6 +219,33 @@ export default {
       this.pvEdit.cellValue = ''
     },
 
+    // confirm input edit by Enter: finish cell edit, move to next cell and start next cell edit
+    onCellInputEnter (nRow, nCol) {
+      const ckey = this.pvEdit.cellKey
+      const isOk = this.cellInputConfirm(this.pvEdit.cellValue, ckey)
+      this.pvEdit.cellKey = ''
+      this.pvEdit.cellValue = ''
+      this.$emit('pv-edit')
+      // if invalid input or end of the table then stop edit and keep focus at the same cell
+      if (!isOk || ((nRow || 0) >= this.pvt.rowCount - 1 && (nCol || 0) >= this.pvt.colCount - 1)) {
+        this.$nextTick(() => { this.focusNextTick(ckey) })
+        return
+      }
+      // else: move to next cell right and down
+      let nr = nRow || 0
+      let nc = nCol || 0
+      if (nc < this.pvt.colCount - 1) {
+        nc++
+      } else {
+        nr++
+        nc = 0
+      }
+      // move focus to next cell (next right, next down) and start edit
+      this.$nextTick(() => {
+        this.focusToRowCol(nr, nc)
+        this.$nextTick(() => { this.cellInputStart(nr, nc) })
+      })
+    },
     // confirm input edit: finish cell edit and keep focus at the same cell
     onCellInputConfirm () {
       const ckey = this.pvEdit.cellKey
@@ -311,15 +338,15 @@ export default {
     },
 
     // arrows navigation
-    onLeftArrow(e) {
+    onLeftArrow (e) {
       let rc = this.rowColAttrs(e)
       if (rc && rc.cCol > 0) this.focusToRowCol(rc.cRow, rc.cCol - 1) // move focus left if this is table body cell
     },
-    onRightArrow(e) {
+    onRightArrow (e) {
       let rc = this.rowColAttrs(e)
       if (rc && rc.cCol  < this.pvt.colCount - 1) this.focusToRowCol(rc.cRow, rc.cCol + 1) // move focus right if this is table body cell
     },
-    onDownArrow(e) {
+    onDownArrow (e) {
       let rc = this.rowColAttrs(e)
       if (rc && rc.cRow < this.pvt.rowCount - 1) this.focusToRowCol(rc.cRow + 1, rc.cCol) // move focus down if this is table body cell
     },
