@@ -97,15 +97,17 @@
       :class="{'tab-item-active': t.active, 'tab-item-inactive': !t.active}"
       class="tab-item">
 
-        <span v-if="t.runOrSet === 'run'" class="tab-icon material-icons">directions_run</span>
-        <span v-if="t.runOrSet === 'set' && !t.updated" class="tab-icon material-icons">mode_edit</span>
-        <span v-if="t.runOrSet === 'set' && t.updated" class="tab-icon material-icons">save</span>
         <router-link
           :to="t.path"
           :alt="t.title"
           :title="t.title"
           :class="{ 'tab-link-updated': t.updated }"
-          class="tab-link">{{t.title}}</router-link>
+          class="tab-link">
+            <span v-if="t.runOrSet === 'run'" class="tab-icon material-icons">directions_run</span>
+            <span v-if="t.runOrSet === 'set' && !t.updated" class="tab-icon material-icons">mode_edit</span>
+            <span v-if="t.runOrSet === 'set' && t.updated" class="tab-icon material-icons">save</span>
+            <span>{{t.title}}</span>
+          </router-link>
         <button
           v-if="!t.updated"
           @click="onTabClose(t.key)"
@@ -312,6 +314,7 @@
     min-width: 1rem;
   }
   .tab-icon {
+    vertical-align: middle;
     @extend .mdc-theme--on-primary;
   }
 
