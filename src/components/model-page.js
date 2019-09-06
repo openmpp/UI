@@ -91,6 +91,11 @@ export default {
     },
     isSuccessTheRun () { return Mdf.isRunSuccess(this.runSelected) },
 
+    runTextCount () { return Mdf.runTextCount(this.runTextList) },
+    worksetTextCount () { return Mdf.worksetTextCount(this.worksetTextList) },
+    modelParamCount () { return Mdf.paramCount(this.theModel) },
+    modelTableCount () { return Mdf.outTableCount(this.theModel) },
+
     // if true then selected workset edit mode else readonly and model run enabled
     isWsEdit () {
       return Mdf.isNotEmptyWorksetText(this.wsSelected) && !this.wsSelected.IsReadonly
@@ -388,7 +393,7 @@ export default {
             key: Mdf.runListRouteKey(this.digest),
             path: '/model/' + this.digest + '/run-list',
             runOrSet: Mdf.RUN_OF_RUNSET,
-            title: 'Model runs: ' + Mdf.runTextCount(this.runTextList),
+            title: 'Model runs',
             pos: RUN_LST_TAB_POS
           }
         case 'workset-list':
@@ -396,7 +401,7 @@ export default {
             key: Mdf.worksetListRouteKey(this.digest),
             path: '/model/' + this.digest + '/workset-list',
             runOrSet: Mdf.SET_OF_RUNSET,
-            title: 'Input sets: ' + Mdf.worksetTextCount(this.worksetTextList),
+            title: 'Input sets',
             pos: WS_LST_TAB_POS
           }
         case 'parameter-run-list':
@@ -404,7 +409,7 @@ export default {
             key: Mdf.paramRunListRouteKey(this.digest),
             path: '/model/' + this.digest + '/run/' + (rp.runSetKey || '') + '/parameter-list',
             runOrSet: Mdf.RUN_OF_RUNSET,
-            title: 'Parameters: ' + Mdf.paramCount(this.theModel),
+            title: 'Parameters',
             pos: PARAM_RUN_LST_TAB_POS
           }
         case 'parameter-set-list':
@@ -412,7 +417,7 @@ export default {
             key: Mdf.paramSetListRouteKey(this.digest),
             path: '/model/' + this.digest + '/set/' + (rp.runSetKey || '') + '/parameter-list',
             runOrSet: Mdf.SET_OF_RUNSET,
-            title: 'Parameters: ' + Mdf.paramCount(this.theModel),
+            title: 'Parameters',
             pos: PARAM_SET_LST_TAB_POS
           }
         case 'table-list':
@@ -420,7 +425,7 @@ export default {
             key: Mdf.tableListRouteKey(this.digest),
             path: '/model/' + this.digest + '/run/' + (rp.runSetKey || '') + '/table-list',
             runOrSet: Mdf.RUN_OF_RUNSET,
-            title: 'Output tables: ' + Mdf.outTableCount(this.theModel),
+            title: 'Output tables',
             pos: TABLE_LST_TAB_POS
           }
         case 'parameter':
@@ -532,9 +537,10 @@ export default {
         }
         if (this.newRunLogStart < rlp.Offset) this.newRunLogStart = rlp.Offset + 1
       } else {
+        // run completed: refresh run list
         this.loadRunListDone = false
-        this.refreshRunListTickle = !this.refreshRunListTickle  // refersh run list and current run
-        this.refreshRunTickle = !this.refreshRunTickle          // refersh run list and current run
+        this.refreshRunListTickle = !this.refreshRunListTickle  // refersh run list
+        // this.refreshRunTickle = !this.refreshRunTickle       // refersh current run
         this.newRunStep = FINAL_RUN_STEP
       }
     },

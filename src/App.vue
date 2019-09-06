@@ -109,7 +109,7 @@
           role="menuitem">
           <i :class="{'disable-icon': !isModel}" class="menu-start mdc-list-item__graphic material-icons" aria-hidden="true">input</i>
           <span class="mdc-list-item__text">Parameters</span>
-          <span v-if="isModel" class="menu-count mdc-list-item__meta">{{paramCount}}</span>
+          <span v-if="isModel" class="menu-count mdc-list-item__meta">{{modelParamCount}}</span>
         </router-link>
 
         <router-link
@@ -119,7 +119,7 @@
           role="menuitem">
           <i :class="{'disable-icon': !isModel}" class="menu-start mdc-list-item__graphic material-icons" aria-hidden="true">grid_on</i>
           <span class="mdc-list-item__text">Output tables</span>
-          <span v-if="isModel" class="menu-count mdc-list-item__meta">{{outTableCount}}</span>
+          <span v-if="isModel" class="menu-count mdc-list-item__meta">{{modelTableCount}}</span>
         </router-link>
         <hr class="mdc-list-divider menu-divider-inset" role="separator" />
 
@@ -140,7 +140,7 @@
           role="menuitem">
           <i :class="{'disable-icon': !isModel}" class="menu-start mdc-list-item__graphic material-icons" aria-hidden="true">mode_edit</i>
           <span class="mdc-list-item__text">Edit parameters</span>
-          <span v-if="isModel" class="menu-count mdc-list-item__meta">{{paramCount}}</span>
+          <span v-if="isModel" class="menu-count mdc-list-item__meta">{{modelParamCount}}</span>
         </router-link>
         <hr class="mdc-list-divider menu-divider-inset" role="separator" />
 
@@ -223,8 +223,8 @@ export default {
     modelDigest () { return Mdf.modelDigest(this.theModel) },
     isModelNote () { return Mdf.isNoteOfDescrNote(this.theModel) },
     modelCount () { return this.modelListCount },
-    paramCount () { return Mdf.paramCount(this.theModel) },
-    outTableCount () { return Mdf.outTableCount(this.theModel) },
+    modelParamCount () { return Mdf.paramCount(this.theModel) },
+    modelTableCount () { return Mdf.outTableCount(this.theModel) },
     runTextCount () { return Mdf.runTextCount(this.runTextList) },
     worksetTextCount () { return Mdf.worksetTextCount(this.worksetTextList) },
 

@@ -1,6 +1,167 @@
 <template>
 <div id="model-page" class="main-container mdc-typography">
 
+  <!-- tabs line: links to sub-pages -->
+  <nav class="tab-container medium-wt">
+    <div
+      v-for="t in tabLst" :key="t.key"
+      :class="{'tab-item-active': t.active, 'tab-item-inactive': !t.active}"
+      class="tab-item">
+
+        <router-link
+          :to="t.path"
+          :alt="t.title"
+          :title="t.title"
+          :class="{ 'tab-link-updated': t.updated }"
+          class="tab-link">
+            <template v-if="t.kind === 'run-list' || t.kind === 'workset-list'">
+              <span class="tab-icon material-icons">folder</span>
+            </template>
+            <template v-else>
+              <span v-if="t.kind === 'table-list' || t.kind === 'table'" class="tab-icon material-icons">grid_on</span>
+              <span v-if="t.kind === 'parameter-run-list'" class="tab-icon material-icons">input</span>
+              <span v-if="t.kind === 'parameter-set-list'" class="tab-icon material-icons">mode_edit</span>
+              <template v-if="t.kind === 'parameter'">
+                <span v-if="t.runOrSet === 'run'" class="tab-icon material-icons">input</span>
+                <span v-if="t.runOrSet === 'set' && !t.updated" class="tab-icon material-icons">mode_edit</span>
+                <span v-if="t.runOrSet === 'set' && t.updated" class="tab-icon material-icons">save</span>
+              </template>
+            </template>
+            <span>{{t.title}}</span>
+            <span v-if="t.kind === 'run-list'">: {{runTextCount}}</span>
+            <span v-if="t.kind === 'workset-list'">: {{worksetTextCount}}</span>
+            <span v-if="t.kind === 'parameter-run-list' || t.kind === 'parameter-set-list'">: {{modelParamCount}}</span>
+            <span v-if="t.kind === 'table-list'">: {{modelTableCount}}</span>
+          </router-link>
+        <button
+          v-if="!t.updated"
+          @click="onTabClose(t.key)"
+          class="mdc-button mdc-button-dense tab-close-button"
+          :alt="'Close ' + t.title"
+          :title="'Close ' + t.title"><i class="tab-close-icon material-icons mdc-button__icon">close</i>
+        </button>
+
+    </div>
+  </nav>
+  <!-- end of tabs line -->
+
+  <!-- header line -->
+  <div
+    :class="{ 'run-set-hdr-hint': isRunSetHint }"
+    class="run-set-hdr-row mdc-typography--body1">
+
+    <span v-if="loadDone">
+
+      <span v-if="isRunSelected"
+        @click="showRunInfoDlg()"
+        class="cell-icon-link material-icons"
+        alt="Description and notes" title="Description and notes">
+          <span v-if="isSuccessTheRun">description</span>
+          <span v-else>error_outline</span>
+      </span>
+      <!-- not isRunSelected -->
+      <span v-else>
+
+        <span
+          @click="showWsInfoDlg()"
+          class="cell-icon-link material-icons"
+          alt="Description and notes" title="Description and notes">description</span>
+
+        <span v-if="!isWsEdit">
+          <span v-if="!isRunPanel"
+            @click="showRunPanel()"
+            class="cell-icon-link material-icons"
+            alt="Run the model" title="Run the model">directions_run</span>
+          <span v-else
+            class="cell-icon-empty material-icons"
+            alt="Run the model" title="Run the model">directions_run</span>
+          <span
+            @click="onWsEditToggle()"
+            class="cell-icon-link material-icons"
+            alt="Edit input set of parameters" title="Edit input set of parameters">mode_edit</span>
+        </span>
+        <!-- isWsEdit -->
+        <span v-else>
+          <span
+            class="cell-icon-empty material-icons"
+            alt="Run the model" title="Run the model">directions_run</span>
+          <span
+            @click="onWsEditToggle()"
+            class="cell-icon-link material-icons"
+            alt="Save input set of parameters" title="Save input set of parameters">save</span>
+        </span>
+
+      </span>
+
+      <span class="hdr-text">
+        <span v-if="isNotEmptyHdr">
+          <span v-if="isRunSelected && !isSuccessTheRun" class="cell-status medium-wt">{{statusOfTheRun}}</span>
+          <span v-if="isRunSelected" class="mono">{{lastTimeOfHdr}}&nbsp;</span>
+          <span class="medium-wt">{{nameOfHdr}}</span>
+          <span>{{ descrOfHdr }}</span>
+        </span>
+        <span v-else>
+          <span class="medium-wt">{{emptyHdrMsg}}</span>
+        </span>
+      </span>
+
+    </span>
+    <!-- !loadDone -->
+    <span v-else
+      class="cell-icon-empty material-icons"
+      title="Information not available" alt="Information not available" aria-hidden="true">description</span>
+
+    <span class="hdr-text medium-wt">
+      <refresh-model
+        :digest="digest"
+        :refresh-tickle="refreshTickle"
+        @done="doneModelLoad"
+        @wait="()=>{}">
+      </refresh-model>
+      <refresh-run v-if="(runSelected.Digest || '') !== ''"
+        :model-digest="digest"
+        :run-digest="runSelected.Digest"
+        :refresh-tickle="refreshTickle"
+        :refresh-run-tickle="refreshRunTickle"
+        @done="doneRunLoad"
+        @wait="()=>{}">
+      </refresh-run>
+      <refresh-run-list
+        :digest="digest"
+        :refresh-tickle="refreshTickle"
+        :refresh-run-list-tickle="refreshRunListTickle"
+        @done="doneRunListLoad"
+        @wait="()=>{}">
+      </refresh-run-list>
+      <refresh-workset v-if="(wsSelected.Name || '') !== ''"
+        :model-digest="digest"
+        :workset-name="wsSelected.Name"
+        :refresh-tickle="refreshTickle"
+        :refresh-ws-tickle="refreshWsTickle"
+        @done="doneWsLoad"
+        @wait="()=>{}">
+      </refresh-workset>
+      <refresh-workset-list
+        :digest="digest"
+        :refresh-tickle="refreshTickle"
+        :refresh-ws-list-tickle="refreshWsListTickle"
+        @done="doneWsListLoad"
+        @wait="()=>{}">
+      </refresh-workset-list>
+      <update-workset-status v-if="(wsSelected.Name || '') !== ''"
+        :model-digest="digest"
+        :workset-name="wsSelected.Name"
+        :enable-edit="!isWsEdit"
+        :save-ws-status-tickle="saveWsStatusTickle"
+        @done="doneWsStatusUpdate"
+        @wait="()=>{}">
+      </update-workset-status>
+    </span>
+
+  </div>
+  <!-- end of header line -->
+
+  <!-- model run panel: current model run -->
   <template v-if="isRunPanel">
 
     <div v-if="isEmptyRunStep" class="panel-frame mdc-typography--body1">
@@ -89,161 +250,7 @@
     </div>
 
   </template>
-  <!-- end of isRunPanel -->
-
-  <nav class="tab-container medium-wt">
-    <div
-      v-for="t in tabLst" :key="t.key"
-      :class="{'tab-item-active': t.active, 'tab-item-inactive': !t.active}"
-      class="tab-item">
-
-        <router-link
-          :to="t.path"
-          :alt="t.title"
-          :title="t.title"
-          :class="{ 'tab-link-updated': t.updated }"
-          class="tab-link">
-            <template v-if="t.kind === 'run-list' || t.kind === 'workset-list'">
-                <span class="tab-icon material-icons">folder</span>
-            </template>
-            <template v-else>
-              <span v-if="t.kind === 'table-list' || t.kind === 'table'" class="tab-icon material-icons">grid_on</span>
-              <span v-if="t.kind === 'parameter-run-list'" class="tab-icon material-icons">input</span>
-              <span v-if="t.kind === 'parameter-set-list'" class="tab-icon material-icons">mode_edit</span>
-              <template v-if="t.kind === 'parameter'">
-                <span v-if="t.runOrSet === 'run'" class="tab-icon material-icons">input</span>
-                <span v-if="t.runOrSet === 'set' && !t.updated" class="tab-icon material-icons">mode_edit</span>
-                <span v-if="t.runOrSet === 'set' && t.updated" class="tab-icon material-icons">save</span>
-              </template>
-            </template>
-            <span>{{t.title}}</span>
-          </router-link>
-        <button
-          v-if="!t.updated"
-          @click="onTabClose(t.key)"
-          class="mdc-button mdc-button-dense tab-close-button"
-          :alt="'Close ' + t.title"
-          :title="'Close ' + t.title"><i class="tab-close-icon material-icons mdc-button__icon">close</i>
-        </button>
-
-    </div>
-  </nav>
-
-  <!-- header line -->
-  <div
-    :class="{ 'run-set-hdr-hint': isRunSetHint }"
-    class="run-set-hdr-row mdc-typography--body1">
-
-    <span v-if="loadDone">
-
-      <span v-if="isRunSelected"
-        @click="showRunInfoDlg()"
-        class="cell-icon-link material-icons"
-        alt="Description and notes" title="Description and notes">
-          <span v-if="isSuccessTheRun">description</span>
-          <span v-else>error_outline</span>
-      </span>
-      <!-- not isRunSelected -->
-      <span v-else>
-
-        <span
-          @click="showWsInfoDlg()"
-          class="cell-icon-link material-icons"
-          alt="Description and notes" title="Description and notes">description</span>
-
-        <span v-if="!isWsEdit">
-          <span
-            @click="onWsEditToggle()"
-            class="cell-icon-link material-icons"
-            alt="Edit input set of parameters" title="Edit input set of parameters">mode_edit</span>
-          <span v-if="!isRunPanel"
-            @click="showRunPanel()"
-            class="cell-icon-link material-icons"
-            alt="Run the model" title="Run the model">directions_run</span>
-          <span v-else
-            class="cell-icon-empty material-icons"
-            alt="Run the model" title="Run the model">directions_run</span>
-        </span>
-        <!-- isWsEdit -->
-        <span v-else>
-          <span
-            @click="onWsEditToggle()"
-            class="cell-icon-link material-icons"
-            alt="Save input set of parameters" title="Save input set of parameters">save</span>
-          <span
-            class="cell-icon-empty material-icons"
-            alt="Run the model" title="Run the model">directions_run</span>
-        </span>
-
-      </span>
-
-      <span class="hdr-text">
-        <span v-if="isNotEmptyHdr">
-          <span v-if="isRunSelected && !isSuccessTheRun" class="cell-status medium-wt">{{statusOfTheRun}}</span>
-          <span v-if="isRunSelected" class="mono">{{lastTimeOfHdr}}&nbsp;</span>
-          <span class="medium-wt">{{nameOfHdr}}</span>
-          <span>{{ descrOfHdr }}</span>
-        </span>
-        <span v-else>
-          <span class="medium-wt">{{emptyHdrMsg}}</span>
-        </span>
-      </span>
-
-    </span>
-    <!-- !loadDone -->
-    <span v-else
-      class="cell-icon-empty material-icons"
-      title="Information not available" alt="Information not available" aria-hidden="true">description</span>
-
-    <span class="hdr-text medium-wt">
-      <refresh-model
-        :digest="digest"
-        :refresh-tickle="refreshTickle"
-        @done="doneModelLoad"
-        @wait="()=>{}">
-      </refresh-model>
-      <refresh-run v-if="(runSelected.Digest || '') !== ''"
-        :model-digest="digest"
-        :run-digest="runSelected.Digest"
-        :refresh-tickle="refreshTickle"
-        :refresh-run-tickle="refreshRunTickle"
-        @done="doneRunLoad"
-        @wait="()=>{}">
-      </refresh-run>
-      <refresh-run-list
-        :digest="digest"
-        :refresh-tickle="refreshTickle"
-        :refresh-run-list-tickle="refreshRunListTickle"
-        @done="doneRunListLoad"
-        @wait="()=>{}">
-      </refresh-run-list>
-      <refresh-workset v-if="(wsSelected.Name || '') !== ''"
-        :model-digest="digest"
-        :workset-name="wsSelected.Name"
-        :refresh-tickle="refreshTickle"
-        :refresh-ws-tickle="refreshWsTickle"
-        @done="doneWsLoad"
-        @wait="()=>{}">
-      </refresh-workset>
-      <refresh-workset-list
-        :digest="digest"
-        :refresh-tickle="refreshTickle"
-        :refresh-ws-list-tickle="refreshWsListTickle"
-        @done="doneWsListLoad"
-        @wait="()=>{}">
-      </refresh-workset-list>
-      <update-workset-status v-if="(wsSelected.Name || '') !== ''"
-        :model-digest="digest"
-        :workset-name="wsSelected.Name"
-        :enable-edit="!isWsEdit"
-        :save-ws-status-tickle="saveWsStatusTickle"
-        @done="doneWsStatusUpdate"
-        @wait="()=>{}">
-      </update-workset-status>
-    </span>
-
-  </div>
-  <!-- end of header line -->
+  <!-- end of model run panel -->
 
   <main class="main-container">
     <router-view
@@ -279,7 +286,8 @@
   /* page and tab container content body */
   .main-container {
     height: 100%;
-    flex: 1 1 auto;
+    flex-grow: 1;
+    flex-shrink: 1;
     display: flex;
     flex-direction: column;
     overflow-y: auto;
@@ -288,6 +296,8 @@
   /* tab bar: tab items with link and close button */
   .tab-container {
     display: flex;
+    flex-grow: 0;
+    flex-shrink: 0;
     flex-direction: row;
     overflow: hidden;
     margin-top: 0.5rem;
@@ -299,6 +309,7 @@
     overflow: hidden;
     align-items: center;
     margin-right: 1px;
+    min-height: 2rem;
     border-top-right-radius: 0.5rem;
   }
   .tab-item-active {
@@ -321,6 +332,7 @@
   .tab-close-button {
     border: 0;
     padding: 0 0 0 0.5rem;
+    max-height: 1.75rem;
     min-width: 1rem;
   }
   .tab-close-icon {
