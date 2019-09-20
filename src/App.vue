@@ -103,21 +103,21 @@
         </router-link>
 
         <router-link
-          :to="'/model/' + modelDigest + '/run/parameter-list'"
-          :class="{'disable-item': !isModel}" class="mdc-list-item"
+          :to="'/model/' + modelDigest + '/run/' + theSelected.runDigestName + '/parameter-list'"
+          :class="{'disable-item': !isRunSelected}" class="mdc-list-item"
           alt="Model parameters"
           role="menuitem">
-          <i :class="{'disable-icon': !isModel}" class="menu-start mdc-list-item__graphic material-icons" aria-hidden="true">input</i>
+          <i :class="{'disable-icon': !isRunSelected}" class="menu-start mdc-list-item__graphic material-icons" aria-hidden="true">input</i>
           <span class="mdc-list-item__text">Parameters</span>
           <span v-if="isModel" class="menu-count mdc-list-item__meta">{{modelParamCount}}</span>
         </router-link>
 
         <router-link
-          :to="'/model/' + modelDigest + '/run/table-list'"
-          :class="{'disable-item': !isModel}" class="mdc-list-item"
+          :to="'/model/' + modelDigest + '/run/'+ theSelected.runDigestName + '/table-list'"
+          :class="{'disable-item': !isRunSelected}" class="mdc-list-item"
           alt="Output tables"
           role="menuitem">
-          <i :class="{'disable-icon': !isModel}" class="menu-start mdc-list-item__graphic material-icons" aria-hidden="true">grid_on</i>
+          <i :class="{'disable-icon': !isRunSelected}" class="menu-start mdc-list-item__graphic material-icons" aria-hidden="true">grid_on</i>
           <span class="mdc-list-item__text">Output Tables</span>
           <span v-if="isModel" class="menu-count mdc-list-item__meta">{{modelTableCount}}</span>
         </router-link>
@@ -134,22 +134,22 @@
         </router-link>
 
         <router-link
-          :to="'/model/' + modelDigest + '/set/parameter-list'"
-          :class="{'disable-item': !isModel}" class="mdc-list-item"
+          :to="'/model/' + modelDigest + '/set/' + theSelected.worksetName + '/parameter-list'"
+          :class="{'disable-item': !isWorksetSelected}" class="mdc-list-item"
           alt="Model parameters"
           role="menuitem">
-          <i :class="{'disable-icon': !isModel}" class="menu-start mdc-list-item__graphic material-icons" aria-hidden="true">mode_edit</i>
+          <i :class="{'disable-icon': !isWorksetSelected}" class="menu-start mdc-list-item__graphic material-icons" aria-hidden="true">mode_edit</i>
           <span class="mdc-list-item__text">Edit Parameters</span>
           <span v-if="isModel" class="menu-count mdc-list-item__meta">{{modelParamCount}}</span>
         </router-link>
         <hr class="mdc-list-divider menu-divider-inset" role="separator" />
 
         <router-link
-          to="/run"
-          :class="{'disable-item': !isModel}" class="mdc-list-item"
+          :to="'/model/' + modelDigest + '/run-model/set/'+ theSelected.worksetName"
+          :class="{'disable-item': !isWorksetSelected}" class="mdc-list-item"
           alt="Run the model"
           role="menuitem">
-          <i :class="{'disable-icon': !isModel}" class="menu-start mdc-list-item__graphic material-icons" aria-hidden="true">directions_run</i>
+          <i :class="{'disable-icon': !isWorksetSelected}" class="menu-start mdc-list-item__graphic material-icons" aria-hidden="true">directions_run</i>
           <span class="mdc-list-item__text">Run the Model</span>
         </router-link>
 
@@ -227,12 +227,15 @@ export default {
     modelTableCount () { return Mdf.outTableCount(this.theModel) },
     runTextCount () { return Mdf.runTextCount(this.runTextList) },
     worksetTextCount () { return Mdf.worksetTextCount(this.worksetTextList) },
+    isRunSelected () { return this.theSelected.ModelDigest && this.theSelected.runDigestName },
+    isWorksetSelected () { return this.theSelected.ModelDigest && this.theSelected.worksetName },
 
     ...mapGetters({
       theModel: GET.THE_MODEL,
       modelListCount: GET.MODEL_LIST_COUNT,
       runTextList: GET.RUN_TEXT_LIST,
-      worksetTextList: GET.WORKSET_TEXT_LIST
+      worksetTextList: GET.WORKSET_TEXT_LIST,
+      theSelected: GET.THE_SELECTED
     })
   },
 

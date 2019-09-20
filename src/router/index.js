@@ -64,25 +64,11 @@ export default new Router({
           props: true
         },
         {
-          path: ':runOrSet/parameter-list',
-          component: ParameterListPage,
-          props: true
-        },
-        {
-          path: 'run/table-list',
-          component: TableListPage,
-          props: true
-        },
-        {
           path: '',
           component: RunListPage,
           props: true
         }
       ]
-    },
-    {
-      path: '/run',
-      component: UnderConstruction
     },
     {
       path: '/service',

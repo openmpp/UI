@@ -13,7 +13,7 @@
           :title="t.Table.Name + ' notes'"
           :alt="t.Table.Name + ' notes'">description</span>
         <router-link
-          :to="'/model/' + digest + '/run/' + pathNameDigest + '/table/' + t.Table.Name"
+          :to="'/model/' + digest + '/run/' + nameDigest + '/table/' + t.Table.Name"
           class="ahref-next"
           :title="t.Table.Name"
           :alt="t.Table.Name"
@@ -55,15 +55,8 @@ export default {
   },
 
   computed: {
-    // part of the route path: model run digest or run name if digest empty
-    pathNameDigest () {
-      let nd = this.nameDigest || ''
-      if (nd === '') nd = this.theSelected.runDigestName
-      return nd
-    },
     ...mapGetters({
-      theModel: GET.THE_MODEL,
-      theSelected: GET.THE_SELECTED
+      theModel: GET.THE_MODEL
     })
   },
 

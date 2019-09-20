@@ -12,9 +12,9 @@
           class="om-note-link material-icons mdc-list-item__graphic"
           :title="p.Param.Name + ' info'"
           :alt="p.Param.Name + ' info'">description</span>
-        <template v-if="pathNameDigest !== '/'">
+        <template v-if="nameDigest !== '/'">
           <router-link
-            :to="'/model/' + digest + '/' + runOrSet + '/' + pathNameDigest + '/parameter/' + p.Param.Name"
+            :to="'/model/' + digest + '/' + runOrSet + '/' + nameDigest + '/parameter/' + p.Param.Name"
             class="ahref-next"
             :title="p.Param.Name"
             :alt="p.Param.Name"
@@ -76,15 +76,8 @@ export default {
     routeKey () {
       return Mdf.paramRouteKey(this.digest, this.paramName, this.runOrSet, this.nameDigest)
     },
-    // part of the route path: model run digest or workset name
-    pathNameDigest () {
-      let nd = this.nameDigest || ''
-      if (nd === '') nd = this.runOrSet === 'run' ? this.theSelected.runDigestName : this.theSelected.worksetName
-      return nd
-    },
     ...mapGetters({
-      theModel: GET.THE_MODEL,
-      theSelected: GET.THE_SELECTED
+      theModel: GET.THE_MODEL
     })
   },
 
