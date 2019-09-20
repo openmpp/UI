@@ -6,6 +6,7 @@ import ParameterListPage from '@/components/ParameterListPage'
 import TableListPage from '@/components/TableListPage'
 import RunListPage from '@/components/RunListPage'
 import WorksetListPage from '@/components/WorksetListPage'
+import RunPage from '@/components/RunPage'
 import ParameterPage from '@/components/ParameterPage'
 import TablePage from '@/components/TablePage'
 import SessionSettings from '@/components/SessionSettingsPage'
@@ -33,8 +34,13 @@ export default new Router({
           props: true
         },
         {
-          path: 'workset-list',
+          path: 'set-list',
           component: WorksetListPage,
+          props: true
+        },
+        {
+          path: 'run-model/set/:nameDigest',
+          component: RunPage,
           props: true
         },
         {
@@ -73,22 +79,6 @@ export default new Router({
           props: true
         }
       ]
-    },
-    {
-      path: '/run-list/:digest',
-      component: UnderConstruction
-    },
-    {
-      path: '/workset-list',
-      component: UnderConstruction
-    },
-    {
-      path: '/parameters',
-      component: UnderConstruction
-    },
-    {
-      path: '/outputs',
-      component: UnderConstruction
     },
     {
       path: '/run',

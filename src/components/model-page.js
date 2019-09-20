@@ -7,26 +7,17 @@ import RefreshRunList from './RefreshRunList'
 import RefreshWorkset from './RefreshWorkset'
 import RefreshWorksetList from './RefreshWorksetList'
 import UpdateWorksetStatus from './UpdateWorksetStatus'
-import NewRunInit from './NewRunInit'
-import NewRunProgress from './NewRunProgress'
 import RunInfoDialog from './RunInfoDialog'
 import WorksetInfoDialog from './WorksetInfoDialog'
 import OmMcwDialog from '@/om-mcw/OmMcwDialog'
-import OmMcwButton from '@/om-mcw/OmMcwButton'
 
 /* eslint-disable no-multi-spaces */
-const EMPTY_RUN_STEP = 0      // empty state of new model: undefined
-const INIT_RUN_STEP = 1       // initiate new model run: submit request to the server
-const PROC_RUN_STEP = 2       // model run in progress
-const FINAL_RUN_STEP = 16     // final state of model run: completed or failed
-const MIN_LOG_PAGE_SIZE = 4   // min run log page size to read from the server
-const MAX_LOG_PAGE_SIZE = 10  // max run log page size to read from the server
-
 const RUN_LST_TAB_POS = 1       // model runs list tab position
 const PARAM_RUN_LST_TAB_POS = 2 // run parameters list tab position
 const TABLE_LST_TAB_POS = 3     // output tables list tab position
 const WS_LST_TAB_POS = 4        // worksets list tab position
 const PARAM_SET_LST_TAB_POS = 5 // workset parameters list tab position
+const RUN_MODEL_TAB_POS = 6     // run model tab position
 const FREE_TAB_POS = 20         // first unassigned tab position
 /* eslint-enable no-multi-spaces */
 
@@ -38,11 +29,8 @@ export default {
     RefreshWorkset,
     RefreshWorksetList,
     UpdateWorksetStatus,
-    NewRunInit,
-    NewRunProgress,
     RunInfoDialog,
     WorksetInfoDialog,
-    OmMcwButton,
     OmMcwDialog
   },
 
@@ -69,18 +57,10 @@ export default {
       runSelected: Mdf.emptyRunText(),    // last selected run
       wsSelected: Mdf.emptyWorksetText(), // last selected workset
       isRunSetHint: false,  // highlight run or workset change
+      isRunModelTab: false, // if true then current tab is run model tab
       tabLst: [],           // tabs properties
       paramEditCount: 0,    // number of edited and unsaved parameters
-      pathToRouteLeave: '', // router component leave guard: path-to leave if user confirm changes discard
-      // model run state
-      isRunPanel: false,          // if true then run panel is visible
-      newRunStep: EMPTY_RUN_STEP, // model run step: initial, start new, view progress
-      newRunName: '',
-      newRunSubCount: 1,
-      newRunState: Mdf.emptyRunState(),
-      newRunLogStart: 0,
-      newRunLogSize: 0,
-      newRunLineLst: []
+      pathToRouteLeave: ''  // router component leave guard: path-to leave if user confirm changes discard
     }
   },
   /* eslint-enable no-multi-spaces */
@@ -100,16 +80,6 @@ export default {
     isWsEdit () {
       return Mdf.isNotEmptyWorksetText(this.wsSelected) && !this.wsSelected.IsReadonly
     },
-    // make new model run name
-    autoNewRunName () {
-      return (this.modelName || '') + '_' + (this.wsSelected.Name || '')
-    },
-
-    // model new run step: empty, initialize, in progress, final
-    isEmptyRunStep () { return this.newRunStep === EMPTY_RUN_STEP },
-    isInitRunStep () { return this.newRunStep === INIT_RUN_STEP },
-    isProcRunStep () { return this.newRunStep === PROC_RUN_STEP },
-    isFinalRunStep () { return this.newRunStep === FINAL_RUN_STEP },
 
     // view header line
     isNotEmptyHdr () {
@@ -156,11 +126,11 @@ export default {
       if (!this.loadDone) return // exit: load not done yet
 
       this.isRunSelected = this.isSuccessTheRun
-      const rpRun = {digest: this.digest, runOrSet: Mdf.RUN_OF_RUNSET, runSetKey: this.runSelected.Digest}
-      const rpSet = {digest: this.digest, runOrSet: Mdf.SET_OF_RUNSET, runSetKey: this.wsSelected.Name}
+      const rpRun = {digest: this.digest, runOrSet: 'run', runSetKey: this.runSelected.Digest}
+      const rpSet = {digest: this.digest, runOrSet: 'set', runSetKey: this.wsSelected.Name}
 
       this.doTabAdd('run-list', {digest: this.digest})
-      this.doTabAdd('workset-list', {digest: this.digest})
+      this.doTabAdd('set-list', {digest: this.digest})
       this.doTabAdd('parameter-set-list', rpSet)
       if (this.isSuccessTheRun) {
         this.doTabAdd('parameter-run-list', rpRun)
@@ -177,7 +147,6 @@ export default {
     doneModelLoad (isSuccess) {
       this.modelName = Mdf.modelName(this.theModel)
       this.loadModelDone = true
-      this.resetRunStep()
     },
     doneRunListLoad (isSuccess) {
       this.loadRunListDone = true
@@ -239,8 +208,8 @@ export default {
         return
       }
       this.runSelected = this.runTextByDigest(dgst)
-      this.doTabPathRefresh('table-list', {digest: this.digest, runOrSet: Mdf.RUN_OF_RUNSET, runSetKey: this.runSelected.Digest})
-      this.doTabPathRefresh('parameter-run-list', {digest: this.digest, runOrSet: Mdf.RUN_OF_RUNSET, runSetKey: this.runSelected.Digest})
+      this.doTabPathRefresh('table-list', {digest: this.digest, runOrSet: 'run', runSetKey: this.runSelected.Digest})
+      this.doTabPathRefresh('parameter-run-list', {digest: this.digest, runOrSet: 'run', runSetKey: this.runSelected.Digest})
       this.doRunSetHint()
     },
     // workset selected from the list: reload workset info
@@ -250,7 +219,7 @@ export default {
         return
       }
       this.wsSelected = this.worksetTextByName(name)
-      this.doTabPathRefresh('parameter-set-list', {digest: this.digest, runOrSet: Mdf.SET_OF_RUNSET, runSetKey: this.wsSelected.Name})
+      this.doTabPathRefresh('parameter-set-list', {digest: this.digest, runOrSet: 'set', runSetKey: this.wsSelected.Name})
       this.doRunSetHint()
     },
     doRunSetHint () {
@@ -267,6 +236,17 @@ export default {
     // toggle workset readonly status
     onWsEditToggle () {
       this.saveWsStatusTickle = !this.saveWsStatusTickle
+    },
+
+    // new model run using current workset name: open model run tab
+    onNewRunModel () {
+      const rp = {digest: this.digest, runOrSet: 'set', runSetKey: this.wsSelected.Name}
+      this.doTabAdd('run-model', rp)
+      this.doTabLink('run-model', rp, true)
+    },
+    // run completed: refresh run list
+    onRunListRefresh () {
+      this.refreshRunListTickle = !this.refreshRunListTickle // refersh run list
     },
 
     // on parameter updated (data dirty flag) change
@@ -308,27 +288,31 @@ export default {
       if (0 <= n && n < this.tabLst.length) this.$router.push(this.tabLst[n].path)
     },
 
-    // click on tab link: activate that tab
+    // activate tab as result of tab click or after tab component mounted by router link
     doTabLink (kind, routeParts, isToNewRoute = false) {
       const ti = this.makeTabInfo(kind, routeParts)
       for (let k = 0; k < this.tabLst.length; k++) {
         this.tabLst[k].active = this.tabLst[k].key === ti.key // make this tab active and deactivate all other tabs
       }
+
       // if new path is a result of tab add or tab close then route to new path
       if (isToNewRoute && (ti.path || '') !== '') this.$router.push(ti.path)
 
+      // if this model run tab then disable new model run button (workset run button)
+      this.isRunModelTab = kind === 'run-model'
+
       // select run or workset for current tab, if tab has own run or workset
       let isNew = false
-      if (kind === 'workset-list' && this.isRunSelected || kind === 'run-list' && !this.isRunSelected) {
+      if (kind === 'set-list' && this.isRunSelected || kind === 'run-list' && !this.isRunSelected) {
         isNew = true
         this.isRunSelected = kind === 'run-list'
       }
-      if (routeParts.runOrSet === Mdf.RUN_OF_RUNSET && (routeParts.runSetKey || '') !== '') {
+      if (routeParts.runOrSet === 'run' && (routeParts.runSetKey || '') !== '') {
         isNew = !this.isRunSelected || routeParts.runSetKey !== this.runSelected.Digest
         if (isNew) this.runSelected = this.runTextByDigest(routeParts.runSetKey)
         this.isRunSelected = true
       }
-      if (routeParts.runOrSet === Mdf.SET_OF_RUNSET && (routeParts.runSetKey || '') !== '') {
+      if (routeParts.runOrSet === 'set' && (routeParts.runSetKey || '') !== '') {
         isNew = this.isRunSelected || routeParts.runSetKey !== this.wsSelected.Name
         if (isNew) this.wsSelected = this.worksetTextByName(routeParts.runSetKey)
         this.isRunSelected = false
@@ -336,8 +320,7 @@ export default {
       if (isNew) this.doRunSetHint()
     },
 
-    // if tab not exist then add new tab and make it active (if required)
-    // else activate existing tab
+    // if tab not exist then add new tab
     doTabAdd (kind, routeParts) {
       // make tab key, path and title
       if (!kind || (kind || '') === '' || !routeParts || (routeParts.digest || '') !== this.digest) {
@@ -346,8 +329,8 @@ export default {
       }
       const ti = this.makeTabInfo(kind, routeParts)
 
-      // find existing tab by key and activate if required
-      if (this.tabLst.findIndex((t) => t.key === ti.key) >= 0) return // done: tab already exist
+      // exit if tab already exist
+      if (this.tabLst.findIndex((t) => t.key === ti.key) >= 0) return
 
       // make new tab
       let t = {
@@ -392,40 +375,48 @@ export default {
           return {
             key: Mdf.runListRouteKey(this.digest),
             path: '/model/' + this.digest + '/run-list',
-            runOrSet: Mdf.RUN_OF_RUNSET,
-            title: 'Model runs',
+            runOrSet: 'run',
+            title: 'Model Runs:',
             pos: RUN_LST_TAB_POS
           }
-        case 'workset-list':
+        case 'set-list':
           return {
             key: Mdf.worksetListRouteKey(this.digest),
-            path: '/model/' + this.digest + '/workset-list',
-            runOrSet: Mdf.SET_OF_RUNSET,
-            title: 'Input sets',
+            path: '/model/' + this.digest + '/set-list',
+            runOrSet: 'set',
+            title: 'Input Sets:',
             pos: WS_LST_TAB_POS
+          }
+        case 'run-model':
+          return {
+            key: Mdf.runModelRouteKey(this.digest),
+            path: '/model/' + this.digest + '/run-model/set/'+ (rp.runSetKey || ''),
+            runOrSet: 'set',
+            title: 'Run Model',
+            pos: RUN_MODEL_TAB_POS
           }
         case 'parameter-run-list':
           return {
             key: Mdf.paramRunListRouteKey(this.digest),
             path: '/model/' + this.digest + '/run/' + (rp.runSetKey || '') + '/parameter-list',
-            runOrSet: Mdf.RUN_OF_RUNSET,
-            title: 'Parameters',
+            runOrSet: 'run',
+            title: 'Parameters:',
             pos: PARAM_RUN_LST_TAB_POS
           }
         case 'parameter-set-list':
           return {
             key: Mdf.paramSetListRouteKey(this.digest),
             path: '/model/' + this.digest + '/set/' + (rp.runSetKey || '') + '/parameter-list',
-            runOrSet: Mdf.SET_OF_RUNSET,
-            title: 'Parameters',
+            runOrSet: 'set',
+            title: 'Parameters:',
             pos: PARAM_SET_LST_TAB_POS
           }
         case 'table-list':
           return {
             key: Mdf.tableListRouteKey(this.digest),
             path: '/model/' + this.digest + '/run/' + (rp.runSetKey || '') + '/table-list',
-            runOrSet: Mdf.RUN_OF_RUNSET,
-            title: 'Output tables',
+            runOrSet: 'run',
+            title: 'Output Tables:',
             pos: TABLE_LST_TAB_POS
           }
         case 'parameter':
@@ -442,7 +433,7 @@ export default {
           return {
             key: Mdf.tableRouteKey(this.digest, (rp.ptName || '-'), (rp.runSetKey|| '')),
             path: '/model/' + this.digest + '/run/' + (rp.runSetKey || '') + '/table/' + (rp.ptName || ''),
-            runOrSet: Mdf.RUN_OF_RUNSET,
+            runOrSet: 'run',
             title: (tds !== '') ? tds : rp.ptName || '',
             pos: FREE_TAB_POS
           }
@@ -460,92 +451,6 @@ export default {
     showWsInfoDlg () {
       this.$refs.theWsInfoDlg.showWsInfo(this.wsSelected)
     },
-
-    // model run methods
-    //
-    // show or close model run panel
-    showRunPanel () { this.isRunPanel = true },
-    hideRunPanel () {
-      this.isRunPanel = false
-      this.resetRunStep()
-    },
-    // clean new run data
-    resetRunStep () {
-      this.newRunStep = EMPTY_RUN_STEP
-      this.newRunName = ''
-      this.newRunSubCount = 1
-      this.newRunState = Mdf.emptyRunState()
-      this.newRunLogStart = 0
-      this.newRunLogSize = MIN_LOG_PAGE_SIZE
-      this.newRunLineLst = []
-    },
-
-    // run the model
-    onModelRun () {
-      // cleanup model run name and sub-count
-      let name = this.$refs.runNameInput.value
-      name = name.replace(/["'`$}{@\\]/g, ' ').trim()
-      if ((name || '') === '') name = this.autoNewRunName
-
-      let sub = this.$refs.subCountInput.value
-      sub = sub.replace(/[^0-9]/g, ' ').trim()
-      let nSub = ((sub || '') !== '') ? parseInt(sub) : 1
-
-      this.newRunName = name  // actual values after cleanup
-      this.newRunSubCount = nSub || 1
-      this.newRunState = Mdf.emptyRunState()
-
-      // start new model run: send request to the server
-      this.newRunStep = INIT_RUN_STEP
-    },
-
-    // new model run started: response from server
-    doneNewRunInit (ok, rst) {
-      this.newRunStep = ok ? PROC_RUN_STEP : FINAL_RUN_STEP
-      if (!!ok && Mdf.isNotEmptyRunState(rst)) {
-        this.newRunState = rst
-        this.newRunName = rst.RunName
-      }
-    },
-
-    // model run progress: response from server
-    doneNewRunProgress (ok, rlp) {
-      if (!ok || !Mdf.isNotEmptyRunStateLog(rlp)) return  // empty run state or error
-
-      this.newRunState = Mdf.toRunStateFromLog(rlp)
-
-      // update log lines
-      let nLen = Mdf.lengthOf(rlp.Lines)
-      if (nLen > 0) {
-        let log = []
-        for (let k = 0; k < nLen; k++) {
-          log.push({offset: rlp.Offset + k, text: rlp.Lines[k]})
-        }
-        this.newRunLineLst = log
-      }
-
-      // check is it final update: model run completed
-      let isDone = (this.newRunState.IsFinal && rlp.Offset + rlp.Size >= rlp.TotalSize)
-
-      if (!isDone) {
-        this.newRunLogStart = rlp.Offset + rlp.Size
-        if (this.newRunLogStart + this.newRunLogSize < rlp.TotalSize) {
-          this.newRunLogSize = Math.min(rlp.TotalSize - this.newRunLogStart, MAX_LOG_PAGE_SIZE)
-          this.newRunLogStart = rlp.TotalSize - this.newRunLogSize
-        } else {
-          if (this.newRunLogStart + this.newRunLogSize >= rlp.TotalSize) this.newRunLogStart = rlp.TotalSize - this.newRunLogSize
-        }
-        if (this.newRunLogStart < rlp.Offset) this.newRunLogStart = rlp.Offset + 1
-      } else {
-        // run completed: refresh run list
-        this.loadRunListDone = false
-        this.refreshRunListTickle = !this.refreshRunListTickle  // refersh run list
-        // this.refreshRunTickle = !this.refreshRunTickle       // refersh current run
-        this.newRunStep = FINAL_RUN_STEP
-      }
-    },
-    //
-    // end of model run methods
 
     onModelEditDiscardClosed (e) {
       if ((e.action || '') !== 'accept') return // if user not answered "yes" to "discard changes?" question
@@ -576,6 +481,5 @@ export default {
   },
 
   mounted () {
-    this.resetRunStep()
   }
 }

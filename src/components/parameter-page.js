@@ -288,7 +288,7 @@ export default {
       this.paramSize = Mdf.paramSizeByName(this.theModel, this.paramName)
       this.paramType = Mdf.typeTextById(this.theModel, (this.paramText.Param.TypeId || 0))
 
-      this.isFromWs = ((this.runOrSet || '') === Mdf.SET_OF_RUNSET)
+      this.isFromWs = ((this.runOrSet || '') === 'set')
       const wsSrc = this.isFromWs ? this.worksetTextByName(this.nameDigest) : Mdf.emptyWorksetText()
       this.paramRunSet = Mdf.paramRunSetByName(
         this.isFromWs ? wsSrc : this.runTextByDigest(this.nameDigest),

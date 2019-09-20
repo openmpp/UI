@@ -98,7 +98,7 @@
           alt="Model runs"
           role="menuitem">
           <i :class="{'disable-icon': !isModel}" class="menu-start mdc-list-item__graphic material-icons" aria-hidden="true">folder</i>
-          <span class="mdc-list-item__text">Model runs</span>
+          <span class="mdc-list-item__text">Model Runs</span>
           <span v-if="isModel" class="menu-count mdc-list-item__meta">{{runTextCount}}</span>
         </router-link>
 
@@ -118,18 +118,18 @@
           alt="Output tables"
           role="menuitem">
           <i :class="{'disable-icon': !isModel}" class="menu-start mdc-list-item__graphic material-icons" aria-hidden="true">grid_on</i>
-          <span class="mdc-list-item__text">Output tables</span>
+          <span class="mdc-list-item__text">Output Tables</span>
           <span v-if="isModel" class="menu-count mdc-list-item__meta">{{modelTableCount}}</span>
         </router-link>
         <hr class="mdc-list-divider menu-divider-inset" role="separator" />
 
         <router-link
-          :to="'/model/' + modelDigest + '/workset-list'"
+          :to="'/model/' + modelDigest + '/set-list'"
           :class="{'disable-item': !isModel}" class="mdc-list-item"
           alt="Input sets"
           role="menuitem">
           <i :class="{'disable-icon': !isModel}" class="menu-start mdc-list-item__graphic material-icons" aria-hidden="true">folder</i>
-          <span class="mdc-list-item__text">Input sets</span>
+          <span class="mdc-list-item__text">Input Sets</span>
           <span v-if="isModel" class="menu-count mdc-list-item__meta">{{worksetTextCount}}</span>
         </router-link>
 
@@ -139,7 +139,7 @@
           alt="Model parameters"
           role="menuitem">
           <i :class="{'disable-icon': !isModel}" class="menu-start mdc-list-item__graphic material-icons" aria-hidden="true">mode_edit</i>
-          <span class="mdc-list-item__text">Edit parameters</span>
+          <span class="mdc-list-item__text">Edit Parameters</span>
           <span v-if="isModel" class="menu-count mdc-list-item__meta">{{modelParamCount}}</span>
         </router-link>
         <hr class="mdc-list-divider menu-divider-inset" role="separator" />
@@ -150,7 +150,7 @@
           alt="Run the model"
           role="menuitem">
           <i :class="{'disable-icon': !isModel}" class="menu-start mdc-list-item__graphic material-icons" aria-hidden="true">directions_run</i>
-          <span class="mdc-list-item__text">Run the model</span>
+          <span class="mdc-list-item__text">Run the Model</span>
         </router-link>
 
       </nav>
@@ -159,12 +159,12 @@
       <nav class="mdc-list">
         <router-link to="/service" class="mdc-list-item" alt="Service status and model(s) run queue" role="menuitem">
           <i class="menu-start mdc-list-item__graphic material-icons" aria-hidden="true">queue_play_next</i>
-          <span class="mdc-list-item__text">Service status</span>
+          <span class="mdc-list-item__text">Service Status</span>
         </router-link>
 
         <router-link to="/run-history" class="mdc-list-item" alt="Models run history" role="menuitem">
           <i class="menu-start mdc-list-item__graphic material-icons" aria-hidden="true">history</i>
-          <span class="mdc-list-item__text">Run history</span>
+          <span class="mdc-list-item__text">Run History</span>
         </router-link>
       </nav>
 

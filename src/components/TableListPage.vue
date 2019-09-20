@@ -87,7 +87,7 @@ export default {
   },
 
   mounted () {
-    this.$emit('tab-mounted', 'table-list', {digest: this.digest, runOrSet: Mdf.RUN_OF_RUNSET, runSetKey: this.nameDigest})
+    this.$emit('tab-mounted', 'table-list', {digest: this.digest, runOrSet: 'run', runSetKey: this.nameDigest})
   }
 }
 </script>

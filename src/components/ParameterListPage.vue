@@ -68,7 +68,7 @@ export default {
   watch: {
     routeKey () {
       this.$emit('tab-new-route',
-        this.runOrSet === Mdf.RUN_OF_RUNSET ? 'parameter-run-list' : 'parameter-set-list',
+        this.runOrSet === 'run' ? 'parameter-run-list' : 'parameter-set-list',
         {digest: this.digest, runOrSet: this.runOrSet, runSetKey: this.nameDigest, ptName: this.paramName})
     }
   },
@@ -79,7 +79,7 @@ export default {
     // part of the route path: model run digest or workset name
     pathNameDigest () {
       let nd = this.nameDigest || ''
-      if (nd === '') nd = this.runOrSet === Mdf.RUN_OF_RUNSET ? this.theSelected.runDigestName : this.theSelected.worksetName
+      if (nd === '') nd = this.runOrSet === 'run' ? this.theSelected.runDigestName : this.theSelected.worksetName
       return nd
     },
     ...mapGetters({
@@ -106,7 +106,7 @@ export default {
 
   mounted () {
     this.$emit('tab-mounted',
-      this.runOrSet === Mdf.RUN_OF_RUNSET ? 'parameter-run-list' : 'parameter-set-list',
+      this.runOrSet === 'run' ? 'parameter-run-list' : 'parameter-set-list',
       {digest: this.digest, runOrSet: this.runOrSet, runSetKey: this.nameDigest})
   }
 }

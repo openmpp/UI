@@ -88,7 +88,7 @@ export default {
   },
 
   mounted () {
-    this.$emit('tab-mounted', 'workset-list', {digest: this.digest})
+    this.$emit('tab-mounted', 'set-list', {digest: this.digest})
   }
 }
 </script>

@@ -3,8 +3,6 @@ import cloneDeep from 'lodash/cloneDeep'
 
 export const _cloneDeep = cloneDeep
 
-export const RUN_OF_RUNSET = 'run'
-export const SET_OF_RUNSET = 'set'
 export const ROUTE_KEY_SEP = '::'
 
 // return date-time string: truncate timestamp
@@ -23,12 +21,13 @@ export const lengthOf = (arr) => { return isLength(arr) ? arr.length : 0 }
 export const routeJoin = (arr) => { return isLength(arr) ? arr.join(ROUTE_KEY_SEP) + ROUTE_KEY_SEP : '' }
 
 export const runListRouteKey = (model) => { return routeJoin([model, 'run-list']) }
-export const worksetListRouteKey = (model) => { return routeJoin([model, 'workset-list']) }
+export const worksetListRouteKey = (model) => { return routeJoin([model, 'set-list']) }
 export const paramRunListRouteKey = (model) => { return routeJoin([model, 'parameter-run-list']) }
 export const paramSetListRouteKey = (model) => { return routeJoin([model, 'parameter-set-list']) }
 export const tableListRouteKey = (model) => { return routeJoin([model, 'table-list']) }
 export const paramRouteKey = (model, paramName, runOrSet, runSetKey) => { return routeJoin([model, 'p-', paramName, runOrSet, runSetKey]) }
 export const tableRouteKey = (model, tableName, runDigestName) => { return routeJoin([model, 't-', tableName, runDigestName]) }
+export const runModelRouteKey = (model) => { return routeJoin([model, 'run-model']) }
 
 // format date-time to timestamp string: YYYY-MM-DD hh:mm:ss.SSS
 export const dtToTimeStamp = (dt) => {

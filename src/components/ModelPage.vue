@@ -14,24 +14,21 @@
           :title="t.title"
           :class="{ 'tab-link-updated': t.updated }"
           class="tab-link">
-            <template v-if="t.kind === 'run-list' || t.kind === 'workset-list'">
-              <span class="tab-icon material-icons">folder</span>
-            </template>
-            <template v-else>
-              <span v-if="t.kind === 'table-list' || t.kind === 'table'" class="tab-icon material-icons">grid_on</span>
-              <span v-if="t.kind === 'parameter-run-list'" class="tab-icon material-icons">input</span>
-              <span v-if="t.kind === 'parameter-set-list'" class="tab-icon material-icons">mode_edit</span>
-              <template v-if="t.kind === 'parameter'">
-                <span v-if="t.runOrSet === 'run'" class="tab-icon material-icons">input</span>
-                <span v-if="t.runOrSet === 'set' && !t.updated" class="tab-icon material-icons">mode_edit</span>
-                <span v-if="t.runOrSet === 'set' && t.updated" class="tab-icon material-icons">save</span>
-              </template>
+            <span v-if="t.kind === 'run-list' || t.kind === 'set-list'" class="tab-icon material-icons">folder</span>
+            <span v-if="t.kind === 'run-model'" class="tab-icon material-icons">directions_run</span>
+            <span v-if="t.kind === 'table-list' || t.kind === 'table'" class="tab-icon material-icons">grid_on</span>
+            <span v-if="t.kind === 'parameter-run-list'" class="tab-icon material-icons">input</span>
+            <span v-if="t.kind === 'parameter-set-list'" class="tab-icon material-icons">mode_edit</span>
+            <template v-if="t.kind === 'parameter'">
+              <span v-if="t.runOrSet === 'run'" class="tab-icon material-icons">input</span>
+              <span v-if="t.runOrSet === 'set' && !t.updated" class="tab-icon material-icons">mode_edit</span>
+              <span v-if="t.runOrSet === 'set' && t.updated" class="tab-icon material-icons">save</span>
             </template>
             <span>{{t.title}}</span>
-            <span v-if="t.kind === 'run-list'">: {{runTextCount}}</span>
-            <span v-if="t.kind === 'workset-list'">: {{worksetTextCount}}</span>
-            <span v-if="t.kind === 'parameter-run-list' || t.kind === 'parameter-set-list'">: {{modelParamCount}}</span>
-            <span v-if="t.kind === 'table-list'">: {{modelTableCount}}</span>
+            <span v-if="t.kind === 'run-list'">{{runTextCount}}</span>
+            <span v-if="t.kind === 'set-list'">{{worksetTextCount}}</span>
+            <span v-if="t.kind === 'parameter-run-list' || t.kind === 'parameter-set-list'">{{modelParamCount}}</span>
+            <span v-if="t.kind === 'table-list'">{{modelTableCount}}</span>
           </router-link>
         <button
           v-if="!t.updated"
@@ -67,29 +64,32 @@
           class="cell-icon-link material-icons"
           alt="Description and notes" title="Description and notes">description</span>
 
-        <span v-if="!isWsEdit">
-          <span v-if="!isRunPanel"
-            @click="showRunPanel()"
-            class="cell-icon-link material-icons"
-            alt="Run the model" title="Run the model">directions_run</span>
-          <span v-else
-            class="cell-icon-empty material-icons"
-            alt="Run the model" title="Run the model">directions_run</span>
-          <span
+        <span v-if="!isWsEdit && !isRunModelTab"
+          @click="onNewRunModel()"
+          class="cell-icon-link material-icons"
+          alt="Run the model" title="Run the model">directions_run</span>
+        <span v-else
+          class="cell-icon-empty material-icons"
+          alt="Run the model" title="Run the model">directions_run</span>
+
+        <template v-if="!isRunModelTab">
+          <span v-if="!isWsEdit"
             @click="onWsEditToggle()"
             class="cell-icon-link material-icons"
             alt="Edit input set of parameters" title="Edit input set of parameters">mode_edit</span>
-        </span>
-        <!-- isWsEdit -->
-        <span v-else>
-          <span
-            class="cell-icon-empty material-icons"
-            alt="Run the model" title="Run the model">directions_run</span>
-          <span
+          <span v-else
             @click="onWsEditToggle()"
             class="cell-icon-link material-icons"
             alt="Save input set of parameters" title="Save input set of parameters">save</span>
-        </span>
+        </template>
+        <template v-else>
+          <span v-if="!isWsEdit"
+            class="cell-icon-empty material-icons"
+            alt="Edit input set of parameters" title="Edit input set of parameters">mode_edit</span>
+          <span v-else
+            class="cell-icon-empty material-icons"
+            alt="Save input set of parameters" title="Save input set of parameters">save</span>
+        </template>
 
       </span>
 
@@ -161,103 +161,13 @@
   </div>
   <!-- end of header line -->
 
-  <!-- model run panel: current model run -->
-  <template v-if="isRunPanel">
-
-    <div v-if="isEmptyRunStep" class="panel-frame mdc-typography--body1">
-      <div>
-        <span
-          @click="hideRunPanel()"
-          class="cell-icon-link material-icons"
-          alt="Close" title="Close">close</span>
-        <span class="panel-item">Enter the name for new model run:</span>
-      </div>
-      <div>
-        <span
-          :class="{'mdc-text-field--disabled': isWsEdit}"
-          class="mdc-text-field mdc-text-field--box mdc-text-field--fullwidth">
-          <input type="text"
-            id="run-name-input"
-            ref="runNameInput"
-            maxlength="255"
-            :disabled="isWsEdit"
-            :value="autoNewRunName"
-            alt="Name of new model run"
-            title="Name of new model run"
-            class="mdc-text-field__input" />
-        </span>
-      </div>
-      <div>
-        <om-mcw-button
-          @click="onModelRun"
-          :disabled="isWsEdit"
-          class="panel-item mdc-button--raised"
-          :alt="'Run the model with input set ' + wsSelected.Name"
-          :title="'Run the model with input set ' + wsSelected.Name">
-          <i class="material-icons mdc-button__icon">directions_run</i>Run the model</om-mcw-button>
-        <input type="number"
-          id="sub-count-input" ref="subCountInput" size="4" maxlength="4" min="1" max="9999"
-          :value="newRunSubCount"
-          :disabled="isWsEdit"
-          class="panel-sub-count" alt="Number of sub-values" title="Number of sub-values" />
-        <span class="panel-item">Sub-Values</span>
-      </div>
-    </div>
-
-    <div v-if="isInitRunStep" class="panel-frame mdc-typography--body1">
-      <div>
-        <span
-          @click="hideRunPanel()"
-          class="cell-icon-link material-icons"
-          alt="Close" title="Close">close</span>
-        <span class="medium-wt">Running: </span><span class="mdc-typography--body1">{{newRunName}}</span>
-      </div>
-      <div>
-        <new-run-init
-          :model-digest="digest"
-          :new-run-name="newRunName"
-          :workset-name="wsSelected.Name"
-          :sub-count="newRunSubCount"
-          @done="doneNewRunInit"
-          @wait="()=>{}">
-        </new-run-init>
-      </div>
-    </div>
-
-    <div v-if="isProcRunStep || isFinalRunStep" class="panel-frame mdc-typography--body1">
-      <div>
-        <span
-          @click="hideRunPanel()"
-          class="cell-icon-link material-icons"
-          alt="Close" title="Close">close</span>
-        <span class="mdc-typography--body1">{{newRunName}}</span>
-      </div>
-      <div class="panel-line">
-        <new-run-progress  v-if="!isFinalRunStep"
-          :model-digest="digest"
-          :new-run-stamp="newRunState.RunStamp"
-          :start="newRunLogStart"
-          :count="newRunLogSize"
-          @done="doneNewRunProgress"
-          @wait="()=>{}">
-        </new-run-progress>
-        <span class="mono" v-if="newRunState.UpdateDateTime">{{newRunState.UpdateDateTime}}</span>
-        <span class="mono"><i>[{{modelName}}.{{newRunState.RunStamp}}.log]</i></span>
-      </div>
-      <div>
-        <div v-for="ln in newRunLineLst" :key="ln.offset" class="mono mdc-typography--caption">{{ln.text}}</div>
-      </div>
-    </div>
-
-  </template>
-  <!-- end of model run panel -->
-
   <main class="main-container">
     <router-view
       ref="theTab"
       @tab-mounted="onTabMounted"
       @tab-new-route="onTabNewRoute"
       @run-select="onRunSelect"
+      @run-list-refresh="onRunListRefresh"
       @workset-select="onWsSelect"
       @edit-updated="onEditUpdated"></router-view>
   </main>
@@ -367,36 +277,6 @@
     white-space: nowrap;
     text-overflow: ellipsis;
     margin-left: 0.5rem;
-  }
-
-  /* model run panel */
-  .panel-border {
-    margin-top: 0.5rem;
-    margin-right: 2rem;
-    border-width: 1px;
-    border-style: solid;
-    border-color: rgba(0, 0, 0, 0.12);
-  }
-  .panel-frame {
-    margin-top: 0.5rem;
-    margin-right: 2rem;
-    @extend .panel-border;
-  }
-  .panel-item {
-    margin-right: 0.5rem;
-  }
-  .panel-value {
-    @extend .panel-item;
-    @extend .panel-border;
-    @extend .mdc-typography--body1;
-  }
-  .panel-sub-count {
-    width: 4rem;
-    text-align: right;
-    @extend .panel-value;
-  }
-  .panel-line {
-    margin-top: 0.25rem;
   }
 
   /* cell material icon: a link or empty (non-link) */

@@ -149,7 +149,7 @@ export default {
   watch: {
     routeKey () {
       this.refreshView()
-      this.$emit('tab-new-route', 'table', {digest: this.digest, runOrSet: Mdf.RUN_OF_RUNSET, runSetKey: this.nameDigest, ptName: this.tableName})
+      this.$emit('tab-new-route', 'table', {digest: this.digest, runOrSet: 'run', runSetKey: this.nameDigest, ptName: this.tableName})
     }
   },
 
@@ -637,7 +637,7 @@ export default {
 
   mounted () {
     this.refreshView()
-    this.$emit('tab-mounted', 'table', {digest: this.digest, runOrSet: Mdf.RUN_OF_RUNSET, runSetKey: this.nameDigest, ptName: this.tableName})
+    this.$emit('tab-mounted', 'table', {digest: this.digest, runOrSet: 'run', runSetKey: this.nameDigest, ptName: this.tableName})
   }
   /* eslint-enable no-multi-spaces */
 }

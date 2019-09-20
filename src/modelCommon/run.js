@@ -89,7 +89,7 @@ export const statusText = (rt) => {
   return 'unknown'
 }
 
-// if this is run state (model run status)
+// if this is model run state
 export const isRunState = (rst) => {
   if (!rst) return false
   return rst.hasOwnProperty('ModelName') && rst.hasOwnProperty('ModelDigest') &&
@@ -97,13 +97,13 @@ export const isRunState = (rst) => {
     rst.hasOwnProperty('RunName') && rst.hasOwnProperty('UpdateDateTime')
 }
 
-// if this is not empty run state (model run status)
+// if this is not empty model run state
 export const isNotEmptyRunState = (rst) => {
   if (!isRunState(rst)) return false
   return (rst.ModelDigest || '') !== '' && (rst.RunStamp || '') !== '' && (rst.RunName || '') !== '' && (rst.UpdateDateTime || '') !== ''
 }
 
-// return run state (model run status)
+// return model run state
 export const emptyRunState = () => {
   return {
     ModelName: '',
@@ -116,7 +116,7 @@ export const emptyRunState = () => {
   }
 }
 
-// if this is RunStateLog: run state (model run status) and run log page
+// if this is RunStateLog: model run state and run log page
 export const isRunStateLog = (rlp) => {
   if (!rlp) return false
   if (!isRunState(rlp)) return false
@@ -124,12 +124,12 @@ export const isRunStateLog = (rlp) => {
     rlp.hasOwnProperty('TotalSize') && Hlpr.hasLength(rlp.Lines)
 }
 
-// if this is not empty RunStateLog: run state (model run status) and run log page
+// if this is not empty RunStateLog: model run state and run log page
 export const isNotEmptyRunStateLog = (rlp) => {
   return isRunStateLog(rlp)
 }
 
-// return empty RunStateLog: run state (model run status) and run log page
+// return empty RunStateLog: model run state and run log page
 export const emptyRunStateLog = () => {
   return {
     ModelName: '',
