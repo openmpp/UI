@@ -31,6 +31,7 @@ export default {
 
   computed: {
     ...mapGetters({
+      uiLang: GET.UI_LANG,
       omppServerUrl: GET.OMPP_SRV_URL
     })
   },
@@ -57,6 +58,9 @@ export default {
           'OpenM.RunName': (this.newRunName || ''),
           'OpenM.SetName': (this.worksetName || '')
         }
+      }
+      if (this.uiLang) {
+        rv.Opts['OpenM.MessageLanguage'] = this.uiLang
       }
       let rst = Mdf.emptyRunState()
       let u = this.omppServerUrl + '/api/run'
