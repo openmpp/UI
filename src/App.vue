@@ -201,7 +201,7 @@ import OmMcwMenu from '@/om-mcw/OmMcwMenu'
 import OmMcwDialog from '@/om-mcw/OmMcwDialog'
 
 export default {
-  name: 'app',
+  name: 'App',
   data () {
     return {
       refreshTickle: false,

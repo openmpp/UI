@@ -77,7 +77,9 @@ export default {
       return Mdf.paramRouteKey(this.digest, this.paramName, this.runOrSet, this.nameDigest)
     },
     ...mapGetters({
-      theModel: GET.THE_MODEL
+      theModel: GET.THE_MODEL,
+      runTextByDigest: GET.RUN_TEXT_BY_DIGEST,
+      worksetTextByName: GET.WORKSET_TEXT_BY_NAME
     })
   },
 
@@ -93,7 +95,11 @@ export default {
 
     // show parameter info
     showParamInfo (p) {
-      this.$refs.noteDlg.showParamInfo(p.Param.Name, 0)
+      const prs = Mdf.paramRunSetByName(
+        ((this.runOrSet || '') === 'set') ? this.worksetTextByName(this.nameDigest) : this.runTextByDigest(this.nameDigest),
+        p.Param.Name)
+
+      this.$refs.noteDlg.showParamInfo(p, prs)
     }
   },
 

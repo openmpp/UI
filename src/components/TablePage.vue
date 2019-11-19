@@ -101,6 +101,7 @@ export default {
       loadWait: false,
       tableText: Mdf.emptyTableText(),
       tableSize: Mdf.emptyTableSize(),
+      runText: Mdf.emptyRunText(),
       subCount: 0,
       pvtState: {
         data: [],
@@ -158,7 +159,7 @@ export default {
 
     // show table info
     showTableInfo () {
-      this.$refs.noteDlg.showTableInfo(this.tableName, this.subCount)
+      this.$refs.noteDlg.showTableInfo(this.tableText, this.runText)
     },
 
     // local refresh button handler, table content only
@@ -218,8 +219,8 @@ export default {
       // find table and table size, including run sub-values count
       this.tableText = Mdf.tableTextByName(this.theModel, this.tableName)
       this.tableSize = Mdf.tableSizeByName(this.theModel, this.tableName)
-      const runSrc = this.runTextByDigestOrName(this.nameDigest)
-      this.subCount = runSrc.SubCount || 0
+      this.runText = this.runTextByDigestOrName(this.nameDigest)
+      this.subCount = this.runText.SubCount || 0
       this.totalEnumLabel = Mdf.wordByCode(this.wordList, Mdf.ALL_WORD_CODE)
 
       // find dimension type for each dimension and collect dimension lables
@@ -553,8 +554,7 @@ export default {
       this.msg = 'Loading...'
 
       // exit if model run empty: must be found (not found run is empty)
-      const runSrc = this.runTextByDigestOrName(this.nameDigest)
-      if (!Mdf.isNotEmptyRunText(runSrc) || (runSrc.Digest || '') === '') {
+      if (!Mdf.isNotEmptyRunText(this.runText) || (this.nameDigest || '') === '') {
         this.msg = 'Model run not found or not completed'
         console.log('Model run not found or not completed (empty)')
         this.loadWait = false
@@ -564,7 +564,7 @@ export default {
       // make output table read layout and url
       let layout = this.makeSelectLayout()
       let u = this.omppServerUrl +
-        '/api/model/' + (this.digest || '') + '/run/' + (runSrc.Digest || '') + '/table/value-id'
+        '/api/model/' + (this.digest || '') + '/run/' + (this.nameDigest || '') + '/table/value-id'
 
       // retrieve page from server, it must be: {Layout: {...}, Page: [...]}
       try {

@@ -5,7 +5,7 @@
   <div v-if="isTableList()">
     <ul class="main-list mdc-list mdc-list--two-line">
 
-      <li v-for="t in TableList()" :key="'tt-' + t.Table.TableId" class="mdc-list-item">
+      <li v-for="t in tableList()" :key="'tt-' + t.Table.TableId" class="mdc-list-item">
 
         <span
           @click="showTableInfo(t)"
@@ -56,7 +56,8 @@ export default {
 
   computed: {
     ...mapGetters({
-      theModel: GET.THE_MODEL
+      theModel: GET.THE_MODEL,
+      runTextByDigestOrName: GET.RUN_TEXT_BY_DIGEST_OR_NAME
     })
   },
 
@@ -64,7 +65,7 @@ export default {
     isTableList () { return Mdf.isTableTextList(this.theModel) },
 
     // array of TableTxt if model has table list
-    TableList () {
+    tableList () {
       return Mdf.isTableTextList(this.theModel) ? this.theModel.TableTxt : []
     },
 
@@ -75,7 +76,8 @@ export default {
 
     // show table info
     showTableInfo (t) {
-      this.$refs.noteDlg.showTableInfo(t.Table.Name, 0)
+      const rt = this.runTextByDigestOrName(this.nameDigest)
+      this.$refs.noteDlg.showTableInfo(t, rt)
     }
   },
 

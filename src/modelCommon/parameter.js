@@ -104,6 +104,7 @@ export const emptyParamRunSet = () => {
   return {
     Name: '',
     SubCount: 0,
+    DefaultSubId: 0, // exist only in workset
     Txt: []
   }
 }

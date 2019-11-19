@@ -4,7 +4,6 @@
 <om-mcw-dialog :id="id" ref="noteDlg" :scrollable="true" acceptText="OK">
   <template #header><span>{{paramDescr}}</span></template>
   <div v-if="(paramNote !== '')">{{paramNote}}</div>
-  <br/>
   <div class="note-table mono">
     <div class="note-row">
       <span class="note-cell">Name:</span><span class="note-cell">{{paramName}}</span>
@@ -21,8 +20,11 @@
     <div v-if="paramSize.rank <= 0" class="note-row">
       <span class="note-cell">Rank:</span><span class="note-cell">{{paramSize.rank}}</span>
     </div>
-    <div v-if="isSubCount" class="note-row">
-      <span class="note-cell">SubValues:</span><span class="note-cell">{{subCount}}</span>
+    <div v-if="isSubValues" class="note-row">
+      <span class="note-cell">SubValue Count:</span><span class="note-cell">{{subCount}}</span>
+    </div>
+    <div v-if="isSubValues" class="note-row">
+      <span class="note-cell">Default Sub Id:</span><span class="note-cell">{{defaultSubId}}</span>
     </div>
     <div class="note-row">
       <span class="note-cell">Digest:</span><span class="note-cell">{{paramDigest}}</span>
@@ -51,12 +53,13 @@ export default {
   data () {
     return {
       paramName: '',
-      subCount: 0,
       paramDescr: '',
       paramNote: '',
       typeTitle: '',
       paramDigest: '',
-      isSubCount: false,
+      isSubValues: false,
+      subCount: 0,
+      defaultSubId: 0,
       paramSize: Mdf.emptyParamSize()
     }
   },
@@ -68,27 +71,30 @@ export default {
   },
 
   methods: {
-    showParamInfo (name, nSub = 0) {
-      if ((name || '') === '') {
-        console.log('Empty parameter name')
+    showParamInfo (paramText, paramRunSet) {
+      if (!paramText.Param && !Mdf.isParam(paramText.Param)) {
+        console.log('Empty parameter text')
         return
       }
-      this.paramName = name
-      this.subCount = nSub || 0
-
-      // find parameter, paramemeter size and text info
-      let txt = Mdf.paramTextByName(this.theModel, this.paramName)
-      this.paramSize = Mdf.paramSizeByName(this.theModel, this.paramName)
-      this.isSubCount = (this.subCount || 0) > 0
+      this.paramName = paramText.Param.Name
+      this.paramDescr = Mdf.descrOfDescrNote(paramText)
+      this.paramNote = Mdf.noteOfDescrNote(paramText)
+      this.paramDigest = paramText.Param.Digest || ''
 
       // find parameter type
-      let t = Mdf.typeTextById(this.theModel, (txt.Param.TypeId || 0))
+      let t = Mdf.typeTextById(this.theModel, (paramText.Param.TypeId || 0))
       this.typeTitle = Mdf.descrOfDescrNote(t)
       if ((this.typeTitle || '') === '') this.typeTitle = t.Type.Name || ''
 
-      this.paramDescr = Mdf.descrOfDescrNote(txt)
-      this.paramNote = Mdf.noteOfDescrNote(txt)
-      this.paramDigest = txt.Param.Digest || ''
+      // find parameter size and sub-values info
+      this.paramSize = Mdf.paramSizeByName(this.theModel, this.paramName)
+
+      this.isSubValues = false
+      if (Mdf.isParamRunSet(paramRunSet)) {
+        this.subCount = paramRunSet.SubCount || 0
+        this.isSubValues = paramRunSet.SubCount > 1
+        this.defaultSubId = paramRunSet.DefaultSubId || 0
+      }
 
       this.$refs.noteDlg.open() // show param info dialog
     }

@@ -9,7 +9,6 @@
     <div>{{exprDescr}}</div>
     <div>{{exprNote}}</div>
   </div>
-  <br/>
   <div class="note-table mono">
     <div class="note-row">
       <span class="note-cell">Name:</span><span class="note-cell">{{tableName}}</span>
@@ -29,7 +28,7 @@
     <div class="note-row">
       <span class="note-cell">Accumulators:</span><span class="note-cell">{{tableSize.accCount}}</span>
     </div>
-    <div v-if="isSubCount" class="note-row">
+    <div v-if="isSubValues" class="note-row">
       <span class="note-cell">SubValues:</span><span class="note-cell">{{subCount}}</span>
     </div>
     <div class="note-row">
@@ -65,7 +64,7 @@ export default {
       exprDescr: '',
       exprNote: '',
       tableDigest: '',
-      isSubCount: false,
+      isSubValues: false,
       tableSize: Mdf.emptyTableSize()
     }
   },
@@ -77,6 +76,30 @@ export default {
   },
 
   methods: {
+    showTableInfo (tableText, runText) {
+      if (!tableText.Table || !Mdf.isTable(tableText.Table)) {
+        console.log('Empty output table name')
+        return
+      }
+      this.tableName = tableText.Table.Name
+      this.tableDigest = tableText.Table.Digest || ''
+      this.tableDescr = tableText.TableDescr || ''
+      this.tableNote = tableText.TableNote || ''
+      this.exprDescr = tableText.ExprDescr || ''
+      this.exprNote = tableText.ExprNote || ''
+
+      // find table size info
+      this.tableSize = Mdf.tableSizeByName(this.theModel, this.tableName)
+
+      this.isSubValues = false
+      if (Mdf.isNotEmptyRunText(runText)) {
+        this.subCount = runText.SubCount || 0
+        this.isSubValues = (this.subCount || 0) > 1
+      }
+
+      this.$refs.noteDlg.open() // show table info dialog
+    }
+    /*
     showTableInfo (name, nSub) {
       if ((name || '') === '') {
         console.log('Empty output table name')
@@ -88,7 +111,7 @@ export default {
       // find table and table size and table text info
       let txt = Mdf.tableTextByName(this.theModel, this.tableName)
       this.tableSize = Mdf.tableSizeByName(this.theModel, this.tableName)
-      this.isSubCount = (this.subCount || 0) > 0
+      this.isSubValues = (this.subCount || 0) > 1
 
       this.tableDescr = txt.TableDescr || ''
       this.tableNote = txt.TableNote || ''
@@ -98,6 +121,7 @@ export default {
 
       this.$refs.noteDlg.open() // show table info dialog
     }
+  */
   }
 }
 </script>
