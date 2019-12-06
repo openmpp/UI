@@ -53,19 +53,16 @@ export default {
       type: String,
       required: true
     },
-    label: '',
+    label: { type: String, default: '' },
     options: {
       type: Array,
       default: () => []
     },
-    selected: '',
-    disabled: false,
-    required: false,
-    outlined: false,
-    isEmptyDefault: {
-      type: Boolean,
-      default: false
-    },
+    selected: { type: String, default: '' },
+    disabled: { type: Boolean, defaut: false },
+    required: { type: Boolean, defaut: false },
+    outlined: { type: Boolean, defaut: false },
+    isEmptyDefault: { type: Boolean, defaut: false },
     idHelperText: {
       type: String,
       default: void 0

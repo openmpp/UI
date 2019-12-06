@@ -14,10 +14,10 @@ import { GET, DISPATCH } from '@/store'
 
 export default {
   props: {
-    modelDigest: '',
-    runDigest: '',
-    refreshTickle: false,
-    refreshRunTickle: false
+    modelDigest: { type: String, default: '' },
+    runDigest: { type: String, default: '' },
+    refreshTickle: { type: Boolean, defaut: false },
+    refreshRunTickle: { type: Boolean, defaut: false }
   },
 
   data () {

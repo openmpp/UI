@@ -28,18 +28,12 @@ import { MDCSnackbar } from '@material/snackbar'
 
 export default {
   props: {
-    labelText: '',
-    actionButtonText: '',
-    leading: false,
-    stacked: false,
-    isCreateOpen: {
-      type: Boolean,
-      default: false
-    },
-    isNoDismiss: {
-      type: Boolean,
-      default: false
-    },
+    labelText: { type: String, default: '' },
+    actionButtonText: { type: String, default: '' },
+    leading: { type: Boolean, defaut: false },
+    stacked: { type: Boolean, defaut: false },
+    isCreateOpen: { type: Boolean, defaut: false },
+    isNoDismiss: { type: Boolean, defaut: false },
     closeOnEscape: {
       type: Boolean,
       default: void 0

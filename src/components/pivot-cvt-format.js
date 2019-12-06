@@ -100,7 +100,7 @@ export const formatFloat = (options) => {
 
 // format number as integer
 export const formatInt = (options) => {
-  let opts = Object.assign({}, formatNumber.makeOpts(options), {nDecimal: 0, maxDecimal: 0}, moreOrLess.makeDefault())
+  let opts = Object.assign({}, formatNumber.makeOpts(options), { nDecimal: 0, maxDecimal: 0 }, moreOrLess.makeDefault())
   return {
     format: (val) => {
       if (opts.isSrcValue) return val // return source value

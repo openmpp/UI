@@ -1,53 +1,24 @@
-# OpenM++ UI frontend
+# ompp-ui
 
-This repository is a part of [OpenM++](http://www.openmpp.org/) open source microsimulation platform.
-It contains web UI frontend (alpha version).
-
-## Build
-
+## Project setup
 ```
-# install dependencies
 npm install
+```
 
-# serve with hot reload at localhost:8080
-npm run dev
+### Compiles and hot-reloads for development
+```
+npm run serve
+```
 
-# build for production with minification
+### Compiles and minifies for production
+```
 npm run build
-
-# build for production and view the bundle analyzer report
-npm run build --report
 ```
 
-## Run
-
-You need to start `oms` web-service before UI. Folowing directory structure assumed by default:
+### Lints and fixes files
 ```
-./         -> oms "root" directory, by default it is current directory
-    html/        -> web-UI directory with HTML, js, css, images...
-    etc/         -> config files directory, contain template(s) to run models on MPI cluster
-    log/         -> recommended log files directory
-    models/
-          bin/  -> default model.exe and model.sqlite directory
-          log/  -> default directory for models run log files
+npm run lint
 ```
 
-On Windows you can start `oms` web-service and UI by double clicking on `bin\opmpp-ui.bat`:
-```
-@echo off
-
-IF "%CD%\" == "%~dp0" (
-  cd ..
-)
-IF "%OM_ROOT%" == "" (
-  SET OM_ROOT=%CD%
-)
-rem cd %OM_ROOT%
-
-START "oms" /MIN bin\oms
-START http://localhost:4040
-```
-
-Please visit our [wiki](https://ompp.sourceforge.io/wiki/) for more information or e-mail to: openmpp dot org at gmail dot com.
-
-License: MIT.
+### Customize configuration
+See [Configuration Reference](https://cli.vuejs.org/config/).

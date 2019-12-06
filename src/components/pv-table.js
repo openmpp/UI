@@ -104,7 +104,7 @@ export default {
     pvEdit: { // editor options and state shared with parent
       type: Object,
       default: Pcvt.emptyEdit
-    },
+    }
   },
 
   data () {
@@ -122,7 +122,7 @@ export default {
         rowSpans: Object.freeze({}),  // row span for each row label
         colSpans: Object.freeze({})   // column span for each column label
       },
-      keyRenderCount : 0, // table body cell key suffix to force update
+      keyRenderCount: 0,  // table body cell key suffix to force update
       renderKeys: {},     // for each cellKey string of: 'cellKey-keyRenderCount'
       keyPos: [],         // position of each dimension item in cell key
       valueLen: 0         // value input text size
@@ -139,10 +139,12 @@ export default {
     },
     // on edit started event: set focus on top left cell
     isPvEditNow () {
-      if (this.pvEdit.isEdit) this.$nextTick(() => {
-        this.focusToRowCol(0, 0)
-        // this.updateValueLenByRowCol(0, 0)
-      })
+      if (this.pvEdit.isEdit) {
+        this.$nextTick(() => {
+          this.focusToRowCol(0, 0)
+          // this.updateValueLenByRowCol(0, 0)
+        })
+      }
     }
   },
   computed: {
@@ -179,9 +181,9 @@ export default {
       return this.pvEdit.isUpdated && this.pvEdit.updated.hasOwnProperty(key) ? this.pvEdit.updated[key] : this.pvt.cells[key]
     },
     getUpdatedFmt (key) {
-      return this.pvEdit.isUpdated && this.pvEdit.updated.hasOwnProperty(key) ? 
-        this.pvControl.formatter.format(this.pvEdit.updated[key]) :
-        this.pvControl.formatter.format(this.pvt.cells[key])
+      return this.pvEdit.isUpdated && this.pvEdit.updated.hasOwnProperty(key)
+        ? this.pvControl.formatter.format(this.pvEdit.updated[key])
+        : this.pvControl.formatter.format(this.pvt.cells[key])
     },
     getUpdatedToDisplay (key) {
       let v = this.getUpdatedFmt(key)
@@ -272,7 +274,7 @@ export default {
       if (!this.pvControl.formatter.isValid(val)) {
         this.$emit('pv-message', 'Invalid (or empty) value entered')
         return false
-      }  
+      }
 
       // compare input value with previous
       const now = this.pvControl.formatter.parse(val)
@@ -316,7 +318,7 @@ export default {
         delete this.pvEdit.updated[ckey]
         this.pvEdit.isUpdated = !!this.pvEdit.updated && this.pvEdit.lastHistory > 0
       }
-      
+
       // update display value
       this.changeRenderKey(ckey)
       this.focusNextTick(ckey)
@@ -344,13 +346,13 @@ export default {
     },
     onRightArrow (e) {
       let rc = this.rowColAttrs(e)
-      if (rc && rc.cCol  < this.pvt.colCount - 1) this.focusToRowCol(rc.cRow, rc.cCol + 1) // move focus right if this is table body cell
+      if (rc && rc.cCol < this.pvt.colCount - 1) this.focusToRowCol(rc.cRow, rc.cCol + 1) // move focus right if this is table body cell
     },
     onDownArrow (e) {
       let rc = this.rowColAttrs(e)
       if (rc && rc.cRow < this.pvt.rowCount - 1) this.focusToRowCol(rc.cRow + 1, rc.cCol) // move focus down if this is table body cell
     },
-    onUpArrow(e) {
+    onUpArrow (e) {
       let rc = this.rowColAttrs(e)
       if (rc && rc.cRow > 0) this.focusToRowCol(rc.cRow - 1, rc.cCol) // move focus up if this is table body cell
     },
@@ -498,7 +500,7 @@ export default {
       for (let k = 0; k < pv.arr.length; k++) {
         for (let j = 0; j < pv.arr[k].length; j++) {
           let cKey = this.pvt.cellKeys[(rc.cRow + k) * this.pvt.colCount + (rc.cCol + j)]
-          
+
           let val = pv.arr[k][j]
           if (isToEnumId) {
             val = this.pvControl.formatter.enumIdByLabel(val)
@@ -768,7 +770,7 @@ export default {
         }
       }
       if (this.valueLen < ml) this.valueLen = ml
-  
+
       // done
       this.pvt.rowCount = rowCount
       this.pvt.colCount = colCount

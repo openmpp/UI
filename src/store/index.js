@@ -74,7 +74,7 @@ const getters = {
     return n
   },
 
-  [GET.OMPP_SRV_URL]: () => (process.env.OMPP_SRV_URL_ENV || '')
+  [GET.OMPP_SRV_URL]: () => (process.env.VUE_APP_OMPP_SRV_URL || '')
 }
 
 // store state: model

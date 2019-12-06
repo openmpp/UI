@@ -77,7 +77,8 @@ import { mapGetters } from 'vuex'
 import { GET } from '@/store'
 import * as Mdf from '@/modelCommon'
 import TableInfoDialog from './TableInfoDialog'
-import PivotReact from '@/rv/PivotReact'
+import { ReactInVue } from 'vuera'
+import PivotReact from '@/rv/PivotReact.react'
 
 /* eslint-disable no-multi-spaces */
 const kind = {
@@ -86,13 +87,15 @@ const kind = {
   ALL: 2    // output table all-accumultors view
 }
 
+const pivotReact = ReactInVue(PivotReact)
+
 export default {
-  components: { TableInfoDialog, 'pivot-react': PivotReact },
+  components: { TableInfoDialog, 'pivot-react': pivotReact },
 
   props: {
-    digest: '',     // model digest or name
-    tableName: '',  // output table name
-    nameDigest: ''  // model run digest or name
+    digest: { type: String, default: '' },     // model digest or name
+    tableName: { type: String, default: '' },  // output table name
+    nameDigest: { type: String, default: '' }  // model run digest or name
   },
 
   data () {
@@ -150,7 +153,7 @@ export default {
   watch: {
     routeKey () {
       this.refreshView()
-      this.$emit('tab-new-route', 'table', {digest: this.digest, runOrSet: 'run', runSetKey: this.nameDigest, ptName: this.tableName})
+      this.$emit('tab-new-route', 'table', { digest: this.digest, runOrSet: 'run', runSetKey: this.nameDigest, ptName: this.tableName })
     }
   },
 
@@ -392,7 +395,7 @@ export default {
           if (!lbl || !lst.hasOwnProperty(lbl)) continue
           if (lst[lbl]) vl.push(lst[lbl])
         }
-        if (vl.length > 0) vs.push({name: attr, vals: vl})
+        if (vl.length > 0) vs.push({ name: attr, vals: vl })
       }
 
       // sort order for measure column: same as expression or accumulator lables
@@ -410,7 +413,7 @@ export default {
             if (this.accLabels[lbl]) vl.push(this.accLabels[lbl])
           }
         }
-        if (vl.length > 0) vs.push({name: mAttr, vals: vl})
+        if (vl.length > 0) vs.push({ name: mAttr, vals: vl })
       }
       this.pvtState.sortDefs = vs
 
@@ -574,7 +577,7 @@ export default {
         if (!!rsp && rsp.hasOwnProperty('Page')) {
           if ((rsp.Page.length || 0) > 0) d = rsp.Page
         }
-        let lt = {Offset: 0, Size: 0, IsLastPage: true}
+        let lt = { Offset: 0, Size: 0, IsLastPage: true }
         if (!!rsp && rsp.hasOwnProperty('Layout')) {
           if ((rsp.Layout.Offset || 0) > 0) lt.Offset = rsp.Layout.Offset || 0
           if ((rsp.Layout.Size || 0) > 0) lt.Size = rsp.Layout.Size || 0
@@ -626,10 +629,10 @@ export default {
       // all-accumulators: SELECT sub_id, dim0, dim1, acc0, acc1...    ORDER BY 2, 3, 1
       let n = this.tv.kind === kind.ACC ? 3 : 2
       for (let k = 0; k < this.tableSize.rank; k++) {
-        layout.OrderBy.push({IndexOne: k + n})
+        layout.OrderBy.push({ IndexOne: k + n })
       }
-      layout.OrderBy.push({IndexOne: 1})
-      if (this.tv.kind === kind.ACC) layout.OrderBy.push({IndexOne: 2})
+      layout.OrderBy.push({ IndexOne: 1 })
+      if (this.tv.kind === kind.ACC) layout.OrderBy.push({ IndexOne: 2 })
 
       return layout
     }
@@ -637,7 +640,7 @@ export default {
 
   mounted () {
     this.refreshView()
-    this.$emit('tab-mounted', 'table', {digest: this.digest, runOrSet: 'run', runSetKey: this.nameDigest, ptName: this.tableName})
+    this.$emit('tab-mounted', 'table', { digest: this.digest, runOrSet: 'run', runSetKey: this.nameDigest, ptName: this.tableName })
   }
   /* eslint-enable no-multi-spaces */
 }
@@ -673,7 +676,7 @@ export default {
   /* cell material icon: a link or empty (non-link) */
   .cell-icon {
     vertical-align: middle;
-    margin: 0;
+    margin-right: 0.25rem;
     padding-left: 0;
     padding-right: 0;
     -webkit-user-select: none;

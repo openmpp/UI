@@ -48,7 +48,7 @@ export default {
   components: { RunInfoDialog },
 
   props: {
-    digest: ''
+    digest: { type: String, default: '' }
   },
 
   data () {
@@ -76,7 +76,7 @@ export default {
       if ((runDigest || '') !== '') this.$emit('run-select', runDigest)
     },
 
-    // update selected item: handle for workset text loaded
+    // update selected item: handler for run text loaded
     refreshItem (dgst) {
       this.digestSelected = dgst || ''
       this.updateCount++
@@ -89,7 +89,7 @@ export default {
   },
 
   mounted () {
-    this.$emit('tab-mounted', 'run-list', {digest: this.digest})
+    this.$emit('tab-mounted', 'run-list', { digest: this.digest })
   }
 }
 </script>

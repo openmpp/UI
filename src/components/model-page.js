@@ -1,3 +1,4 @@
+/* eslint-disable yoda */
 import { mapGetters, mapActions } from 'vuex'
 import { GET, DISPATCH } from '@/store'
 import * as Mdf from '@/modelCommon'
@@ -126,11 +127,11 @@ export default {
       if (!this.loadDone) return // exit: load not done yet
 
       this.isRunSelected = this.isSuccessTheRun
-      const rpRun = {digest: this.digest, runOrSet: 'run', runSetKey: this.runSelected.Digest}
-      const rpSet = {digest: this.digest, runOrSet: 'set', runSetKey: this.wsSelected.Name}
+      const rpRun = { digest: this.digest, runOrSet: 'run', runSetKey: this.runSelected.Digest }
+      const rpSet = { digest: this.digest, runOrSet: 'set', runSetKey: this.wsSelected.Name }
 
-      this.doTabAdd('run-list', {digest: this.digest})
-      this.doTabAdd('set-list', {digest: this.digest})
+      this.doTabAdd('run-list', { digest: this.digest })
+      this.doTabAdd('set-list', { digest: this.digest })
       this.doTabAdd('parameter-set-list', rpSet)
       if (this.isSuccessTheRun) {
         this.doTabAdd('parameter-run-list', rpRun)
@@ -158,7 +159,7 @@ export default {
       if (Mdf.isNotEmptyRunText(this.runSelected) && (this.runSelected.Digest || '') !== '') this.runSelected = this.runTextByDigest(this.runSelected.Digest)
       if (!Mdf.isRunSuccess(this.runSelected)) this.runSelected = this.runTextByIndex(0)
       if (!Mdf.isNotEmptyRunText(this.runSelected)) {
-        this.dispatchTheSelected({ModelDigest: this.digest, runDigestName: this.runSelected.Digest, isRun: this.isRunSelected})
+        this.dispatchTheSelected({ ModelDigest: this.digest, runDigestName: this.runSelected.Digest, isRun: this.isRunSelected })
       }
     },
     doneRunLoad (isSuccess, dgst) {
@@ -166,7 +167,7 @@ export default {
       if (!!isSuccess && (dgst || '') !== '') {
         this.runSelected = this.runTextByDigest(dgst)
         this.doTabRefreshItem(dgst)
-        this.dispatchTheSelected({ModelDigest: this.digest, runDigestName: this.runSelected.Digest, isRun: this.isRunSelected})
+        this.dispatchTheSelected({ ModelDigest: this.digest, runDigestName: this.runSelected.Digest, isRun: this.isRunSelected })
       }
     },
     doneWsListLoad (isSuccess) {
@@ -179,15 +180,16 @@ export default {
       if (Mdf.isNotEmptyWorksetText(this.wsSelected)) this.wsSelected = this.worksetTextByName(this.wsSelected.Name)
       if (!Mdf.isNotEmptyWorksetText(this.wsSelected)) {
         this.wsSelected = this.worksetTextByIndex(0)
-        this.dispatchTheSelected({ModelDigest: this.digest, worksetName: this.wsSelected.Name, isRun: this.isRunSelected})
+        this.dispatchTheSelected({ ModelDigest: this.digest, worksetName: this.wsSelected.Name, isRun: this.isRunSelected })
       }
     },
     doneWsLoad (isSuccess, name) {
       this.loadWsDone = true
       if (!!isSuccess && (name || '') !== '') {
         this.wsSelected = this.worksetTextByName(name)
-        this.dispatchTheSelected({ModelDigest: this.digest, worksetName: this.wsSelected.Name, isRun: this.isRunSelected})
+        this.dispatchTheSelected({ ModelDigest: this.digest, worksetName: this.wsSelected.Name, isRun: this.isRunSelected })
         this.doTabRefreshItem(name)
+        this.doTabRefreshWsEditStatus(name)
       }
     },
     doneWsStatusUpdate (isSuccess, name) {
@@ -200,6 +202,11 @@ export default {
       if (!this.$refs.theTab || !this.$refs.theTab.hasOwnProperty('refreshItem')) return
       this.$refs.theTab.refreshItem(key)
     },
+    // update workset read-only status
+    doTabRefreshWsEditStatus (key) {
+      if (!this.$refs.theTab || !this.$refs.theTab.hasOwnProperty('refreshWsEditStatus')) return
+      this.$refs.theTab.refreshWsEditStatus(key)
+    },
 
     // run selected from the list: reload run info
     onRunSelect (dgst) {
@@ -208,8 +215,8 @@ export default {
         return
       }
       this.runSelected = this.runTextByDigest(dgst)
-      this.doTabPathRefresh('table-list', {digest: this.digest, runOrSet: 'run', runSetKey: this.runSelected.Digest})
-      this.doTabPathRefresh('parameter-run-list', {digest: this.digest, runOrSet: 'run', runSetKey: this.runSelected.Digest})
+      this.doTabPathRefresh('table-list', { digest: this.digest, runOrSet: 'run', runSetKey: this.runSelected.Digest })
+      this.doTabPathRefresh('parameter-run-list', { digest: this.digest, runOrSet: 'run', runSetKey: this.runSelected.Digest })
       this.doRunSetHint()
     },
     // workset selected from the list: reload workset info
@@ -219,12 +226,12 @@ export default {
         return
       }
       this.wsSelected = this.worksetTextByName(name)
-      this.doTabPathRefresh('parameter-set-list', {digest: this.digest, runOrSet: 'set', runSetKey: this.wsSelected.Name})
+      this.doTabPathRefresh('parameter-set-list', { digest: this.digest, runOrSet: 'set', runSetKey: this.wsSelected.Name })
       this.doRunSetHint()
     },
     doRunSetHint () {
       this.isRunSetHint = true
-      setTimeout(() => this.isRunSetHint = false, 150)
+      setTimeout(() => { this.isRunSetHint = false }, 150)
     },
     // refresh parameter list and table list tabs path
     doTabPathRefresh (kind, routeParts) {
@@ -240,7 +247,7 @@ export default {
 
     // new model run using current workset name: open model run tab
     onNewRunModel () {
-      const rp = {digest: this.digest, runOrSet: 'set', runSetKey: this.wsSelected.Name}
+      const rp = { digest: this.digest, runOrSet: 'set', runSetKey: this.wsSelected.Name }
       this.doTabAdd('run-model', rp)
       this.doTabLink('run-model', rp, true)
     },
@@ -258,7 +265,7 @@ export default {
     // tab mounted: handle tabs mounted by direct link
     onTabMounted (kind, routeParts) {
       if (!this.loadDone) {
-        return  // wait until model loaded
+        return // wait until model loaded
       }
       if ((kind || '') === '' || !routeParts || (routeParts.digest || '') !== this.digest) {
         console.warn('invalid (empty) tab mounted kind or route model digest', kind, routeParts)
@@ -277,7 +284,7 @@ export default {
       if (this.tabLst.length <= 1) return
 
       // remove tab from the list
-      let n = -1 
+      let n = -1
       let k = this.tabLst.findIndex((t) => t.key === routeKey)
       if (k >= 0) {
         if (this.tabLst[k].active) n = (k < this.tabLst.length - 1) ? k : this.tabLst.length - 2
@@ -303,7 +310,7 @@ export default {
 
       // select run or workset for current tab, if tab has own run or workset
       let isNew = false
-      if (kind === 'set-list' && this.isRunSelected || kind === 'run-list' && !this.isRunSelected) {
+      if ((kind === 'set-list' && this.isRunSelected) || (kind === 'run-list' && !this.isRunSelected)) {
         isNew = true
         this.isRunSelected = kind === 'run-list'
       }
@@ -376,7 +383,7 @@ export default {
             key: Mdf.runListRouteKey(this.digest),
             path: '/model/' + this.digest + '/run-list',
             runOrSet: 'run',
-            title: 'Model Runs:',
+            title: 'Model Runs',
             pos: RUN_LST_TAB_POS
           }
         case 'set-list':
@@ -384,13 +391,13 @@ export default {
             key: Mdf.worksetListRouteKey(this.digest),
             path: '/model/' + this.digest + '/set-list',
             runOrSet: 'set',
-            title: 'Input Sets:',
+            title: 'Input Sets',
             pos: WS_LST_TAB_POS
           }
         case 'run-model':
           return {
             key: Mdf.runModelRouteKey(this.digest),
-            path: '/model/' + this.digest + '/run-model/set/'+ (rp.runSetKey || ''),
+            path: '/model/' + this.digest + '/run-model/set/' + (rp.runSetKey || ''),
             runOrSet: 'set',
             title: 'Run Model',
             pos: RUN_MODEL_TAB_POS
@@ -400,7 +407,7 @@ export default {
             key: Mdf.paramRunListRouteKey(this.digest),
             path: '/model/' + this.digest + '/run/' + (rp.runSetKey || '') + '/parameter-list',
             runOrSet: 'run',
-            title: 'Parameters:',
+            title: 'Parameters',
             pos: PARAM_RUN_LST_TAB_POS
           }
         case 'parameter-set-list':
@@ -408,7 +415,7 @@ export default {
             key: Mdf.paramSetListRouteKey(this.digest),
             path: '/model/' + this.digest + '/set/' + (rp.runSetKey || '') + '/parameter-list',
             runOrSet: 'set',
-            title: 'Parameters:',
+            title: 'Parameters',
             pos: PARAM_SET_LST_TAB_POS
           }
         case 'table-list':
@@ -416,7 +423,7 @@ export default {
             key: Mdf.tableListRouteKey(this.digest),
             path: '/model/' + this.digest + '/run/' + (rp.runSetKey || '') + '/table-list',
             runOrSet: 'run',
-            title: 'Output Tables:',
+            title: 'Output Tables',
             pos: TABLE_LST_TAB_POS
           }
         case 'parameter':
@@ -431,7 +438,7 @@ export default {
         case 'table':
           const tds = Mdf.descrOfDescrNote(Mdf.tableTextByName(this.theModel, rp.ptName))
           return {
-            key: Mdf.tableRouteKey(this.digest, (rp.ptName || '-'), (rp.runSetKey|| '')),
+            key: Mdf.tableRouteKey(this.digest, (rp.ptName || '-'), (rp.runSetKey || '')),
             path: '/model/' + this.digest + '/run/' + (rp.runSetKey || '') + '/table/' + (rp.ptName || ''),
             runOrSet: 'run',
             title: (tds !== '') ? tds : rp.ptName || '',
@@ -471,7 +478,7 @@ export default {
     // if there any edited and unsaved parameters for current model
     this.paramEditCount = this.paramViewUpdatedCount(Mdf.routeJoin([this.digest, 'p-']))
     if (this.paramEditCount <= 0) {
-      next()  // leave model page and route to next page
+      next() // leave model page and route to next page
       return
     }
     // else: redirect to dialog to confirm "discard changes?"

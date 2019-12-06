@@ -1,7 +1,8 @@
 import axios from 'axios'
 import draggable from 'vuedraggable'
 import multiSelect from 'vue-multi-select'
-import 'vue-multi-select/dist/lib/vue-multi-select.css'
+// import 'vue-multi-select/dist/lib/vue-multi-select.css'
+import 'vue-multi-select/dist/lib/vue-multi-select.min.css' // 3.15.0
 
 import { mapGetters, mapActions } from 'vuex'
 import { GET, DISPATCH } from '@/store'
@@ -11,7 +12,7 @@ import OmMcwSnackbar from '@/om-mcw/OmMcwSnackbar'
 import * as Pcvt from './pivot-cvt'
 import * as Puih from './pivot-ui-helper'
 import PvTable from './PvTable'
-import { default as ParamInfoDialog } from './ParameterInfoDialog'
+import ParamInfoDialog from './ParameterInfoDialog'
 
 const SUB_ID_DIM = 'SubId' // sub-value id dminesion name
 
@@ -91,7 +92,7 @@ export default {
     routeKey () {
       this.initView()
       this.doRefreshDataPage()
-      this.$emit('tab-new-route', 'parameter', {digest: this.digest, runOrSet: this.runOrSet, runSetKey: this.nameDigest, ptName: this.paramName})
+      this.$emit('tab-new-route', 'parameter', { digest: this.digest, runOrSet: this.runOrSet, runSetKey: this.nameDigest, ptName: this.paramName })
       this.$emit('edit-updated', this.edt.isUpdated, this.routeKey)
     },
     isEditUpdated () {
@@ -148,7 +149,14 @@ export default {
       this.setDefaultPageView()
       this.doRefreshDataPage()
     },
-    // pivot table view updated
+    // update workset read-only status: handler for model page event
+    refreshWsEditStatus (key) {
+      if (!!key && key === this.nameDigest) {
+        const wsSrc = this.isFromWs ? this.worksetTextByName(this.nameDigest) : Mdf.emptyWorksetText()
+        this.edt.isEnabled = this.isFromWs && Mdf.isNotEmptyWorksetText(wsSrc) && !wsSrc.IsReadonly
+      }
+    },
+    // pivot table view updated: changes item keys layout
     onPvKeyPos (kp) {
       this.pvKeyPos = kp
     },
@@ -198,7 +206,7 @@ export default {
 
     // show message, ex: "invalid value entered"
     onPvMessage (msg) {
-      this.$refs.paramSnackbarMsg.doOpen({labelText: msg})
+      this.$refs.paramSnackbarMsg.doOpen({ labelText: msg })
     },
     //
     // end of editor methods
@@ -354,7 +362,7 @@ export default {
       //  if parameter type is one of built-in then process and format value as float, int, boolen or string
       //  else parameter type is enum-based: process and format value as int enum id
       this.pvc.processValue = Pcvt.asIsPval
-      this.pvc.formatter = Pcvt.formatDefault({isNullable: this.isNullable})
+      this.pvc.formatter = Pcvt.formatDefault({ isNullable: this.isNullable })
       this.pvc.cellClass = 'pv-cell-right' // numeric cell value style by default
       this.ctrl.formatOpts = void 0
       this.edt.kind = Pcvt.EDIT_NUMBER
@@ -362,11 +370,11 @@ export default {
       if (Mdf.isBuiltIn(this.paramType.Type)) {
         if (Mdf.isFloat(this.paramType.Type)) {
           this.pvc.processValue = Pcvt.asFloatPval
-          this.pvc.formatter = Pcvt.formatFloat({isNullable: this.isNullable, nDecimal: -1, groupSep: ','}) // decimal: -1 is to show source float value
+          this.pvc.formatter = Pcvt.formatFloat({ isNullable: this.isNullable, nDecimal: -1, groupSep: ',' }) // decimal: -1 is to show source float value
         }
         if (Mdf.isInt(this.paramType.Type)) {
           this.pvc.processValue = Pcvt.asIntPval
-          this.pvc.formatter = Pcvt.formatInt({isNullable: this.isNullable, groupSep: ','})
+          this.pvc.formatter = Pcvt.formatInt({ isNullable: this.isNullable, groupSep: ',' })
         }
         if (Mdf.isBool(this.paramType.Type)) {
           this.pvc.processValue = Pcvt.asBoolPval
@@ -384,13 +392,13 @@ export default {
         let valEnums = Array(t.TypeEnumTxt.length)
         for (let j = 0; j < t.TypeEnumTxt.length; j++) {
           let eId = t.TypeEnumTxt[j].Enum.EnumId
-          valEnums[j] =  {
+          valEnums[j] = {
             value: eId,
             text: Mdf.enumDescrOrCodeById(t, eId) || t.TypeEnumTxt[j].Enum.Name || eId.toString()
           }
         }
         this.pvc.processValue = Pcvt.asIntPval
-        this.pvc.formatter = Pcvt.formatEnum({enums: valEnums})
+        this.pvc.formatter = Pcvt.formatEnum({ enums: valEnums })
         this.pvc.cellClass = 'pv-cell-left'
         this.edt.kind = Pcvt.EDIT_ENUM
       }
@@ -418,7 +426,7 @@ export default {
         for (const p of pvSrc) {
           let f = this.dimProp.find((d) => d.name === p.name)
           if (!f) continue
-          
+
           f.selection = []
           for (const v of p.values) {
             let e = f.enums.find((fe) => fe.value === v)
@@ -554,7 +562,7 @@ export default {
       // prepare parameter data for save, exit with error if no changes found
       let pv = Puih.makePageForSave(
         this.dimProp, this.pvKeyPos, this.paramSize.rank, SUB_ID_DIM, this.isNullable, this.edt.updated
-        )
+      )
       if (!Mdf.lengthOf(pv)) {
         this.msg = 'No parameter changes, nothing to save.'
         console.log('No parameter changes, nothing to save.')
@@ -600,7 +608,7 @@ export default {
   mounted () {
     this.initView()
     this.doRefreshDataPage()
-    this.$emit('tab-mounted', 'parameter', {digest: this.digest, runOrSet: this.runOrSet, runSetKey: this.nameDigest, ptName: this.paramName})
+    this.$emit('tab-mounted', 'parameter', { digest: this.digest, runOrSet: this.runOrSet, runSetKey: this.nameDigest, ptName: this.paramName })
     this.$nextTick(() => {
       this.$emit('edit-updated', this.edt.isUpdated, this.routeKey)
     })

@@ -57,7 +57,7 @@
         :model-digest="digest"
         :new-run-stamp="newRun.state.RunStamp"
         :start="newRun.logStart"
-        count="200"
+        :count="200"
         @done="doneNewRunProgress"
         @wait="()=>{}">
       </new-run-progress>
@@ -93,8 +93,8 @@ export default {
   components: { NewRunInit, NewRunProgress, OmMcwButton },
 
   props: {
-    digest: '',
-    nameDigest: ''
+    digest: { type: String, default: '' },
+    nameDigest: { type: String, default: '' }
   },
 
   data () {
@@ -213,7 +213,7 @@ export default {
     this.initView()
     this.$emit('tab-mounted',
       'run-model',
-      {digest: this.digest, runOrSet: 'set', runSetKey: this.nameDigest})
+      { digest: this.digest, runOrSet: 'set', runSetKey: this.nameDigest })
   }
 }
 </script>

@@ -1,10 +1,11 @@
+/* eslint-disable semi */
 import React from 'react';
 import PivotTableUI from 'react-pivottable/PivotTableUI';
 import TableRenderers from 'react-pivottable/TableRenderers';
 import Plotly from 'plotly.js-basic-dist';
 import createPlotlyRenderers from 'react-pivottable/PlotlyRenderers';
 import createPlotlyComponent from 'react-plotly.js/factory';
-import {sortAs, numberFormat, aggregatorTemplates} from 'react-pivottable/Utilities';
+import { sortAs, /* numberFormat, */ aggregatorTemplates } from 'react-pivottable/Utilities';
 // import 'react-pivottable/pivottable.css';
 import './om-pivottable.css';
 
@@ -13,15 +14,15 @@ const Plot = createPlotlyComponent(Plotly);
 const PlotlyRenderers = createPlotlyRenderers(Plot);
 
 export default class PivotReact extends React.Component {
-  constructor(props) {
+  constructor (props) {
     super(props);
-    this.state = {pivotState: Object.assign(
-      {...props.pvtState}, 
-      {showUI: true, nDecimals: (!isNaN(props.pvtState.nDecimals) ? props.pvtState.nDecimals : 2), isAllDecimals: !!props.pvtState.isAllDecimals}
-    )};
+    this.state = { pivotState: Object.assign(
+      { ...props.pvtState },
+      { showUI: true, nDecimals: (!isNaN(props.pvtState.nDecimals) ? props.pvtState.nDecimals : 2), isAllDecimals: !!props.pvtState.isAllDecimals }
+    ) };
   }
 
-  componentWillReceiveProps(nextProps) {
+  componentWillReceiveProps (nextProps) {
     let isToggleUI = !!nextProps.pvtState.isToggleUI;
     let isDecsUpdate = !!nextProps.pvtState.isDecimalsUpdate;
     let nDecs = !isNaN(nextProps.pvtState.nDecimals) ? nextProps.pvtState.nDecimals : 2;
@@ -30,33 +31,33 @@ export default class PivotReact extends React.Component {
     let pvs = {};
     if (!isToggleUI && !isDecsUpdate) {
       pvs = Object.assign(
-        {...nextProps.pvtState}, 
-        {showUI: this.state.pivotState.showUI}
+        { ...nextProps.pvtState },
+        { showUI: this.state.pivotState.showUI }
       );
     } else {
       pvs = Object.assign(
-        {...this.state.pivotState}, 
-        (isToggleUI ? {showUI: !!nextProps.pvtState.isShowUI} : {}),
-        (isDecsUpdate ? {nDecimals: nDecs, isAllDecimals: isAllDecs} : {})
+        { ...this.state.pivotState },
+        (isToggleUI ? { showUI: !!nextProps.pvtState.isShowUI } : {}),
+        (isDecsUpdate ? { nDecimals: nDecs, isAllDecimals: isAllDecs } : {})
       );
     }
 
-    this.setState({pivotState: pvs});
+    this.setState({ pivotState: pvs });
   }
 
-  render() {
-    // set chart options and fix react pivottable: 
+  render () {
+    // set chart options and fix react pivottable:
     //  height = window.innerHeight / 1.4 - 50
     //  width = window.innerWidth / 1.5
     let isUI = !!this.state.pivotState.showUI
     let ph = isUI ? (window.innerHeight - 360) : (window.innerHeight - 240)
     let pw = isUI ? (window.innerWidth - 320) : (window.innerWidth - 60)
     let pvs = Object.assign(
-      {...this.state.pivotState},
-        {plotlyOptions: 
-          {height: (ph >= 480 ? ph : 480), 
-            width: (pw >= 640 ? pw : 640),
-            font: {family: 'Roboto, "Open Sans", verdana, arial, sans-serif'}}
+      { ...this.state.pivotState },
+      { plotlyOptions:
+        { height: (ph >= 480 ? ph : 480),
+          width: (pw >= 640 ? pw : 640),
+          font: { family: 'Roboto, "Open Sans", verdana, arial, sans-serif' } }
       });
 
     // show / hide attributes dropdown controls: rows, columns, others, values
@@ -91,7 +92,7 @@ export default class PivotReact extends React.Component {
     };
 
     // modified version of numberFormat() from react-pivottable
-    const fixedFmt = function(opts_in) {
+    const fixedFmt = function (optsIn) {
       const defaults = {
         digitsAfterDecimal: 2,
         scaler: 1,
@@ -101,9 +102,9 @@ export default class PivotReact extends React.Component {
         suffix: ''
       };
 
-      const opts = Object.assign({}, defaults, opts_in);
+      const opts = Object.assign({}, defaults, optsIn);
 
-      return function(x) {
+      return function (x) {
         if (isNaN(x) || !isFinite(x)) {
           return '';
         }
@@ -117,22 +118,22 @@ export default class PivotReact extends React.Component {
     };
 
     // transparent formatter: return source numeric values as is and empty '' string if NaN or infinity
-    const sourceFmt = function() {
-      return function(val) {
+    const sourceFmt = function () {
+      return function (val) {
         return (val !== void 0 && val !== null && !isNaN(val) && isFinite(val)) ? val : '';
       }
     };
-  
-    // value formatter: fixed decimals or transparent formatter
-    const valFmt = this.state.pivotState.isAllDecimals ?
-      sourceFmt() :
-      fixedFmt({digitsAfterDecimal: this.state.pivotState.nDecimals, thousandsSep: ','});
 
-    const fmtInt = fixedFmt({digitsAfterDecimal: 0});
+    // value formatter: fixed decimals or transparent formatter
+    const valFmt = this.state.pivotState.isAllDecimals
+      ? sourceFmt()
+      : fixedFmt({ digitsAfterDecimal: this.state.pivotState.nDecimals, thousandsSep: ',' });
+
+    const fmtInt = fixedFmt({ digitsAfterDecimal: 0 });
     const fmtPct = fixedFmt({
       digitsAfterDecimal: 1,
       scaler: 100,
-      suffix: '%',
+      suffix: '%'
     });
 
     // copy of aggregators from react-pivottable using modified value formatters
@@ -156,7 +157,7 @@ export default class PivotReact extends React.Component {
       'Sum as Fraction of Columns': tpl.fractionOf(tpl.sum(), 'col', fmtPct),
       'Count as Fraction of Total': tpl.fractionOf(tpl.count(), 'total', fmtPct),
       'Count as Fraction of Rows': tpl.fractionOf(tpl.count(), 'row', fmtPct),
-      'Count as Fraction of Columns': tpl.fractionOf(tpl.count(), 'col', fmtPct),
+      'Count as Fraction of Columns': tpl.fractionOf(tpl.count(), 'col', fmtPct)
     }))(aggregatorTemplates);
 
     // final output
@@ -166,9 +167,9 @@ export default class PivotReact extends React.Component {
         {...pvs}
         aggregators={aggrs}
         sorters={srt}
-        onChange={s => this.setState({pivotState: s})}
-        unusedOrientationCutoff={Infinity}
-      />
+        onChange={s => this.setState({ pivotState: s })}
+        unusedOrientationCutoff={Infinity}/>
     );
   }
 }
+/* eslint-enable no-multi-semi */

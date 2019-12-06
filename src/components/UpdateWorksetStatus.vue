@@ -14,10 +14,10 @@ import { GET, DISPATCH } from '@/store'
 
 export default {
   props: {
-    modelDigest: '',
-    worksetName: '',
-    enableEdit: false,
-    saveWsStatusTickle: false
+    modelDigest: { type: String, default: '' },
+    worksetName: { type: String, default: '' },
+    enableEdit: { type: Boolean, defaut: false },
+    saveWsStatusTickle: { type: Boolean, defaut: false }
   },
 
   data () {

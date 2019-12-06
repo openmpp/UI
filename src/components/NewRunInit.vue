@@ -15,10 +15,10 @@ import * as Mdf from '@/modelCommon'
 
 export default {
   props: {
-    modelDigest: '',
-    newRunName: '',
-    worksetName: '',
-    subCount: 0
+    modelDigest: { type: String, default: '' },
+    newRunName: { type: String, default: '' },
+    worksetName: { type: String, default: '' },
+    subCount: { type: Number, default: 0 }
   },
 
   data () {

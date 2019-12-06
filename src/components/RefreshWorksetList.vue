@@ -14,9 +14,9 @@ import { GET, DISPATCH } from '@/store'
 
 export default {
   props: {
-    digest: '',
-    refreshTickle: false,
-    refreshWsListTickle: false
+    digest: { type: String, default: '' },
+    refreshTickle: { type: Boolean, defaut: false },
+    refreshWsListTickle: { type: Boolean, defaut: false }
   },
 
   data () {

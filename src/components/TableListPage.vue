@@ -45,8 +45,8 @@ export default {
   components: { TableInfoDialog },
 
   props: {
-    digest: '',
-    nameDigest: ''
+    digest: { type: String, default: '' },
+    nameDigest: { type: String, default: '' }
   },
 
   data () {
@@ -82,7 +82,7 @@ export default {
   },
 
   mounted () {
-    this.$emit('tab-mounted', 'table-list', {digest: this.digest, runOrSet: 'run', runSetKey: this.nameDigest})
+    this.$emit('tab-mounted', 'table-list', { digest: this.digest, runOrSet: 'run', runSetKey: this.nameDigest })
   }
 }
 </script>

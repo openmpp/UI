@@ -25,10 +25,10 @@
               <span v-if="t.runOrSet === 'set' && t.updated" class="tab-icon material-icons">save</span>
             </template>
             <span>{{t.title}}</span>
-            <span v-if="t.kind === 'run-list'">{{runTextCount}}</span>
-            <span v-if="t.kind === 'set-list'">{{worksetTextCount}}</span>
-            <span v-if="t.kind === 'parameter-run-list' || t.kind === 'parameter-set-list'">{{modelParamCount}}</span>
-            <span v-if="t.kind === 'table-list'">{{modelTableCount}}</span>
+            <span v-if="t.kind === 'run-list'">: {{runTextCount}}</span>
+            <span v-if="t.kind === 'set-list'">: {{worksetTextCount}}</span>
+            <span v-if="t.kind === 'parameter-run-list' || t.kind === 'parameter-set-list'">: {{modelParamCount}}</span>
+            <span v-if="t.kind === 'table-list'">: {{modelTableCount}}</span>
           </router-link>
         <button
           v-if="!t.updated"
@@ -97,8 +97,7 @@
         <span v-if="isNotEmptyHdr">
           <span v-if="isRunSelected && !isSuccessTheRun" class="cell-status medium-wt">{{statusOfTheRun}}</span>
           <span v-if="isRunSelected" class="mono">{{lastTimeOfHdr}}&nbsp;</span>
-          <span class="medium-wt">{{nameOfHdr}}</span>
-          <span>{{ descrOfHdr }}</span>
+          <span><span class="medium-wt">{{nameOfHdr}}</span> {{descrOfHdr}}</span>
         </span>
         <span v-else>
           <span class="medium-wt">{{emptyHdrMsg}}</span>
@@ -220,7 +219,7 @@
     align-items: center;
     margin-right: 1px;
     min-height: 2rem;
-    border-top-right-radius: 0.5rem;
+    border-top-right-radius: 0.75rem;
   }
   .tab-item-active {
     @extend .mdc-theme--primary-bg;
@@ -251,6 +250,7 @@
   .tab-icon {
     vertical-align: text-bottom;
     padding-left: 0.125rem;
+    padding-right: 0.125rem;
     font-size: 1.25rem;
     @extend .mdc-theme--on-primary;
   }
@@ -282,7 +282,7 @@
   /* cell material icon: a link or empty (non-link) */
   .cell-icon {
     vertical-align: middle;
-    margin: 0;
+    margin-right: 0.25rem;
     padding-left: 0;
     padding-right: 0;
     -webkit-user-select: none;

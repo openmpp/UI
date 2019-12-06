@@ -49,15 +49,15 @@
 import { mapGetters } from 'vuex'
 import { GET } from '@/store'
 import * as Mdf from '@/modelCommon'
-import { default as ParamInfoDialog } from './ParameterInfoDialog'
+import ParamInfoDialog from './ParameterInfoDialog'
 
 export default {
   components: { ParamInfoDialog },
 
   props: {
-    digest: '',
-    runOrSet: '',
-    nameDigest: ''
+    digest: { type: String, default: '' },
+    runOrSet: { type: String, default: '' },
+    nameDigest: { type: String, default: '' }
   },
 
   data () {
@@ -69,7 +69,7 @@ export default {
     routeKey () {
       this.$emit('tab-new-route',
         this.runOrSet === 'run' ? 'parameter-run-list' : 'parameter-set-list',
-        {digest: this.digest, runOrSet: this.runOrSet, runSetKey: this.nameDigest, ptName: this.paramName})
+        { digest: this.digest, runOrSet: this.runOrSet, runSetKey: this.nameDigest, ptName: this.paramName })
     }
   },
   computed: {
@@ -106,7 +106,7 @@ export default {
   mounted () {
     this.$emit('tab-mounted',
       this.runOrSet === 'run' ? 'parameter-run-list' : 'parameter-set-list',
-      {digest: this.digest, runOrSet: this.runOrSet, runSetKey: this.nameDigest})
+      { digest: this.digest, runOrSet: this.runOrSet, runSetKey: this.nameDigest })
   }
 }
 </script>

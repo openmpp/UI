@@ -15,6 +15,7 @@ export default {
     return {
       loadDone: false,
       loadWait: false,
+      publicPath: (process.env.BASE_URL || '/'),
       msg: ''
     }
   },
@@ -29,7 +30,7 @@ export default {
       this.loadWait = true
       this.msg = 'Loading...'
       try {
-        const response = await axios.get('/static/LICENSE.txt')
+        const response = await axios.get(this.publicPath + 'LICENSE.txt')
         this.msg = response.data
         this.loadDone = true
       } catch (e) {

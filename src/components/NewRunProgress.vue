@@ -22,10 +22,10 @@ const PROGRESS_UPDATE_TIME = 1000 // msec, run progress update time
 
 export default {
   props: {
-    modelDigest: '',
-    newRunStamp: '',
-    start: 0,
-    count: 0
+    modelDigest: { type: String, default: '' },
+    newRunStamp: { type: String, default: '' },
+    start: { type: Number, default: 0 },
+    count: { type: Number, default: 0 }
   },
 
   data () {
@@ -121,7 +121,7 @@ export default {
   /* cell material icon: a link or empty (non-link) */
   .cell-icon {
     vertical-align: middle;
-    margin: 0;
+    margin-right: 0.25rem;
     padding-left: 0;
     padding-right: 0;
     -webkit-user-select: none;

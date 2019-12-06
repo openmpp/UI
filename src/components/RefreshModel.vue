@@ -15,8 +15,8 @@ import * as Mdf from '@/modelCommon'
 
 export default {
   props: {
-    digest: '',
-    refreshTickle: false
+    digest: { type: String, default: '' },
+    refreshTickle: { type: Boolean, defaut: false }
   },
 
   data () {

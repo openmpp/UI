@@ -9,19 +9,20 @@
       @click="showParamInfo()"
       class="cell-icon-link material-icons" :alt="paramName + ' info'" :title="paramName + ' info'">description</span>
 
-    <template v-if="edt.isEnabled">
-      <span v-if="!edt.isEdit"
-        @click="doEditToogle()"
-        class="cell-icon-link material-icons" :alt="'Edit ' + paramName" :title="'Edit ' + paramName">mode_edit</span>
-      <span v-else
-        @click="doEditToogle()"
-        class="cell-icon-link material-icons" :alt="'Discard changes of ' + paramName" :title="'Discard changes of ' + paramName">cancel</span>
+    <template v-if="isFromWs">
+      <template v-if="edt.isEnabled">
+        <span v-if="!edt.isEdit"
+          @click="doEditToogle()"
+          class="cell-icon-link material-icons" :alt="'Edit ' + paramName" :title="'Edit ' + paramName">mode_edit</span>
+        <span v-else
+          @click="doEditToogle()"
+          class="cell-icon-link material-icons" :alt="'Discard changes of ' + paramName" :title="'Discard changes of ' + paramName">cancel</span>
 
       <span v-if="edt.isUpdated"
         @click="doEditSave()"
         class="cell-icon-link material-icons" :alt="'Save ' + paramName" :title="'Save ' + paramName">save</span>
       <span v-else
-        class="cell-icon-empty material-icons" title="Save" alt="Save">save</span>
+        class="cell-icon-empty material-icons" alt="Save" title="Save">save</span>
 
       <span v-if="edt.lastHistory > 0"
         @click="onUndo()"
@@ -34,6 +35,13 @@
         class="cell-icon-link material-icons" alt="Redo: Ctrl+Y" title="Redo: Ctrl+Y">redo</span>
       <span v-else
         class="cell-icon-empty material-icons" alt="Redo: Ctrl+Y" title="Redo: Ctrl+Y">redo</span>
+      </template>
+      <template v-else>
+        <span class="cell-icon-empty material-icons" alt="" title="Edit">mode_edit</span>
+        <span class="cell-icon-empty material-icons" alt="Save" title="Save">save</span>
+        <span class="cell-icon-empty material-icons" alt="Undo: Ctrl+Z" title="Undo: Ctrl+Z">undo</span>
+        <span class="cell-icon-empty material-icons" alt="Redo: Ctrl+Y" title="Redo: Ctrl+Y">redo</span>
+      </template>
     </template>
 
     <span
@@ -245,7 +253,7 @@
 /* cell material icon: a link or empty (non-link) */
 .cell-icon {
   vertical-align: middle;
-  margin: 0;
+  margin-right: 0.25rem;
   padding-left: 0;
   padding-right: 0;
   -webkit-user-select: none;
@@ -329,7 +337,7 @@
   // pan_tool -> padding: 0.25rem 0.25rem 0.5rem 0.0625rem;
   // drag_indicator -> padding: 0.375rem 0.25rem 0.375rem 0.25rem;
   padding: 0.25rem 0.25rem 0.5rem 1px;
-  vertical-align: middle;
+  // vertical-align: middle;
   @extend .mdc-theme--on-primary;
   @extend .mdc-theme--primary-bg;
 }

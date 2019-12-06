@@ -47,7 +47,7 @@ export default {
   components: { WorksetInfoDialog },
 
   props: {
-    digest: ''
+    digest: { type: String, default: '' }
   },
 
   data () {
@@ -75,7 +75,7 @@ export default {
       if ((name || '') !== '') this.$emit('workset-select', name)
     },
 
-    // update selected item: handle for workset text loaded
+    // update selected item: handler for workset text loaded
     refreshItem (name) {
       this.nameSelected = name || ''
       this.updateCount = 2 - (this.updateCount + 1)
@@ -88,7 +88,7 @@ export default {
   },
 
   mounted () {
-    this.$emit('tab-mounted', 'set-list', {digest: this.digest})
+    this.$emit('tab-mounted', 'set-list', { digest: this.digest })
   }
 }
 </script>

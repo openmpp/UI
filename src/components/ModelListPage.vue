@@ -56,7 +56,7 @@ import OmMcwDialog from '@/om-mcw/OmMcwDialog'
 
 export default {
   props: {
-    refreshTickle: false
+    refreshTickle: { type: Boolean, defaut: false }
   },
 
   data () {
