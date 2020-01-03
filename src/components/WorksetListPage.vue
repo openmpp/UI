@@ -10,8 +10,8 @@
         <span
           @click="showWsInfo(w)"
           class="om-note-link material-icons mdc-list-item__graphic"
-          :title="w.Name + ' notes'"
-          :alt="w.Name + ' notes'">description</span>
+          :title="'About ' + w.Name"
+          :alt="'About ' + w.Name">description</span>
         <span
           @click="doWsClick(w.Name)"
           class="link-next"

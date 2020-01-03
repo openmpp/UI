@@ -8,6 +8,13 @@ export const outTableCount = (md) => {
   return isTableTextList(md) ? md.TableTxt.length : 0
 }
 
+// return array length of model has output tables text list
+export const legthOfTableTextList = (md) => {
+  if (!Mdl.isModel(md)) return 0
+  if (!md.hasOwnProperty('TableTxt')) return 0
+  return Hlpr.lengthOf(md.TableTxt)
+}
+
 // is model has output table text list and each element is Table
 export const isTableTextList = (md) => {
   if (!Mdl.isModel(md)) return false
@@ -42,6 +49,18 @@ export const emptyTableText = () => {
     ExprDescr: '',
     ExprNote: ''
   }
+}
+
+// find output TableTxt by id
+export const tableTextById = (md, nId) => {
+  if (!Mdl.isModel(md) || nId < 0) { // model empty or table id invalid: return empty result
+    return emptyTableText()
+  }
+  for (let k = 0; k < md.TableTxt.length; k++) {
+    if (!isTable(md.TableTxt[k].Table)) continue
+    if (md.TableTxt[k].Table.TableId === nId) return md.TableTxt[k]
+  }
+  return emptyTableText() // not found
 }
 
 // find output TableTxt by name

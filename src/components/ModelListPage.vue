@@ -11,8 +11,8 @@
           <span
             @click="showModelNote(m)"
             class="om-note-link mdc-list-item__graphic material-icons"
-            :title="m.Model.Name + ' notes'"
-            :alt="m.Model.Name + ' notes'">description</span>
+            :title="'About ' + m.Model.Name"
+            :alt="'About ' + m.Model.Name">description</span>
           <router-link
             :to="'/model/' + m.Model.Digest"
             class="ahref-model"

@@ -9,6 +9,13 @@ export const paramCount = (md) => {
   return isParamTextList(md) ? md.ParamTxt.length : 0
 }
 
+// return array length of model has parameters text list
+export const legthOfParamTextList = (md) => {
+  if (!Mdl.isModel(md)) return 0
+  if (!md.hasOwnProperty('ParamTxt')) return 0
+  return Hlpr.lengthOf(md.ParamTxt)
+}
+
 // is model has parameter text list and each element is Param
 export const isParamTextList = (md) => {
   if (!Mdl.isModel(md)) return false
@@ -41,6 +48,18 @@ export const emptyParamText = () => {
       Note: ''
     }
   }
+}
+
+// find ParamTxt by parameter id
+export const paramTextById = (md, nId) => {
+  if (!Mdl.isModel(md) || nId < 0) { // model empty or parameter id invalid: return empty result
+    return emptyParamText()
+  }
+  for (let k = 0; k < md.ParamTxt.length; k++) {
+    if (!isParam(md.ParamTxt[k].Param)) continue
+    if (md.ParamTxt[k].Param.ParamId === nId) return md.ParamTxt[k]
+  }
+  return emptyParamText() // not found
 }
 
 // find ParamTxt by name

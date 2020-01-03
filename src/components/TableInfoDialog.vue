@@ -1,7 +1,7 @@
 <!-- output table info dialog -->
 <template>
 
-<om-mcw-dialog :id="id" ref="noteDlg" :scrollable="true" acceptText="OK">
+<om-mcw-dialog :id="id" ref="tableNoteDlg" :scrollable="true" acceptText="OK">
   <template #header><span>{{tableDescr}}</span></template>
   <div v-if="(tableNote !== '')">{{tableNote}}</div>
   <div v-if="(exprDescr !== '' || exprNote || '' !== '')">
@@ -97,31 +97,8 @@ export default {
         this.isSubValues = (this.subCount || 0) > 1
       }
 
-      this.$refs.noteDlg.open() // show table info dialog
+      this.$refs.tableNoteDlg.open() // show table info dialog
     }
-    /*
-    showTableInfo (name, nSub) {
-      if ((name || '') === '') {
-        console.log('Empty output table name')
-        return
-      }
-      this.tableName = name
-      this.subCount = nSub || 0
-
-      // find table and table size and table text info
-      let txt = Mdf.tableTextByName(this.theModel, this.tableName)
-      this.tableSize = Mdf.tableSizeByName(this.theModel, this.tableName)
-      this.isSubValues = (this.subCount || 0) > 1
-
-      this.tableDescr = txt.TableDescr || ''
-      this.tableNote = txt.TableNote || ''
-      this.exprDescr = txt.ExprDescr || ''
-      this.exprNote = txt.ExprNote || ''
-      this.tableDigest = txt.Table.Digest || ''
-
-      this.$refs.noteDlg.open() // show table info dialog
-    }
-  */
   }
 }
 </script>

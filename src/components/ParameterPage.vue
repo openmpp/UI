@@ -7,93 +7,93 @@
 
     <span
       @click="showParamInfo()"
-      class="cell-icon-link material-icons" :alt="paramName + ' info'" :title="paramName + ' info'">description</span>
+      class="om-cell-icon-link material-icons" :alt="'About ' + paramName" :title="'About ' + paramName">description</span>
 
     <template v-if="isFromWs">
       <template v-if="edt.isEnabled">
         <span v-if="!edt.isEdit"
           @click="doEditToogle()"
-          class="cell-icon-link material-icons" :alt="'Edit ' + paramName" :title="'Edit ' + paramName">mode_edit</span>
+          class="om-cell-icon-link material-icons" :alt="'Edit ' + paramName" :title="'Edit ' + paramName">mode_edit</span>
         <span v-else
           @click="doEditToogle()"
-          class="cell-icon-link material-icons" :alt="'Discard changes of ' + paramName" :title="'Discard changes of ' + paramName">cancel</span>
+          class="om-cell-icon-link material-icons" :alt="'Discard changes of ' + paramName" :title="'Discard changes of ' + paramName">cancel</span>
 
       <span v-if="edt.isUpdated"
         @click="doEditSave()"
-        class="cell-icon-link material-icons" :alt="'Save ' + paramName" :title="'Save ' + paramName">save</span>
+        class="om-cell-icon-link material-icons" :alt="'Save ' + paramName" :title="'Save ' + paramName">save</span>
       <span v-else
-        class="cell-icon-empty material-icons" alt="Save" title="Save">save</span>
+        class="om-cell-icon-empty material-icons" alt="Save" title="Save">save</span>
 
       <span v-if="edt.lastHistory > 0"
         @click="onUndo()"
-        class="cell-icon-link material-icons" alt="Undo: Ctrl+Z" title="Undo: Ctrl+Z">undo</span>
+        class="om-cell-icon-link material-icons" alt="Undo: Ctrl+Z" title="Undo: Ctrl+Z">undo</span>
       <span v-else
-        class="cell-icon-empty material-icons" alt="Undo: Ctrl+Z" title="Undo: Ctrl+Z">undo</span>
+        class="om-cell-icon-empty material-icons" alt="Undo: Ctrl+Z" title="Undo: Ctrl+Z">undo</span>
 
       <span v-if="edt.lastHistory < edt.history.length"
         @click="onRedo()"
-        class="cell-icon-link material-icons" alt="Redo: Ctrl+Y" title="Redo: Ctrl+Y">redo</span>
+        class="om-cell-icon-link material-icons" alt="Redo: Ctrl+Y" title="Redo: Ctrl+Y">redo</span>
       <span v-else
-        class="cell-icon-empty material-icons" alt="Redo: Ctrl+Y" title="Redo: Ctrl+Y">redo</span>
+        class="om-cell-icon-empty material-icons" alt="Redo: Ctrl+Y" title="Redo: Ctrl+Y">redo</span>
       </template>
       <template v-else>
-        <span class="cell-icon-empty material-icons" alt="" title="Edit">mode_edit</span>
-        <span class="cell-icon-empty material-icons" alt="Save" title="Save">save</span>
-        <span class="cell-icon-empty material-icons" alt="Undo: Ctrl+Z" title="Undo: Ctrl+Z">undo</span>
-        <span class="cell-icon-empty material-icons" alt="Redo: Ctrl+Y" title="Redo: Ctrl+Y">redo</span>
+        <span class="om-cell-icon-empty material-icons" alt="" title="Edit">mode_edit</span>
+        <span class="om-cell-icon-empty material-icons" alt="Save" title="Save">save</span>
+        <span class="om-cell-icon-empty material-icons" alt="Undo: Ctrl+Z" title="Undo: Ctrl+Z">undo</span>
+        <span class="om-cell-icon-empty material-icons" alt="Redo: Ctrl+Y" title="Redo: Ctrl+Y">redo</span>
       </template>
     </template>
 
     <span
       @click="toggleRowColControls()"
-      class="cell-icon-link material-icons" title="Show / hide pivot controls" alt="Show / hide pivot controls">tune</span>
+      class="om-cell-icon-link material-icons" title="Show / hide pivot controls" alt="Show / hide pivot controls">tune</span>
 
     <template v-if="ctrl.isRowColModeToggle">
       <span v-if="pvc.rowColMode === 2"
         @click="toggleRowColMode()"
-        class="cell-icon-link material-icons" title="Hide rows and columns name" alt="Hide rows and columns name">view_list</span>
+        class="om-cell-icon-link material-icons" title="Hide rows and columns name" alt="Hide rows and columns name">view_list</span>
       <span v-else-if="pvc.rowColMode === 1"
         @click="toggleRowColMode()"
-        class="cell-icon-link material-icons" title="Table view: always show rows and columns item" alt="Table view: always show rows and columns item">view_module</span>
+        class="om-cell-icon-link material-icons" title="Table view: always show rows and columns item" alt="Table view: always show rows and columns item">view_module</span>
       <span v-else
         @click="toggleRowColMode()"
-        class="cell-icon-link material-icons" title="Switch to default pivot view" alt="Switch to default pivot view">view_quilt</span>
+        class="om-cell-icon-link material-icons" title="Switch to default pivot view" alt="Switch to default pivot view">view_quilt</span>
     </template>
     <template v-else>
       <span
-        class="cell-icon-empty material-icons" title="Switch to default pivot view" alt="Switch to default pivot view">view_quilt</span>
+        class="om-cell-icon-empty material-icons" title="Switch to default pivot view" alt="Switch to default pivot view">view_quilt</span>
     </template>
 
     <template v-if="ctrl.formatOpts">
       <template v-if="ctrl.formatOpts.isDoMore">
         <span v-if="ctrl.formatOpts.isSrcShow"
           @click="showMoreFormat()"
-          class="cell-icon-link material-icons" title="Show source value" alt="Show source value">loupe</span>
+          class="om-cell-icon-link material-icons" title="Show source value" alt="Show source value">loupe</span>
         <span v-else
           @click="showMoreFormat()"
-          class="cell-icon-link material-icons" title="Show more details" alt="Show more details">zoom_in</span>
+          class="om-cell-icon-link material-icons" title="Show more details" alt="Show more details">zoom_in</span>
       </template>
       <template v-else>
         <span
-          class="cell-icon-empty material-icons" title="Show more details" alt="Show more details">loupe</span>
+          class="om-cell-icon-empty material-icons" title="Show more details" alt="Show more details">loupe</span>
       </template>
 
       <span v-if="ctrl.formatOpts.isDoLess"
         @click="showLessFormat()"
-        class="cell-icon-link material-icons" title="Show less details" alt="Show less details">zoom_out</span>
+        class="om-cell-icon-link material-icons" title="Show less details" alt="Show less details">zoom_out</span>
       <span v-else
-        class="cell-icon-empty material-icons" title="Show less details" alt="Show less details">zoom_out</span>
+        class="om-cell-icon-empty material-icons" title="Show less details" alt="Show less details">zoom_out</span>
     </template>
 
     <span
       @click="copyToClipboard()"
-      class="cell-icon-link material-icons" title="Copy tab separated values: Ctrl+C" alt="Copy tab separated values: Ctrl+C">file_copy</span>
+      class="om-cell-icon-link material-icons" title="Copy tab separated values: Ctrl+C" alt="Copy tab separated values: Ctrl+C">file_copy</span>
 
     <span v-if="!edt.isEdit"
       @click="doReload()"
-      class="cell-icon-link material-icons" :title="'Reload ' + paramName" :alt="'Reload ' + paramName">settings_backup_restore</span>
+      class="om-cell-icon-link material-icons" :title="'Reload ' + paramName" :alt="'Reload ' + paramName">settings_backup_restore</span>
     <span v-else
-      class="cell-icon-empty material-icons" :title="'Reload ' + paramName" :alt="'Reload ' + paramName">settings_backup_restore</span>
+      class="om-cell-icon-empty material-icons" :title="'Reload ' + paramName" :alt="'Reload ' + paramName">settings_backup_restore</span>
 
     <span class="medium-wt">{{ paramName }}: </span>
     <span>{{ paramDescr() }}</span>
@@ -102,10 +102,10 @@
   <div v-else class="hdr-row medium-wt"> <!-- v-else of: loadDone && !saveStarted -->
     <span v-if="saveWait"
       @click="doEditSave()"
-      class="cell-icon-link material-icons" :alt="'Save ' + paramName" :title="'Save ' + paramName">save</span>
+      class="om-cell-icon-link material-icons" :alt="'Save ' + paramName" :title="'Save ' + paramName">save</span>
     <span v-if="loadWait || saveWait"
       @click="doReload()"
-      class="cell-icon-link material-icons" :title="'Discard all changes and reload ' + paramName" :alt="'Discard all changes and reload ' + paramName">settings_backup_restore</span>
+      class="om-cell-icon-link material-icons" :title="'Discard all changes and reload ' + paramName" :alt="'Discard all changes and reload ' + paramName">settings_backup_restore</span>
     <span v-if="loadWait || saveWait" class="material-icons om-mcw-spin">hourglass_empty</span>
     <span class="mdc-typography--caption">{{msg}}</span>
   </div>
@@ -208,7 +208,7 @@
     </div> <!-- pv-panel -->
   </div> <!-- pv-container -->
 
-  <param-info-dialog ref="noteDlg" id="param-note-dlg"></param-info-dialog>
+  <param-info-dialog ref="paramNoteDlg" id="param-note-dlg"></param-info-dialog>
 
   <om-mcw-dialog id="param-edit-discard-dlg" ref="paramEditDiscardDlg" @closed="onEditDiscardClosed" cancelText="No" acceptText="Yes">
     <template #header><span>{{paramName}}</span></template>
@@ -248,32 +248,6 @@
   flex: 1 1 auto;
   overflow: auto;
   margin-top: 0.5rem;
-}
-
-/* cell material icon: a link or empty (non-link) */
-.cell-icon {
-  vertical-align: middle;
-  margin-right: 0.25rem;
-  padding-left: 0;
-  padding-right: 0;
-  -webkit-user-select: none;
-  -moz-user-select: none;
-  -ms-user-select: none;
-  user-select: none;
-}
-.cell-icon-link {
-  @extend .cell-icon;
-  &:hover {
-    cursor: pointer;
-  }
-  @extend .mdc-theme--on-primary;
-  @extend .mdc-theme--primary-bg;
-}
-.cell-icon-empty {
-  @extend .cell-icon;
-  cursor: default;
-  @extend .om-theme-primary-light-bg;
-  @extend .mdc-theme--on-primary;
 }
 
 /* pivot vew controls: rows, columns, other dimensions and drag-drop area */

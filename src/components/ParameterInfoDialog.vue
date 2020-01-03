@@ -1,7 +1,7 @@
 <!-- parameter info dialog -->
 <template>
 
-<om-mcw-dialog :id="id" ref="noteDlg" :scrollable="true" acceptText="OK">
+<om-mcw-dialog :id="id" ref="paramNoteDlg" :scrollable="true" acceptText="OK">
   <template #header><span>{{paramDescr}}</span></template>
   <div v-if="(paramNote !== '')">{{paramNote}}</div>
   <div class="note-table mono">
@@ -96,7 +96,7 @@ export default {
         this.defaultSubId = paramRunSet.DefaultSubId || 0
       }
 
-      this.$refs.noteDlg.open() // show param info dialog
+      this.$refs.paramNoteDlg.open() // show param info dialog
     }
   }
 }

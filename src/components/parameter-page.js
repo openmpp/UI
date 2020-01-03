@@ -120,7 +120,7 @@ export default {
 
     // show parameter info dialog
     showParamInfo () {
-      this.$refs.noteDlg.showParamInfo(this.paramText, this.paramRunSet)
+      this.$refs.paramNoteDlg.showParamInfo(this.paramText, this.paramRunSet)
     },
     // show or hide extra controls
     toggleRowColMode () {

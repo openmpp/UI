@@ -63,7 +63,7 @@
             <span class="mdc-list-item__text">Licence</span>
           </router-link>
           <hr class="mdc-list-divider" role="separator" />
-          <a href="//www.openmpp.org/" target="_blank" class="mdc-list-item" alt="OpenM++ website" role="menuitem" tabindex="0">
+          <a href="//openmpp.org/" target="_blank" class="mdc-list-item" alt="OpenM++ website" role="menuitem" tabindex="0">
             <i class="menu-start mdc-list-item__graphic material-icons" aria-hidden="true">link</i>
             <span class="mdc-list-item__text">OpenM++ website</span>
           </a>

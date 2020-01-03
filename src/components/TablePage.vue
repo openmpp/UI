@@ -6,55 +6,55 @@
 
     <span
       @click="showTableInfo()"
-      class="cell-icon-link material-icons" :alt="tableName + ' info'" :title="tableName + ' info'">description</span>
+      class="om-cell-icon-link material-icons" :alt="'About ' + tableName" :title="'About ' + tableName">description</span>
 
     <span v-if="tv.kind!==0"
       @click="doExpressionPage()"
-      class="cell-icon-link material-icons" title="View table expressions" alt="View table expressions">functions</span>
+      class="om-cell-icon-link material-icons" title="View table expressions" alt="View table expressions">functions</span>
     <span v-else
-      class="cell-icon-empty material-icons" title="View table expressions" alt="View table expressions">functions</span>
+      class="om-cell-icon-empty material-icons" title="View table expressions" alt="View table expressions">functions</span>
 
     <span v-if="tv.kind!==1"
       @click="doAccumulatorPage()"
-      class="cell-icon-link material-icons" title="View accumulators and sub-values" alt="View accumulators and sub-values">filter_8</span>
+      class="om-cell-icon-link material-icons" title="View accumulators and sub-values" alt="View accumulators and sub-values">filter_8</span>
     <span v-else
-      class="cell-icon-empty material-icons" title="View accumulators and sub-values" alt="View accumulators and sub-values">filter_8</span>
+      class="om-cell-icon-empty material-icons" title="View accumulators and sub-values" alt="View accumulators and sub-values">filter_8</span>
 
     <span v-if="tv.kind!==2"
       @click="doAllAccumulatorPage()"
-      class="cell-icon-link material-icons" title="View all accumulators and sub-values" alt="View all accumulators and sub-values">filter_9_plus</span>
+      class="om-cell-icon-link material-icons" title="View all accumulators and sub-values" alt="View all accumulators and sub-values">filter_9_plus</span>
     <span v-else
-      class="cell-icon-empty material-icons" title="View all accumulators and sub-values" alt="View all accumulators and sub-values">filter_9_plus</span>
+      class="om-cell-icon-empty material-icons" title="View all accumulators and sub-values" alt="View all accumulators and sub-values">filter_9_plus</span>
 
     <span v-if="!pvtState.isAllDecimals"
       @click="showMoreDecimals()"
-      class="cell-icon-link material-icons"
+      class="om-cell-icon-link material-icons"
       :title="'Show more decimals, now: ' + (!pvtState.isAllDecimals ? pvtState.nDecimals : 'show all')"
       :alt="'Show more decimals, now: ' + (!pvtState.isAllDecimals ? pvtState.nDecimals : 'show all')">zoom_in</span>
     <span v-else
-      class="cell-icon-empty material-icons" title="Show more decimals" alt="Show more decimals">zoom_in</span>
+      class="om-cell-icon-empty material-icons" title="Show more decimals" alt="Show more decimals">zoom_in</span>
 
     <span v-if="pvtState.nDecimals > 0 || pvtState.isAllDecimals"
       @click="showLessDecimals()"
-      class="cell-icon-link material-icons"
+      class="om-cell-icon-link material-icons"
       :title="'Show less decimals, now: ' + (!pvtState.isAllDecimals ? pvtState.nDecimals : 'show all')"
       :alt="'Show less decimals, now: ' + (!pvtState.isAllDecimals ? pvtState.nDecimals : 'show all')">zoom_out</span>
     <span v-else
-      class="cell-icon-empty material-icons" title="Show less decimals" alt="Show less decimals">zoom_out</span>
+      class="om-cell-icon-empty material-icons" title="Show less decimals" alt="Show less decimals">zoom_out</span>
 
     <span
       @click="togglePivotControls()"
-      class="cell-icon-link material-icons" title="Show / hide pivot controls" alt="Show / hide pivot controls">tune</span>
+      class="om-cell-icon-link material-icons" title="Show / hide pivot controls" alt="Show / hide pivot controls">tune</span>
     <span
       @click="doResetView()"
-      class="cell-icon-link material-icons" title="Reset table view to default" alt="Reset table view to default">settings_backup_restore</span>
+      class="om-cell-icon-link material-icons" title="Reset table view to default" alt="Reset table view to default">settings_backup_restore</span>
 
     <span class="medium-wt">{{ tableName }}: </span>
     <span>{{ tableDescr() }}</span>
 
   </div>
   <div v-else class="hdr-row medium-wt">
-    <span class="cell-icon-link material-icons" aria-hidden="true">refresh</span>
+    <span class="om-cell-icon-link material-icons" aria-hidden="true">refresh</span>
     <span v-if="loadWait" class="material-icons om-mcw-spin">hourglass_empty</span>
     <span class="mdc-typography--caption">{{msg}}</span>
   </div>
@@ -65,7 +65,7 @@
       />
   </div>
 
-  <table-info-dialog ref="noteDlg" id="table-note-dlg"></table-info-dialog>
+  <table-info-dialog ref="tableNoteDlg" id="table-note-dlg"></table-info-dialog>
 
 </div>
 
@@ -162,7 +162,7 @@ export default {
 
     // show table info
     showTableInfo () {
-      this.$refs.noteDlg.showTableInfo(this.tableText, this.runText)
+      this.$refs.tableNoteDlg.showTableInfo(this.tableText, this.runText)
     },
 
     // local refresh button handler, table content only
@@ -671,31 +671,5 @@ export default {
     flex: 1 1 auto;
     overflow: auto;
     margin-top: 0.5rem;
-  }
-
-  /* cell material icon: a link or empty (non-link) */
-  .cell-icon {
-    vertical-align: middle;
-    margin-right: 0.25rem;
-    padding-left: 0;
-    padding-right: 0;
-    -webkit-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
-    user-select: none;
-  }
-  .cell-icon-link {
-    @extend .cell-icon;
-    &:hover {
-      cursor: pointer;
-    }
-    @extend .mdc-theme--on-primary;
-    @extend .mdc-theme--primary-bg;
-  }
-  .cell-icon-empty {
-    @extend .cell-icon;
-    cursor: default;
-    @extend .om-theme-primary-light-bg;
-    @extend .mdc-theme--on-primary;
   }
 </style>

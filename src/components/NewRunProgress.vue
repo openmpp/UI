@@ -4,7 +4,7 @@
 <span id="new-run-progress">
   <span
     @click="runLogPauseToggle()"
-    class="cell-icon-link material-icons"
+    class="om-cell-icon-link material-icons"
     :alt="!isPaused ? 'Pause' : 'Refresh'"
     :title="!isPaused ? 'Pause' : 'Refresh'">{{!isPaused ? (isFlip ? 'autorenew' : 'loop') : 'play_circle_outline'}}</span>
   <span>{{msgLoad}}</span>
@@ -117,30 +117,4 @@ export default {
   @import "@material/typography/mdc-typography";
   @import "@material/textfield/mdc-text-field";
   @import "@/om-mcw.scss";
-
-  /* cell material icon: a link or empty (non-link) */
-  .cell-icon {
-    vertical-align: middle;
-    margin-right: 0.25rem;
-    padding-left: 0;
-    padding-right: 0;
-    -webkit-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
-    user-select: none;
-  }
-  .cell-icon-link {
-    @extend .cell-icon;
-    &:hover {
-      cursor: pointer;
-    }
-    @extend .mdc-theme--on-primary;
-    @extend .mdc-theme--primary-bg;
-  }
-  .cell-icon-empty {
-    @extend .cell-icon;
-    cursor: default;
-    @extend .om-theme-primary-light-bg;
-    @extend .mdc-theme--on-primary;
-  }
 </style>

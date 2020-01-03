@@ -51,7 +51,7 @@
 
       <span v-if="isRunSelected"
         @click="showRunInfoDlg()"
-        class="cell-icon-link material-icons"
+        class="om-cell-icon-link material-icons"
         alt="Description and notes" title="Description and notes">
           <span v-if="isSuccessTheRun">description</span>
           <span v-else>error_outline</span>
@@ -61,33 +61,33 @@
 
         <span
           @click="showWsInfoDlg()"
-          class="cell-icon-link material-icons"
+          class="om-cell-icon-link material-icons"
           alt="Description and notes" title="Description and notes">description</span>
 
         <span v-if="!isWsEdit && !isRunModelTab"
           @click="onNewRunModel()"
-          class="cell-icon-link material-icons"
+          class="om-cell-icon-link material-icons"
           alt="Run the model" title="Run the model">directions_run</span>
         <span v-else
-          class="cell-icon-empty material-icons"
+          class="om-cell-icon-empty material-icons"
           alt="Run the model" title="Run the model">directions_run</span>
 
         <template v-if="!isRunModelTab">
           <span v-if="!isWsEdit"
             @click="onWsEditToggle()"
-            class="cell-icon-link material-icons"
+            class="om-cell-icon-link material-icons"
             alt="Edit input set of parameters" title="Edit input set of parameters">mode_edit</span>
           <span v-else
             @click="onWsEditToggle()"
-            class="cell-icon-link material-icons"
+            class="om-cell-icon-link material-icons"
             alt="Save input set of parameters" title="Save input set of parameters">save</span>
         </template>
         <template v-else>
           <span v-if="!isWsEdit"
-            class="cell-icon-empty material-icons"
+            class="om-cell-icon-empty material-icons"
             alt="Edit input set of parameters" title="Edit input set of parameters">mode_edit</span>
           <span v-else
-            class="cell-icon-empty material-icons"
+            class="om-cell-icon-empty material-icons"
             alt="Save input set of parameters" title="Save input set of parameters">save</span>
         </template>
 
@@ -107,7 +107,7 @@
     </span>
     <!-- !loadDone -->
     <span v-else
-      class="cell-icon-empty material-icons"
+      class="om-cell-icon-empty material-icons"
       title="Information not available" alt="Information not available" aria-hidden="true">description</span>
 
     <span class="hdr-text medium-wt">
@@ -279,31 +279,7 @@
     margin-left: 0.5rem;
   }
 
-  /* cell material icon: a link or empty (non-link) */
-  .cell-icon {
-    vertical-align: middle;
-    margin-right: 0.25rem;
-    padding-left: 0;
-    padding-right: 0;
-    -webkit-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
-    user-select: none;
-  }
-  .cell-icon-link {
-    @extend .cell-icon;
-    &:hover {
-      cursor: pointer;
-    }
-    @extend .mdc-theme--on-primary;
-    @extend .mdc-theme--primary-bg;
-  }
-  .cell-icon-empty {
-    @extend .cell-icon;
-    cursor: default;
-    @extend .mdc-theme--on-primary;
-    @extend .om-theme-primary-light-bg;
-  }
+  /* run status message */
   .cell-status {
     text-transform: uppercase;
   }

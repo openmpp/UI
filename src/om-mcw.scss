@@ -17,6 +17,11 @@ $om-theme-primary-light: #9fa8da; /*indigo-200*/ /*#a4addf;*/
 .medium-wt {
   font-weight: 500
 }
+.om-secondary-text {
+  font-size: 0.875rem;
+  color: rgba(0, 0, 0, 0.54);
+  color: var(--mdc-theme-text-secondary-on-background, rgba(0, 0, 0, 0.54));
+}
 
 /* notes: a link or empty (not a link) */
 .om-note-item {
@@ -34,6 +39,32 @@ $om-theme-primary-light: #9fa8da; /*indigo-200*/ /*#a4addf;*/
 }
 .om-note-empty {
   @extend .om-note-item;
+  cursor: default;
+  @extend .om-theme-primary-light-bg;
+  @extend .mdc-theme--on-primary;
+}
+
+/* cell material icon: a link or empty (non-link) */
+.om-cell-icon {
+  vertical-align: middle;
+  margin-right: 0.25rem;
+  padding-left: 0;
+  padding-right: 0;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+.om-cell-icon-link {
+  @extend .om-cell-icon;
+  &:hover {
+    cursor: pointer;
+  }
+  @extend .mdc-theme--on-primary;
+  @extend .mdc-theme--primary-bg;
+}
+.om-cell-icon-empty {
+  @extend .om-cell-icon;
   cursor: default;
   @extend .om-theme-primary-light-bg;
   @extend .mdc-theme--on-primary;
