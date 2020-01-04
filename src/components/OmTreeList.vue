@@ -12,18 +12,18 @@
         @click="onExpandAllToggle"
         class="top-bar-icon om-cell-icon-link material-icons"
         title="Expand All Groups"
-        alt="Expand All Groups">keyboard_arrow_down</span>
+        alt="Expand All Groups">arrow_drop_down</span>
       <span v-else
         @click="onExpandAllToggle"
         class="top-bar-icon om-cell-icon-link material-icons"
         title="Collapse All Groups"
-        alt="Collapse All Groups">keyboard_arrow_right</span>
+        alt="Collapse All Groups">arrow_right</span>
     </template>
     <template v-else>
       <span
         class="top-bar-icon om-cell-icon-empty material-icons"
         title="Expand or Collapse All Groups"
-        alt="Expand or Collapse All Groups">keyboard_arrow_right</span>
+        alt="Expand or Collapse All Groups">arrow_right</span>
     </template>
 
     <template v-if="isAnyHidden">

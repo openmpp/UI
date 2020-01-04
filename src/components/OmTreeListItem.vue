@@ -36,8 +36,8 @@ Expected array of tree items as:
       >
       <span class="tree-hdr-container">
 
-        <span v-if="isOpen" class="item-icon om-cell-icon-link material-icons" :title="'Expand ' + item.name" :alt="'Expand ' + item.name">keyboard_arrow_down</span>
-        <span v-else class="item-icon om-cell-icon-link material-icons" :title="'Collapse ' + item.name" :alt="'Collapse ' + item.name">keyboard_arrow_right</span>
+        <span v-if="isOpen" class="item-icon om-cell-icon-link material-icons" :title="'Expand ' + item.name" :alt="'Expand ' + item.name">arrow_drop_down</span>
+        <span v-else class="item-icon om-cell-icon-link material-icons" :title="'Collapse ' + item.name" :alt="'Collapse ' + item.name">arrow_right</span>
 
         <span v-if="item.isAbout && !item.isAboutEmpty"
           @click.stop="onFolderAboutClick(item.key, item.name, item.data)"
