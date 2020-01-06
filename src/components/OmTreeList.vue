@@ -10,20 +10,20 @@
     <template v-if="isAnyFolder">
       <span v-if="isExpandAll"
         @click="onExpandAllToggle"
-        class="top-bar-icon om-cell-icon-link material-icons"
+        class="top-bar-icon folder-icon-link material-icons"
         title="Expand All Groups"
-        alt="Expand All Groups">arrow_drop_down</span>
+        alt="Expand All Groups">folder_open</span>
       <span v-else
         @click="onExpandAllToggle"
-        class="top-bar-icon om-cell-icon-link material-icons"
+        class="top-bar-icon folder-icon-link material-icons"
         title="Collapse All Groups"
-        alt="Collapse All Groups">arrow_right</span>
+        alt="Collapse All Groups">folder</span>
     </template>
     <template v-else>
       <span
-        class="top-bar-icon om-cell-icon-empty material-icons"
+        class="top-bar-icon folder-icon-empty material-icons"
         title="Expand or Collapse All Groups"
-        alt="Expand or Collapse All Groups">arrow_right</span>
+        alt="Expand or Collapse All Groups">folder</span>
     </template>
 
     <template v-if="isAnyHidden">
@@ -245,4 +245,26 @@ export default {
     width: 1.5rem;
     height: 1.5rem;
   }
+  .folder-icon {
+    vertical-align: middle;
+    margin-right: 0.25rem;
+    padding-left: 0;
+    padding-right: 0;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+  }
+  .folder-icon-link {
+    @extend .folder-icon;
+    &:hover {
+      cursor: pointer;
+    }
+    color: $om-mdc-theme-primary;
+  }
+  .folder-icon-empty {
+    @extend .folder-icon;
+    cursor: default;
+    color: $om-theme-primary-light;
+}
 </style>

@@ -1,9 +1,11 @@
 /* extra omp-ui styles */
 @import "@material/theme/mdc-theme";
 
-/* primary light background */
+/* primary colors */
 $om-theme-primary-light: #9fa8da; /*indigo-200*/ /*#a4addf;*/
+$om-mdc-theme-primary: #3f51b5; /* Indigo 500 */
 
+/* primary light background */
 .om-theme-primary-light-bg {
   background-color: $om-theme-primary-light;
 }
@@ -40,8 +42,8 @@ $om-theme-primary-light: #9fa8da; /*indigo-200*/ /*#a4addf;*/
 .om-note-empty {
   @extend .om-note-item;
   cursor: default;
-  @extend .om-theme-primary-light-bg;
   @extend .mdc-theme--on-primary;
+  @extend .om-theme-primary-light-bg;
 }
 
 /* cell material icon: a link or empty (non-link) */
@@ -66,6 +68,6 @@ $om-theme-primary-light: #9fa8da; /*indigo-200*/ /*#a4addf;*/
 .om-cell-icon-empty {
   @extend .om-cell-icon;
   cursor: default;
-  @extend .om-theme-primary-light-bg;
   @extend .mdc-theme--on-primary;
+  @extend .om-theme-primary-light-bg;
 }

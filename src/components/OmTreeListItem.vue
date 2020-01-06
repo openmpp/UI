@@ -36,8 +36,8 @@ Expected array of tree items as:
       >
       <span class="tree-hdr-container">
 
-        <span v-if="isOpen" class="item-icon om-cell-icon-link material-icons" :title="'Expand ' + item.name" :alt="'Expand ' + item.name">arrow_drop_down</span>
-        <span v-else class="item-icon om-cell-icon-link material-icons" :title="'Collapse ' + item.name" :alt="'Collapse ' + item.name">arrow_right</span>
+        <span v-if="isOpen" class="item-icon folder-icon-link material-icons" :title="'Expand ' + item.name" :alt="'Expand ' + item.name">folder_open</span>
+        <span v-else class="item-icon folder-icon-link material-icons" :title="'Collapse ' + item.name" :alt="'Collapse ' + item.name">folder</span>
 
         <span v-if="item.isAbout && !item.isAboutEmpty"
           @click.stop="onFolderAboutClick(item.key, item.name, item.data)"
@@ -254,5 +254,27 @@ export default {
     align-self: center;
     width: 1.5rem;
     height: 1.5rem;
+  }
+  .folder-icon {
+    vertical-align: middle;
+    margin-right: 0.25rem;
+    padding-left: 0;
+    padding-right: 0;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+  }
+  .folder-icon-link {
+    @extend .folder-icon;
+    &:hover {
+      cursor: pointer;
+    }
+    color: $om-mdc-theme-primary;
+  }
+  .folder-icon-empty {
+    @extend .folder-icon;
+    cursor: default;
+    color: $om-theme-primary-light;
   }
 </style>
