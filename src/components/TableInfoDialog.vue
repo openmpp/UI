@@ -34,6 +34,9 @@
     <div class="note-row">
       <span class="note-cell">Digest:</span><span class="note-cell">{{tableDigest}}</span>
     </div>
+    <div v-if="importDigest" class="note-row">
+      <span class="note-cell">Import Digest:</span><span class="note-cell">{{importDigest}}</span>
+    </div>
   </div>
 </om-mcw-dialog>
 
@@ -64,6 +67,7 @@ export default {
       exprDescr: '',
       exprNote: '',
       tableDigest: '',
+      importDigest: '',
       isSubValues: false,
       tableSize: Mdf.emptyTableSize()
     }
@@ -83,6 +87,7 @@ export default {
       }
       this.tableName = tableText.Table.Name
       this.tableDigest = tableText.Table.Digest || ''
+      this.importDigest = tableText.Table.ImportDigest || ''
       this.tableDescr = tableText.TableDescr || ''
       this.tableNote = tableText.TableNote || ''
       this.exprDescr = tableText.ExprDescr || ''

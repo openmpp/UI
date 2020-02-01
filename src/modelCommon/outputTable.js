@@ -38,7 +38,8 @@ export const emptyTableText = () => {
     Table: {
       TableId: 0,
       Name: '',
-      Digest: ''
+      Digest: '',
+      ImportDigest: ''
     },
     TableDimsTxt: [],
     TableExprTxt: [],

@@ -40,7 +40,8 @@ export const emptyParamText = () => {
     Param: {
       ParamId: 0,
       Name: '',
-      Digest: ''
+      Digest: '',
+      ImportDigest: ''
     },
     DescrNote: {
       LangCode: '',

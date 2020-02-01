@@ -29,6 +29,9 @@
     <div class="note-row">
       <span class="note-cell">Digest:</span><span class="note-cell">{{paramDigest}}</span>
     </div>
+    <div v-if="importDigest" class="note-row">
+      <span class="note-cell">Import Digest:</span><span class="note-cell">{{importDigest}}</span>
+    </div>
   </div>
 </om-mcw-dialog>
 
@@ -57,6 +60,7 @@ export default {
       paramNote: '',
       typeTitle: '',
       paramDigest: '',
+      importDigest: '',
       isSubValues: false,
       subCount: 0,
       defaultSubId: 0,
@@ -80,6 +84,7 @@ export default {
       this.paramDescr = Mdf.descrOfDescrNote(paramText)
       this.paramNote = Mdf.noteOfDescrNote(paramText)
       this.paramDigest = paramText.Param.Digest || ''
+      this.importDigest = paramText.Param.ImportDigest || ''
 
       // find parameter type
       let t = Mdf.typeTextById(this.theModel, (paramText.Param.TypeId || 0))
