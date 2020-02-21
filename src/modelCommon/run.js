@@ -79,10 +79,10 @@ export const RUN_EXIT = 'x'         // run exit and not completed
 
 // return run status description by code: i=init p=progress s=success x=exit e=error(failed)
 export const statusText = (rt) => {
-  switch ((rt.Status || '')) {
+  switch (rt.Status || '') {
     case RUN_SUCCESS: return 'success'
     case RUN_IN_PROGRESS: return 'in progress'
-    case RUN_INITIAL: return 'not yet started'
+    case RUN_INITIAL: return 'initial'
     case RUN_FAILED: return 'failed'
     case RUN_EXIT: return 'exit (not completed)'
   }
@@ -159,4 +159,75 @@ export const toRunStateFromLog = (rlp) => {
     TaskRunName: rlp.TaskRunName || '',
     UpdateDateTime: rlp.UpdateDateTime || ''
   }
+}
+
+// return true if each list element isRunStatusProgress()
+export const isRunStatusProgressList = (rpl) => {
+  if (!rpl) return false
+  if (!Hlpr.hasLength(rpl)) return false
+  for (let k = 0; k < rpl.length; k++) {
+    if (!isRunStatusProgress(rpl[k])) return false
+  }
+  return true
+}
+
+// return empty run status and progress
+export const emptyRunStatusProgress = () => {
+  return {
+    ModelName: '',
+    ModelDigest: '',
+    Name: '',
+    Digest: '',
+    RunStamp: '',
+    SubCount: 0,
+    Status: '',
+    CreateDateTime: '',
+    UpdateDateTime: '',
+    Progress: []
+  }
+}
+
+// if this is run status and progress
+export const isRunStatusProgress = (rp) => {
+  if (!rp) return false
+  if (!rp.hasOwnProperty('ModelName') || !rp.hasOwnProperty('ModelDigest')) return false
+  if (!rp.hasOwnProperty('Name') || !rp.hasOwnProperty('Digest') || !rp.hasOwnProperty('RunStamp')) return false
+  if (!rp.hasOwnProperty('SubCount') || !rp.hasOwnProperty('Status')) return false
+  if (!rp.hasOwnProperty('CreateDateTime') || !rp.hasOwnProperty('UpdateDateTime')) return false
+  if (!Hlpr.hasLength(rp.Progress)) return false
+  return true
+}
+
+// if this is not empty run progress: model name, model digest, run name, run stamp, status, sub-count, create date-time
+export const isNotEmptyRunStatusProgress = (rp) => {
+  if (!isRunStatusProgress(rp)) return false
+  return (rp.ModelName || '') !== '' && (rp.ModelDigest || '') !== '' &&
+    (rp.Name || '') !== '' && (rp.RunStamp || '') !== '' && (rp.Status || '') !== '' && (rp.SubCount || 0) !== 0 && (rp.CreateDateTime || '') !== ''
+}
+
+// return empty run progress item
+export const emptyRunProgress = () => {
+  return {
+    SubId: 0,
+    Status: '',
+    CreateDateTime: '',
+    UpdateDateTime: '',
+    Count: 0,
+    Value: 0
+  }
+}
+
+// if this is run progress item
+export const isRunProgress = (rpi) => {
+  if (!rpi) return false
+  if (!rpi.hasOwnProperty('SubId') || !rpi.hasOwnProperty('Status')) return false
+  if (!rpi.hasOwnProperty('CreateDateTime') || !rpi.hasOwnProperty('UpdateDateTime')) return false
+  if (!rpi.hasOwnProperty('Count') || !rpi.hasOwnProperty('Value')) return false
+  return true
+}
+
+// if this is not empty run progress item: status, create date-time, update date-time
+export const isNotEmptyRunProgress = (rpi) => {
+  if (!isRunProgress(rpi)) return false
+  return (rpi.Status || '') !== '' && (rpi.CreateDateTime || '') !== '' && (rpi.UpdateDateTime || '') !== ''
 }

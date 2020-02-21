@@ -1,12 +1,7 @@
-<!-- monitor progress of new model run -->
+<!-- monitor progress of model run: receive run state and run log from the server -->
 <template>
 
-<span id="new-run-progress">
-  <span
-    @click="runLogPauseToggle()"
-    class="om-cell-icon-link material-icons"
-    :alt="!isPaused ? 'Pause' : 'Refresh'"
-    :title="!isPaused ? 'Pause' : 'Refresh'">{{!isPaused ? (isFlip ? 'autorenew' : 'loop') : 'play_circle_outline'}}</span>
+<span id="run-log-refresh">
   <span>{{msgLoad}}</span>
 </span>
 
@@ -18,12 +13,11 @@ import { mapGetters } from 'vuex'
 import { GET } from '@/store'
 import * as Mdf from '@/modelCommon'
 
-const PROGRESS_UPDATE_TIME = 1000 // msec, run progress update time
-
 export default {
   props: {
     modelDigest: { type: String, default: '' },
-    newRunStamp: { type: String, default: '' },
+    runStamp: { type: String, default: '' },
+    refreshTickle: { type: Boolean, default: false },
     start: { type: Number, default: 0 },
     count: { type: Number, default: 0 }
   },
@@ -47,21 +41,14 @@ export default {
 
   watch: {
     // refresh handlers
+    refreshTickle () { this.doRunLogRefresh() },
+    modelDigest () { this.doRunLogRefresh() },
+    runStamp () { this.doRunLogRefresh() }
   },
 
   methods: {
-    // refersh model run progress
-    refreshRunProgress () {
-      if (this.loadWait || this.isPaused) return
-      this.isFlip = !this.isFlip
-      this.doNewRunProgress()
-    },
-
-    // pause on/off
-    runLogPauseToggle () { this.isPaused = !this.isPaused },
-
-    // refresh new model run state: receive run state and log page from the server
-    async doNewRunProgress () {
+    // receive run state and log page from the server
+    async doRunLogRefresh () {
       if ((this.modelDigest || '') === '') return // exit: model digest unknown
 
       this.loadDone = false
@@ -76,7 +63,7 @@ export default {
 
       let u = this.omppServerUrl +
         '/api/run/log/model/' + (this.modelDigest || '') +
-        '/stamp/' + (this.newRunStamp || '') +
+        '/stamp/' + (this.runStamp || '') +
         '/start/' + nStart.toString() +
         '/count/' + nCount.toString()
 
@@ -95,18 +82,13 @@ export default {
       }
       this.loadWait = false
 
-      // return run status
+      // return state of run log progress
       if (!Mdf.isRunStateLog(rlp)) rlp = Mdf.emptyRunStateLog()
       this.$emit('done', this.loadDone, rlp)
     }
   },
 
   mounted () {
-    this.doNewRunProgress()
-    this.updateInt = setInterval(this.refreshRunProgress, PROGRESS_UPDATE_TIME)
-  },
-  beforeDestroy () {
-    clearInterval(this.updateInt)
   }
 }
 </script>

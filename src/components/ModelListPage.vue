@@ -37,10 +37,20 @@
   <om-mcw-dialog ref="modelInfoDlg" id="model-info-dlg" :scrollable="true" acceptText="OK">
     <template #header><span>{{titleNoteDlg}}</span></template>
     <div>{{textNoteDlg}}</div>
-    <br/>
-    <div class="mono">Name:&nbsp;&nbsp;&nbsp;&nbsp;{{nameNoteDlg}}</div>
-    <div class="mono">Created:&nbsp;{{createdNoteDlg}}</div>
-    <div class="mono">Digest:&nbsp;&nbsp;{{digestNoteDlg}}</div>
+    <div class="note-table mono">
+      <div class="note-row">
+        <span class="note-cell">Name:</span><span class="note-cell">{{nameNoteDlg}}</span>
+      </div>
+      <div class="note-row">
+        <span class="note-cell">Version:</span><span class="note-cell">{{versionNoteDlg}}</span>
+      </div>
+      <div class="note-row">
+        <span class="note-cell">Created:</span><span class="note-cell">{{createdNoteDlg}}</span>
+      </div>
+      <div class="note-row">
+        <span class="note-cell">Digest:</span><span class="note-cell">{{digestNoteDlg}}</span>
+      </div>
+    </div>
   </om-mcw-dialog>
 
 </div>
@@ -68,6 +78,7 @@ export default {
       nameNoteDlg: '',
       createdNoteDlg: '',
       digestNoteDlg: '',
+      versionNoteDlg: '',
       msg: ''
     }
   },
@@ -107,6 +118,7 @@ export default {
       this.nameNoteDlg = Mdf.modelName(md)
       this.createdNoteDlg = Mdf.dtStr(md.Model.CreateDateTime)
       this.digestNoteDlg = Mdf.modelDigest(md)
+      this.versionNoteDlg = Mdf.isModel(md) ? (md.Model.Version || '') : ''
       this.$refs.modelInfoDlg.open()
     },
 
@@ -152,7 +164,6 @@ export default {
 <!-- local scope css: this component only -->
 <style lang="scss" scoped>
   @import "@material/theme/mdc-theme";
-  @import "@/om-mcw.scss";
 
   /* model list: containers and list itself */
   .main-container {
@@ -172,6 +183,22 @@ export default {
     @extend .mdc-theme--text-primary-on-background;
     &:hover {
       background: rgba(0, 0, 0, 0.1);
+    }
+  }
+
+  /* note dialog */
+  .note-table {
+    display: table;
+    margin-top: 0.5rem;
+  }
+  .note-row {
+    display: table-row;
+  }
+  .note-cell {
+    display: table-cell;
+    white-space: nowrap;
+    &:first-child {
+      padding-right: 0.5rem;
     }
   }
 </style>

@@ -49,18 +49,69 @@
   </div>
 
   <div v-if="isProcRunStep || isFinalRunStep" class="panel-frame mdc-typography--body1">
+
     <div>
+      <span
+        @click="runRefreshPauseToggle()"
+        class="om-cell-icon-link material-icons"
+        :alt="!isRefreshPaused ? 'Pause' : 'Refresh'"
+        :title="!isRefreshPaused ? 'Pause' : 'Refresh'">{{!isRefreshPaused ? (isRefresh ? 'autorenew' : 'loop') : 'play_circle_outline'}}</span>
+
       <span class="medium-wt">Run Name: </span><span class="mdc-typography--body1">{{newRun.name}}</span>
-    </div>
-    <div class="panel-line">
-      <new-run-progress  v-if="!isFinalRunStep"
+
+      <run-log-refresh
         :model-digest="digest"
-        :new-run-stamp="newRun.state.RunStamp"
+        :run-stamp="newRun.state.RunStamp"
+        :refresh-tickle="isRefresh"
         :start="newRun.logStart"
         :count="200"
-        @done="doneNewRunProgress"
+        @done="doneRunLogRefresh"
         @wait="()=>{}">
-      </new-run-progress>
+      </run-log-refresh>
+
+      <run-progress-refresh
+        :model-digest="digest"
+        :run-stamp="newRun.state.RunStamp"
+        :refresh-tickle="isProgressRefresh"
+        @done="doneRunProgressRefresh"
+        @wait="()=>{}">
+      </run-progress-refresh>
+    </div>
+
+    <div v-for="pi in newRun.progress" :key="(pi.Status || 'st') + '-' + (pi.CreateDateTime || 'ct')" class="panel-section">
+      <table v-if="pi.UpdateDateTime" class="pt-table panel-section">
+        <thead>
+          <tr>
+            <th class="pt-head">Completed</th>
+            <th class="pt-head">Status</th>
+            <th class="pt-head">Updated</th>
+            <th class="pt-head">Digest</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="pt-cell-right">{{pi.SubCompleted}} / {{pi.SubCount}}</td>
+            <td class="pt-cell-left">{{statusOfTheRun(pi)}}</td>
+            <td class="pt-cell-left">{{pi.UpdateDateTime}}</td>
+            <td class="pt-cell-left">{{pi.Digest}}</td>
+          </tr>
+          <tr v-if="pi.Progress">
+            <td class="pt-head">Sub-value</td>
+            <td class="pt-head">Status</td>
+            <td class="pt-head">Updated</td>
+            <td class="pt-head">Progress</td>
+          </tr>
+          <tr v-for="spi in pi.Progress" :key="(spi.Status || 'st') + '-' + (spi.SubId || 'sub') + '-' + (spi.UpdateDateTime || 'upt')">
+            <td class="pt-cell-right">{{spi.SubId}}</td>
+            <td class="pt-cell-left">{{statusOfTheRun(spi)}}</td>
+            <td class="pt-cell-left">{{spi.UpdateDateTime}}</td>
+            <td class="pt-cell-right">{{spi.Count}}% ({{spi.Value}})</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="panel-section">
       <span class="mono" v-if="newRun.state.UpdateDateTime">{{newRun.state.UpdateDateTime}}</span>
       <span class="mono"><i>[{{modelName}}.{{newRun.state.RunStamp}}.console.log]</i></span>
     </div>
@@ -69,6 +120,7 @@
         {{ln.text}}
       </div>
     </div>
+
   </div>
 
 </div>
@@ -79,7 +131,8 @@ import { mapGetters } from 'vuex'
 import { GET } from '@/store'
 import * as Mdf from '@/modelCommon'
 import NewRunInit from './NewRunInit'
-import NewRunProgress from './NewRunProgress'
+import RunLogRefresh from './RunLogRefresh'
+import RunProgressRefresh from './RunProgressRefresh'
 import OmMcwButton from '@/om-mcw/OmMcwButton'
 
 /* eslint-disable no-multi-spaces */
@@ -89,8 +142,10 @@ const PROC_RUN_STEP = 2       // model run in progress
 const FINAL_RUN_STEP = 16     // final state of model run: completed or failed
 /* eslint-enable no-multi-spaces */
 
+const RUN_PROGRESS_REFRESH_TIME = 1000 // msec, run progress refresh time
+
 export default {
-  components: { NewRunInit, NewRunProgress, OmMcwButton },
+  components: { NewRunInit, RunLogRefresh, RunProgressRefresh, OmMcwButton },
 
   props: {
     digest: { type: String, default: '' },
@@ -100,12 +155,18 @@ export default {
   data () {
     return {
       modelName: '',
+      isRefreshPaused: false,
+      isRefresh: false,
+      isProgressRefresh: false,
+      refreshInt: '',
+      refreshCount: 0,
       // current run (new model run)
       newRun: {
         step: EMPTY_RUN_STEP, // model run step: initial, start new, view progress
         name: '',
         subCount: 1,
         state: Mdf.emptyRunState(),
+        progress: [],
         logStart: 0,
         logLines: []
       }
@@ -148,9 +209,24 @@ export default {
       this.newRun.name = ''
       this.newRun.subCount = 1
       this.newRun.state = Mdf.emptyRunState()
+      this.newRun.progress = []
       this.newRun.logStart = 0
       this.newRun.logLines = []
+      if (this.refreshInt) clearInterval(this.refreshInt)
     },
+
+    // refersh model run progress
+    refreshRunProgress () {
+      if (this.isRefreshPaused) return
+      this.isRefresh = !this.isRefresh
+      if ((this.refreshCount++ % 3) === 1) this.isProgressRefresh = !this.isProgressRefresh
+    },
+
+    // pause on/off run progress refresh
+    runRefreshPauseToggle () { this.isRefreshPaused = !this.isRefreshPaused },
+
+    // return run status text by run status code
+    statusOfTheRun (rp) { return Mdf.statusText(rp) },
 
     // run the model
     onModelRun () {
@@ -166,6 +242,7 @@ export default {
       this.newRun.name = name // actual values after cleanup
       this.newRun.subCount = nSub || 1
       this.newRun.state = Mdf.emptyRunState()
+      this.newRun.progress = []
 
       // start new model run: send request to the server
       this.newRun.step = INIT_RUN_STEP
@@ -177,12 +254,13 @@ export default {
       if (!!ok && Mdf.isNotEmptyRunState(rst)) {
         this.newRun.state = rst
         this.newRun.name = rst.RunName
+        this.refreshInt = setInterval(this.refreshRunProgress, RUN_PROGRESS_REFRESH_TIME)
       }
       if (!ok) this.$emit('run-list-refresh')
     },
 
-    // model run progress: response from server
-    doneNewRunProgress (ok, rlp) {
+    // model current run log progress: response from server
+    doneRunLogRefresh (ok, rlp) {
       if (!ok || !Mdf.isNotEmptyRunStateLog(rlp)) return // empty run state or error
 
       this.newRun.state = Mdf.toRunStateFromLog(rlp)
@@ -203,9 +281,18 @@ export default {
       if (!isDone) {
         this.newRun.logStart = rlp.Offset + rlp.Size
       } else {
+        clearInterval(this.refreshInt)
+        this.isProgressRefresh = !this.isProgressRefresh // last refersh of run progress
         this.newRun.step = FINAL_RUN_STEP
         this.$emit('run-list-refresh')
       }
+    },
+
+    // model run status progress: response from server
+    doneRunProgressRefresh (ok, rpl) {
+      if (!ok || !Mdf.isLength(rpl)) return // empty run status progress or error
+
+      this.newRun.progress = rpl
     }
   },
 
@@ -214,6 +301,9 @@ export default {
     this.$emit('tab-mounted',
       'run-model',
       { digest: this.digest, runOrSet: 'set', runSetKey: this.nameDigest })
+  },
+  beforeDestroy () {
+    clearInterval(this.refreshInt)
   }
 }
 </script>
@@ -258,7 +348,36 @@ export default {
     text-align: right;
     @extend .panel-value;
   }
-  .panel-line {
+  .panel-section {
     margin-top: 0.25rem;
+  }
+
+  /* run progress table */
+  .pt-table {
+    text-align: left;
+    border-collapse: collapse;
+  }
+  .pt-cell {
+    padding: 0.25rem;
+    border: 1px solid lightgrey;
+    font-size: 0.875rem;
+  }
+  .pt-head {
+    @extend .medium-wt;
+    @extend .pt-cell;
+    text-align: center;
+    background-color: whitesmoke;
+  }
+  .pt-cell-left {
+    text-align: left;
+    @extend .pt-cell;
+  }
+  .pt-cell-right {
+    text-align: right;
+    @extend .pt-cell;
+  }
+  .pt-cell-center {
+    text-align: center;
+    @extend .pt-cell;
   }
 </style>

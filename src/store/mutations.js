@@ -77,9 +77,9 @@ const mutations = {
     if (k >= 0) state.runTextList.splice(k, 1)
   },
 
-  // assign new value to run list, if (rl) is a model run text list
+  // assign new value to run text list: if (rtl) is a run text list the assign reverse it and commit to store
   [COMMIT.RUN_TEXT_LIST] (state, rtl) {
-    if (Mdf.isRunTextList(rtl)) state.runTextList = rtl
+    if (Mdf.isRunTextList(rtl)) state.runTextList = rtl.reverse()
   },
 
   // clear run list if model digest not same as run list model digest
