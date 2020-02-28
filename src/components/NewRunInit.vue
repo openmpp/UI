@@ -16,9 +16,25 @@ import * as Mdf from '@/modelCommon'
 export default {
   props: {
     modelDigest: { type: String, default: '' },
-    newRunName: { type: String, default: '' },
     worksetName: { type: String, default: '' },
-    subCount: { type: Number, default: 0 }
+    runOpts: {
+      type: Object,
+      default: () => ({
+        runName: '',
+        subCount: 1,
+        threadCount: 1,
+        progressPercent: 1,
+        progressStep: 0,
+        logVersion: true,
+        csvDir: '',
+        csvId: false,
+        profile: '',
+        sparseOutput: false,
+        mpiNpCount: 0,
+        mpiNotOnRoot: true,
+        mpiWdir: ''
+      })
+    }
   },
 
   data () {
@@ -54,8 +70,8 @@ export default {
       let rv = {
         ModelDigest: (this.modelDigest || ''),
         Opts: {
-          'OpenM.SubValues': (this.subCount || 1).toString(),
-          'OpenM.RunName': (this.newRunName || ''),
+          'OpenM.SubValues': (this.runOpts.subCount || 1).toString(),
+          'OpenM.RunName': (this.runOpts.runName || ''),
           'OpenM.SetName': (this.worksetName || '')
         }
       }

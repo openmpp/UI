@@ -1,47 +1,230 @@
 <template>
 <div id="run-page" class="main-container mdc-typography mdc-typography--body1">
 
-  <div v-if="isEmptyRunStep" class="panel-frame mdc-typography--body1">
-    <div class="mdc-text-field" :class="{'mdc-text-field--disabled': isWsEdit}">
-      <input type="text"
-        id="run-name-input"
-        ref="runNameInput"
-        maxlength="255"
-        size="255"
-        :disabled="isWsEdit"
-        :value="autoNewRunName"
-        alt="Name of new model run"
-        title="Name of new model run"
-        class="mdc-text-field__input" />
-      <label for="run-name-input" class="mdc-floating-label mdc-floating-label--float-above">Model Run Name</label>
+  <div v-if="isEmptyRunStep" class="panel-option-frame mdc-typography--body1">
+
+    <div class="panel-section">
+      <template  v-if="isWsEdit">
+        <div class="panel-first-header">
+          <om-mcw-button
+            :disabled="isWsEdit"
+            class="panel-item mdc-button--raised"
+            :alt="'Run the model with input set ' + nameDigest"
+            :title="'Run the model with input set ' + nameDigest">
+            <i class="material-icons mdc-button__icon">directions_run</i>Run the model</om-mcw-button>
+          <div
+            class="panel-first-table-header om-note-empty">
+            <span class="om-cell-icon-empty material-icons">{{isRunOptsShow ? 'arrow_drop_up' : 'arrow_drop_down'}}</span>
+            <span>Model Run Options</span>
+          </div>
+        </div>
+      </template>
+      <template v-else>
+
+        <div class="panel-first-header">
+          <om-mcw-button
+            @click="onModelRun"
+            :disabled="isWsEdit"
+            class="panel-item mdc-button--raised"
+            :alt="'Run the model with input set ' + nameDigest"
+            :title="'Run the model with input set ' + nameDigest">
+            <i class="material-icons mdc-button__icon">directions_run</i>Run the model</om-mcw-button>
+          <div
+            @click="isRunOptsShow = !isRunOptsShow"
+            class="panel-first-table-header om-note-link">
+            <span class="om-cell-icon-link material-icons">{{isRunOptsShow ? 'arrow_drop_up' : 'arrow_drop_down'}}</span>
+            <span>Model Run Options</span>
+          </div>
+        </div>
+        <div v-show="isRunOptsShow" class="panel-table">
+          <div class="panel-row">
+            <label for="sub-count-input" class="panel-cell">Sub-Values (sub-samples):</label>
+            <input type="number"
+              id="sub-count-input" ref="subCountInput" size="4" maxlength="4" min="1" max="9999"
+              :value="runOpts.subCount"
+              class="panel-cell panel-num-value" alt="Number of sub-values (a.k.a. members or replicas or sub-samples)" title="Number of sub-values (a.k.a. members or replicas or sub-samples)"/>
+          </div>
+          <div class="panel-row">
+            <label for="thread-count-input" class="panel-cell">Modelling Threads:</label>
+            <input type="number"
+              id="thread-count-input" ref="threadCountInput" size="4" maxlength="4" min="1" max="9999"
+              :value="runOpts.threadCount"
+              class="panel-cell panel-num-value" alt="Number of modelling threads" title="Number of modelling threads"/>
+          </div>
+          <div class="panel-row">
+            <label for="run-name-input" class="panel-cell">Run Name:</label>
+            <input type="text"
+              id="run-name-input" ref="runNameInput" maxlength="255" size="80"
+              :value="autoNewRunName"
+              alt="Name of the new model run"
+              title="Name of the new model run"
+              class="panel-cell panel-value"/>
+          </div>
+        </div>
+
+        <div
+          @click="isRunOptsAdvShow = !isRunOptsAdvShow"
+          class="panel-table-header om-note-link">
+          <span class="om-cell-icon-link material-icons">{{isRunOptsAdvShow ? 'arrow_drop_up' : 'arrow_drop_down'}}</span>
+          <span>Advanced Run Options</span>
+        </div>
+        <div v-show="isRunOptsAdvShow" class="panel-table">
+          <div class="panel-row">
+            <label for="progress-percent-input" class="panel-cell">Log Progress Percent:</label>
+            <input type="number"
+              id="progress-percent-input" ref="progressPercentInput" size="4" maxlength="3" min="1" max="100"
+              :value="runOpts.progressPercent"
+              class="panel-cell panel-num-value" alt="Percent completed to log model progress" title="Percent completed to log model progress"/>
+          </div>
+          <div class="panel-row">
+            <label for="progress-step-input" class="panel-cell">Log Progress Step:</label>
+            <input type="number"
+              id="progress-step-input" ref="progressStepInput" size="4" maxlength="8" step="any"
+              :value="runOpts.progressStep"
+              class="panel-cell panel-num-value" alt="Step to log model progress: number of cases or time passed" title="Step to log model progress: number of cases or time passed"/>
+          </div>
+          <div class="panel-row">
+            <span class="panel-cell">Log Model Version:</span>
+            <span class="panel-cell-radio">
+              <span class="panel-border-radio">
+                <input type="radio"
+                  id="no-log-version-input" name="log-version-input" value="false" v-model="logVersionValue"
+                  alt="Do not log model version"
+                  title="Do not log model version"
+                  class="panel-item"/>
+                <label for="no-log-version-input" class="panel-item">No</label>
+                <input type="radio"
+                  id="yes-log-version-input" name="log-version-input" value="true" v-model="logVersionValue"
+                  alt="Log model version"
+                  title="Log model version"
+                  class="panel-item"/>
+                <label for="yes-log-version-input" class="panel-item">Yes</label>
+              </span>
+            </span>
+          </div>
+          <div class="panel-row">
+            <label for="profile-name-input" class="panel-cell">Profile Name:</label>
+            <input type="text"
+              id="profile-name-input" ref="profileNameInput" maxlength="255" size="80"
+              placeholder="Profile name to get model run options"
+              alt="Profile name to get model run options"
+              title="Profile name to get model run options"
+              class="panel-cell panel-value"/>
+          </div>
+          <div class="panel-row">
+            <label for="csv-dir-input" class="panel-cell">CSV Directory:</label>
+            <input type="text"
+              id="csv-dir-input" ref="csvDirInput" maxlength="2048" size="80" v-model="csvDirValue"
+              @blur="onCsvDirInputBlur"
+              :placeholder="!isCsvDirEntered ? 'Relative path to parameters.csv directory' : 'CSV path must be relative and cannot go .. up'"
+              alt="Path to parameters.csv directory"
+              title="Path to parameters.csv directory"
+              class="panel-cell panel-value"/>
+          </div>
+          <div class="panel-row">
+            <span class="panel-cell">CSV file(s) contain:</span>
+            <span class="panel-cell-radio">
+              <span class="panel-border-radio">
+                <input type="radio"
+                  id="csv-code-use-input" name="csv-use-input" value="false" v-model="csvIdValue"
+                  :disabled="!runOpts.csvDir"
+                  alt="CSV files contain enum code"
+                  title="CSV files contain enum code"
+                  class="panel-item"/>
+                <label for="csv-code-use-input" class="panel-item">Enum Code</label>
+                <input type="radio"
+                  id="csv-id-use-input" name="csv-use-input" value="true" v-model="csvIdValue"
+                  :disabled="!runOpts.csvDir"
+                  alt="CSV files contain enum id"
+                  title="CSV files contain enum id"
+                  class="panel-item"/>
+                <label for="csv-id-use-input" class="panel-item">Enum Id</label>
+              </span>
+            </span>
+          </div>
+          <div class="panel-row">
+            <span class="panel-cell">Sparse Output Tables:</span>
+            <span class="panel-cell-radio">
+              <span class="panel-border-radio">
+                <input type="radio"
+                  id="no-sparse-output-input" name="sparse-output-input" value="false" v-model="sparseOutputValue"
+                  alt="No sparse output tables: store all values"
+                  title="No sparse output tables: store all values"
+                  class="panel-item"/>
+                <label for="no-sparse-output-input" class="panel-item">No</label>
+                <input type="radio"
+                  id="yes-sparse-output-input" name="sparse-output-input" value="true" v-model="sparseOutputValue"
+                  alt="Use sparse output tables: do not store small values and zeros"
+                  title="Use sparse output tables: do not store small values and zeros"
+                  class="panel-item"/>
+                <label for="yes-sparse-output-input" class="panel-item">Yes</label>
+              </span>
+            </span>
+          </div>
+        </div>
+
+        <div
+          @click="isRunOptsMpiShow = !isRunOptsMpiShow"
+          class="panel-table-header om-note-link">
+          <span class="om-cell-icon-link material-icons">{{isRunOptsMpiShow ? 'arrow_drop_up' : 'arrow_drop_down'}}</span>
+          <span>Cluster Run Options</span>
+        </div>
+        <div v-show="isRunOptsMpiShow" class="panel-table">
+          <div class="panel-row">
+            <label for="mpi-np-count-input" class="panel-cell">MPI Number of Processes:</label>
+            <input type="number"
+              id="mpi-np-count-input" ref="mpiNpCountInput" size="4" maxlength="4" min="0" max="9999"
+              :value="runOpts.mpiNpCount"
+              @blur="onMpiNpInputBlur"
+              class="panel-cell panel-num-value" alt="Number of parallel processes to run" title="Number of parallel processes to run"/>
+          </div>
+          <div class="panel-row">
+            <span class="panel-cell">Run Model on Root Host:</span>
+            <span class="panel-cell-radio">
+              <span class="panel-border-radio">
+                <input type="radio"
+                  id="no-mpi-on-root-input" name="mpi-on-root-input" value="false" v-model="mpiOnRootValue"
+                  :disabled="runOpts.mpiNpCount <= 0"
+                  alt="Do not use root host to run the model"
+                  title="Do not use root host to run the model"
+                  class="panel-item"/>
+                <label for="no-mpi-on-root-input" class="panel-item">No</label>
+                <input type="radio"
+                  id="yes-mpi-on-root-input" name="mpi-on-root-input" value="true" v-model="mpiOnRootValue"
+                  :disabled="runOpts.mpiNpCount <= 0"
+                  alt="Use root host to run the model"
+                  title="Use root host to run the model"
+                  class="panel-item"/>
+                <label for="yes-mpi-on-root-input" class="panel-item">Yes</label>
+              </span>
+            </span>
+          </div>
+          <div class="panel-row">
+            <label for="mpi-wdir-input" class="panel-cell">MPI Working Directory:</label>
+            <input type="text"
+              id="mpi-wdir-input" ref="mpiWdirInput" maxlength="2048" size="80" v-model="mpiWdirValue"
+              @blur="onMpiWdirInputBlur"
+              :placeholder="!isMpiWdirEntered ? 'Relative path to working directory for MPI processes' : 'Workind directory path must be relative and cannot go .. up'"
+              alt="Path to working directory for MPI processes"
+              title="Path to working directory for MPI processes"
+              class="panel-cell panel-value"/>
+          </div>
+        </div>
+
+      </template>
     </div>
-    <div>
-      <om-mcw-button
-        @click="onModelRun"
-        :disabled="isWsEdit"
-        class="panel-item mdc-button--raised"
-        :alt="'Run the model with input set ' + nameDigest"
-        :title="'Run the model with input set ' + nameDigest">
-        <i class="material-icons mdc-button__icon">directions_run</i>Run the model</om-mcw-button>
-      <input type="number"
-        id="sub-count-input" ref="subCountInput" size="4" maxlength="4" min="1" max="9999"
-        :value="newRun.subCount"
-        :disabled="isWsEdit"
-        class="panel-sub-count" alt="Number of sub-values" title="Number of sub-values" />
-      <span class="panel-item">Sub-Values</span>
-    </div>
+
   </div>
 
   <div v-if="isInitRunStep" class="panel-frame mdc-typography--body1">
     <div>
-      <span class="medium-wt">Running: </span><span class="mdc-typography--body1">{{newRun.name}}</span>
+      <span class="medium-wt">Running: </span><span class="mdc-typography--body1">{{runOpts.runName}}</span>
     </div>
     <div>
       <new-run-init
         :model-digest="digest"
-        :new-run-name="newRun.name"
         :workset-name="nameDigest"
-        :sub-count="newRun.subCount"
+        :run-opts="runOpts"
         @done="doneNewRunInit"
         @wait="()=>{}">
       </new-run-init>
@@ -57,7 +240,7 @@
         :alt="!isRefreshPaused ? 'Pause' : 'Refresh'"
         :title="!isRefreshPaused ? 'Pause' : 'Refresh'">{{!isRefreshPaused ? (isRefresh ? 'autorenew' : 'loop') : 'play_circle_outline'}}</span>
 
-      <span class="medium-wt">Run Name: </span><span class="mdc-typography--body1">{{newRun.name}}</span>
+      <span class="medium-wt">Run Name: </span><span class="mdc-typography--body1">{{runOpts.runName}}</span>
 
       <run-log-refresh
         :model-digest="digest"
@@ -126,194 +309,12 @@
 </div>
 </template>
 
-<script>
-import { mapGetters } from 'vuex'
-import { GET } from '@/store'
-import * as Mdf from '@/modelCommon'
-import NewRunInit from './NewRunInit'
-import RunLogRefresh from './RunLogRefresh'
-import RunProgressRefresh from './RunProgressRefresh'
-import OmMcwButton from '@/om-mcw/OmMcwButton'
-
-/* eslint-disable no-multi-spaces */
-const EMPTY_RUN_STEP = 0      // empty state of new model: undefined
-const INIT_RUN_STEP = 1       // initiate new model run: submit request to the server
-const PROC_RUN_STEP = 2       // model run in progress
-const FINAL_RUN_STEP = 16     // final state of model run: completed or failed
-/* eslint-enable no-multi-spaces */
-
-const RUN_PROGRESS_REFRESH_TIME = 1000 // msec, run progress refresh time
-
-export default {
-  components: { NewRunInit, RunLogRefresh, RunProgressRefresh, OmMcwButton },
-
-  props: {
-    digest: { type: String, default: '' },
-    nameDigest: { type: String, default: '' }
-  },
-
-  data () {
-    return {
-      modelName: '',
-      isRefreshPaused: false,
-      isRefresh: false,
-      isProgressRefresh: false,
-      refreshInt: '',
-      refreshCount: 0,
-      // current run (new model run)
-      newRun: {
-        step: EMPTY_RUN_STEP, // model run step: initial, start new, view progress
-        name: '',
-        subCount: 1,
-        state: Mdf.emptyRunState(),
-        progress: [],
-        logStart: 0,
-        logLines: []
-      }
-    }
-  },
-
-  computed: {
-    // make new model run name
-    autoNewRunName () {
-      return (this.modelName || '') + '_' + (this.nameDigest || '')
-    },
-
-    // if true then selected workset edit mode else readonly and model run enabled
-    isWsEdit () {
-      const ws = this.worksetTextByName(this.nameDigest)
-      return Mdf.isNotEmptyWorksetText(ws) && !ws.IsReadonly
-    },
-
-    // model new run step: empty, initialize, in progress, final
-    isEmptyRunStep () { return this.newRun.step === EMPTY_RUN_STEP },
-    isInitRunStep () { return this.newRun.step === INIT_RUN_STEP },
-    isProcRunStep () { return this.newRun.step === PROC_RUN_STEP },
-    isFinalRunStep () { return this.newRun.step === FINAL_RUN_STEP },
-
-    ...mapGetters({
-      theModel: GET.THE_MODEL,
-      worksetTextByName: GET.WORKSET_TEXT_BY_NAME
-    })
-  },
-
-  methods: {
-    // initialize current page view
-    initView () {
-      this.modelName = Mdf.modelName(this.theModel)
-      this.resetRunStep()
-    },
-    // clean new run data
-    resetRunStep () {
-      this.newRun.step = EMPTY_RUN_STEP
-      this.newRun.name = ''
-      this.newRun.subCount = 1
-      this.newRun.state = Mdf.emptyRunState()
-      this.newRun.progress = []
-      this.newRun.logStart = 0
-      this.newRun.logLines = []
-      if (this.refreshInt) clearInterval(this.refreshInt)
-    },
-
-    // refersh model run progress
-    refreshRunProgress () {
-      if (this.isRefreshPaused) return
-      this.isRefresh = !this.isRefresh
-      if ((this.refreshCount++ % 3) === 1) this.isProgressRefresh = !this.isProgressRefresh
-    },
-
-    // pause on/off run progress refresh
-    runRefreshPauseToggle () { this.isRefreshPaused = !this.isRefreshPaused },
-
-    // return run status text by run status code
-    statusOfTheRun (rp) { return Mdf.statusText(rp) },
-
-    // run the model
-    onModelRun () {
-      // cleanup model run name and sub-count
-      let name = this.$refs.runNameInput.value
-      name = name.replace(/["'`$}{@\\]/g, ' ').trim()
-      if ((name || '') === '') name = this.autoNewRunName
-
-      let sub = this.$refs.subCountInput.value
-      sub = sub.replace(/[^0-9]/g, ' ').trim()
-      let nSub = ((sub || '') !== '') ? parseInt(sub) : 1
-
-      this.newRun.name = name // actual values after cleanup
-      this.newRun.subCount = nSub || 1
-      this.newRun.state = Mdf.emptyRunState()
-      this.newRun.progress = []
-
-      // start new model run: send request to the server
-      this.newRun.step = INIT_RUN_STEP
-    },
-
-    // new model run started: response from server
-    doneNewRunInit (ok, rst) {
-      this.newRun.step = ok ? PROC_RUN_STEP : FINAL_RUN_STEP
-      if (!!ok && Mdf.isNotEmptyRunState(rst)) {
-        this.newRun.state = rst
-        this.newRun.name = rst.RunName
-        this.refreshInt = setInterval(this.refreshRunProgress, RUN_PROGRESS_REFRESH_TIME)
-      }
-      if (!ok) this.$emit('run-list-refresh')
-    },
-
-    // model current run log progress: response from server
-    doneRunLogRefresh (ok, rlp) {
-      if (!ok || !Mdf.isNotEmptyRunStateLog(rlp)) return // empty run state or error
-
-      this.newRun.state = Mdf.toRunStateFromLog(rlp)
-
-      // update log lines
-      let nLen = Mdf.lengthOf(rlp.Lines)
-      if (nLen > 0) {
-        for (let k = 0; k < nLen; k++) {
-          this.newRun.logLines.push({
-            key: this.digest + '-' + this.newRun.state.RunStamp + '-' + rlp.Offset + k,
-            text: rlp.Lines[k]
-          })
-        }
-      }
-
-      // check is it final update: model run completed
-      let isDone = (this.newRun.state.IsFinal && rlp.Offset + rlp.Size >= rlp.TotalSize)
-      if (!isDone) {
-        this.newRun.logStart = rlp.Offset + rlp.Size
-      } else {
-        clearInterval(this.refreshInt)
-        this.isProgressRefresh = !this.isProgressRefresh // last refersh of run progress
-        this.newRun.step = FINAL_RUN_STEP
-        this.$emit('run-list-refresh')
-      }
-    },
-
-    // model run status progress: response from server
-    doneRunProgressRefresh (ok, rpl) {
-      if (!ok || !Mdf.isLength(rpl)) return // empty run status progress or error
-
-      this.newRun.progress = rpl
-    }
-  },
-
-  mounted () {
-    this.initView()
-    this.$emit('tab-mounted',
-      'run-model',
-      { digest: this.digest, runOrSet: 'set', runSetKey: this.nameDigest })
-  },
-  beforeDestroy () {
-    clearInterval(this.refreshInt)
-  }
-}
-</script>
+<script src="./run-page.js"></script>
 
 <!-- local scope css: this component only -->
 <style lang="scss" scoped>
   @import "@material/theme/mdc-theme";
   @import "@material/typography/mdc-typography";
-  @import "@material/textfield/mdc-text-field";
-  @import "@material/floating-label/mdc-floating-label";
   @import "@/om-mcw.scss";
 
   /* main container, header row and pivot view container */
@@ -324,10 +325,8 @@ export default {
 
   /* model run panel */
   .panel-border {
-    margin-right: 0.5rem;
     border-width: 1px;
     border-style: solid;
-    // border-color: rgba(0, 0, 0, 0.12);
     border-color: lightgrey;
   }
   .panel-frame {
@@ -335,21 +334,66 @@ export default {
     margin-right: 0.5rem;
     @extend .panel-border;
   }
+  .panel-option-frame {
+    padding: 0.25rem;
+    @extend .panel-frame;
+  }
   .panel-item {
     margin-right: 0.5rem;
   }
   .panel-value {
-    @extend .panel-item;
     @extend .panel-border;
     @extend .mdc-typography--body1;
   }
-  .panel-sub-count {
-    width: 4rem;
+  .panel-num-value {
     text-align: right;
+    width: 4rem;
     @extend .panel-value;
   }
+  .panel-sub-count {
+    margin-right: 0.5rem;
+    @extend .panel-num-value;
+  }
   .panel-section {
+    &:not(:first-child) {
+      margin-top: 0.25rem;
+    }
+  }
+  .panel-first-header {
+    display: flex;
+  }
+  .panel-first-table-header {
+    flex-grow: 1;
+    display: inline-flex;
+    align-items: center;
+    margin: 0;
+  }
+  .panel-table-header {
+    margin: 0.25rem 0 0 0;
+  }
+  .panel-table {
+    display: table;
+  }
+  .panel-row {
+    display: table-row;
+  }
+  .panel-cell {
+    display: table-cell;
     margin-top: 0.25rem;
+    &:first-child {
+      padding-left: 0.5rem;
+      padding-right: 0.5rem;
+    }
+  }
+  .panel-cell-radio {
+    padding-top: 0.3125rem;
+    padding-bottom: 0.125rem;
+    @extend .panel-cell;
+  }
+  .panel-border-radio {
+    padding-top: 0.1875rem;
+    padding-bottom: 0.125rem;
+    @extend .panel-border;
   }
 
   /* run progress table */

@@ -188,7 +188,6 @@
 <!-- local scope css: this component only -->
 <style lang="scss" scoped>
   @import "@material/theme/mdc-theme";
-  @import "@material/typography/mdc-typography";
   @import "@material/textfield/mdc-text-field";
   @import "@/om-mcw.scss";
 

@@ -28,13 +28,16 @@ $om-mdc-theme-primary: #3f51b5; /* Indigo 500 */
 /* notes: a link or empty (not a link) */
 .om-note-item {
   margin: 0 0.5rem 0 0;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
 }
 .om-note-link {
   @extend .om-note-item;
   padding: 0 0 1px 0; /* for description material icon */
   &:hover {
     cursor: pointer;
-    /* background: rgba(0, 0, 0, 0.1); */
   }
   @extend .mdc-theme--on-primary;
   @extend .mdc-theme--primary-bg;

@@ -145,8 +145,6 @@ export default {
 
 <!-- local scope css: this component only -->
 <style lang="scss" scoped>
-  @import "@material/theme/mdc-theme";
-
   .set-table {
     display: table;
     padding-top: 0.5rem;

@@ -59,9 +59,6 @@ export default {
 
 <!-- local scope css: this component only -->
 <style lang="scss" scoped>
-  @import "@material/theme/mdc-theme";
-  @import "@material/typography/mdc-typography";
-
   /* note dialog */
   .note-table {
     display: table;

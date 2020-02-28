@@ -75,6 +75,4 @@ export default {
 
 <!-- import MDC styles -->
 <style lang="scss">
-  @import "@material/theme/mdc-theme";
-  @import "@material/typography/mdc-typography";
 </style>
