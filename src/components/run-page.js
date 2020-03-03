@@ -4,6 +4,7 @@ import * as Mdf from '@/modelCommon'
 import NewRunInit from './NewRunInit'
 import RunLogRefresh from './RunLogRefresh'
 import RunProgressRefresh from './RunProgressRefresh'
+import RefreshRunConfig from './RefreshRunConfig'
 import OmMcwButton from '@/om-mcw/OmMcwButton'
 
 /* eslint-disable no-multi-spaces */
@@ -16,8 +17,10 @@ const FINAL_RUN_STEP = 16     // final state of model run: completed or failed
 const RUN_PROGRESS_REFRESH_TIME = 1000 // msec, run progress refresh time
 const RUN_PROGRESS_SUB_RATIO = 4 // multipler for refresh time to get sub values progress
 
+const defaultRunTemplate = 'mpi.ModelRun.template.txt' // default MPI model run template
+
 export default {
-  components: { NewRunInit, RunLogRefresh, RunProgressRefresh, OmMcwButton },
+  components: { NewRunInit, RunLogRefresh, RunProgressRefresh, RefreshRunConfig, OmMcwButton },
 
   props: {
     digest: { type: String, default: '' },
@@ -35,6 +38,11 @@ export default {
       isProgressRefresh: false,
       refreshInt: '',
       refreshCount: 0,
+      isInitRunFailed: false,
+      isRunConfigDone: false,
+      mpiTemplateLst: [
+        defaultRunTemplate
+      ],
       // current run (new model run)
       newRun: {
         step: EMPTY_RUN_STEP, // model run step: initial, start new, view progress
@@ -44,14 +52,15 @@ export default {
         logLines: []
       },
       // run options
+      workDirValue: '',
+      isWorkDirEntered: false,
       csvDirValue: '',
       isCsvDirEntered: false,
       csvIdValue: 'false',
       logVersionValue: 'true',
       sparseOutputValue: 'false',
       mpiOnRootValue: 'false',
-      mpiWdirValue: '',
-      isMpiWdirEntered: false,
+      mpiTmplValue: defaultRunTemplate,
       runOpts: {
         runName: '',
         subCount: 1,
@@ -59,13 +68,14 @@ export default {
         progressPercent: 1,
         progressStep: 0,
         logVersion: true,
+        workDir: '',
         csvDir: '',
         csvId: false,
         profile: '',
         sparseOutput: false,
         mpiNpCount: 0,
         mpiNotOnRoot: true,
-        mpiWdir: ''
+        mpiTmpl: defaultRunTemplate
       }
     }
   },
@@ -103,7 +113,10 @@ export default {
       this.newRun.progress = []
       this.newRun.logStart = 0
       this.newRun.logLines = []
+      this.isRunConfigDone = false
+      this.isInitRunFailed = false
 
+      this.runOpts.runName = this.autoNewRunName
       this.runOpts.csvId = this.csvIdValue === 'true'
       this.runOpts.logVersion = this.logVersionValue === 'true'
       this.runOpts.sparseOutput = this.sparseOutputValue === 'true'
@@ -147,7 +160,8 @@ export default {
       this.runOpts.profile = this.parseTextInput(this.$refs.profileNameInput.value)
       this.runOpts.mpiNpCount = this.parseIntInput(this.$refs.mpiNpCountInput.value, 0)
       this.runOpts.mpiNotOnRoot = this.mpiOnRootValue === 'false'
-      this.runOpts.mpiWdir = this.parsePathInput(this.mpiWdirValue)
+      this.runOpts.workDir = this.parsePathInput(this.workDirValue)
+      this.runOpts.mpiTmpl = this.parseTextInput(this.mpiTmplValue)
       this.runOpts.progressPercent = this.parseIntInput(this.$refs.progressPercentInput.value, 1)
       this.runOpts.progressStep = this.parseFloatInput(this.$refs.progressStepInput.value, 0.0)
       if (this.runOpts.progressStep < 0) this.runOpts.progressStep = 0.0
@@ -169,12 +183,12 @@ export default {
       this.runOpts.csvDir = dir
       this.csvDirValue = dir
     },
-    // check if MPI working directory path entered
-    onMpiWdirInputBlur () {
-      let { isEntered, dir } = this.doDirInputBlur(this.mpiWdirValue)
-      this.isMpiWdirEntered = isEntered
-      this.runOpts.mpiWdir = dir
-      this.mpiWdirValue = dir
+    // check if working directory path entered
+    onWorkDirInputBlur () {
+      let { isEntered, dir } = this.doDirInputBlur(this.workDirValue)
+      this.isWorkDirEntered = isEntered
+      this.runOpts.workDir = dir
+      this.workDirValue = dir
     },
     doDirInputBlur (dirValue) {
       return (dirValue || '') ? { isEntered: true, dir: this.parsePathInput(dirValue) } : { isEntered: false, dir: '' }
@@ -216,6 +230,7 @@ export default {
 
     // new model run started: response from server
     doneNewRunInit (ok, rst) {
+      this.isInitRunFailed = !ok
       this.newRun.step = ok ? PROC_RUN_STEP : FINAL_RUN_STEP
       if (!!ok && Mdf.isNotEmptyRunState(rst)) {
         this.newRun.state = rst
@@ -256,9 +271,23 @@ export default {
 
     // model run status progress: response from server
     doneRunProgressRefresh (ok, rpl) {
-      if (!ok || !Mdf.isLength(rpl)) return // empty run status progress or error
+      if (ok && Mdf.isLength(rpl)) this.newRun.progress = rpl
+    },
 
-      this.newRun.progress = rpl
+    // model run config: expected list of MPI templates file names
+    doneRefreshRunConfig (ok, tpl) {
+      this.isRunConfigDone = true
+      if (!ok || !tpl || !Mdf.isLength(tpl)) { // at least one template expected
+        return
+      }
+      this.mpiTemplateLst = tpl
+
+      // set default template selected
+      let isFound = false
+      for (let k = 0; !isFound && k < tpl.length; k++) {
+        isFound = tpl[k] === defaultRunTemplate
+      }
+      if (!isFound) this.mpiTmplValue = tpl[0]
     }
   },
 

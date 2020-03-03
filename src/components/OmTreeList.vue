@@ -12,18 +12,18 @@
         @click="onExpandAllToggle"
         class="top-bar-icon folder-icon-link material-icons"
         title="Expand All Groups"
-        alt="Expand All Groups">folder_open</span>
+        alt="Expand All Groups">arrow_drop_down</span>
       <span v-else
         @click="onExpandAllToggle"
         class="top-bar-icon folder-icon-link material-icons"
         title="Collapse All Groups"
-        alt="Collapse All Groups">folder</span>
+        alt="Collapse All Groups">arrow_right</span>
     </template>
     <template v-else>
       <span
         class="top-bar-icon folder-icon-empty material-icons"
         title="Expand or Collapse All Groups"
-        alt="Expand or Collapse All Groups">folder</span>
+        alt="Expand or Collapse All Groups">arrow_right</span>
     </template>
 
     <template v-if="isAnyHidden">
@@ -253,6 +253,7 @@ export default {
     -moz-user-select: none;
     -ms-user-select: none;
     user-select: none;
+    @extend .om-cell-icon-link;
   }
   .folder-icon-link {
     @extend .folder-icon;

@@ -26,13 +26,14 @@ export default {
         progressPercent: 1,
         progressStep: 0,
         logVersion: true,
+        workDir: '',
         csvDir: '',
         csvId: false,
         profile: '',
         sparseOutput: false,
         mpiNpCount: 0,
         mpiNotOnRoot: true,
-        mpiWdir: ''
+        mpiTmpl: ''
       })
     }
   },
@@ -66,23 +67,43 @@ export default {
       this.msgLoad = 'Starting model run...'
       this.$emit('wait')
 
-      // set new run parameters
+      // set run options
       let rv = {
         ModelDigest: (this.modelDigest || ''),
+        Dir: '',
         Opts: {
-          'OpenM.SubValues': (this.runOpts.subCount || 1).toString(),
           'OpenM.RunName': (this.runOpts.runName || ''),
           'OpenM.SetName': (this.worksetName || '')
-        }
+        },
+        Mpi: {
+          Np: 0
+        },
+        Template: ''
       }
-      if (this.uiLang) {
-        rv.Opts['OpenM.MessageLanguage'] = this.uiLang
+      if ((this.runOpts.subCount || 1) !== 1) rv.Opts['OpenM.SubValues'] = this.runOpts.subCount.toString()
+      if ((this.runOpts.threadCount || 1) !== 1) rv.Opts['OpenM.Threads'] = this.runOpts.threadCount.toString()
+      if ((this.runOpts.workDir || '') !== '') rv.Dir = this.runOpts.workDir
+      if ((this.runOpts.progressPercent || 1) !== 1) rv.Opts['OpenM.ProgressPercent'] = this.runOpts.progressPercent.toString()
+      if (this.runOpts.progressStep) rv.Opts['OpenM.ProgressStep'] = this.runOpts.progressStep.toString()
+      if (this.runOpts.logVersion) rv.Opts['OpenM.Version'] = 'true'
+      if ((this.runOpts.csvDir || '') !== '') rv.Opts['OpenM.ParamDir'] = this.runOpts.csvDir
+      if (this.runOpts.csvId) rv.Opts['OpenM.IdCsv'] = 'true'
+      if ((this.runOpts.profile || '') !== '') rv.Opts['OpenM.Profile'] = this.runOpts.profile
+      if (this.runOpts.sparseOutput) rv.Opts['OpenM.SparseOutput'] = 'true'
+      if (this.uiLang) rv.Opts['OpenM.MessageLanguage'] = this.uiLang
+
+      let isMpi = (this.runOpts.mpiNpCount || 0) > 0
+      if (isMpi) {
+        rv.Mpi.Np = this.runOpts.mpiNpCount
+        if (this.runOpts.mpiTmpl) rv.Template = this.runOpts.mpiTmpl
+        if (this.runOpts.mpiNotOnRoot) rv.Opts['OpenM.NotOnRoot'] = 'true'
       }
+
       let rst = Mdf.emptyRunState()
       let u = this.omppServerUrl + '/api/run'
 
       try {
-        // send data page to the server, response body expected to be empty
+        // send model run request to the server, response expected to contain run stamp
         const response = await axios.post(u, rv)
         rst = response.data
         this.loadDone = true
@@ -91,8 +112,8 @@ export default {
         try {
           if (e.response) em = e.response.data || ''
         } finally {}
-        this.msgLoad = '<Server offline or run start failed>'
-        console.log('Server offline or run start failed.', em)
+        this.msgLoad = '<Server offline or model run failed to start>'
+        console.log('Server offline or model run failed to start.', em)
       }
       this.loadWait = false
 

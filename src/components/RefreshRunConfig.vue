@@ -1,7 +1,7 @@
-<!-- monitor progress of model run: receive run progress from the server -->
+<!-- receive model run server configuration -->
 <template>
 
-<span id="run-progress-refersh">
+<span id="refresh-run-config">
   <span>{{msgLoad}}</span>
 </span>
 
@@ -15,9 +15,6 @@ import * as Mdf from '@/modelCommon'
 
 export default {
   props: {
-    modelDigest: { type: String, default: '' },
-    runStamp: { type: String, default: '' },
-    refreshTickle: { type: Boolean, default: false }
   },
 
   data () {
@@ -36,32 +33,23 @@ export default {
 
   watch: {
     // refresh handlers
-    refreshTickle () { this.doRunProgressRefresh() },
-    modelDigest () { this.doRunProgressRefresh() },
-    runStamp () { this.doRunProgressRefresh() }
   },
 
   methods: {
-    // receive run status and progress from the server
+    // receive model run server configuration: return only MPI template list from configuartion
     async doRunProgressRefresh () {
-      if ((this.modelDigest || '') === '') return // exit: model digest unknown
-
       this.loadDone = false
       this.loadWait = true
       this.msgLoad = ''
       this.$emit('wait')
 
-      let rpl = [] // set run progress list to empty array initially
+      let cfg = { MpiTemplates: [] } // set config to empty value initially
 
-      let u = this.omppServerUrl +
-        '/api/model/' + (this.modelDigest || '') +
-        '/run/' + (this.runStamp || '') +
-        '/status/list'
-
+      let u = this.omppServerUrl + '/api/run/catalog/state'
       try {
-        // send request to the server
+        // send request to the server, response body expected to be empty
         const response = await axios.get(u)
-        rpl = response.data
+        cfg = response.data
         this.loadDone = true
       } catch (e) {
         let em = ''
@@ -73,13 +61,17 @@ export default {
       }
       this.loadWait = false
 
-      // return array of run status and progress elements or empty on error
-      if (!Mdf.isRunStatusProgressList(rpl)) rpl = []
-      this.$emit('done', this.loadDone, rpl)
+      // return file names of model run mpi templates
+      let tpl = []
+      if (!!cfg && cfg.hasOwnProperty('MpiTemplates') && Mdf.isLength(cfg.MpiTemplates)) { // at least one mpi template name expected
+        tpl = cfg.MpiTemplates
+      }
+      this.$emit('done-run-config', this.loadDone, tpl)
     }
   },
 
   mounted () {
+    this.doRunProgressRefresh()
   }
 }
 </script>

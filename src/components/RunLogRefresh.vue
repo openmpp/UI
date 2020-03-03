@@ -68,7 +68,7 @@ export default {
         '/count/' + nCount.toString()
 
       try {
-        // send data page to the server, response body expected to be empty
+        // send request to the server
         const response = await axios.get(u)
         rlp = response.data
         this.loadDone = true

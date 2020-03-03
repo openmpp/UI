@@ -3,8 +3,15 @@
 
   <div v-if="isEmptyRunStep" class="panel-option-frame mdc-typography--body1">
 
+    <span v-if="!isRunConfigDone">
+      <refresh-run-config
+        @done-run-config="doneRefreshRunConfig"
+        @wait="()=>{}">
+      </refresh-run-config>
+    </span>
+
     <div class="panel-section">
-      <template  v-if="isWsEdit">
+      <template v-if="isWsEdit">
         <div class="panel-first-header">
           <om-mcw-button
             :disabled="isWsEdit"
@@ -41,21 +48,21 @@
             <label for="sub-count-input" class="panel-cell">Sub-Values (sub-samples):</label>
             <input type="number"
               id="sub-count-input" ref="subCountInput" size="4" maxlength="4" min="1" max="9999"
-              :value="runOpts.subCount"
+              v-model="runOpts.subCount"
               class="panel-cell panel-num-value" alt="Number of sub-values (a.k.a. members or replicas or sub-samples)" title="Number of sub-values (a.k.a. members or replicas or sub-samples)"/>
           </div>
           <div class="panel-row">
             <label for="thread-count-input" class="panel-cell">Modelling Threads:</label>
             <input type="number"
               id="thread-count-input" ref="threadCountInput" size="4" maxlength="4" min="1" max="9999"
-              :value="runOpts.threadCount"
+              v-model="runOpts.threadCount"
               class="panel-cell panel-num-value" alt="Number of modelling threads" title="Number of modelling threads"/>
           </div>
           <div class="panel-row">
             <label for="run-name-input" class="panel-cell">Run Name:</label>
             <input type="text"
               id="run-name-input" ref="runNameInput" maxlength="255" size="80"
-              :value="autoNewRunName"
+              v-model="runOpts.runName"
               alt="Name of the new model run"
               title="Name of the new model run"
               class="panel-cell panel-value"/>
@@ -73,14 +80,14 @@
             <label for="progress-percent-input" class="panel-cell">Log Progress Percent:</label>
             <input type="number"
               id="progress-percent-input" ref="progressPercentInput" size="4" maxlength="3" min="1" max="100"
-              :value="runOpts.progressPercent"
+              v-model="runOpts.progressPercent"
               class="panel-cell panel-num-value" alt="Percent completed to log model progress" title="Percent completed to log model progress"/>
           </div>
           <div class="panel-row">
             <label for="progress-step-input" class="panel-cell">Log Progress Step:</label>
             <input type="number"
               id="progress-step-input" ref="progressStepInput" size="4" maxlength="8" step="any"
-              :value="runOpts.progressStep"
+              v-model="runOpts.progressStep"
               class="panel-cell panel-num-value" alt="Step to log model progress: number of cases or time passed" title="Step to log model progress: number of cases or time passed"/>
           </div>
           <div class="panel-row">
@@ -88,17 +95,17 @@
             <span class="panel-cell-radio">
               <span class="panel-border-radio">
                 <input type="radio"
-                  id="no-log-version-input" name="log-version-input" value="false" v-model="logVersionValue"
-                  alt="Do not log model version"
-                  title="Do not log model version"
-                  class="panel-item"/>
-                <label for="no-log-version-input" class="panel-item">No</label>
-                <input type="radio"
                   id="yes-log-version-input" name="log-version-input" value="true" v-model="logVersionValue"
                   alt="Log model version"
                   title="Log model version"
                   class="panel-item"/>
                 <label for="yes-log-version-input" class="panel-item">Yes</label>
+                <input type="radio"
+                  id="no-log-version-input" name="log-version-input" value="false" v-model="logVersionValue"
+                  alt="Do not log model version"
+                  title="Do not log model version"
+                  class="panel-item"/>
+                <label for="no-log-version-input" class="panel-item">No</label>
               </span>
             </span>
           </div>
@@ -106,9 +113,19 @@
             <label for="profile-name-input" class="panel-cell">Profile Name:</label>
             <input type="text"
               id="profile-name-input" ref="profileNameInput" maxlength="255" size="80"
-              placeholder="Profile name to get model run options"
+              placeholder="profile name to get model run options"
               alt="Profile name to get model run options"
               title="Profile name to get model run options"
+              class="panel-cell panel-value"/>
+          </div>
+          <div class="panel-row">
+            <label for="work-dir-input" class="panel-cell">Working Directory:</label>
+            <input type="text"
+              id="work-dir-input" ref="workDirInput" maxlength="2048" size="80" v-model="workDirValue"
+              @blur="onWorkDirInputBlur"
+              :placeholder="!isWorkDirEntered ? 'relative path to working directory to run the model' : 'working directory path must be relative and cannot go .. up'"
+              alt="Path to working directory to run the model"
+              title="Path to working directory to run the model"
               class="panel-cell panel-value"/>
           </div>
           <div class="panel-row">
@@ -116,7 +133,7 @@
             <input type="text"
               id="csv-dir-input" ref="csvDirInput" maxlength="2048" size="80" v-model="csvDirValue"
               @blur="onCsvDirInputBlur"
-              :placeholder="!isCsvDirEntered ? 'Relative path to parameters.csv directory' : 'CSV path must be relative and cannot go .. up'"
+              :placeholder="!isCsvDirEntered ? 'relative path to parameters.csv directory' : 'CSV path must be relative and cannot go .. up'"
               alt="Path to parameters.csv directory"
               title="Path to parameters.csv directory"
               class="panel-cell panel-value"/>
@@ -147,17 +164,17 @@
             <span class="panel-cell-radio">
               <span class="panel-border-radio">
                 <input type="radio"
-                  id="no-sparse-output-input" name="sparse-output-input" value="false" v-model="sparseOutputValue"
-                  alt="No sparse output tables: store all values"
-                  title="No sparse output tables: store all values"
-                  class="panel-item"/>
-                <label for="no-sparse-output-input" class="panel-item">No</label>
-                <input type="radio"
                   id="yes-sparse-output-input" name="sparse-output-input" value="true" v-model="sparseOutputValue"
                   alt="Use sparse output tables: do not store small values and zeros"
                   title="Use sparse output tables: do not store small values and zeros"
                   class="panel-item"/>
                 <label for="yes-sparse-output-input" class="panel-item">Yes</label>
+                <input type="radio"
+                  id="no-sparse-output-input" name="sparse-output-input" value="false" v-model="sparseOutputValue"
+                  alt="No sparse output tables: store all values"
+                  title="No sparse output tables: store all values"
+                  class="panel-item"/>
+                <label for="no-sparse-output-input" class="panel-item">No</label>
               </span>
             </span>
           </div>
@@ -174,40 +191,41 @@
             <label for="mpi-np-count-input" class="panel-cell">MPI Number of Processes:</label>
             <input type="number"
               id="mpi-np-count-input" ref="mpiNpCountInput" size="4" maxlength="4" min="0" max="9999"
-              :value="runOpts.mpiNpCount"
+              v-model="runOpts.mpiNpCount"
               @blur="onMpiNpInputBlur"
               class="panel-cell panel-num-value" alt="Number of parallel processes to run" title="Number of parallel processes to run"/>
           </div>
           <div class="panel-row">
-            <span class="panel-cell">Run Model on Root Host:</span>
+            <span class="panel-cell">Use MPI Root for Modelling:</span>
             <span class="panel-cell-radio">
               <span class="panel-border-radio">
                 <input type="radio"
-                  id="no-mpi-on-root-input" name="mpi-on-root-input" value="false" v-model="mpiOnRootValue"
-                  :disabled="runOpts.mpiNpCount <= 0"
-                  alt="Do not use root host to run the model"
-                  title="Do not use root host to run the model"
-                  class="panel-item"/>
-                <label for="no-mpi-on-root-input" class="panel-item">No</label>
-                <input type="radio"
                   id="yes-mpi-on-root-input" name="mpi-on-root-input" value="true" v-model="mpiOnRootValue"
                   :disabled="runOpts.mpiNpCount <= 0"
-                  alt="Use root host to run the model"
-                  title="Use root host to run the model"
+                  alt="Use MPI root process to run the model"
+                  title="Use MPI root process to run the model"
                   class="panel-item"/>
                 <label for="yes-mpi-on-root-input" class="panel-item">Yes</label>
+                <input type="radio"
+                  id="no-mpi-on-root-input" name="mpi-on-root-input" value="false" v-model="mpiOnRootValue"
+                  :disabled="runOpts.mpiNpCount <= 0"
+                  alt="Do not use MPI root process to run the model"
+                  title="Do not use MPI root process to run the model"
+                  class="panel-item"/>
+                <label for="no-mpi-on-root-input" class="panel-item">No</label>
               </span>
             </span>
           </div>
           <div class="panel-row">
-            <label for="mpi-wdir-input" class="panel-cell">MPI Working Directory:</label>
-            <input type="text"
-              id="mpi-wdir-input" ref="mpiWdirInput" maxlength="2048" size="80" v-model="mpiWdirValue"
-              @blur="onMpiWdirInputBlur"
-              :placeholder="!isMpiWdirEntered ? 'Relative path to working directory for MPI processes' : 'Workind directory path must be relative and cannot go .. up'"
-              alt="Path to working directory for MPI processes"
-              title="Path to working directory for MPI processes"
-              class="panel-cell panel-value"/>
+            <label for="mpi-tmpl-input" class="panel-cell">MPI Model Run Template:</label>
+            <select
+              ref="mpiTmplInput"
+              v-model.lazy="mpiTmplValue"
+              alt="Template to run the model on MPI cluster"
+              title="Template to run the model on MPI cluster"
+              class="panel-cell panel-value">
+                <option v-for="opt in mpiTemplateLst" :key="opt" :value="opt">{{opt}}</option>
+            </select>
           </div>
         </div>
 
@@ -216,7 +234,7 @@
 
   </div>
 
-  <div v-if="isInitRunStep" class="panel-frame mdc-typography--body1">
+  <div v-if="isInitRunStep || isInitRunFailed" class="panel-frame mdc-typography--body1">
     <div>
       <span class="medium-wt">Running: </span><span class="mdc-typography--body1">{{runOpts.runName}}</span>
     </div>

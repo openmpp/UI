@@ -1,3 +1,4 @@
+<!-- Obsolete: support for native select removed in versio 4.0.0 2019-11-02 -->
 <!-- Material Components Web simple wrapper for MDCSelect based on native select -->
 <template>
 <div
@@ -19,7 +20,7 @@
       :key="opt.value"
       :value="opt.value"
       :selected="selected === opt.value"
-      >{{ opt.text }}</option>
+      >{{ opt.text ? opt.text : opt.value }}</option>
   </select>
 
   <template v-if="!outlined">

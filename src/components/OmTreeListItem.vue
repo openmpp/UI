@@ -36,8 +36,8 @@ Expected array of tree items as:
       >
       <span class="tree-hdr-container">
 
-        <span v-if="isOpen" class="item-icon folder-icon-link material-icons" :title="'Expand ' + item.name" :alt="'Expand ' + item.name">folder_open</span>
-        <span v-else class="item-icon folder-icon-link material-icons" :title="'Collapse ' + item.name" :alt="'Collapse ' + item.name">folder</span>
+        <span v-if="isOpen" class="item-icon folder-icon-link material-icons" :title="'Expand ' + item.name" :alt="'Expand ' + item.name">arrow_drop_down</span>
+        <span v-else class="item-icon folder-icon-link material-icons" :title="'Collapse ' + item.name" :alt="'Collapse ' + item.name">arrow_right</span>
 
         <span v-if="item.isAbout && !item.isAboutEmpty"
           @click.stop="onFolderAboutClick(item.key, item.name, item.data)"
@@ -225,7 +225,7 @@ export default {
 
   /* ul folder container */
   .tree-folder-container {
-     padding-left: 2rem;
+     padding-left: 1.75rem;
      line-height: 1.5rem;
      list-style-type: none;
   }
@@ -264,6 +264,7 @@ export default {
     -moz-user-select: none;
     -ms-user-select: none;
     user-select: none;
+    @extend .om-cell-icon-link;
   }
   .folder-icon-link {
     @extend .folder-icon;
