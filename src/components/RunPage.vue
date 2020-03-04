@@ -113,9 +113,9 @@
             <label for="profile-name-input" class="panel-cell">Profile Name:</label>
             <input type="text"
               id="profile-name-input" ref="profileNameInput" maxlength="255" size="80"
-              placeholder="profile name to get model run options"
-              alt="Profile name to get model run options"
-              title="Profile name to get model run options"
+              placeholder="profile name in database to get model run options"
+              alt="Profile name in database to get model run options"
+              title="Profile name in database to get model run options"
               class="panel-cell panel-value"/>
           </div>
           <div class="panel-row">

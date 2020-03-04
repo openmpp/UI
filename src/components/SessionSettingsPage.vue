@@ -154,14 +154,17 @@ export default {
   }
   .set-table-cell {
     display: table-cell;
+    vertical-align: middle;
     &:not(:first-child) {
       padding-right: 0.5rem;
     }
   }
   .set-table-first-col {
-    background: rgba(0, 0, 0, 0.05);
+    border-radius: 1.5rem;
+    background-color: whitesmoke;
+    margin: 0.25rem;
     &:hover {
-      background-color: transparent;
+      background-color: gainsboro;
     }
   }
 </style>

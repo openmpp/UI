@@ -67,7 +67,7 @@
             <i class="menu-start mdc-list-item__graphic material-icons" aria-hidden="true">link</i>
             <span class="mdc-list-item__text">OpenM++ website</span>
           </a>
-          <a href="//www.openmpp.org/wiki/" target="_blank" class="mdc-list-item" alt="OpenM++ wiki" role="menuitem" tabindex="0">
+          <a href="//ompp.sourceforge.io/wiki/" target="_blank" class="mdc-list-item" alt="OpenM++ wiki" role="menuitem" tabindex="0">
             <i class="menu-start mdc-list-item__graphic material-icons" aria-hidden="true">link</i>
             <span class="mdc-list-item__text">OpenM++ wiki</span>
           </a>
