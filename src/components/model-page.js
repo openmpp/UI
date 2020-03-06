@@ -133,6 +133,18 @@ export default {
       this.doTabAdd('run-list', { digest: this.digest })
       this.doTabAdd('set-list', { digest: this.digest })
       this.doTabAdd('parameter-set-list', rpSet)
+
+      // (?racing fix?) activate run list tab if not active now
+      let isRl = false
+      for (let k = 0; k < this.tabLst.length; k++) {
+        if (this.tabLst[k].active || this.tabLst[k].kind === 'run-list') {
+          isRl = this.tabLst[k].active && this.tabLst[k].kind === 'run-list'
+          break
+        }
+      }
+      if (!isRl) this.doTabLink('run-list', { digest: this.digest }, true)
+
+      // activate table list or if run not successful then parameter list
       if (this.isSuccessTheRun) {
         this.doTabAdd('parameter-run-list', rpRun)
         this.doTabAdd('table-list', rpRun)

@@ -23,7 +23,7 @@
 
       </section>
 
-      <section class="topbar-last-section mdc-top-app-bar__section mdc-top-app-bar__section--align-end mdc-menu-surface--anchor">
+      <section class="topbar-last-section mdc-top-app-bar__section mdc-top-app-bar__section--align-end">
 
         <button
           v-if="isModel"
@@ -36,42 +36,46 @@
           class="material-icons mdc-top-app-bar__action-item mdc-icon-button"
           title="Refresh"
           alt="Refresh">refresh</button>
-        <button
-          @click="toggleMore"
+        <a v-if="loginUrl" :href="loginUrl"
           class="material-icons mdc-top-app-bar__action-item mdc-icon-button"
-          title="More"
-          alt="More">more_vert</button>
+          title="Login" alt="Login">account_circle</a>
+        <a v-if="logoutUrl" :href="logoutUrl"
+          class="material-icons mdc-top-app-bar__action-item mdc-icon-button"
+          title="Logout" alt="Logout">perm_identity</a>
+        <span id="top-bar-more-menu" class="mdc-menu-surface--anchor">
+          <button
+            @click="toggleMore"
+            class="material-icons mdc-top-app-bar__action-item mdc-icon-button"
+            title="More"
+            alt="More">more_vert</button>
 
-        <om-mcw-menu ref="more" @selected="moreSelected">
-          <a href="#" class="mdc-list-item" alt="English" role="menuitem" tabindex="0">
-            <span class="mdc-list-item__text">EN<span hidden="true">_lang_change_</span>&nbsp;English</span>
-          </a>
-          <a href="#" class="mdc-list-item" alt="Français" role="menuitem" tabindex="0">
-            <span class="mdc-list-item__text">FR<span hidden="true">_lang_change_</span>&nbsp;Français</span>
-          </a>
-          <hr class="mdc-list-divider" role="separator" />
-          <router-link to="/settings" class="mdc-list-item" alt="Settings" role="menuitem" tabindex="0">
-            <i class="menu-start mdc-list-item__graphic material-icons" aria-hidden="true">settings</i>
-            <span class="mdc-list-item__text">Settings</span>
-          </router-link>
-          <router-link to="/login" class="mdc-list-item" title="Login" alt="Login" role="menuitem">
-            <i class="menu-start mdc-list-item__graphic material-icons" aria-hidden="true">account_circle</i>
-            <span class="mdc-list-item__text">Login</span>
-          </router-link>
-          <router-link to="/license" class="mdc-list-item" alt="OpenM++ licence" role="menuitem" tabindex="0">
-            <i class="menu-start mdc-list-item__graphic material-icons" aria-hidden="true">info_outline</i>
-            <span class="mdc-list-item__text">Licence</span>
-          </router-link>
-          <hr class="mdc-list-divider" role="separator" />
-          <a href="//openmpp.org/" target="_blank" class="mdc-list-item" alt="OpenM++ website" role="menuitem" tabindex="0">
-            <i class="menu-start mdc-list-item__graphic material-icons" aria-hidden="true">link</i>
-            <span class="mdc-list-item__text">OpenM++ website</span>
-          </a>
-          <a href="//ompp.sourceforge.io/wiki/" target="_blank" class="mdc-list-item" alt="OpenM++ wiki" role="menuitem" tabindex="0">
-            <i class="menu-start mdc-list-item__graphic material-icons" aria-hidden="true">link</i>
-            <span class="mdc-list-item__text">OpenM++ wiki</span>
-          </a>
-        </om-mcw-menu>
+          <om-mcw-menu ref="more">
+            <a href="#" @click="onLangClick('EN')" class="mdc-list-item" alt="English" role="menuitem" tabindex="0">
+              <span class="mdc-list-item__text">EN English</span>
+            </a>
+            <a href="#" @click="onLangClick('FR')" class="mdc-list-item" alt="Français" role="menuitem" tabindex="0">
+              <span class="mdc-list-item__text">FR Français</span>
+            </a>
+            <hr class="mdc-list-divider" role="separator" />
+            <router-link to="/settings" class="mdc-list-item" alt="Settings" role="menuitem" tabindex="0">
+              <i class="menu-start mdc-list-item__graphic material-icons" aria-hidden="true">settings</i>
+              <span class="mdc-list-item__text">Settings</span>
+            </router-link>
+            <router-link to="/license" class="mdc-list-item" alt="OpenM++ licence" role="menuitem" tabindex="0">
+              <i class="menu-start mdc-list-item__graphic material-icons" aria-hidden="true">info_outline</i>
+              <span class="mdc-list-item__text">Licence</span>
+            </router-link>
+            <hr class="mdc-list-divider" role="separator" />
+            <a href="//openmpp.org/" target="_blank" class="mdc-list-item" alt="OpenM++ website" role="menuitem" tabindex="0">
+              <i class="menu-start mdc-list-item__graphic material-icons" aria-hidden="true">link</i>
+              <span class="mdc-list-item__text">OpenM++ website</span>
+            </a>
+            <a href="//ompp.sourceforge.io/wiki/" target="_blank" class="mdc-list-item" alt="OpenM++ wiki" role="menuitem" tabindex="0">
+              <i class="menu-start mdc-list-item__graphic material-icons" aria-hidden="true">link</i>
+              <span class="mdc-list-item__text">OpenM++ wiki</span>
+            </a>
+          </om-mcw-menu>
+        </span>
 
       </section>
     </div>
@@ -174,6 +178,8 @@
   <div class="app-content mdc-drawer-app-content mdc-top-app-bar--fixed-adjust">
     <main class="main-content">
 
+      <div v-if="!loadDone" class="mdc-typography--caption">{{msgLoad}}</div>
+
       <router-view :refresh-tickle="refreshTickle"></router-view>
 
       <om-mcw-dialog ref="theModelInfoDlg" id="the-model-info-dlg" :scrollable="true" acceptText="OK">
@@ -193,6 +199,7 @@
 </template>
 
 <script>
+import axios from 'axios'
 import { mapGetters, mapActions } from 'vuex'
 import { GET, DISPATCH } from './store'
 import * as Mdf from './modelCommon'
@@ -201,6 +208,8 @@ import OmMcwMenu from '@/om-mcw/OmMcwMenu'
 import OmMcwDialog from '@/om-mcw/OmMcwDialog'
 
 export default {
+  components: { OmMcwDrawer, OmMcwMenu, OmMcwDialog },
+
   name: 'App',
   data () {
     return {
@@ -209,7 +218,10 @@ export default {
       textNoteDlg: '',
       nameNoteDlg: '',
       createdNoteDlg: '',
-      digestNoteDlg: ''
+      digestNoteDlg: '',
+      loadDone: false,
+      loadWait: false,
+      msgLoad: ''
     }
   },
 
@@ -229,8 +241,12 @@ export default {
     worksetTextCount () { return Mdf.worksetTextCount(this.worksetTextList) },
     isRunSelected () { return this.theSelected.ModelDigest && this.theSelected.runDigestName },
     isWorksetSelected () { return this.theSelected.ModelDigest && this.theSelected.worksetName },
+    loginUrl () { return this.serverConfig.LoginUrl },
+    logoutUrl () { return this.serverConfig.LogoutUrl },
 
     ...mapGetters({
+      omppServerUrl: GET.OMPP_SRV_URL,
+      serverConfig: GET.CONFIG,
       theModel: GET.THE_MODEL,
       modelListCount: GET.MODEL_LIST_COUNT,
       runTextList: GET.RUN_TEXT_LIST,
@@ -247,27 +263,13 @@ export default {
       this.$refs.more.toggle()
     },
     doRefresh () {
+      this.doConfigRefresh()
       this.refreshTickle = !this.refreshTickle
     },
 
-    // more menu: view and update settings, change language, refresh data
-    moreSelected (evt) {
-      // if this is language change
-      let txt = evt.item.textContent || ''
-      let lc = txt.substring(txt, txt.indexOf('_lang_change_')).trim()
-      if (lc) {
-        this.dispatchUiLang(lc)
-        return
-      }
-      // if this is action button click
-      let bt = txt.substring(txt, txt.indexOf('_action_button_')).trim()
-      if (bt) {
-        if (bt === 'refresh') {
-          this.doRefresh()
-        } else {
-          console.log('moreSelected: unknown action button', bt)
-        }
-      }
+    // more menu: change language
+    onLangClick (lc) {
+      if (lc) this.dispatchUiLang(lc)
     },
 
     // show model notes
@@ -281,12 +283,38 @@ export default {
       this.$refs.theModelInfoDlg.open()
     },
 
+    // receive server configuration and state, including model run state
+    async doConfigRefresh () {
+      this.loadDone = false
+      this.loadWait = true
+      this.msgLoad = ''
+
+      let u = this.omppServerUrl + '/api/service/state'
+      try {
+        // send request to the server, response body expected to be empty
+        const response = await axios.get(u)
+        this.dispatchConfig(response.data) // update server config in store
+        this.loadDone = true
+      } catch (e) {
+        let em = ''
+        try {
+          if (e.response) em = e.response.data || ''
+        } finally {}
+        this.msgLoad = '<Server offline or run status retrive failed>'
+        console.log('Server offline or run status retrive failed.', em)
+      }
+      this.loadWait = false
+    },
+
     ...mapActions({
+      dispatchConfig: DISPATCH.CONFIG,
       dispatchUiLang: DISPATCH.UI_LANG
     })
   },
 
-  components: { OmMcwDrawer, OmMcwMenu, OmMcwDialog }
+  mounted () {
+    this.doConfigRefresh()
+  }
 }
 </script>
 

@@ -9,6 +9,7 @@ Vue.use(Vuex)
 
 // getters names
 const GET = {
+  CONFIG: 'config',
   UI_LANG: 'uiLang',
   WORD_LIST: 'wordList',
   MODEL_LIST: 'modelList',
@@ -29,6 +30,7 @@ const GET = {
 
 // getters
 const getters = {
+  [GET.CONFIG]: state => state.config,
   [GET.UI_LANG]: state => state.uiLang,
   [GET.WORD_LIST]: state => state.wordList,
   [GET.THE_MODEL]: state => state.theModel,
@@ -77,8 +79,9 @@ const getters = {
   [GET.OMPP_SRV_URL]: () => (process.env.VUE_APP_OMPP_SRV_URL || '')
 }
 
-// store state: model
+// store state and current model
 const state = {
+  config: Mdf.emptyConfig(),
   uiLang: '',
   wordList: Mdf.emptyWordList(),
   modelList: [],

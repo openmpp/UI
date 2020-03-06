@@ -4,7 +4,6 @@ import * as Mdf from '@/modelCommon'
 import NewRunInit from './NewRunInit'
 import RunLogRefresh from './RunLogRefresh'
 import RunProgressRefresh from './RunProgressRefresh'
-import RefreshRunConfig from './RefreshRunConfig'
 import OmMcwButton from '@/om-mcw/OmMcwButton'
 
 /* eslint-disable no-multi-spaces */
@@ -17,10 +16,8 @@ const FINAL_RUN_STEP = 16     // final state of model run: completed or failed
 const RUN_PROGRESS_REFRESH_TIME = 1000 // msec, run progress refresh time
 const RUN_PROGRESS_SUB_RATIO = 4 // multipler for refresh time to get sub values progress
 
-const defaultRunTemplate = 'mpi.ModelRun.template.txt' // default MPI model run template
-
 export default {
-  components: { NewRunInit, RunLogRefresh, RunProgressRefresh, RefreshRunConfig, OmMcwButton },
+  components: { NewRunInit, RunLogRefresh, RunProgressRefresh, OmMcwButton },
 
   props: {
     digest: { type: String, default: '' },
@@ -39,10 +36,8 @@ export default {
       refreshInt: '',
       refreshCount: 0,
       isInitRunFailed: false,
-      isRunConfigDone: false,
-      mpiTemplateLst: [
-        defaultRunTemplate
-      ],
+      mpiDefaultTemplate: '',
+      mpiTemplateLst: [],
       // current run (new model run)
       newRun: {
         step: EMPTY_RUN_STEP, // model run step: initial, start new, view progress
@@ -60,7 +55,7 @@ export default {
       logVersionValue: 'true',
       sparseOutputValue: 'false',
       mpiOnRootValue: 'false',
-      mpiTmplValue: defaultRunTemplate,
+      mpiTmplValue: '',
       runOpts: {
         runName: '',
         subCount: 1,
@@ -75,7 +70,7 @@ export default {
         sparseOutput: false,
         mpiNpCount: 0,
         mpiNotOnRoot: true,
-        mpiTmpl: defaultRunTemplate
+        mpiTmpl: ''
       }
     }
   },
@@ -99,6 +94,7 @@ export default {
     isFinalRunStep () { return this.newRun.step === FINAL_RUN_STEP },
 
     ...mapGetters({
+      serverConfig: GET.CONFIG,
       theModel: GET.THE_MODEL,
       worksetTextByName: GET.WORKSET_TEXT_BY_NAME
     })
@@ -113,7 +109,6 @@ export default {
       this.newRun.progress = []
       this.newRun.logStart = 0
       this.newRun.logLines = []
-      this.isRunConfigDone = false
       this.isInitRunFailed = false
 
       this.runOpts.runName = this.autoNewRunName
@@ -123,6 +118,18 @@ export default {
       this.runOpts.mpiNotOnRoot = this.mpiOnRootValue === 'false'
 
       this.resetRefreshProgress()
+
+      // get template list and select default template
+      this.mpiDefaultTemplate = this.serverConfig.RunCatalogState.DefaultMpiTemplate
+      this.mpiTemplateLst = this.serverConfig.RunCatalogState.MpiTemplates
+
+      if (this.mpiDefaultTemplate && Mdf.isLength(this.mpiTemplateLst)) {
+        let isFound = false
+        for (let k = 0; !isFound && k < this.mpiTemplateLst.length; k++) {
+          isFound = this.mpiTemplateLst[k] === this.mpiDefaultTemplate
+        }
+        this.mpiTmplValue = isFound ? this.mpiDefaultTemplate : this.mpiTemplateLst[0]
+      }
     },
     resetRefreshProgress () {
       this.refreshCount = 0
@@ -132,7 +139,6 @@ export default {
     // refersh model run progress
     refreshRunProgress () {
       if (this.isRefreshPaused) return
-
       this.isRefresh = !this.isRefresh
       this.refreshCount++
       if (this.refreshCount < RUN_PROGRESS_SUB_RATIO || (this.refreshCount % RUN_PROGRESS_SUB_RATIO) === 1) {
@@ -272,23 +278,8 @@ export default {
     // model run status progress: response from server
     doneRunProgressRefresh (ok, rpl) {
       if (ok && Mdf.isLength(rpl)) this.newRun.progress = rpl
-    },
-
-    // model run config: expected list of MPI templates file names
-    doneRefreshRunConfig (ok, tpl) {
-      this.isRunConfigDone = true
-      if (!ok || !tpl || !Mdf.isLength(tpl)) { // at least one template expected
-        return
-      }
-      this.mpiTemplateLst = tpl
-
-      // set default template selected
-      let isFound = false
-      for (let k = 0; !isFound && k < tpl.length; k++) {
-        isFound = tpl[k] === defaultRunTemplate
-      }
-      if (!isFound) this.mpiTmplValue = tpl[0]
     }
+
   },
 
   mounted () {

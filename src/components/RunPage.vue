@@ -3,13 +3,6 @@
 
   <div v-if="isEmptyRunStep" class="panel-option-frame mdc-typography--body1">
 
-    <span v-if="!isRunConfigDone">
-      <refresh-run-config
-        @done-run-config="doneRefreshRunConfig"
-        @wait="()=>{}">
-      </refresh-run-config>
-    </span>
-
     <div class="panel-section">
       <template v-if="isWsEdit">
         <div class="panel-first-header">
@@ -252,11 +245,15 @@
   <div v-if="isProcRunStep || isFinalRunStep" class="panel-frame mdc-typography--body1">
 
     <div>
-      <span
+      <span v-if="isProcRunStep"
         @click="runRefreshPauseToggle()"
         class="om-cell-icon-link material-icons"
         :alt="!isRefreshPaused ? 'Pause' : 'Refresh'"
         :title="!isRefreshPaused ? 'Pause' : 'Refresh'">{{!isRefreshPaused ? (isRefresh ? 'autorenew' : 'loop') : 'play_circle_outline'}}</span>
+      <span v-else
+        class="om-cell-icon-empty material-icons"
+        alt="Refresh"
+        title="Refresh">autorenew</span>
 
       <span class="medium-wt">Run Name: </span><span class="mdc-typography--body1">{{runOpts.runName}}</span>
 
@@ -350,7 +347,7 @@
   .panel-frame {
     margin-top: 0.5rem;
     margin-right: 0.5rem;
-    @extend .panel-border;
+    // @extend .panel-border;
   }
   .panel-option-frame {
     padding: 0.25rem;

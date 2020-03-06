@@ -1,10 +1,10 @@
 <!-- Material Components Web simple wrapper for MDCMenu -->
 <template>
 
-<div @MDCMenu:selected="onSelected" class="mdc-menu mdc-menu-surface" tabindex="-1">
-  <nav class="mdc-list" role="menu" aria-hidden="true">
+<div @MDCMenu:selected="onSelected" class="mdc-menu mdc-menu-surface">
+  <ul class="mdc-list" role="menu" aria-hidden="true" aria-orientation="vertical" tabindex="-1">
     <slot></slot>
-  </nav>
+  </ul>
 </div>
 
 </template>

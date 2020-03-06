@@ -161,7 +161,7 @@ export default {
   }
   .set-table-first-col {
     border-radius: 1.5rem;
-    background-color: whitesmoke;
+    background: rgba(0, 0, 0, 0.05);
     margin: 0.25rem;
     &:hover {
       background-color: gainsboro;

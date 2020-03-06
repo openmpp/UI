@@ -79,10 +79,6 @@ export default new Router({
       component: UnderConstruction
     },
     {
-      path: '/login',
-      component: UnderConstruction
-    },
-    {
       path: '/settings',
       component: SessionSettings
     },

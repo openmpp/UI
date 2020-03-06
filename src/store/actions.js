@@ -3,6 +3,7 @@ import { COMMIT } from './mutations'
 
 // exported actions names
 const DISPATCH = {
+  CONFIG: 'dispatchConfig',
   UI_LANG: 'dispatchUiLang',
   WORD_LIST: 'dispatchWordList',
   MODEL_LIST: 'dispatchModelList',
@@ -17,13 +18,18 @@ const DISPATCH = {
   WORKSET_TEXT_LIST: 'dispatchWorksetTextList',
   EMPTY_WORKSET_TEXT_LIST: 'dispatchEmptyWorksetTextList',
   THE_SELECTED: 'dispatchTheSelected',
-  PARAM_VIEW: 'paramView',
-  PARAM_VIEW_DELETE: 'paramViewDelete',
-  PARAM_VIEW_DELETE_BY_PREFIX: 'paramViewDeleteByPrefix'
+  PARAM_VIEW: 'dispatchParamView',
+  PARAM_VIEW_DELETE: 'dispatchParamViewDelete',
+  PARAM_VIEW_DELETE_BY_PREFIX: 'dispatchParamViewDeleteByPrefix'
 }
 
 // actions: combine multiple mutations or async updates
 const actions = {
+  // set new value to server config
+  [DISPATCH.CONFIG] ({ commit }, cfg) {
+    commit(COMMIT.CONFIG, cfg)
+  },
+
   [DISPATCH.UI_LANG] ({ commit, dispatch }, lang) {
     commit(COMMIT.UI_LANG, lang)
     dispatch(DISPATCH.WORD_LIST, Mdf.emptyWordList())

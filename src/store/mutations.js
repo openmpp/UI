@@ -2,6 +2,7 @@ import * as Mdf from '@/modelCommon'
 
 // internal mutations names
 const COMMIT = {
+  CONFIG: 'commitConfig',
   UI_LANG: 'commitUiLang',
   WORD_LIST: 'commitWordList',
   WORD_LIST_ON_NEW: 'commitWordListOnNew',
@@ -18,13 +19,18 @@ const COMMIT = {
   WORKSET_TEXT_LIST_ON_NEW: 'commitWorksetTextListOnNew',
   THE_SELECTED: 'commitTheSelected',
   THE_SELECTED_ON_NEW: 'commitTheSelectedOnNew',
-  PARAM_VIEW: 'paramView',
-  PARAM_VIEW_DELETE: 'paramViewDelete',
-  PARAM_VIEW_DELETE_BY_PREFIX: 'paramViewDeleteByPrefix'
+  PARAM_VIEW: 'commitParamView',
+  PARAM_VIEW_DELETE: 'commitParamViewDelete',
+  PARAM_VIEW_DELETE_BY_PREFIX: 'commitParamViewDeleteByPrefix'
 }
 
 // mutations: synchronized updates
 const mutations = {
+  // assign new value to server config, if (cfg) is a config
+  [COMMIT.CONFIG] (state, cfg) {
+    if (Mdf.isConfig(cfg)) state.config = cfg
+  },
+
   // assign new value to current UI language
   [COMMIT.UI_LANG] (state, lang) { state.uiLang = (lang || '') },
 

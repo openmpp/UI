@@ -232,6 +232,7 @@ export default {
     margin: 0.5rem 0.5rem 0 0;
   }
   input.tree-filter {
+    flex-grow: 1;
     width: 100%;
     margin-right: 1px;
     border: 1px solid lightgrey;
