@@ -21,6 +21,7 @@ export default {
       type: Object,
       default: () => ({
         runName: '',
+        runDescr: '',
         subCount: 1,
         threadCount: 1,
         progressPercent: 1,
@@ -49,6 +50,7 @@ export default {
   computed: {
     ...mapGetters({
       uiLang: GET.UI_LANG,
+      modelLang: GET.MODEL_LANG,
       omppServerUrl: GET.OMPP_SRV_URL
     })
   },
@@ -82,6 +84,7 @@ export default {
       }
       if ((this.runOpts.subCount || 1) !== 1) rv.Opts['OpenM.SubValues'] = this.runOpts.subCount.toString()
       if ((this.runOpts.threadCount || 1) !== 1) rv.Opts['OpenM.Threads'] = this.runOpts.threadCount.toString()
+      if ((this.modelLang || '') !== '' && (this.runOpts.runDescr || '') !== '') rv.Opts[this.modelLang + '.RunDescription'] = this.runOpts.runDescr
       if ((this.runOpts.workDir || '') !== '') rv.Dir = this.runOpts.workDir
       if ((this.runOpts.progressPercent || 1) !== 1) rv.Opts['OpenM.ProgressPercent'] = this.runOpts.progressPercent.toString()
       if (this.runOpts.progressStep) rv.Opts['OpenM.ProgressStep'] = this.runOpts.progressStep.toString()

@@ -162,14 +162,10 @@
 
       <nav class="mdc-list">
         <router-link to="/service" class="mdc-list-item" alt="Service status and model(s) run queue" role="menuitem">
-          <i class="menu-start mdc-list-item__graphic material-icons" aria-hidden="true">queue_play_next</i>
+          <i class="menu-start mdc-list-item__graphic material-icons" aria-hidden="true">cloud_queue</i>
           <span class="mdc-list-item__text">Service Status</span>
         </router-link>
 
-        <router-link to="/run-history" class="mdc-list-item" alt="Models run history" role="menuitem">
-          <i class="menu-start mdc-list-item__graphic material-icons" aria-hidden="true">history</i>
-          <span class="mdc-list-item__text">Run History</span>
-        </router-link>
       </nav>
 
     </div>
@@ -269,7 +265,10 @@ export default {
 
     // more menu: change language
     onLangClick (lc) {
-      if (lc) this.dispatchUiLang(lc)
+      if (lc) {
+        this.dispatchUiLang(lc)
+        this.refreshTickle = !this.refreshTickle
+      }
     },
 
     // show model notes
@@ -283,15 +282,15 @@ export default {
       this.$refs.theModelInfoDlg.open()
     },
 
-    // receive server configuration and state, including model run state
+    // receive server configuration, including configuration of model catalog and run catalog
     async doConfigRefresh () {
       this.loadDone = false
       this.loadWait = true
       this.msgLoad = ''
 
-      let u = this.omppServerUrl + '/api/service/state'
+      let u = this.omppServerUrl + '/api/service/config'
       try {
-        // send request to the server, response body expected to be empty
+        // send request to the server
         const response = await axios.get(u)
         this.dispatchConfig(response.data) // update server config in store
         this.loadDone = true

@@ -101,6 +101,9 @@ export default {
         '/model/' + this.digest + '/' + this.runOrSet + '/' + this.nameDigest + '/parameter/' + pt.Param.Name)
     },
 
+    // update tree view: handler for parameter list re-loaded
+    refreshView () { this.setTreeData() },
+
     // retrun tree of parameters list: groups and parameter leafs
     setTreeData () {
       this.treeDataTickle = !this.treeDataTickle // tree data updated

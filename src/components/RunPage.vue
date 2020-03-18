@@ -38,7 +38,7 @@
         </div>
         <div v-show="isRunOptsShow" class="panel-table">
           <div class="panel-row">
-            <label for="sub-count-input" class="panel-cell">Sub-Values (sub-samples):</label>
+            <label for="sub-count-input" class="panel-cell">Sub-Values (SubSamples):</label>
             <input type="number"
               id="sub-count-input" ref="subCountInput" size="4" maxlength="4" min="1" max="9999"
               v-model="runOpts.subCount"
@@ -58,6 +58,15 @@
               v-model="runOpts.runName"
               alt="Name of the new model run"
               title="Name of the new model run"
+              class="panel-cell panel-value"/>
+          </div>
+          <div v-show="modelLang" class="panel-row">
+            <label for="run-descr-input" class="panel-cell">Description:</label>
+            <input type="text"
+              id="run-descr-input" ref="runDescrInput" maxlength="255" size="80"
+              v-model="runOpts.runDescr"
+              alt="Model run description"
+              title="Model run description"
               class="panel-cell panel-value"/>
           </div>
         </div>
@@ -104,12 +113,15 @@
           </div>
           <div class="panel-row">
             <label for="profile-name-input" class="panel-cell">Profile Name:</label>
-            <input type="text"
-              id="profile-name-input" ref="profileNameInput" maxlength="255" size="80"
-              placeholder="profile name in database to get model run options"
+            <select
+              :disabled="isEmptyProfileList"
+              ref="profileNameInput"
+              v-model.lazy="profileValue"
               alt="Profile name in database to get model run options"
               title="Profile name in database to get model run options"
-              class="panel-cell panel-value"/>
+              class="panel-cell panel-value panel-cell-min-width">
+                <option v-for="opt in profileLst" :key="opt" :value="opt">{{opt}}</option>
+            </select>
           </div>
           <div class="panel-row">
             <label for="work-dir-input" class="panel-cell">Working Directory:</label>
@@ -133,18 +145,18 @@
           </div>
           <div class="panel-row">
             <span class="panel-cell">CSV file(s) contain:</span>
-            <span class="panel-cell-radio">
+            <span class="panel-cell-radio" :class="!runOpts.csvDir ? 'panel-cell-disabled' : ''">
               <span class="panel-border-radio">
                 <input type="radio"
-                  id="csv-code-use-input" name="csv-use-input" value="false" v-model="csvIdValue"
                   :disabled="!runOpts.csvDir"
+                  id="csv-code-use-input" name="csv-use-input" value="false" v-model="csvIdValue"
                   alt="CSV files contain enum code"
                   title="CSV files contain enum code"
                   class="panel-item"/>
                 <label for="csv-code-use-input" class="panel-item">Enum Code</label>
                 <input type="radio"
-                  id="csv-id-use-input" name="csv-use-input" value="true" v-model="csvIdValue"
                   :disabled="!runOpts.csvDir"
+                  id="csv-id-use-input" name="csv-use-input" value="true" v-model="csvIdValue"
                   alt="CSV files contain enum id"
                   title="CSV files contain enum id"
                   class="panel-item"/>
@@ -190,18 +202,18 @@
           </div>
           <div class="panel-row">
             <span class="panel-cell">Use MPI Root for Modelling:</span>
-            <span class="panel-cell-radio">
+            <span class="panel-cell-radio" :class="!runOpts.csvDir ? 'panel-cell-disabled' : ''">
               <span class="panel-border-radio">
                 <input type="radio"
-                  id="yes-mpi-on-root-input" name="mpi-on-root-input" value="true" v-model="mpiOnRootValue"
                   :disabled="runOpts.mpiNpCount <= 0"
+                  id="yes-mpi-on-root-input" name="mpi-on-root-input" value="true" v-model="mpiOnRootValue"
                   alt="Use MPI root process to run the model"
                   title="Use MPI root process to run the model"
                   class="panel-item"/>
                 <label for="yes-mpi-on-root-input" class="panel-item">Yes</label>
                 <input type="radio"
-                  id="no-mpi-on-root-input" name="mpi-on-root-input" value="false" v-model="mpiOnRootValue"
                   :disabled="runOpts.mpiNpCount <= 0"
+                  id="no-mpi-on-root-input" name="mpi-on-root-input" value="false" v-model="mpiOnRootValue"
                   alt="Do not use MPI root process to run the model"
                   title="Do not use MPI root process to run the model"
                   class="panel-item"/>
@@ -212,6 +224,7 @@
           <div class="panel-row">
             <label for="mpi-tmpl-input" class="panel-cell">MPI Model Run Template:</label>
             <select
+              :disabled="runOpts.mpiNpCount <= 0"
               ref="mpiTmplInput"
               v-model.lazy="mpiTmplValue"
               alt="Template to run the model on MPI cluster"
@@ -249,7 +262,7 @@
         @click="runRefreshPauseToggle()"
         class="om-cell-icon-link material-icons"
         :alt="!isRefreshPaused ? 'Pause' : 'Refresh'"
-        :title="!isRefreshPaused ? 'Pause' : 'Refresh'">{{!isRefreshPaused ? (isRefresh ? 'autorenew' : 'loop') : 'play_circle_outline'}}</span>
+        :title="!isRefreshPaused ? 'Pause' : 'Refresh'">{{!isRefreshPaused ? (isLogRefresh ? 'autorenew' : 'loop') : 'play_circle_outline'}}</span>
       <span v-else
         class="om-cell-icon-empty material-icons"
         alt="Refresh"
@@ -260,9 +273,9 @@
       <run-log-refresh
         :model-digest="digest"
         :run-stamp="newRun.state.RunStamp"
-        :refresh-tickle="isRefresh"
+        :refresh-tickle="isLogRefresh"
         :start="newRun.logStart"
-        :count="200"
+        :count="newRun.logCount"
         @done="doneRunLogRefresh"
         @wait="()=>{}">
       </run-log-refresh>
@@ -280,7 +293,7 @@
       <table v-if="pi.UpdateDateTime" class="pt-table panel-section">
         <thead>
           <tr>
-            <th class="pt-head">Completed</th>
+            <th class="pt-head">{{pi.SubCompleted > 0 ? 'Completed' : 'Sub-values'}}</th>
             <th class="pt-head">Status</th>
             <th class="pt-head">Updated</th>
             <th class="pt-head">Digest</th>
@@ -288,7 +301,7 @@
         </thead>
         <tbody>
           <tr>
-            <td class="pt-cell-right">{{pi.SubCompleted}} / {{pi.SubCount}}</td>
+            <td class="pt-cell-right"><span v-if="pi.SubCompleted > 0">{{pi.SubCompleted}} / </span>{{pi.SubCount}}</td>
             <td class="pt-cell-left">{{statusOfTheRun(pi)}}</td>
             <td class="pt-cell-left">{{pi.UpdateDateTime}}</td>
             <td class="pt-cell-left">{{pi.Digest}}</td>
@@ -310,16 +323,16 @@
     </div>
 
     <div class="panel-section">
-      <span class="mono" v-if="newRun.state.UpdateDateTime">{{newRun.state.UpdateDateTime}}</span>
-      <span class="mono"><i>[{{modelName}}.{{newRun.state.RunStamp}}.console.log]</i></span>
+      <span v-if="newRun.state.UpdateDateTime" class="mono">{{newRun.state.UpdateDateTime}}</span>
+      <span v-if="newRun.state.LogFileName" class="mono"><i>[{{newRun.state.LogFileName}}]</i></span>
     </div>
     <div>
-      <div v-for="ln in newRun.logLines" :key="ln.key" class="mono mdc-typography--caption">
-        {{ln.text}}
-      </div>
+      <pre class="log-text">{{newRun.logLines.join('\n')}}</pre>
     </div>
 
   </div>
+
+  <om-mcw-snackbar id="run-page-snackbar-msg" ref="runPageSnackbarMsg" labelText="..."></om-mcw-snackbar>
 
 </div>
 </template>
@@ -410,6 +423,14 @@
     padding-bottom: 0.125rem;
     @extend .panel-border;
   }
+  .panel-cell-disabled {
+    color: GrayText;
+    // background-color: ThreeDLightShadow;
+    cursor: unset;
+  }
+  .panel-cell-min-width {
+    min-width: 8rem;;
+  }
 
   /* run progress table */
   .pt-table {
@@ -438,5 +459,11 @@
   .pt-cell-center {
     text-align: center;
     @extend .pt-cell;
+  }
+
+  .log-text {
+    margin-top: 0;
+    @extend .mono;
+    @extend .mdc-typography--caption;
   }
 </style>

@@ -168,12 +168,17 @@ const mutations = {
     }
     if (state.theSelected.ModelDigest === '') return // model digest must be defined for non-empty selection
 
+    // if isRun option explicitly specified then use it
+    let isSelRun = sel.hasOwnProperty('isRun') && typeof sel.isRun === typeof true
+    if (isSelRun) {
+      state.theSelected.isRun = sel.isRun
+    }
     // select workset by name
     if (sel.hasOwnProperty('worksetName') && typeof sel.worksetName === typeof 'string' && Mdf.isLength(state.worksetTextList)) {
       const k = state.worksetTextList.findIndex((w) => w.Name === sel.worksetName)
       if (k >= 0) {
         state.theSelected.worksetName = sel.worksetName
-        state.theSelected.isRun = false
+        if (!isSelRun) state.theSelected.isRun = false
       }
     }
     // select run by digest or name
@@ -182,11 +187,9 @@ const mutations = {
       if (k < 0) k = state.runTextList.findIndex((r) => r.Name === sel.runDigestName)
       if (k >= 0) {
         state.theSelected.runDigestName = sel.runDigestName
-        state.theSelected.isRun = true
+        if (!isSelRun) state.theSelected.isRun = true
       }
     }
-    // if isRun option explicitly specified then use it
-    if (sel.hasOwnProperty('isRun') && typeof sel.isRun === typeof true) state.theSelected.isRun = sel.isRun
   },
 
   // insert, replace or update parameter view by route key (key must be non-empty string)

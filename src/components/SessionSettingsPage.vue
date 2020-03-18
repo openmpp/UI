@@ -57,8 +57,7 @@
         <span class="set-table-cell"></span>
         <span class="set-table-cell">Current model run:</span>
         <span class="set-table-cell">
-          <span class="mono">{{lastTimeOfRun}}&nbsp;</span><span class="medium-wt">{{nameOfRun}}</span>
-          <span>{{ descrOfRun }}</span>
+          <span><span class="mono">{{lastTimeOfRun}}</span> <span class="medium-wt">{{nameOfRun + (descrOfRun ? ': ' : '')}}</span><span>{{descrOfRun}}</span></span>
         </span>
       </div>
 
@@ -66,8 +65,7 @@
         <span class="set-table-cell"></span>
         <span class="set-table-cell">Current input set:</span>
         <span class="set-table-cell">
-          <span class="mono">{{lastTimeOfWorkset}}&nbsp;</span><span class="medium-wt">{{nameOfWorkset}}</span>
-          <span>{{ descrOfWorkset }}</span>
+          <span><span class="mono">{{lastTimeOfWorkset}}</span> <span class="medium-wt">{{nameOfWorkset + (descrOfWorkset ? ': ' : '')}}</span><span>{{descrOfWorkset}}</span></span>
         </span>
       </div>
 

@@ -15,6 +15,16 @@
             <span v-if="isSuccess(r)">description</span>
             <span v-else>error_outline</span>
         </span>
+<!--
+        <span
+          @click="showRunInfo(r)"
+          class="om-note-link mdc-list-item__graphic material-icons"
+          :title="'About ' + r.Name"
+          :alt="'About ' + r.Name">
+            <span v-if="isSuccess(r)">subject</span>
+            <span v-else>error_outline</span>
+        </span>
+-->
         <span
           @click="doRunClick(r.Digest)"
           class="link-next"

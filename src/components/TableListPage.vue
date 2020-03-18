@@ -82,6 +82,9 @@ export default {
         '/model/' + this.digest + '/run/' + this.nameDigest + '/table/' + t.Table.Name)
     },
 
+    // update tree view: handler for table list re-loaded
+    refreshView () { this.setTreeData() },
+
     // retrun tree of output tables list: groups and output table leafs
     setTreeData () {
       this.treeDataTickle = !this.treeDataTickle // tree data updated

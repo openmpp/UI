@@ -134,24 +134,15 @@ export default {
       this.doTabAdd('set-list', { digest: this.digest })
       this.doTabAdd('parameter-set-list', rpSet)
 
-      // (?racing fix?) activate run list tab if not active now
-      let isRl = false
-      for (let k = 0; k < this.tabLst.length; k++) {
-        if (this.tabLst[k].active || this.tabLst[k].kind === 'run-list') {
-          isRl = this.tabLst[k].active && this.tabLst[k].kind === 'run-list'
-          break
-        }
-      }
-      if (!isRl) this.doTabLink('run-list', { digest: this.digest }, true)
-
       // activate table list or if run not successful then parameter list
       if (this.isSuccessTheRun) {
         this.doTabAdd('parameter-run-list', rpRun)
         this.doTabAdd('table-list', rpRun)
-        this.doTabLink('table-list', rpRun, true) // output tables list tab (do  activate and route)
+        // this.doTabLink('table-list', rpRun, true) // output tables list tab (do  activate and route)
       } else {
-        this.doTabLink('parameter-set-list', rpSet, true) // list of workset parameters tab (do  activate and route)
+        // this.doTabLink('parameter-set-list', rpSet, true) // list of workset parameters tab (do  activate and route)
       }
+      this.doTabLink('run-list', { digest: this.digest }, true)
     }
   },
 
@@ -211,13 +202,15 @@ export default {
     },
     // update workset or run in the list view
     doTabRefreshItem (key) {
-      if (!this.$refs.theTab || !this.$refs.theTab.hasOwnProperty('refreshItem')) return
-      this.$refs.theTab.refreshItem(key)
+      if (!!this.$refs.theTab && this.$refs.theTab.hasOwnProperty('refreshItem')) this.$refs.theTab.refreshItem(key)
     },
     // update workset read-only status
     doTabRefreshWsEditStatus (key) {
-      if (!this.$refs.theTab || !this.$refs.theTab.hasOwnProperty('refreshWsEditStatus')) return
-      this.$refs.theTab.refreshWsEditStatus(key)
+      if (!!this.$refs.theTab && this.$refs.theTab.hasOwnProperty('refreshWsEditStatus')) this.$refs.theTab.refreshWsEditStatus(key)
+    },
+    // update tab view on data reload, for example on page re-load
+    doTabRefreshView () {
+      if (!!this.$refs.theTab && this.$refs.theTab.hasOwnProperty('refreshView')) this.$refs.theTab.refreshView()
     },
 
     // run selected from the list: reload run info
@@ -315,7 +308,13 @@ export default {
       }
 
       // if new path is a result of tab add or tab close then route to new path
-      if (isToNewRoute && (ti.path || '') !== '') this.$router.push(ti.path)
+      if (isToNewRoute && (ti.path || '') !== '') {
+        if (ti.path !== this.$route.path) {
+          this.$router.push(ti.path)
+        } else {
+          this.doTabRefreshView()
+        }
+      }
 
       // if this model run tab then disable new model run button (workset run button)
       this.isRunModelTab = kind === 'run-model'

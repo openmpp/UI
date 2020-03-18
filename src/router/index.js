@@ -75,10 +75,6 @@ export default new Router({
       component: UnderConstruction
     },
     {
-      path: '/run-history',
-      component: UnderConstruction
-    },
-    {
       path: '/settings',
       component: SessionSettings
     },

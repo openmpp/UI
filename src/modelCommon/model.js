@@ -60,6 +60,5 @@ export const modelDigest = (md) => {
 export const modelTitle = (md) => {
   if (!isModel(md)) return ''
   const descr = Dnf.descrOfDescrNote(md)
-  if (descr !== '') return md.Model.Name + ': ' + descr
-  return md.Model.Name
+  return (descr !== '') ? md.Model.Name + ': ' + descr : md.Model.Name
 }

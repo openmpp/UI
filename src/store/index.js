@@ -15,6 +15,7 @@ const GET = {
   MODEL_LIST: 'modelList',
   MODEL_LIST_COUNT: 'modelListCount',
   THE_MODEL: 'theModel',
+  MODEL_LANG: 'modelLangCode',
   RUN_TEXT_BY_IDX: 'runTextByIndex',
   RUN_TEXT_BY_DIGEST: 'runTextByDigest',
   RUN_TEXT_BY_DIGEST_OR_NAME: 'runTextByDigestOrName',
@@ -38,6 +39,17 @@ const getters = {
   [GET.MODEL_LIST_COUNT]: state => state.modelList.length,
   [GET.RUN_TEXT_LIST]: state => state.runTextList,
   [GET.THE_SELECTED]: state => state.theSelected,
+
+  [GET.MODEL_LANG]: state => {
+    let lang = ''
+    if (!!state.wordList && state.wordList.hasOwnProperty('ModelLangCode')) {
+      lang = state.wordList.ModelLangCode || ''
+    }
+    if (!lang && !!state.theModel && state.theModel.hasOwnProperty('Model') && state.theModel.Model.hasOwnProperty('DefaultLangCode')) {
+      lang = state.theModel.Model.DefaultLangCode || ''
+    }
+    return lang
+  },
 
   [GET.RUN_TEXT_BY_IDX]: state =>
     (idx) => (Mdf.isLength(state.runTextList) && idx >= 0 && idx < state.runTextList.length) ? state.runTextList[idx] : Mdf.emptyRunText(),

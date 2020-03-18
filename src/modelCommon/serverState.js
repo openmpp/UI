@@ -9,12 +9,13 @@ export const emptyConfig = () => {
     RowPageMaxSize: 100,
     LoginUrl: '',
     LogoutUrl: '',
-    ModelCatalogState: {
-      ModelDir: ''
-    },
-    RunCatalogState: {
+    ModelCatalog: {
+      ModelDir: '',
       ModelLogDir: '',
-      IsModelLogEnabled: false,
+      IsLogDirEnabled: false
+    },
+    RunCatalog: {
+      LastTimeStamp: '',
       DefaultMpiTemplate: 'mpi.ModelRun.template.txt',
       MpiTemplates: []
     }
@@ -26,11 +27,11 @@ export const isConfig = (c) => {
   if (!c) return false
   if (!c.hasOwnProperty('RootDir') || !c.hasOwnProperty('RowPageMaxSize') ||
     !c.hasOwnProperty('LoginUrl') || !c.hasOwnProperty('LogoutUrl') ||
-    !c.hasOwnProperty('ModelCatalogState') || !c.hasOwnProperty('RunCatalogState')) {
+    !c.hasOwnProperty('ModelCatalog') || !c.hasOwnProperty('RunCatalog')) {
     return false
   }
-  if (!c.ModelCatalogState.hasOwnProperty('ModelDir')) return false
-  if (!c.RunCatalogState.hasOwnProperty('ModelLogDir') || !c.RunCatalogState.hasOwnProperty('DefaultMpiTemplate') || !c.RunCatalogState.hasOwnProperty('MpiTemplates')) return false
+  if (!c.ModelCatalog.hasOwnProperty('ModelDir') || !c.ModelCatalog.hasOwnProperty('ModelLogDir') || !c.ModelCatalog.hasOwnProperty('IsLogDirEnabled')) return false
+  if (!c.RunCatalog.hasOwnProperty('DefaultMpiTemplate') || !c.RunCatalog.hasOwnProperty('MpiTemplates')) return false
 
-  return Hlpr.hasLength(c.RunCatalogState.MpiTemplates)
+  return Hlpr.hasLength(c.RunCatalog.MpiTemplates)
 }

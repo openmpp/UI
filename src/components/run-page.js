@@ -1,3 +1,4 @@
+import axios from 'axios'
 import { mapGetters } from 'vuex'
 import { GET } from '@/store'
 import * as Mdf from '@/modelCommon'
@@ -5,6 +6,7 @@ import NewRunInit from './NewRunInit'
 import RunLogRefresh from './RunLogRefresh'
 import RunProgressRefresh from './RunProgressRefresh'
 import OmMcwButton from '@/om-mcw/OmMcwButton'
+import OmMcwSnackbar from '@/om-mcw/OmMcwSnackbar'
 
 /* eslint-disable no-multi-spaces */
 const EMPTY_RUN_STEP = 0      // empty state of new model: undefined
@@ -15,9 +17,10 @@ const FINAL_RUN_STEP = 16     // final state of model run: completed or failed
 
 const RUN_PROGRESS_REFRESH_TIME = 1000 // msec, run progress refresh time
 const RUN_PROGRESS_SUB_RATIO = 4 // multipler for refresh time to get sub values progress
+const MIN_LOG_COUNT = 200 // min size of page log read request
 
 export default {
-  components: { NewRunInit, RunLogRefresh, RunProgressRefresh, OmMcwButton },
+  components: { NewRunInit, RunLogRefresh, RunProgressRefresh, OmMcwButton, OmMcwSnackbar },
 
   props: {
     digest: { type: String, default: '' },
@@ -31,19 +34,21 @@ export default {
       isRunOptsAdvShow: false,
       isRunOptsMpiShow: false,
       isRefreshPaused: false,
-      isRefresh: false,
+      isLogRefresh: false,
       isProgressRefresh: false,
       refreshInt: '',
       refreshCount: 0,
       isInitRunFailed: false,
       mpiDefaultTemplate: '',
       mpiTemplateLst: [],
+      profileLst: [],
       // current run (new model run)
       newRun: {
         step: EMPTY_RUN_STEP, // model run step: initial, start new, view progress
         state: Mdf.emptyRunState(),
         progress: [],
         logStart: 0,
+        logCount: MIN_LOG_COUNT,
         logLines: []
       },
       // run options
@@ -52,12 +57,14 @@ export default {
       csvDirValue: '',
       isCsvDirEntered: false,
       csvIdValue: 'false',
+      profileValue: '',
       logVersionValue: 'true',
       sparseOutputValue: 'false',
       mpiOnRootValue: 'false',
       mpiTmplValue: '',
       runOpts: {
         runName: '',
+        runDescr: '',
         subCount: 1,
         threadCount: 1,
         progressPercent: 1,
@@ -93,10 +100,15 @@ export default {
     isProcRunStep () { return this.newRun.step === PROC_RUN_STEP },
     isFinalRunStep () { return this.newRun.step === FINAL_RUN_STEP },
 
+    // is profile list empty
+    isEmptyProfileList () { return !Mdf.isLength(this.profileLst) },
+
     ...mapGetters({
       serverConfig: GET.CONFIG,
       theModel: GET.THE_MODEL,
-      worksetTextByName: GET.WORKSET_TEXT_BY_NAME
+      modelLang: GET.MODEL_LANG,
+      worksetTextByName: GET.WORKSET_TEXT_BY_NAME,
+      omppServerUrl: GET.OMPP_SRV_URL
     })
   },
 
@@ -120,8 +132,8 @@ export default {
       this.resetRefreshProgress()
 
       // get template list and select default template
-      this.mpiDefaultTemplate = this.serverConfig.RunCatalogState.DefaultMpiTemplate
-      this.mpiTemplateLst = this.serverConfig.RunCatalogState.MpiTemplates
+      this.mpiDefaultTemplate = this.serverConfig.RunCatalog.DefaultMpiTemplate
+      this.mpiTemplateLst = this.serverConfig.RunCatalog.MpiTemplates
 
       if (this.mpiDefaultTemplate && Mdf.isLength(this.mpiTemplateLst)) {
         let isFound = false
@@ -130,24 +142,9 @@ export default {
         }
         this.mpiTmplValue = isFound ? this.mpiDefaultTemplate : this.mpiTemplateLst[0]
       }
-    },
-    resetRefreshProgress () {
-      this.refreshCount = 0
-      clearInterval(this.refreshInt)
-    },
 
-    // refersh model run progress
-    refreshRunProgress () {
-      if (this.isRefreshPaused) return
-      this.isRefresh = !this.isRefresh
-      this.refreshCount++
-      if (this.refreshCount < RUN_PROGRESS_SUB_RATIO || (this.refreshCount % RUN_PROGRESS_SUB_RATIO) === 1) {
-        this.isProgressRefresh = !this.isProgressRefresh
-      }
-    },
-    // pause on/off run progress refresh
-    runRefreshPauseToggle () {
-      this.isRefreshPaused = !this.isRefreshPaused
+      // get profile list from server
+      this.doProfileListRefresh()
     },
 
     // return run status text by run status code
@@ -157,13 +154,15 @@ export default {
     onModelRun () {
       // set new run options
       this.runOpts.runName = this.parseTextInput(this.$refs.runNameInput.value) || this.autoNewRunName
+      this.runOpts.runDescr = this.parseTextInput(this.$refs.runDescrInput.value)
       this.runOpts.subCount = this.parseIntInput(this.$refs.subCountInput.value, 1)
       this.runOpts.threadCount = this.parseIntInput(this.$refs.threadCountInput.value, 1)
       this.runOpts.csvDir = this.parsePathInput(this.csvDirValue)
       this.runOpts.csvId = this.csvIdValue === 'true'
       this.runOpts.logVersion = this.logVersionValue === 'true'
       this.runOpts.sparseOutput = this.sparseOutputValue === 'true'
-      this.runOpts.profile = this.parseTextInput(this.$refs.profileNameInput.value)
+      // this.runOpts.profile = this.parseTextInput(this.$refs.profileNameInput.value)
+      this.runOpts.profile = this.parseTextInput(this.profileValue)
       this.runOpts.mpiNpCount = this.parseIntInput(this.$refs.mpiNpCountInput.value, 0)
       this.runOpts.mpiNotOnRoot = this.mpiOnRootValue === 'false'
       this.runOpts.workDir = this.parsePathInput(this.workDirValue)
@@ -246,6 +245,24 @@ export default {
       if (!ok) this.$emit('run-list-refresh')
     },
 
+    // refersh model run progress
+    refreshRunProgress () {
+      if (this.isRefreshPaused) return
+      this.isLogRefresh = !this.isLogRefresh
+      this.refreshCount++
+      if (this.refreshCount < RUN_PROGRESS_SUB_RATIO || (this.refreshCount % RUN_PROGRESS_SUB_RATIO) === 1) {
+        this.isProgressRefresh = !this.isProgressRefresh
+      }
+    },
+    // pause on/off run progress refresh
+    runRefreshPauseToggle () {
+      this.isRefreshPaused = !this.isRefreshPaused
+    },
+    resetRefreshProgress () {
+      this.refreshCount = 0
+      clearInterval(this.refreshInt)
+    },
+
     // model current run log progress: response from server
     doneRunLogRefresh (ok, rlp) {
       if (!ok || !Mdf.isNotEmptyRunStateLog(rlp)) return // empty run state or error
@@ -253,20 +270,20 @@ export default {
       this.newRun.state = Mdf.toRunStateFromLog(rlp)
 
       // update log lines
-      let nLen = Mdf.lengthOf(rlp.Lines)
-      if (nLen > 0) {
-        for (let k = 0; k < nLen; k++) {
-          this.newRun.logLines.push({
-            key: this.digest + '-' + this.newRun.state.RunStamp + '-' + rlp.Offset + k,
-            text: rlp.Lines[k]
-          })
+      let nStart = this.newRun.logLines.length - rlp.Offset
+      if (nStart >= 0) {
+        let nLen = (rlp.Offset + rlp.Size) - this.newRun.logLines.length
+        for (let k = nStart; k < nLen; k++) {
+          this.newRun.logLines.push(rlp.Lines[k] || '')
         }
       }
 
       // check is it final update: model run completed
       let isDone = (this.newRun.state.IsFinal && rlp.Offset + rlp.Size >= rlp.TotalSize)
       if (!isDone) {
-        this.newRun.logStart = rlp.Offset + rlp.Size
+        this.newRun.logStart = this.newRun.logLines.length
+        this.newRun.logCount = rlp.TotalSize - this.newRun.logStart
+        if (this.newRun.logCount < MIN_LOG_COUNT) this.newRun.logCount = MIN_LOG_COUNT
       } else {
         this.resetRefreshProgress()
         this.isProgressRefresh = !this.isProgressRefresh // last refersh of run progress
@@ -278,8 +295,42 @@ export default {
     // model run status progress: response from server
     doneRunProgressRefresh (ok, rpl) {
       if (ok && Mdf.isLength(rpl)) this.newRun.progress = rpl
-    }
+    },
 
+    // show message, ex: "invalid profile list"
+    doShowSnackbarMessage (msg) {
+      if (msg) this.$refs.runPageSnackbarMsg.doOpen({ labelText: msg })
+    },
+
+    // receive profile list by model digest
+    async doProfileListRefresh () {
+      let isDone = false
+
+      let u = this.omppServerUrl + '/api/model/' + this.digest + '/profile-list'
+      try {
+        // send request to the server
+        const response = await axios.get(u)
+
+        // expected string array, append empty '' string first to make deafult selection
+        this.profileLst = []
+        if (Mdf.isLength(response.data)) {
+          this.profileLst.push('')
+          for (const p of response.data) {
+            this.profileLst.push(p)
+          }
+        }
+
+        isDone = true // completed OK
+      } catch (e) {
+        let em = ''
+        try {
+          if (e.response) em = e.response.data || ''
+        } finally {}
+        console.log('Server offline or profile list retrive failed.', em)
+      }
+
+      if (!isDone) this.doShowSnackbarMessage('Unable to retrive profile list')
+    }
   },
 
   mounted () {

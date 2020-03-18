@@ -68,7 +68,7 @@
           @click="onNewRunModel()"
           class="om-cell-icon-link material-icons"
           alt="Run the model" title="Run the model">directions_run</span>
-        <span v-else
+        <span v-if="isWsEdit && !isRunModelTab"
           class="om-cell-icon-empty material-icons"
           alt="Run the model" title="Run the model">directions_run</span>
 

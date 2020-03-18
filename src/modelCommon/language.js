@@ -19,7 +19,7 @@ export const emptyWordList = () => {
 export const wordByCode = (mw, code) => {
   if (!code) return ''
   if (!mw) return code
-  // seacrh in model-specific list of words
+  // search in model-specific list of words
   if (mw.ModelWords && (mw.ModelWords.length || 0) > 0) {
     for (let k = 0; k < mw.ModelWords.length; k++) {
       if (mw.ModelWords[k].Code === code) return mw.ModelWords[k].Label
