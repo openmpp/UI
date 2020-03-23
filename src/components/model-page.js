@@ -54,9 +54,9 @@ export default {
       refreshWsListTickle: false,
       saveWsStatusTickle: false,
       modelName: '',
-      isRunSelected: false,               // if true then last selection was from run list else workset
-      runSelected: Mdf.emptyRunText(),    // last selected run
-      wsSelected: Mdf.emptyWorksetText(), // last selected workset
+      isRunSelected: false, // if true then last selection was from run list else workset
+      selectedRunDns: '',   // run digest selected (run name, run stamp)
+      selectedWsName: '',   // workset name selected
       isRunSetHint: false,  // highlight run or workset change
       isRunModelTab: false, // if true then current tab is run model tab
       tabLst: [],           // tabs properties
@@ -70,7 +70,7 @@ export default {
     loadDone () {
       return this.loadModelDone && this.loadRunDone && this.loadRunListDone && this.loadWsDone && this.loadWsListDone
     },
-    isSuccessTheRun () { return Mdf.isRunSuccess(this.runSelected) },
+    isSuccessTheRun () { return Mdf.isRunSuccess(this.theSelected.run) },
 
     runTextCount () { return Mdf.runTextCount(this.runTextList) },
     worksetTextCount () { return Mdf.worksetTextCount(this.worksetTextList) },
@@ -79,35 +79,38 @@ export default {
 
     // if true then selected workset edit mode else readonly and model run enabled
     isWsEdit () {
-      return Mdf.isNotEmptyWorksetText(this.wsSelected) && !this.wsSelected.IsReadonly
+      return Mdf.isNotEmptyWorksetText(this.theSelected.ws) && !this.theSelected.ws.IsReadonly
     },
 
     // view header line
     isNotEmptyHdr () {
-      return this.isRunSelected ? Mdf.isNotEmptyRunText(this.runSelected) : Mdf.isNotEmptyWorksetText(this.wsSelected)
+      return this.isRunSelected ? Mdf.isNotEmptyRunText(this.theSelected.run) : Mdf.isNotEmptyWorksetText(this.theSelected.ws)
     },
     lastTimeOfHdr () {
-      return this.isRunSelected ? Mdf.dtStr(this.runSelected.UpdateDateTime) : Mdf.dtStr(this.wsSelected.UpdateDateTime)
+      return this.isRunSelected ? Mdf.dtStr(this.theSelected.run.UpdateDateTime) : Mdf.dtStr(this.this.theSelected.ws.UpdateDateTime)
     },
     nameOfHdr () {
-      return this.isRunSelected ? (this.runSelected.Name || '') : (this.wsSelected.Name || '')
+      return this.isRunSelected ? (this.theSelected.run.Name || '') : (this.theSelected.ws.Name || '')
     },
     descrOfHdr () {
-      return this.isRunSelected ? Mdf.descrOfTxt(this.runSelected) : Mdf.descrOfTxt(this.wsSelected)
+      return this.isRunSelected ? Mdf.descrOfTxt(this.theSelected.run) : Mdf.descrOfTxt(this.theSelected.ws)
     },
     emptyHdrMsg () {
       return this.isRunSelected ? 'No model run results found' : 'No input set of parameters found'
     },
-    statusOfTheRun () { return Mdf.statusText(this.runSelected) },
+    statusOfTheRun () { return Mdf.statusText(this.theSelected.run) },
 
     ...mapGetters({
       theModel: GET.THE_MODEL,
       runTextList: GET.RUN_TEXT_LIST,
       runTextByIndex: GET.RUN_TEXT_BY_IDX,
       runTextByDigest: GET.RUN_TEXT_BY_DIGEST,
+      isExistInRunTextList: GET.IS_EXIST_IN_RUN_TEXT_LIST,
+      isExistInWorksetTextList: GET.IS_EXIST_IN_WORKSET_TEXT_LIST,
       worksetTextList: GET.WORKSET_TEXT_LIST,
       worksetTextByIndex: GET.WORKSET_TEXT_BY_IDX,
       worksetTextByName: GET.WORKSET_TEXT_BY_NAME,
+      theSelected: GET.THE_SELECTED,
       paramViewUpdatedCount: GET.PARAM_VIEW_UPDATED_COUNT
     })
   },
@@ -127,8 +130,8 @@ export default {
       if (!this.loadDone) return // exit: load not done yet
 
       this.isRunSelected = this.isSuccessTheRun
-      const rpRun = { digest: this.digest, runOrSet: 'run', runSetKey: this.runSelected.Digest }
-      const rpSet = { digest: this.digest, runOrSet: 'set', runSetKey: this.wsSelected.Name }
+      const rpRun = { digest: this.digest, runOrSet: 'run', runSetKey: this.theSelected.run.Digest }
+      const rpSet = { digest: this.digest, runOrSet: 'set', runSetKey: this.theSelected.ws.Name }
 
       this.doTabAdd('run-list', { digest: this.digest })
       this.doTabAdd('set-list', { digest: this.digest })
@@ -156,47 +159,54 @@ export default {
       this.loadRunListDone = true
       if (!isSuccess) {
         this.loadRunDone = true // do not refresh run: run list empty
-        this.runSelected = Mdf.emptyRunText()
+        this.selectedRunDns = ''
+        this.dispatchTheSelected({ ModelDigest: this.digest, run: Mdf.emptyRunText(), isRun: this.isRunSelected })
+        return
       }
-      // else: if run already selected then re-select same run to make sure it still exist
-      if (Mdf.isNotEmptyRunText(this.runSelected) && (this.runSelected.Digest || '') !== '') this.runSelected = this.runTextByDigest(this.runSelected.Digest)
-      if (!Mdf.isRunSuccess(this.runSelected)) this.runSelected = this.runTextByIndex(0)
-      if (!Mdf.isNotEmptyRunText(this.runSelected)) {
-        this.dispatchTheSelected({ ModelDigest: this.digest, runDigestName: this.runSelected.Digest, isRun: this.isRunSelected })
+      // else: if run already selected then make sure it still exist, if not exist then use first run
+      let isEmpty = !Mdf.isNotEmptyRunText(this.theSelected.run)
+      if (isEmpty || !this.isExistInRunTextList(this.theSelected.run)) {
+        let r0 = this.runTextByIndex(0)
+        this.selectedRunDns = r0.Digest
+        this.dispatchTheSelected({ ModelDigest: this.digest, run: r0, isRun: this.isRunSelected })
+      } else {
+        if (this.selectedRunDns === '') this.selectedRunDns = this.theSelected.run.Digest
       }
     },
     doneRunLoad (isSuccess, dgst) {
       this.loadRunDone = true
       if (!!isSuccess && (dgst || '') !== '') {
-        this.runSelected = this.runTextByDigest(dgst)
         this.doTabRefreshItem(dgst)
-        this.dispatchTheSelected({ ModelDigest: this.digest, runDigestName: this.runSelected.Digest, isRun: this.isRunSelected })
+        this.selectedRunDns = dgst
       }
     },
     doneWsListLoad (isSuccess) {
       this.loadWsListDone = true
       if (!isSuccess) {
         this.loadWsDone = true // do not refresh workset: workset list empty
-        this.wsSelected = Mdf.emptyWorksetText()
+        this.selectedWsName = ''
+        this.dispatchTheSelected({ ModelDigest: this.digest, ws: Mdf.emptyWorksetText(), isRun: this.isRunSelected })
       }
-      // else: if workset was already selected then re-select it to make sure it still exist
-      if (Mdf.isNotEmptyWorksetText(this.wsSelected)) this.wsSelected = this.worksetTextByName(this.wsSelected.Name)
-      if (!Mdf.isNotEmptyWorksetText(this.wsSelected)) {
-        this.wsSelected = this.worksetTextByIndex(0)
-        this.dispatchTheSelected({ ModelDigest: this.digest, worksetName: this.wsSelected.Name, isRun: this.isRunSelected })
+      // else: if workset already selected then make sure it still exist, if not exist then use first workset
+      let isEmpty = !Mdf.isNotEmptyWorksetText(this.theSelected.ws)
+      if (isEmpty || !this.isExistInWorksetTextList(this.theSelected.ws)) {
+        let w0 = this.worksetTextByIndex(0)
+        this.selectedWsName = w0.Name
+        this.dispatchTheSelected({ ModelDigest: this.digest, ws: w0, isRun: this.isRunSelected })
+      } else {
+        if (this.selectedWsName === '') this.selectedWsName = this.theSelected.ws.Name
       }
     },
     doneWsLoad (isSuccess, name) {
       this.loadWsDone = true
       if (!!isSuccess && (name || '') !== '') {
-        this.wsSelected = this.worksetTextByName(name)
-        this.dispatchTheSelected({ ModelDigest: this.digest, worksetName: this.wsSelected.Name, isRun: this.isRunSelected })
+        this.selectedWsName = name
         this.doTabRefreshItem(name)
         this.doTabRefreshWsEditStatus(name)
       }
     },
     doneWsStatusUpdate (isSuccess, name) {
-      if (!!isSuccess && (name || '') !== '') this.wsSelected = this.worksetTextByName(name)
+      if (!!isSuccess && (name || '') !== '') this.selectedWsName = name
       // refersh current workset
       this.refreshWsTickle = !this.refreshWsTickle
     },
@@ -219,9 +229,9 @@ export default {
         console.warn('run digest is empty')
         return
       }
-      this.runSelected = this.runTextByDigest(dgst)
-      this.doTabPathRefresh('table-list', { digest: this.digest, runOrSet: 'run', runSetKey: this.runSelected.Digest })
-      this.doTabPathRefresh('parameter-run-list', { digest: this.digest, runOrSet: 'run', runSetKey: this.runSelected.Digest })
+      this.selectedRunDns = dgst
+      this.doTabPathRefresh('table-list', { digest: this.digest, runOrSet: 'run', runSetKey: dgst })
+      this.doTabPathRefresh('parameter-run-list', { digest: this.digest, runOrSet: 'run', runSetKey: dgst })
       this.doRunSetHint()
     },
     // workset selected from the list: reload workset info
@@ -230,8 +240,8 @@ export default {
         console.warn('workset name is empty')
         return
       }
-      this.wsSelected = this.worksetTextByName(name)
-      this.doTabPathRefresh('parameter-set-list', { digest: this.digest, runOrSet: 'set', runSetKey: this.wsSelected.Name })
+      this.selectedWsName = name
+      this.doTabPathRefresh('parameter-set-list', { digest: this.digest, runOrSet: 'set', runSetKey: name })
       this.doRunSetHint()
     },
     doRunSetHint () {
@@ -252,9 +262,9 @@ export default {
 
     // new model run using current workset name: open model run tab
     onNewRunModel () {
-      const rp = { digest: this.digest, runOrSet: 'set', runSetKey: this.wsSelected.Name }
-      this.doTabAdd('run-model', rp)
-      this.doTabLink('run-model', rp, true)
+      const rp = { digest: this.digest, runOrSet: 'set', runSetKey: this.theSelected.ws.Name }
+      this.doTabAdd('new-run-model', rp)
+      this.doTabLink('new-run-model', rp, true)
     },
     // run completed: refresh run list
     onRunListRefresh () {
@@ -317,7 +327,7 @@ export default {
       }
 
       // if this model run tab then disable new model run button (workset run button)
-      this.isRunModelTab = kind === 'run-model'
+      this.isRunModelTab = kind === 'new-run-model'
 
       // select run or workset for current tab, if tab has own run or workset
       let isNew = false
@@ -326,13 +336,13 @@ export default {
         this.isRunSelected = kind === 'run-list'
       }
       if (routeParts.runOrSet === 'run' && (routeParts.runSetKey || '') !== '') {
-        isNew = !this.isRunSelected || routeParts.runSetKey !== this.runSelected.Digest
-        if (isNew) this.runSelected = this.runTextByDigest(routeParts.runSetKey)
+        isNew = !this.isRunSelected || routeParts.runSetKey !== this.theSelected.run.Digest
+        if (isNew) this.selectedRunDns = routeParts.runSetKey
         this.isRunSelected = true
       }
       if (routeParts.runOrSet === 'set' && (routeParts.runSetKey || '') !== '') {
-        isNew = this.isRunSelected || routeParts.runSetKey !== this.wsSelected.Name
-        if (isNew) this.wsSelected = this.worksetTextByName(routeParts.runSetKey)
+        isNew = this.isRunSelected || routeParts.runSetKey !== this.theSelected.ws.Name
+        if (isNew) this.selectedWsName = routeParts.runSetKey
         this.isRunSelected = false
       }
       if (isNew) this.doRunSetHint()
@@ -405,10 +415,10 @@ export default {
             title: 'Input Sets',
             pos: WS_LST_TAB_POS
           }
-        case 'run-model':
+        case 'new-run-model':
           return {
-            key: Mdf.runModelRouteKey(this.digest),
-            path: '/model/' + this.digest + '/run-model/set/' + (rp.runSetKey || ''),
+            key: Mdf.newRunModelRouteKey(this.digest),
+            path: '/model/' + this.digest + '/new-run-model/set/' + (rp.runSetKey || ''),
             runOrSet: 'set',
             title: 'Run Model',
             pos: RUN_MODEL_TAB_POS
@@ -463,11 +473,11 @@ export default {
 
     // show currently selected run info
     showRunInfoDlg () {
-      this.$refs.theRunInfoDlg.showRunInfo(this.runSelected)
+      this.$refs.theRunInfoDlg.showRunInfo(this.theSelected.run)
     },
     // show currently selected workset info
     showWsInfoDlg () {
-      this.$refs.theWsInfoDlg.showWsInfo(this.wsSelected)
+      this.$refs.theWsInfoDlg.showWsInfo(this.theSelected.ws)
     },
 
     onModelEditDiscardClosed (e) {

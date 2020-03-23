@@ -26,8 +26,8 @@ export const paramRunListRouteKey = (model) => { return routeJoin([model, 'param
 export const paramSetListRouteKey = (model) => { return routeJoin([model, 'parameter-set-list']) }
 export const tableListRouteKey = (model) => { return routeJoin([model, 'table-list']) }
 export const paramRouteKey = (model, paramName, runOrSet, runSetKey) => { return routeJoin([model, 'p-', paramName, runOrSet, runSetKey]) }
-export const tableRouteKey = (model, tableName, runDigestName) => { return routeJoin([model, 't-', tableName, runDigestName]) }
-export const runModelRouteKey = (model) => { return routeJoin([model, 'run-model']) }
+export const tableRouteKey = (model, tableName, runDigest) => { return routeJoin([model, 't-', tableName, runDigest]) }
+export const newRunModelRouteKey = (model) => { return routeJoin([model, 'new-run-model']) }
 
 // format date-time to timestamp string: YYYY-MM-DD hh:mm:ss.SSS
 export const dtToTimeStamp = (dt) => {

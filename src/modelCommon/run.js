@@ -20,8 +20,8 @@ export const isRunTextList = (rtl) => {
 export const isRunText = (rt) => {
   if (!rt) return false
   if (!rt.hasOwnProperty('ModelName') || !rt.hasOwnProperty('ModelDigest')) return false
-  if (!rt.hasOwnProperty('Name') || !rt.hasOwnProperty('Digest') || !rt.hasOwnProperty('RunStamp')) return false
-  if (!rt.hasOwnProperty('SubCount') || !rt.hasOwnProperty('Status') || !rt.hasOwnProperty('CreateDateTime')) return false
+  if (!rt.hasOwnProperty('Name') || !rt.hasOwnProperty('Digest') || !rt.hasOwnProperty('RunStamp') || !rt.hasOwnProperty('SubCount')) return false
+  if (!rt.hasOwnProperty('Status') || !rt.hasOwnProperty('CreateDateTime') || !rt.hasOwnProperty('UpdateDateTime')) return false
   if (!Hlpr.hasLength(rt.Param) || !Hlpr.hasLength(rt.Txt)) return false
   return true
 }
@@ -30,7 +30,8 @@ export const isRunText = (rt) => {
 export const isNotEmptyRunText = (rt) => {
   if (!isRunText(rt)) return false
   return (rt.ModelName || '') !== '' && (rt.ModelDigest || '') !== '' &&
-    (rt.Name || '') !== '' && (rt.RunStamp || '') !== '' && (rt.Status || '') !== '' && (rt.SubCount || 0) !== 0 && (rt.CreateDateTime || '') !== ''
+    (rt.Name || '') !== '' && (rt.RunStamp || '') !== '' && (rt.Status || '') !== '' && (rt.SubCount || 0) !== 0 &&
+    (rt.CreateDateTime || '') !== '' && (rt.UpdateDateTime || '') !== ''
 }
 
 // return empty run text
@@ -44,24 +45,33 @@ export const emptyRunText = () => {
     SubCount: 0,
     Status: '',
     CreateDateTime: '',
+    UpdateDateTime: '',
     Param: [],
     Txt: []
   }
 }
 
 // run text equality comparator:
-// return true if both run texts has same non-empty digest or if digest is empty then same name and other attributes
+// return true if both run texts has same non-empty digest or if digest is empty then same name and other attributes.
+// it does NOT compare run text at all, only run itself.
+// it does NOT compare run update time.
 export const runTextEqual = (rt, rtOther) => {
   if (!isRunText(rt) || !isRunText(rtOther)) return false
   if (!isNotEmptyRunText(rt) && !isNotEmptyRunText(rtOther)) return true
+  if (rt.ModelDigest !== rtOther.ModelDigest) return false
 
-  return rt.ModelDigest === rtOther.ModelDigest &&
-    ((rt.Digest !== '' && rt.Digest === rtOther.Digest) ||
+  return (rt.Digest !== '' && rt.Digest === rtOther.Digest) ||
     (rt.Digest === '' && rt.Digest === rtOther.Digest &&
     rt.Name === rtOther.Name &&
     rt.RunStamp === rtOther.RunStamp &&
     rt.SubCount === rtOther.SubCount &&
-    rt.CreateDateTime === rtOther.CreateDateTime))
+    rt.Status === rtOther.Status &&
+    rt.CreateDateTime === rtOther.CreateDateTime)
+}
+
+// return true if this is not the same run text or it is updated: different run status or update time.
+export const isRunTextUpdated = (rt, rtOther) => {
+  return !runTextEqual(rt, rtOther) || rt.Status !== rtOther.Status || rt.UpdateDateTime !== rtOther.UpdateDateTime
 }
 
 // retrun true if run completed successfuly

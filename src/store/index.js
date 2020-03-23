@@ -19,9 +19,11 @@ const GET = {
   RUN_TEXT_BY_IDX: 'runTextByIndex',
   RUN_TEXT_BY_DIGEST: 'runTextByDigest',
   RUN_TEXT_BY_DIGEST_OR_NAME: 'runTextByDigestOrName',
+  IS_EXIST_IN_RUN_TEXT_LIST: 'isExistInRunTextList',
   RUN_TEXT_LIST: 'runTextList',
   WORKSET_TEXT_BY_IDX: 'worksetTextByIndex',
   WORKSET_TEXT_BY_NAME: 'worksetTextByName',
+  IS_EXIST_IN_WORKSET_TEXT_LIST: 'isExistInWorksetTextList',
   WORKSET_TEXT_LIST: 'worksetTextList',
   THE_SELECTED: 'theSelected',
   PARAM_VIEW: 'paramView',
@@ -38,6 +40,7 @@ const getters = {
   [GET.MODEL_LIST]: state => state.modelList,
   [GET.MODEL_LIST_COUNT]: state => state.modelList.length,
   [GET.RUN_TEXT_LIST]: state => state.runTextList,
+  [GET.WORKSET_TEXT_LIST]: state => state.worksetTextList,
   [GET.THE_SELECTED]: state => state.theSelected,
 
   [GET.MODEL_LANG]: state => {
@@ -65,13 +68,21 @@ const getters = {
     return (k >= 0) ? state.runTextList[k] : Mdf.emptyRunText()
   },
 
-  [GET.WORKSET_TEXT_LIST]: state => state.worksetTextList,
+  [GET.IS_EXIST_IN_RUN_TEXT_LIST]: state => (rt) => {
+    if (!Mdf.isNotEmptyRunText(rt) || !Mdf.isLength(state.runTextList)) return false
+    return state.runTextList.findIndex((r) => Mdf.runTextEqual(r, rt)) >= 0
+  },
 
   [GET.WORKSET_TEXT_BY_IDX]: state =>
     (idx) => (Mdf.isLength(state.worksetTextList) && idx >= 0 && idx < state.worksetTextList.length) ? state.worksetTextList[idx] : Mdf.emptyWorksetText(),
 
   [GET.WORKSET_TEXT_BY_NAME]: state =>
     (name) => (Mdf.isLength(state.worksetTextList) && (name || '') !== '') ? (state.worksetTextList.find((wt) => wt.Name === name) || Mdf.emptyWorksetText()) : Mdf.emptyWorksetText(),
+
+  [GET.IS_EXIST_IN_WORKSET_TEXT_LIST]: state => (wt) => {
+    if (!Mdf.isNotEmptyWorksetText(wt) || !Mdf.isLength(state.worksetTextList)) return false
+    return state.worksetTextList.findIndex((w) => w.ModelDigest === wt.ModelDigest && w.Name === wt.Name) >= 0
+  },
 
   [GET.PARAM_VIEW]: (state) =>
     (key) => state.paramViews.hasOwnProperty(key) ? Mdf._cloneDeep(state.paramViews[key]) : void 0,
@@ -103,8 +114,8 @@ const state = {
   theSelected: {
     ModelDigest: '',
     isRun: false,
-    runDigestName: '',
-    worksetName: ''
+    run: Mdf.emptyRunText(),
+    ws: Mdf.emptyWorksetText()
   },
   paramViews: {}
 }

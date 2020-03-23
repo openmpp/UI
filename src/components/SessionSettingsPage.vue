@@ -95,17 +95,15 @@ export default {
     runCount () { return Mdf.runTextCount(this.runTextList) },
     worksetCount () { return Mdf.worksetTextCount(this.worksetTextList) },
 
-    runSelected () { return this.runTextByDigestOrName(this.theSelected.runDigestName) },
-    isNotEmptyRun () { return Mdf.isNotEmptyRunText(this.runSelected) },
-    lastTimeOfRun () { return Mdf.dtStr(this.runSelected.UpdateDateTime) },
-    nameOfRun () { return this.runSelected.Name || '' },
-    descrOfRun () { return Mdf.descrOfTxt(this.runSelected) },
+    isNotEmptyRun () { return Mdf.isNotEmptyRunText(this.theSelected.run) },
+    lastTimeOfRun () { return Mdf.dtStr(this.theSelected.run.UpdateDateTime) },
+    nameOfRun () { return this.theSelected.run.Name || '' },
+    descrOfRun () { return Mdf.descrOfTxt(this.theSelected.run) },
 
-    wsSelected () { return this.worksetTextByName(this.theSelected.worksetName) },
-    isNotEmptyWorkset () { return Mdf.isNotEmptyWorksetText(this.wsSelected) },
-    lastTimeOfWorkset () { return Mdf.dtStr(this.wsSelected.UpdateDateTime) },
-    nameOfWorkset () { return this.wsSelected.Name || '' },
-    descrOfWorkset () { return Mdf.descrOfTxt(this.wsSelected) },
+    isNotEmptyWorkset () { return Mdf.isNotEmptyWorksetText(this.theSelected.ws) },
+    lastTimeOfWorkset () { return Mdf.dtStr(this.theSelected.ws.UpdateDateTime) },
+    nameOfWorkset () { return this.theSelected.ws.Name || '' },
+    descrOfWorkset () { return Mdf.descrOfTxt(this.theSelected.ws) },
 
     ...mapGetters({
       uiLang: GET.UI_LANG,

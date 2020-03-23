@@ -6,7 +6,7 @@ import ParameterListPage from '@/components/ParameterListPage'
 import TableListPage from '@/components/TableListPage'
 import RunListPage from '@/components/RunListPage'
 import WorksetListPage from '@/components/WorksetListPage'
-import RunPage from '@/components/RunPage'
+import NewRunPage from '@/components/NewRunPage'
 import ParameterPage from '@/components/ParameterPage'
 import TablePage from '@/components/TablePage'
 import SessionSettings from '@/components/SessionSettingsPage'
@@ -39,8 +39,8 @@ export default new Router({
           props: true
         },
         {
-          path: 'run-model/set/:nameDigest',
-          component: RunPage,
+          path: 'new-run-model/set/:nameDigest',
+          component: NewRunPage,
           props: true
         },
         {

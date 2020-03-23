@@ -1,5 +1,5 @@
 <template>
-<div id="run-page" class="main-container mdc-typography mdc-typography--body1">
+<div id="new-run-page" class="main-container mdc-typography mdc-typography--body1">
 
   <div v-if="isEmptyRunStep" class="panel-option-frame mdc-typography--body1">
 
@@ -332,12 +332,12 @@
 
   </div>
 
-  <om-mcw-snackbar id="run-page-snackbar-msg" ref="runPageSnackbarMsg" labelText="..."></om-mcw-snackbar>
+  <om-mcw-snackbar id="new-run-page-snackbar-msg" ref="newRunPageSnackbarMsg" labelText="..."></om-mcw-snackbar>
 
 </div>
 </template>
 
-<script src="./run-page.js"></script>
+<script src="./new-run-page.js"></script>
 
 <!-- local scope css: this component only -->
 <style lang="scss" scoped>

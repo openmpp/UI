@@ -13,7 +13,7 @@ export const isWorksetText = (wt) => {
   if (!wt) return false
   if (!wt.hasOwnProperty('ModelName') || !wt.hasOwnProperty('ModelDigest')) return false
   if (!wt.hasOwnProperty('Name')) return false
-  if (!wt.hasOwnProperty('IsReadonly') || !wt.hasOwnProperty('BaseRunDigest')) return false
+  if (!wt.hasOwnProperty('IsReadonly') || !wt.hasOwnProperty('BaseRunDigest') || !wt.hasOwnProperty('UpdateDateTime')) return false
   if (!Hlpr.hasLength(wt.Param) || !Hlpr.hasLength(wt.Txt)) return false
   return true
 }
@@ -32,6 +32,7 @@ export const emptyWorksetText = () => {
     Name: '',
     IsReadonly: false,
     BaseRunDigest: '',
+    UpdateDateTime: '',
     Param: [],
     Txt: []
   }

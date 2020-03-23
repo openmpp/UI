@@ -107,7 +107,7 @@
         </router-link>
 
         <router-link
-          :to="'/model/' + modelDigest + '/run/' + theSelected.runDigestName + '/parameter-list'"
+          :to="'/model/' + modelDigest + '/run/' + (theSelected.run ? theSelected.run.Digest || '' : '') + '/parameter-list'"
           :class="{'disable-item': !isRunSelected}" class="mdc-list-item"
           alt="Model parameters"
           role="menuitem">
@@ -117,7 +117,7 @@
         </router-link>
 
         <router-link
-          :to="'/model/' + modelDigest + '/run/'+ theSelected.runDigestName + '/table-list'"
+          :to="'/model/' + modelDigest + '/run/'+ (theSelected.run ? theSelected.run.Digest || '' : '') + '/table-list'"
           :class="{'disable-item': !isRunSelected}" class="mdc-list-item"
           alt="Output tables"
           role="menuitem">
@@ -138,7 +138,7 @@
         </router-link>
 
         <router-link
-          :to="'/model/' + modelDigest + '/set/' + theSelected.worksetName + '/parameter-list'"
+          :to="'/model/' + modelDigest + '/set/' + (theSelected.ws ? theSelected.ws.Name || '' : '') + '/parameter-list'"
           :class="{'disable-item': !isWorksetSelected}" class="mdc-list-item"
           alt="Model parameters"
           role="menuitem">
@@ -149,7 +149,7 @@
         <hr class="mdc-list-divider menu-divider-inset" role="separator" />
 
         <router-link
-          :to="'/model/' + modelDigest + '/run-model/set/'+ theSelected.worksetName"
+          :to="'/model/' + modelDigest + '/new-run-model/set/'+ (theSelected.ws ? theSelected.ws.Name || '' : '')"
           :class="{'disable-item': !isWorksetSelected}" class="mdc-list-item"
           alt="Run the model"
           role="menuitem">
@@ -235,8 +235,8 @@ export default {
     modelTableCount () { return Mdf.outTableCount(this.theModel) },
     runTextCount () { return Mdf.runTextCount(this.runTextList) },
     worksetTextCount () { return Mdf.worksetTextCount(this.worksetTextList) },
-    isRunSelected () { return this.theSelected.ModelDigest && this.theSelected.runDigestName },
-    isWorksetSelected () { return this.theSelected.ModelDigest && this.theSelected.worksetName },
+    isRunSelected () { return this.theSelected.ModelDigest && this.theSelected.run && this.theSelected.run.Digest },
+    isWorksetSelected () { return this.theSelected.ModelDigest && this.theSelected.ws && this.theSelected.ws.Name },
     loginUrl () { return this.serverConfig.LoginUrl },
     logoutUrl () { return this.serverConfig.LogoutUrl },
 

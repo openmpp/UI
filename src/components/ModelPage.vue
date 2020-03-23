@@ -15,7 +15,7 @@
           :class="{ 'tab-link-updated': t.updated }"
           class="tab-link">
             <span v-if="t.kind === 'run-list' || t.kind === 'set-list'" class="tab-icon material-icons">folder</span>
-            <span v-if="t.kind === 'run-model'" class="tab-icon material-icons">directions_run</span>
+            <span v-if="t.kind === 'new-run-model'" class="tab-icon material-icons">directions_run</span>
             <span v-if="t.kind === 'table-list' || t.kind === 'table'" class="tab-icon material-icons">grid_on</span>
             <span v-if="t.kind === 'parameter-run-list'" class="tab-icon material-icons">input</span>
             <span v-if="t.kind === 'parameter-set-list'" class="tab-icon material-icons">mode_edit</span>
@@ -117,9 +117,9 @@
         @done="doneModelLoad"
         @wait="()=>{}">
       </refresh-model>
-      <refresh-run v-if="(runSelected.Digest || '') !== ''"
+      <refresh-run v-if="(selectedRunDns || '') !== ''"
         :model-digest="digest"
-        :run-digest="runSelected.Digest"
+        :run-digest="selectedRunDns"
         :refresh-tickle="refreshTickle"
         :refresh-run-tickle="refreshRunTickle"
         @done="doneRunLoad"
@@ -132,9 +132,9 @@
         @done="doneRunListLoad"
         @wait="()=>{}">
       </refresh-run-list>
-      <refresh-workset v-if="(wsSelected.Name || '') !== ''"
+      <refresh-workset v-if="(selectedWsName || '') !== ''"
         :model-digest="digest"
-        :workset-name="wsSelected.Name"
+        :workset-name="selectedWsName"
         :refresh-tickle="refreshTickle"
         :refresh-ws-tickle="refreshWsTickle"
         @done="doneWsLoad"
@@ -147,9 +147,9 @@
         @done="doneWsListLoad"
         @wait="()=>{}">
       </refresh-workset-list>
-      <update-workset-status v-if="(wsSelected.Name || '') !== ''"
+      <update-workset-status v-if="(selectedWsName || '') !== ''"
         :model-digest="digest"
-        :workset-name="wsSelected.Name"
+        :workset-name="selectedWsName"
         :enable-edit="!isWsEdit"
         :save-ws-status-tickle="saveWsStatusTickle"
         @done="doneWsStatusUpdate"

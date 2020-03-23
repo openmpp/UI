@@ -67,8 +67,9 @@ const actions = {
   },
 
   // update run text
-  [DISPATCH.RUN_TEXT] ({ commit }, rt) {
+  [DISPATCH.RUN_TEXT] ({ commit, dispatch }, rt) {
     commit(COMMIT.RUN_TEXT, rt)
+    dispatch(DISPATCH.THE_SELECTED, { ModelDigest: rt.ModelDigest, run: rt })
   },
 
   // set new value to run list
@@ -82,8 +83,9 @@ const actions = {
   },
 
   // update workset text
-  [DISPATCH.WORKSET_TEXT] ({ commit }, wt) {
+  [DISPATCH.WORKSET_TEXT] ({ commit, dispatch }, wt) {
     commit(COMMIT.WORKSET_TEXT, wt)
+    dispatch(DISPATCH.THE_SELECTED, { ModelDigest: wt.ModelDigest, ws: wt })
   },
 
   // set current workset status: set readonly status and update date-time
@@ -102,7 +104,7 @@ const actions = {
 
   // update or clear current selection of model run or workset
   // payload must have sel.ModelDigest property
-  // if sel.ModelDiges empty '' string then clear current selection
+  // if sel.ModelDigest empty '' string then clear current selection
   [DISPATCH.THE_SELECTED] ({ commit }, sel) {
     commit(COMMIT.THE_SELECTED, sel)
   },

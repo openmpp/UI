@@ -119,7 +119,7 @@ export const isParamRunSet = (prs) => {
   return (prs.Name || '') !== ''
 }
 
-// return empty ParamRunSetPub, which is Param[i] of run text and workset text
+// return empty ParamRunSetPub, which is Param[i] of run text or workset text
 export const emptyParamRunSet = () => {
   return {
     Name: '',

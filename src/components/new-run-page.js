@@ -299,19 +299,19 @@ export default {
 
     // show message, ex: "invalid profile list"
     doShowSnackbarMessage (msg) {
-      if (msg) this.$refs.runPageSnackbarMsg.doOpen({ labelText: msg })
+      if (msg) this.$refs.newRunPageSnackbarMsg.doOpen({ labelText: msg })
     },
 
     // receive profile list by model digest
     async doProfileListRefresh () {
-      let isDone = false
+      let isOk = false
 
       let u = this.omppServerUrl + '/api/model/' + this.digest + '/profile-list'
       try {
-        // send request to the server
         const response = await axios.get(u)
 
-        // expected string array, append empty '' string first to make deafult selection
+        // expected string array of profile names
+        // append empty '' string first to make default selection == "no profile"
         this.profileLst = []
         if (Mdf.isLength(response.data)) {
           this.profileLst.push('')
@@ -319,8 +319,7 @@ export default {
             this.profileLst.push(p)
           }
         }
-
-        isDone = true // completed OK
+        isOk = true
       } catch (e) {
         let em = ''
         try {
@@ -329,14 +328,14 @@ export default {
         console.log('Server offline or profile list retrive failed.', em)
       }
 
-      if (!isDone) this.doShowSnackbarMessage('Unable to retrive profile list')
+      if (!isOk) this.doShowSnackbarMessage('Unable to retrive profile list')
     }
   },
 
   mounted () {
     this.initView()
     this.$emit('tab-mounted',
-      'run-model',
+      'new-run-model',
       { digest: this.digest, runOrSet: 'set', runSetKey: this.nameDigest })
   },
   beforeDestroy () {

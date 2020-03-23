@@ -85,7 +85,18 @@ const mutations = {
 
   // assign new value to run text list: if (rtl) is a run text list the assign reverse it and commit to store
   [COMMIT.RUN_TEXT_LIST] (state, rtl) {
-    if (Mdf.isRunTextList(rtl)) state.runTextList = rtl.reverse()
+    if (!Mdf.isRunTextList(rtl)) return // reject invalid run text list
+
+    rtl.reverse() // sort in reverse chronological order
+
+    // if parameter text was not empty then copy it into new run text list
+    for (const rt of rtl) {
+      let k = state.runTextList.findIndex((r) => Mdf.runTextEqual(r, rt))
+      if (k >= 0) {
+        if (Mdf.lengthOf(rt.Param) <= 0 && Mdf.lengthOf(state.runTextList[k].Param) > 0) rt.Param = Mdf._cloneDeep(state.runTextList[k].Param)
+      }
+    }
+    state.runTextList = rtl
   },
 
   // clear run list if model digest not same as run list model digest
@@ -127,7 +138,16 @@ const mutations = {
 
   // assign new value to workset list, if (wtl) is a model run list
   [COMMIT.WORKSET_TEXT_LIST] (state, wtl) {
-    if (Mdf.isWorksetTextList(wtl)) state.worksetTextList = wtl
+    if (!Mdf.isWorksetTextList(wtl)) return // reject invalid workset text list
+
+    // if parameter text was not empty then copy it into new workset text list
+    for (const wt of wtl) {
+      let k = state.worksetTextList.findIndex((w) => w.ModelDigest === wt.ModelDigest && w.Name === wt.Name)
+      if (k >= 0) {
+        if (Mdf.lengthOf(wt.Param) <= 0 && Mdf.lengthOf(state.worksetTextList[k].Param) > 0) wt.Param = Mdf._cloneDeep(state.worksetTextList[k].Param)
+      }
+    }
+    state.worksetTextList = wtl
   },
 
   // clear workset list if model digest not same as workset list model digest
@@ -145,16 +165,16 @@ const mutations = {
       state.theSelected = emptyTheSelected()
       state.theSelected.ModelDigest = modelDigest || ''
     }
-    // if workset list not empty then select first workset name
+    // if workset list not empty then select first workset
     if (Mdf.isLength(state.worksetTextList)) {
       const ws0 = state.worksetTextList[0]
-      if (Mdf.isNotEmptyWorksetText(ws0) && ws0.ModelDigest === modelDigest) state.theSelected.worksetName = ws0.Name
+      if (Mdf.isNotEmptyWorksetText(ws0) && ws0.ModelDigest === modelDigest) state.theSelected.ws = Mdf._cloneDeep(ws0)
     }
-    // if run list not empty and first run completed then select first run digest
+    // if run list not empty and first run completed then select first run
     if (Mdf.isLength(state.runTextList)) {
       const r0 = state.runTextList[0]
-      if (Mdf.isNotEmptyRunText(r0) && r0.ModelDigest === modelDigest) state.theSelected.runDigestName = r0.Digest
-      state.theSelected.isRun = state.theSelected.runDigestName !== ''
+      if (Mdf.isNotEmptyRunText(r0) && r0.ModelDigest === modelDigest) state.theSelected.run = Mdf._cloneDeep(r0)
+      state.theSelected.isRun = state.theSelected.run.Digest !== ''
     }
   },
 
@@ -173,21 +193,23 @@ const mutations = {
     if (isSelRun) {
       state.theSelected.isRun = sel.isRun
     }
-    // select workset by name
-    if (sel.hasOwnProperty('worksetName') && typeof sel.worksetName === typeof 'string' && Mdf.isLength(state.worksetTextList)) {
-      const k = state.worksetTextList.findIndex((w) => w.Name === sel.worksetName)
-      if (k >= 0) {
-        state.theSelected.worksetName = sel.worksetName
-        if (!isSelRun) state.theSelected.isRun = false
+    // if selected select workset not empty and from the same model then use it else use empty workset
+    if (sel.hasOwnProperty('ws') && Mdf.isWorksetText(sel.ws)) {
+      if (Mdf.isNotEmptyWorksetText(sel.ws) && sel.ws.ModelDigest === sel.ModelDigest) {
+        state.theSelected.ws = sel.ws
+        // if (!isSelRun) state.theSelected.isRun = false
+      } else {
+        state.theSelected.ws = Mdf.emptyWorksetText()
       }
     }
-    // select run by digest or name
-    if (sel.hasOwnProperty('runDigestName') && typeof sel.runDigestName === typeof 'string' && Mdf.isLength(state.runTextList)) {
-      let k = state.runTextList.findIndex((r) => r.Digest === sel.runDigestName)
-      if (k < 0) k = state.runTextList.findIndex((r) => r.Name === sel.runDigestName)
-      if (k >= 0) {
-        state.theSelected.runDigestName = sel.runDigestName
-        if (!isSelRun) state.theSelected.isRun = true
+    // if selected run not empty and from the same model then use it else use empty run
+    if (sel.hasOwnProperty('run') && Mdf.isRunText(sel.run)) {
+      if (Mdf.isNotEmptyRunText(sel.run) && sel.run.ModelDigest === sel.ModelDigest) {
+        state.theSelected.run = sel.run
+        // if (!isSelRun) state.theSelected.isRun = true
+      } else {
+        state.theSelected.run = Mdf.emptyRunText()
+        sel.isRun = false
       }
     }
   },
@@ -251,8 +273,8 @@ const emptyTheSelected = () => {
   return {
     ModelDigest: '',
     isRun: false,
-    runDigestName: '',
-    worksetName: ''
+    run: Mdf.emptyRunText(),
+    ws: Mdf.emptyWorksetText()
   }
 }
 
