@@ -107,7 +107,7 @@
         </router-link>
 
         <router-link
-          :to="'/model/' + modelDigest + '/run/' + (theSelected.run ? theSelected.run.Digest || '' : '') + '/parameter-list'"
+          :to="'/model/' + modelDigest + '/run/' + (theSelected.run ? theSelected.run.RunDigest || '' : '') + '/parameter-list'"
           :class="{'disable-item': !isRunSelected}" class="mdc-list-item"
           alt="Model parameters"
           role="menuitem">
@@ -117,7 +117,7 @@
         </router-link>
 
         <router-link
-          :to="'/model/' + modelDigest + '/run/'+ (theSelected.run ? theSelected.run.Digest || '' : '') + '/table-list'"
+          :to="'/model/' + modelDigest + '/run/'+ (theSelected.run ? theSelected.run.RunDigest || '' : '') + '/table-list'"
           :class="{'disable-item': !isRunSelected}" class="mdc-list-item"
           alt="Output tables"
           role="menuitem">
@@ -235,7 +235,7 @@ export default {
     modelTableCount () { return Mdf.outTableCount(this.theModel) },
     runTextCount () { return Mdf.runTextCount(this.runTextList) },
     worksetTextCount () { return Mdf.worksetTextCount(this.worksetTextList) },
-    isRunSelected () { return this.theSelected.ModelDigest && this.theSelected.run && this.theSelected.run.Digest },
+    isRunSelected () { return this.theSelected.ModelDigest && this.theSelected.run && this.theSelected.run.RunDigest },
     isWorksetSelected () { return this.theSelected.ModelDigest && this.theSelected.ws && this.theSelected.ws.Name },
     loginUrl () { return this.serverConfig.LoginUrl },
     logoutUrl () { return this.serverConfig.LogoutUrl },

@@ -58,11 +58,11 @@ const getters = {
     (idx) => (Mdf.isLength(state.runTextList) && idx >= 0 && idx < state.runTextList.length) ? state.runTextList[idx] : Mdf.emptyRunText(),
 
   [GET.RUN_TEXT_BY_DIGEST]: state =>
-    (digest) => (Mdf.isLength(state.runTextList) && (digest || '') !== '') ? (state.runTextList.find((rt) => rt.Digest === digest) || Mdf.emptyRunText()) : Mdf.emptyRunText(),
+    (digest) => (Mdf.isLength(state.runTextList) && (digest || '') !== '') ? (state.runTextList.find((rt) => rt.RunDigest === digest) || Mdf.emptyRunText()) : Mdf.emptyRunText(),
 
   [GET.RUN_TEXT_BY_DIGEST_OR_NAME]: state => (digestOrName) => {
     if (!Mdf.isLength(state.runTextList) || (digestOrName || '') === '') return Mdf.emptyRunText()
-    let k = state.runTextList.findIndex((r) => r.Digest === digestOrName)
+    let k = state.runTextList.findIndex((r) => r.RunDigest === digestOrName)
     if (k >= 0) return state.runTextList[k]
     k = state.runTextList.findIndex((r) => r.Name === digestOrName)
     return (k >= 0) ? state.runTextList[k] : Mdf.emptyRunText()
@@ -70,7 +70,7 @@ const getters = {
 
   [GET.IS_EXIST_IN_RUN_TEXT_LIST]: state => (rt) => {
     if (!Mdf.isNotEmptyRunText(rt) || !Mdf.isLength(state.runTextList)) return false
-    return state.runTextList.findIndex((r) => Mdf.runTextEqual(r, rt)) >= 0
+    return state.runTextList.findIndex((r) => rt.ModelDigest === r.ModelDigest && rt.RunDigest === r.RunDigest) >= 0
   },
 
   [GET.WORKSET_TEXT_BY_IDX]: state =>

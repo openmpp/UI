@@ -5,7 +5,7 @@
   <div v-if="isRunList">
     <ul class="main-list mdc-list mdc-list--two-line">
 
-      <li v-for="(r, idx) in runTextList" :key="'rt-' + idx + '-' + (r.Digest === digestSelected ? updateCount : 0) + '-' + r.Digest" class="mdc-list-item">
+      <li v-for="r in runTextList" :key="'rt-' + (r.RunDigest === digestSelected ? updateCount : 0) + '-' + r.RunDigest" class="mdc-list-item">
 
         <span
           @click="showRunInfo(r)"
@@ -26,7 +26,7 @@
         </span>
 -->
         <span
-          @click="doRunClick(r.Digest)"
+          @click="doRunClick(r.RunDigest)"
           class="link-next"
           :title="r.Name"
           :alt="r.Name"

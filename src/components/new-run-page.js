@@ -161,7 +161,6 @@ export default {
       this.runOpts.csvId = this.csvIdValue === 'true'
       this.runOpts.logVersion = this.logVersionValue === 'true'
       this.runOpts.sparseOutput = this.sparseOutputValue === 'true'
-      // this.runOpts.profile = this.parseTextInput(this.$refs.profileNameInput.value)
       this.runOpts.profile = this.parseTextInput(this.profileValue)
       this.runOpts.mpiNpCount = this.parseIntInput(this.$refs.mpiNpCountInput.value, 0)
       this.runOpts.mpiNotOnRoot = this.mpiOnRootValue === 'false'
@@ -209,9 +208,9 @@ export default {
       const f = parseFloat(sValue)
       return !isNaN(f) ? f : fDefault
     },
-    // parse string input: remove special characters and trim
+    // parse string input: replace special characters "'`$}{@\ with underscore _ and trim
     parseTextInput (sValue) {
-      let s = sValue.replace(/["'`$}{@\\]/g, ' ').trim()
+      let s = sValue.replace(/["'`$}{@\\]/g, '_').trim()
       return s || ''
     },
     // parse path input: force it to be relative path and use / separator

@@ -31,11 +31,14 @@
       <span class="note-cell">Duration:</span>
       <span class="note-cell">{{timeDt}}</span>
     </div>
-    <div v-if="runDigest" class="note-row">
-      <span class="note-cell">Digest:</span><span class="note-cell">{{runDigest}}</span>
-    </div>
     <div v-if="runStamp" class="note-row">
-      <span class="note-cell">Stamp:</span><span class="note-cell">{{runStamp}}</span>
+      <span class="note-cell">Run Stamp:</span><span class="note-cell">{{runStamp}}</span>
+    </div>
+    <div class="note-row">
+      <span class="note-cell">Run Digest:</span><span class="note-cell">{{runDigest}}</span>
+    </div>
+    <div v-if="valueDigest" class="note-row">
+      <span class="note-cell">Value Digest:</span><span class="note-cell">{{valueDigest}}</span>
     </div>
   </div>
 </om-mcw-dialog>
@@ -62,6 +65,7 @@ export default {
       runNote: '',
       runName: '',
       runDigest: '',
+      valueDigest: '',
       runStamp: '',
       statusDescr: '',
       isSucess: false,
@@ -85,7 +89,8 @@ export default {
       this.runDescr = Mdf.descrOfTxt(rt)
       this.runNote = Mdf.noteOfTxt(rt)
       this.runName = rt.Name
-      this.runDigest = rt.Digest
+      this.runDigest = rt.RunDigest
+      this.valueDigest = rt.ValueDigest
       this.runStamp = rt.RunStamp
       this.statusDescr = Mdf.statusText(rt)
       this.isSucess = Mdf.isRunSuccess(rt)

@@ -304,7 +304,7 @@
             <td class="pt-cell-right"><span v-if="pi.SubCompleted > 0">{{pi.SubCompleted}} / </span>{{pi.SubCount}}</td>
             <td class="pt-cell-left">{{statusOfTheRun(pi)}}</td>
             <td class="pt-cell-left">{{pi.UpdateDateTime}}</td>
-            <td class="pt-cell-left">{{pi.Digest}}</td>
+            <td class="pt-cell-left">{{pi.ValueDigest}}</td>
           </tr>
           <tr v-if="pi.Progress">
             <td class="pt-head">Sub-value</td>

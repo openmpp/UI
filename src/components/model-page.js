@@ -130,7 +130,7 @@ export default {
       if (!this.loadDone) return // exit: load not done yet
 
       this.isRunSelected = this.isSuccessTheRun
-      const rpRun = { digest: this.digest, runOrSet: 'run', runSetKey: this.theSelected.run.Digest }
+      const rpRun = { digest: this.digest, runOrSet: 'run', runSetKey: this.theSelected.run.RunDigest }
       const rpSet = { digest: this.digest, runOrSet: 'set', runSetKey: this.theSelected.ws.Name }
 
       this.doTabAdd('run-list', { digest: this.digest })
@@ -167,10 +167,10 @@ export default {
       let isEmpty = !Mdf.isNotEmptyRunText(this.theSelected.run)
       if (isEmpty || !this.isExistInRunTextList(this.theSelected.run)) {
         let r0 = this.runTextByIndex(0)
-        this.selectedRunDns = r0.Digest
+        this.selectedRunDns = r0.RunDigest
         this.dispatchTheSelected({ ModelDigest: this.digest, run: r0, isRun: this.isRunSelected })
       } else {
-        if (this.selectedRunDns === '') this.selectedRunDns = this.theSelected.run.Digest
+        if (this.selectedRunDns === '') this.selectedRunDns = this.theSelected.run.RunDigest
       }
     },
     doneRunLoad (isSuccess, dgst) {
@@ -336,7 +336,7 @@ export default {
         this.isRunSelected = kind === 'run-list'
       }
       if (routeParts.runOrSet === 'run' && (routeParts.runSetKey || '') !== '') {
-        isNew = !this.isRunSelected || routeParts.runSetKey !== this.theSelected.run.Digest
+        isNew = !this.isRunSelected || routeParts.runSetKey !== this.theSelected.run.RunDigest
         if (isNew) this.selectedRunDns = routeParts.runSetKey
         this.isRunSelected = true
       }

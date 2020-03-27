@@ -70,7 +70,7 @@ const mutations = {
     if (!Mdf.isRunText(rt)) return
     if (!Mdf.isNotEmptyRunText(rt) || !Mdf.isLength(state.runTextList)) return
 
-    let k = state.runTextList.findIndex((r) => Mdf.runTextEqual(r, rt))
+    let k = state.runTextList.findIndex((r) => rt.ModelDigest === r.ModelDigest && rt.RunDigest === r.RunDigest)
     if (k >= 0) state.runTextList[k] = Mdf._cloneDeep(rt)
   },
 
@@ -79,7 +79,7 @@ const mutations = {
     if (!Mdf.isRunText(rt)) return
     if (!Mdf.isNotEmptyRunText(rt) || !Mdf.isLength(state.runTextList)) return
 
-    let k = state.runTextList.findIndex((r) => Mdf.runTextEqual(r, rt))
+    let k = state.runTextList.findIndex((r) => rt.ModelDigest === r.ModelDigest && rt.RunDigest === r.RunDigest)
     if (k >= 0) state.runTextList.splice(k, 1)
   },
 
@@ -91,7 +91,7 @@ const mutations = {
 
     // if parameter text was not empty then copy it into new run text list
     for (const rt of rtl) {
-      let k = state.runTextList.findIndex((r) => Mdf.runTextEqual(r, rt))
+      let k = state.runTextList.findIndex((r) => rt.ModelDigest === r.ModelDigest && rt.RunDigest === r.RunDigest)
       if (k >= 0) {
         if (Mdf.lengthOf(rt.Param) <= 0 && Mdf.lengthOf(state.runTextList[k].Param) > 0) rt.Param = Mdf._cloneDeep(state.runTextList[k].Param)
       }
@@ -174,7 +174,7 @@ const mutations = {
     if (Mdf.isLength(state.runTextList)) {
       const r0 = state.runTextList[0]
       if (Mdf.isNotEmptyRunText(r0) && r0.ModelDigest === modelDigest) state.theSelected.run = Mdf._cloneDeep(r0)
-      state.theSelected.isRun = state.theSelected.run.Digest !== ''
+      state.theSelected.isRun = state.theSelected.run.RunDigest !== ''
     }
   },
 

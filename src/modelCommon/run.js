@@ -20,18 +20,19 @@ export const isRunTextList = (rtl) => {
 export const isRunText = (rt) => {
   if (!rt) return false
   if (!rt.hasOwnProperty('ModelName') || !rt.hasOwnProperty('ModelDigest')) return false
-  if (!rt.hasOwnProperty('Name') || !rt.hasOwnProperty('Digest') || !rt.hasOwnProperty('RunStamp') || !rt.hasOwnProperty('SubCount')) return false
-  if (!rt.hasOwnProperty('Status') || !rt.hasOwnProperty('CreateDateTime') || !rt.hasOwnProperty('UpdateDateTime')) return false
+  if (!rt.hasOwnProperty('Name') || !rt.hasOwnProperty('RunDigest') || !rt.hasOwnProperty('ValueDigest')) return false
+  if (!rt.hasOwnProperty('RunStamp') || !rt.hasOwnProperty('SubCount') || !rt.hasOwnProperty('Status')) return false
+  if (!rt.hasOwnProperty('CreateDateTime') || !rt.hasOwnProperty('UpdateDateTime')) return false
   if (!Hlpr.hasLength(rt.Param) || !Hlpr.hasLength(rt.Txt)) return false
   return true
 }
 
-// if this is not empty run text: model name, model digest, run name, run stamp, status, sub-count, create date-time
+// if this is not empty run text: model name, model digest, run name, run digest, run stamp, status, sub-count, create date-time
 export const isNotEmptyRunText = (rt) => {
   if (!isRunText(rt)) return false
   return (rt.ModelName || '') !== '' && (rt.ModelDigest || '') !== '' &&
-    (rt.Name || '') !== '' && (rt.RunStamp || '') !== '' && (rt.Status || '') !== '' && (rt.SubCount || 0) !== 0 &&
-    (rt.CreateDateTime || '') !== '' && (rt.UpdateDateTime || '') !== ''
+    (rt.Name || '') !== '' && (rt.RunDigest || '') !== '' && (rt.RunStamp || '') !== '' &&
+    (rt.Status || '') !== '' && (rt.SubCount || 0) !== 0 && (rt.CreateDateTime || '') !== ''
 }
 
 // return empty run text
@@ -40,7 +41,8 @@ export const emptyRunText = () => {
     ModelName: '',
     ModelDigest: '',
     Name: '',
-    Digest: '',
+    RunDigest: '',
+    ValueDigest: '',
     RunStamp: '',
     SubCount: 0,
     Status: '',
@@ -51,27 +53,12 @@ export const emptyRunText = () => {
   }
 }
 
-// run text equality comparator:
-// return true if both run texts has same non-empty digest or if digest is empty then same name and other attributes.
-// it does NOT compare run text at all, only run itself.
-// it does NOT compare run update time.
-export const runTextEqual = (rt, rtOther) => {
-  if (!isRunText(rt) || !isRunText(rtOther)) return false
-  if (!isNotEmptyRunText(rt) && !isNotEmptyRunText(rtOther)) return true
-  if (rt.ModelDigest !== rtOther.ModelDigest) return false
-
-  return (rt.Digest !== '' && rt.Digest === rtOther.Digest) ||
-    (rt.Digest === '' && rt.Digest === rtOther.Digest &&
-    rt.Name === rtOther.Name &&
-    rt.RunStamp === rtOther.RunStamp &&
-    rt.SubCount === rtOther.SubCount &&
-    rt.Status === rtOther.Status &&
-    rt.CreateDateTime === rtOther.CreateDateTime)
-}
-
 // return true if this is not the same run text or it is updated: different run status or update time.
 export const isRunTextUpdated = (rt, rtOther) => {
-  return !runTextEqual(rt, rtOther) || rt.Status !== rtOther.Status || rt.UpdateDateTime !== rtOther.UpdateDateTime
+  if (!isNotEmptyRunText(rt) || !isNotEmptyRunText(rtOther)) return false
+
+  return rt.ModelDigest !== rtOther.ModelDigest || rt.RunDigest !== rtOther.RunDigest ||
+    rt.Status !== rtOther.Status || rt.UpdateDateTime !== rtOther.UpdateDateTime
 }
 
 // retrun true if run completed successfuly
@@ -194,7 +181,7 @@ export const emptyRunStatusProgress = () => {
     ModelName: '',
     ModelDigest: '',
     Name: '',
-    Digest: '',
+    RunDigest: '',
     RunStamp: '',
     SubCount: 0,
     SubCompleted: 0,
@@ -209,7 +196,7 @@ export const emptyRunStatusProgress = () => {
 export const isRunStatusProgress = (rp) => {
   if (!rp) return false
   if (!rp.hasOwnProperty('ModelName') || !rp.hasOwnProperty('ModelDigest')) return false
-  if (!rp.hasOwnProperty('Name') || !rp.hasOwnProperty('Digest') || !rp.hasOwnProperty('RunStamp')) return false
+  if (!rp.hasOwnProperty('Name') || !rp.hasOwnProperty('RunDigest') || !rp.hasOwnProperty('RunStamp')) return false
   if (!rp.hasOwnProperty('SubCount') || !rp.hasOwnProperty('SubCompleted')) return false
   if (!rp.hasOwnProperty('Status') || !rp.hasOwnProperty('CreateDateTime') || !rp.hasOwnProperty('UpdateDateTime')) return false
   if (!Hlpr.hasLength(rp.Progress)) return false
@@ -220,7 +207,8 @@ export const isRunStatusProgress = (rp) => {
 export const isNotEmptyRunStatusProgress = (rp) => {
   if (!isRunStatusProgress(rp)) return false
   return (rp.ModelName || '') !== '' && (rp.ModelDigest || '') !== '' &&
-    (rp.Name || '') !== '' && (rp.RunStamp || '') !== '' && (rp.SubCount || 0) !== 0 && (rp.Status || '') !== '' && (rp.CreateDateTime || '') !== ''
+    (rp.Name || '') !== '' && (rp.RunDigest || '') !== '' && (rp.RunStamp || '') !== '' &&
+    (rp.SubCount || 0) !== 0 && (rp.Status || '') !== '' && (rp.CreateDateTime || '') !== ''
 }
 
 // return empty run progress item
