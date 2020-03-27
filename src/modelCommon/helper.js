@@ -31,7 +31,7 @@ export const newRunModelRouteKey = (model) => { return routeJoin([model, 'new-ru
 
 // format date-time to timestamp string: YYYY-MM-DD hh:mm:ss.SSS
 export const dtToTimeStamp = (dt) => {
-  if (!dt) return ''
+  if (!dt || !(dt instanceof Date)) return ''
   let month = dt.getMonth() + 1
   let day = dt.getDate()
   let hour = dt.getHours()
@@ -50,7 +50,7 @@ export const dtToTimeStamp = (dt) => {
 
 // format date-time to timestamp string: YYYY_MM_DD_hh_mm_ss_SSS
 export const dtToUnderscoreTimeStamp = (dt) => {
-  if (!dt) return ''
+  if (!dt || !(dt instanceof Date)) return ''
   let month = dt.getMonth() + 1
   let day = dt.getDate()
   let hour = dt.getHours()

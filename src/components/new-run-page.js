@@ -24,7 +24,7 @@ export default {
 
   props: {
     digest: { type: String, default: '' },
-    nameDigest: { type: String, default: '' }
+    nameDigest: { type: String, default: '' } // workset name
   },
 
   data () {
@@ -83,11 +83,6 @@ export default {
   },
 
   computed: {
-    // make new model run name
-    autoNewRunName () {
-      return (this.modelName || '') + '_' + (this.nameDigest || '')
-    },
-
     // if true then selected workset edit mode else readonly and model run enabled
     isWsEdit () {
       const ws = this.worksetTextByName(this.nameDigest)
@@ -123,7 +118,7 @@ export default {
       this.newRun.logLines = []
       this.isInitRunFailed = false
 
-      this.runOpts.runName = this.autoNewRunName
+      this.runOpts.runName = this.autoNewRunName()
       this.runOpts.csvId = this.csvIdValue === 'true'
       this.runOpts.logVersion = this.logVersionValue === 'true'
       this.runOpts.sparseOutput = this.sparseOutputValue === 'true'
@@ -153,7 +148,7 @@ export default {
     // run the model
     onModelRun () {
       // set new run options
-      this.runOpts.runName = this.parseTextInput(this.$refs.runNameInput.value) || this.autoNewRunName
+      this.runOpts.runName = this.parseTextInput(this.$refs.runNameInput.value) || this.autoNewRunName()
       this.runOpts.runDescr = this.parseTextInput(this.$refs.runDescrInput.value)
       this.runOpts.subCount = this.parseIntInput(this.$refs.subCountInput.value, 1)
       this.runOpts.threadCount = this.parseIntInput(this.$refs.threadCountInput.value, 1)
@@ -230,6 +225,11 @@ export default {
       // remove leading /
       s = s.replace(/^\//, '')
       return s || ''
+    },
+
+    // make default new model run name
+    autoNewRunName () {
+      return this.modelName + '_' + this.nameDigest + '_' + Mdf.dtToUnderscoreTimeStamp(new Date())
     },
 
     // new model run started: response from server
