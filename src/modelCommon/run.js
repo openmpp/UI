@@ -66,6 +66,11 @@ export const isRunSuccess = (rt) => {
   return isRunText(rt) && rt.Status === RUN_SUCCESS
 }
 
+// retrun true if run in progress
+export const isRunInProgress = (rt) => {
+  return isRunText(rt) && rt.Status === RUN_IN_PROGRESS
+}
+
 /* eslint-disable no-multi-spaces */
 export const RUN_SUCCESS = 's'      // run completed successfuly
 export const RUN_IN_PROGRESS = 'p'  // run in progress
@@ -126,7 +131,7 @@ export const isRunStateLog = (rlp) => {
 
 // if this is not empty RunStateLog: model run state and run log page
 export const isNotEmptyRunStateLog = (rlp) => {
-  return isRunStateLog(rlp)
+  return isNotEmptyRunState(rlp)
 }
 
 // return empty RunStateLog: model run state and run log page

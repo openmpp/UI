@@ -1,0 +1,145 @@
+<template>
+<div id="run-log-page" class="main-container mdc-typography mdc-typography--body1">
+
+  <div>
+    <span v-if="!isRefreshCompleted"
+      @click="runRefreshPauseToggle()"
+      class="om-cell-icon-link material-icons"
+      :alt="!isRefreshPaused ? 'Pause' : 'Refresh'"
+      :title="!isRefreshPaused ? 'Pause' : 'Refresh'">{{!isRefreshPaused ? (isLogRefresh ? 'autorenew' : 'loop') : 'play_circle_outline'}}</span>
+    <span v-else
+      class="om-cell-icon-empty material-icons"
+      alt="Refresh"
+      title="Refresh">autorenew</span>
+
+    <span class="medium-wt">Model Run: </span><span class="mdc-typography--body1">{{runName ? runName : runStamp}}</span>
+
+    <run-log-refresh
+      :model-digest="digest"
+      :run-stamp="runStamp"
+      :refresh-tickle="isLogRefresh"
+      :start="logStart"
+      :count="logCount"
+      @done="doneRunLogRefresh"
+      @wait="()=>{}">
+    </run-log-refresh>
+
+    <run-progress-refresh
+      :model-digest="digest"
+      :run-stamp="runStamp"
+      :refresh-tickle="isProgressRefresh"
+      @done="doneRunProgressRefresh"
+      @wait="()=>{}">
+    </run-progress-refresh>
+  </div>
+
+  <div v-for="pi in runProgress" :key="(pi.Status || 'st') + '-' + (pi.CreateDateTime || 'ct')" class="panel-section">
+    <table v-if="pi.UpdateDateTime" class="pt-table panel-section">
+      <thead>
+        <tr>
+          <th class="pt-head">{{pi.SubCompleted > 0 ? 'Completed' : 'Sub-values'}}</th>
+          <th class="pt-head">Status</th>
+          <th class="pt-head">Updated</th>
+          <th class="pt-head">Value Digest</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="pt-cell-right"><span v-if="pi.SubCompleted > 0">{{pi.SubCompleted}} / </span>{{pi.SubCount}}</td>
+          <td class="pt-cell-left">{{statusOfTheRun(pi)}}</td>
+          <td class="pt-cell-left">{{pi.UpdateDateTime}}</td>
+          <td class="pt-cell-left">{{pi.ValueDigest}}</td>
+        </tr>
+        <tr v-if="pi.Progress">
+          <td class="pt-head">Sub-value</td>
+          <td class="pt-head">Status</td>
+          <td class="pt-head">Updated</td>
+          <td class="pt-head">Progress</td>
+        </tr>
+        <tr v-for="spi in pi.Progress" :key="(spi.Status || 'st') + '-' + (spi.SubId || 'sub') + '-' + (spi.UpdateDateTime || 'upt')">
+          <td class="pt-cell-right">{{spi.SubId}}</td>
+          <td class="pt-cell-left">{{statusOfTheRun(spi)}}</td>
+          <td class="pt-cell-left">{{spi.UpdateDateTime}}</td>
+          <td class="pt-cell-right">{{spi.Count}}% ({{spi.Value}})</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="panel-section">
+    <span v-if="runState.UpdateDateTime" class="mono">{{runState.UpdateDateTime}}</span>
+    <span v-if="runState.LogFileName" class="mono"><i>[{{runState.LogFileName}}]</i></span>
+  </div>
+  <div>
+    <pre class="log-text">{{logLines.join('\n')}}</pre>
+  </div>
+
+</div>
+</template>
+
+<script src="./run-log-page.js"></script>
+
+<!-- local scope css: this component only -->
+<style lang="scss" scoped>
+  @import "@material/theme/mdc-theme";
+  @import "@material/typography/mdc-typography";
+  @import "@/om-mcw.scss";
+
+  /* main container, header row and pivot view container */
+  .main-container {
+    height: 100%;
+    flex: 1 1 auto;
+  }
+
+  /* model run panel */
+  .panel-border {
+    border-width: 1px;
+    border-style: solid;
+    border-color: lightgrey;
+  }
+  .panel-frame {
+    margin-top: 0.5rem;
+    margin-right: 0.5rem;
+    // @extend .panel-border;
+  }
+  .panel-section {
+    &:not(:first-child) {
+      margin-top: 0.25rem;
+    }
+  }
+
+  /* run progress table */
+  .pt-table {
+    text-align: left;
+    border-collapse: collapse;
+  }
+  .pt-cell {
+    padding: 0.25rem;
+    border: 1px solid lightgrey;
+    font-size: 0.875rem;
+  }
+  .pt-head {
+    @extend .medium-wt;
+    @extend .pt-cell;
+    text-align: center;
+    background-color: whitesmoke;
+  }
+  .pt-cell-left {
+    text-align: left;
+    @extend .pt-cell;
+  }
+  .pt-cell-right {
+    text-align: right;
+    @extend .pt-cell;
+  }
+  .pt-cell-center {
+    text-align: center;
+    @extend .pt-cell;
+  }
+
+  .log-text {
+    margin-top: 0;
+    @extend .mono;
+    @extend .mdc-typography--caption;
+  }
+</style>

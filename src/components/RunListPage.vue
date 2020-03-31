@@ -13,18 +13,18 @@
           :title="'About ' + r.Name"
           :alt="'About ' + r.Name">
             <span v-if="isSuccess(r)">description</span>
+            <span v-else-if="isInProgress(r)">directions_run</span>
             <span v-else>error_outline</span>
         </span>
-<!--
+
         <span
-          @click="showRunInfo(r)"
+          @click="doRunLogClick(r.RunStamp)"
           class="om-note-link mdc-list-item__graphic material-icons"
-          :title="'About ' + r.Name"
-          :alt="'About ' + r.Name">
-            <span v-if="isSuccess(r)">subject</span>
-            <span v-else>error_outline</span>
+          :title="'Run log ' + r.Name"
+          :alt="'Run log ' + r.Name">
+            <span>subject</span>
         </span>
--->
+
         <span
           @click="doRunClick(r.RunDigest)"
           class="link-next"
@@ -79,11 +79,17 @@ export default {
   methods: {
     lastTime (rt) { return Mdf.dtStr(rt.UpdateDateTime) },
     isSuccess (rt) { return Mdf.isRunSuccess(rt) },
+    isInProgress (rt) { return Mdf.isRunInProgress(rt) },
     descrOf (rt) { return Mdf.descrOfTxt(rt) },
 
     // click on run: select this run as current run
     doRunClick (runDigest) {
       if ((runDigest || '') !== '') this.$emit('run-select', runDigest)
+    },
+
+    // click on run log: select this run as current run
+    doRunLogClick (stamp) {
+      this.$emit('run-log-select', stamp)
     },
 
     // update selected item: handler for run text loaded

@@ -6,9 +6,10 @@ import ParameterListPage from '@/components/ParameterListPage'
 import TableListPage from '@/components/TableListPage'
 import RunListPage from '@/components/RunListPage'
 import WorksetListPage from '@/components/WorksetListPage'
-import NewRunPage from '@/components/NewRunPage'
 import ParameterPage from '@/components/ParameterPage'
 import TablePage from '@/components/TablePage'
+import NewRunPage from '@/components/NewRunPage'
+import RunLogPage from '@/components/RunLogPage'
 import SessionSettings from '@/components/SessionSettingsPage'
 import LicensePage from '@/components/LicensePage'
 import None404Page from '@/components/None404Page'
@@ -39,28 +40,33 @@ export default new Router({
           props: true
         },
         {
-          path: 'new-run-model/set/:nameDigest',
-          component: NewRunPage,
-          props: true
-        },
-        {
-          path: ':runOrSet/:nameDigest/parameter-list',
+          path: ':runOrSet/:nameOrDigest/parameter-list',
           component: ParameterListPage,
           props: true
         },
         {
-          path: 'run/:nameDigest/table-list',
+          path: 'run/:nameOrDigest/table-list',
           component: TableListPage,
           props: true
         },
         {
-          path: ':runOrSet/:nameDigest/parameter/:paramName',
+          path: ':runOrSet/:nameOrDigest/parameter/:paramName',
           component: ParameterPage,
           props: true
         },
         {
-          path: 'run/:nameDigest/table/:tableName',
+          path: 'run/:nameOrDigest/table/:tableName',
           component: TablePage,
+          props: true
+        },
+        {
+          path: 'new-run-model/set/:nameOrDigest',
+          component: NewRunPage,
+          props: true
+        },
+        {
+          path: 'run-log/:runStamp',
+          component: RunLogPage,
           props: true
         },
         {

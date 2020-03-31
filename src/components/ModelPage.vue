@@ -24,7 +24,7 @@
               <span v-if="t.runOrSet === 'set' && !t.updated" class="tab-icon material-icons">mode_edit</span>
               <span v-if="t.runOrSet === 'set' && t.updated" class="tab-icon material-icons">save</span>
             </template>
-            <span>{{t.title}}</span>
+            <span class="tab-title">{{t.title}}</span>
             <span v-if="t.kind === 'run-list'">: {{runTextCount}}</span>
             <span v-if="t.kind === 'set-list'">: {{worksetTextCount}}</span>
             <span v-if="t.kind === 'parameter-run-list' || t.kind === 'parameter-set-list'">: {{modelParamCount}}</span>
@@ -43,9 +43,7 @@
   <!-- end of tabs line -->
 
   <!-- header line -->
-  <div
-    :class="{ 'run-set-hdr-hint': isRunSetHint }"
-    class="run-set-hdr-row mdc-typography--body1">
+  <div :class="{ 'run-set-hdr-hint': isRunSetHint }" class="run-set-hdr-row mdc-typography--body1">
 
     <span v-if="loadDone">
 
@@ -54,6 +52,7 @@
         class="om-cell-icon-link material-icons"
         alt="Description and notes" title="Description and notes">
           <span v-if="isSuccessTheRun">description</span>
+          <span v-else-if="isInProgressTheRun">directions_run</span>
           <span v-else>error_outline</span>
       </span>
       <!-- not isRunSelected -->
@@ -95,7 +94,7 @@
 
       <span class="hdr-text">
         <span v-if="isNotEmptyHdr">
-          <span v-if="isRunSelected && !isSuccessTheRun" class="cell-status medium-wt">{{statusOfTheRun}}</span>
+          <span v-if="isRunSelected && !isSuccessTheRun && !isInProgressTheRun" class="cell-status medium-wt">{{statusOfTheRun}}</span>
           <span v-if="isRunSelected" class="mono">{{lastTimeOfHdr}}&nbsp;</span>
           <span><span class="medium-wt">{{nameOfHdr}}</span> {{descrOfHdr}}</span>
         </span>
@@ -166,9 +165,11 @@
       @tab-mounted="onTabMounted"
       @tab-new-route="onTabNewRoute"
       @run-select="onRunSelect"
-      @run-list-refresh="onRunListRefresh"
       @workset-select="onWsSelect"
-      @edit-updated="onEditUpdated"></router-view>
+      @edit-updated="onEditUpdated"
+      @run-log-select="onRunLogSelect"
+      @run-list-refresh="onRunListRefresh"
+      @tab-title-update="onTabTitleUpdate"></router-view>
   </main>
 
   <run-info-dialog ref="theRunInfoDlg" id="the-run-info-dlg"></run-info-dialog>
@@ -249,9 +250,11 @@
   .tab-icon {
     vertical-align: text-bottom;
     padding-left: 0.125rem;
-    padding-right: 0.125rem;
     font-size: 1.25rem;
     @extend .mdc-theme--on-primary;
+  }
+  .tab-title {
+    padding-left: 0.125rem;
   }
 
   /* header row of model, run, workset properties */
@@ -281,5 +284,6 @@
   /* run status message */
   .cell-status {
     text-transform: uppercase;
+    padding-right: 0.5rem;
   }
 </style>

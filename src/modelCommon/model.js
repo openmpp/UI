@@ -3,23 +3,23 @@
 import * as Dnf from './descrNote'
 import * as Hlpr from './helper'
 
-// if this is a Model with Name and Digest properties
-export const hasNameDigest = (md) => {
-  if (!md) return false
-  if (!md.hasOwnProperty('Model')) return false
-  return md.Model.hasOwnProperty('Name') && md.Model.hasOwnProperty('Digest')
-}
-
 // if this is a model
 export const isModel = (md) => {
-  if (!hasNameDigest(md)) return false
+  if (!hasModelNameDigest(md)) return false
   return (md.Model.Name || '') !== '' && (md.Model.Digest || '') !== ''
 }
 
 // if this is an empty model: model with empty name and digest
 export const isEmptyModel = (md) => {
-  if (!hasNameDigest(md)) return false
+  if (!hasModelNameDigest(md)) return false
   return (md.Model.Name || '') === '' || (md.Model.Digest || '') === ''
+}
+
+// if this is a Model with Name and Digest properties
+const hasModelNameDigest = (md) => {
+  if (!md) return false
+  if (!md.hasOwnProperty('Model')) return false
+  return md.Model.hasOwnProperty('Name') && md.Model.hasOwnProperty('Digest')
 }
 
 // return empty Model

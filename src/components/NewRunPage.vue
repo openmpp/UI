@@ -1,7 +1,7 @@
 <template>
 <div id="new-run-page" class="main-container mdc-typography mdc-typography--body1">
 
-  <div v-if="isEmptyRunStep" class="panel-option-frame mdc-typography--body1">
+  <div class="panel-option-frame mdc-typography--body1">
 
     <div class="panel-section">
       <template v-if="isWsEdit">
@@ -9,8 +9,8 @@
           <om-mcw-button
             :disabled="isWsEdit"
             class="panel-item mdc-button--raised"
-            :alt="'Run the model with input set ' + nameDigest"
-            :title="'Run the model with input set ' + nameDigest">
+            :alt="'Run the model with input set ' + nameOrDigest"
+            :title="'Run the model with input set ' + nameOrDigest">
             <i class="material-icons mdc-button__icon">directions_run</i>Run the model</om-mcw-button>
           <div
             class="panel-first-table-header om-note-empty">
@@ -24,10 +24,10 @@
         <div class="panel-first-header">
           <om-mcw-button
             @click="onModelRun"
-            :disabled="isWsEdit"
+            :disabled="isWsEdit || isInitRun"
             class="panel-item mdc-button--raised"
-            :alt="'Run the model with input set ' + nameDigest"
-            :title="'Run the model with input set ' + nameDigest">
+            :alt="'Run the model with input set ' + nameOrDigest"
+            :title="'Run the model with input set ' + nameOrDigest">
             <i class="material-icons mdc-button__icon">directions_run</i>Run the model</om-mcw-button>
           <div
             @click="isRunOptsShow = !isRunOptsShow"
@@ -56,6 +56,7 @@
             <input type="text"
               id="run-name-input" ref="runNameInput" maxlength="255" size="80"
               v-model="runOpts.runName"
+              @blur="onRunNameInputBlur"
               alt="Name of the new model run"
               title="Name of the new model run"
               class="panel-cell panel-value"/>
@@ -65,6 +66,7 @@
             <input type="text"
               id="run-descr-input" ref="runDescrInput" maxlength="255" size="80"
               v-model="runOpts.runDescr"
+              @blur="onRunDescrInputBlur"
               alt="Model run description"
               title="Model run description"
               class="panel-cell panel-value"/>
@@ -240,14 +242,14 @@
 
   </div>
 
-  <div v-if="isInitRunStep || isInitRunFailed" class="panel-frame mdc-typography--body1">
+  <div v-if="isInitRun" class="panel-frame mdc-typography--body1">
     <div>
-      <span class="medium-wt">Running: </span><span class="mdc-typography--body1">{{runOpts.runName}}</span>
+      <span class="medium-wt">Starting: </span><span class="mdc-typography--body1">{{runOpts.runName}}</span>
     </div>
     <div>
       <new-run-init
         :model-digest="digest"
-        :workset-name="nameDigest"
+        :workset-name="nameOrDigest"
         :run-opts="runOpts"
         @done="doneNewRunInit"
         @wait="()=>{}">
@@ -255,82 +257,11 @@
     </div>
   </div>
 
-  <div v-if="isProcRunStep || isFinalRunStep" class="panel-frame mdc-typography--body1">
-
-    <div>
-      <span v-if="isProcRunStep"
-        @click="runRefreshPauseToggle()"
-        class="om-cell-icon-link material-icons"
-        :alt="!isRefreshPaused ? 'Pause' : 'Refresh'"
-        :title="!isRefreshPaused ? 'Pause' : 'Refresh'">{{!isRefreshPaused ? (isLogRefresh ? 'autorenew' : 'loop') : 'play_circle_outline'}}</span>
-      <span v-else
-        class="om-cell-icon-empty material-icons"
-        alt="Refresh"
-        title="Refresh">autorenew</span>
-
-      <span class="medium-wt">Run Name: </span><span class="mdc-typography--body1">{{runOpts.runName}}</span>
-
-      <run-log-refresh
-        :model-digest="digest"
-        :run-stamp="newRun.state.RunStamp"
-        :refresh-tickle="isLogRefresh"
-        :start="newRun.logStart"
-        :count="newRun.logCount"
-        @done="doneRunLogRefresh"
-        @wait="()=>{}">
-      </run-log-refresh>
-
-      <run-progress-refresh
-        :model-digest="digest"
-        :run-stamp="newRun.state.RunStamp"
-        :refresh-tickle="isProgressRefresh"
-        @done="doneRunProgressRefresh"
-        @wait="()=>{}">
-      </run-progress-refresh>
-    </div>
-
-    <div v-for="pi in newRun.progress" :key="(pi.Status || 'st') + '-' + (pi.CreateDateTime || 'ct')" class="panel-section">
-      <table v-if="pi.UpdateDateTime" class="pt-table panel-section">
-        <thead>
-          <tr>
-            <th class="pt-head">{{pi.SubCompleted > 0 ? 'Completed' : 'Sub-values'}}</th>
-            <th class="pt-head">Status</th>
-            <th class="pt-head">Updated</th>
-            <th class="pt-head">Digest</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td class="pt-cell-right"><span v-if="pi.SubCompleted > 0">{{pi.SubCompleted}} / </span>{{pi.SubCount}}</td>
-            <td class="pt-cell-left">{{statusOfTheRun(pi)}}</td>
-            <td class="pt-cell-left">{{pi.UpdateDateTime}}</td>
-            <td class="pt-cell-left">{{pi.ValueDigest}}</td>
-          </tr>
-          <tr v-if="pi.Progress">
-            <td class="pt-head">Sub-value</td>
-            <td class="pt-head">Status</td>
-            <td class="pt-head">Updated</td>
-            <td class="pt-head">Progress</td>
-          </tr>
-          <tr v-for="spi in pi.Progress" :key="(spi.Status || 'st') + '-' + (spi.SubId || 'sub') + '-' + (spi.UpdateDateTime || 'upt')">
-            <td class="pt-cell-right">{{spi.SubId}}</td>
-            <td class="pt-cell-left">{{statusOfTheRun(spi)}}</td>
-            <td class="pt-cell-left">{{spi.UpdateDateTime}}</td>
-            <td class="pt-cell-right">{{spi.Count}}% ({{spi.Value}})</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-
-    <div class="panel-section">
-      <span v-if="newRun.state.UpdateDateTime" class="mono">{{newRun.state.UpdateDateTime}}</span>
-      <span v-if="newRun.state.LogFileName" class="mono"><i>[{{newRun.state.LogFileName}}]</i></span>
-    </div>
-    <div>
-      <pre class="log-text">{{newRun.logLines.join('\n')}}</pre>
-    </div>
-
-  </div>
+  <run-log-page v-if="runStamp"
+    :digest="digest"
+    :runStamp="runStamp"
+    @run-list-refresh="onRunListRefresh"
+    class="panel-frame mdc-typography--body1"></run-log-page>
 
   <om-mcw-snackbar id="new-run-page-snackbar-msg" ref="newRunPageSnackbarMsg" labelText="..."></om-mcw-snackbar>
 
@@ -345,7 +276,6 @@
   @import "@material/typography/mdc-typography";
   @import "@/om-mcw.scss";
 
-  /* main container, header row and pivot view container */
   .main-container {
     height: 100%;
     flex: 1 1 auto;
@@ -430,40 +360,5 @@
   }
   .panel-cell-min-width {
     min-width: 8rem;;
-  }
-
-  /* run progress table */
-  .pt-table {
-    text-align: left;
-    border-collapse: collapse;
-  }
-  .pt-cell {
-    padding: 0.25rem;
-    border: 1px solid lightgrey;
-    font-size: 0.875rem;
-  }
-  .pt-head {
-    @extend .medium-wt;
-    @extend .pt-cell;
-    text-align: center;
-    background-color: whitesmoke;
-  }
-  .pt-cell-left {
-    text-align: left;
-    @extend .pt-cell;
-  }
-  .pt-cell-right {
-    text-align: right;
-    @extend .pt-cell;
-  }
-  .pt-cell-center {
-    text-align: center;
-    @extend .pt-cell;
-  }
-
-  .log-text {
-    margin-top: 0;
-    @extend .mono;
-    @extend .mdc-typography--caption;
   }
 </style>

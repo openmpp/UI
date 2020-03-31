@@ -38,7 +38,7 @@ export default {
   props: {
     digest: { type: String, default: '' },
     runOrSet: { type: String, default: '' },
-    nameDigest: { type: String, default: '' }
+    nameOrDigest: { type: String, default: '' } // workset name or run digest
   },
 
   data () {
@@ -58,7 +58,7 @@ export default {
 
       this.$emit('tab-new-route',
         this.runOrSet === 'run' ? 'parameter-run-list' : 'parameter-set-list',
-        { digest: this.digest, runOrSet: this.runOrSet, runSetKey: this.nameDigest })
+        { digest: this.digest, runOrSet: this.runOrSet, runSetKey: this.nameOrDigest })
     }
   },
   computed: {
@@ -79,7 +79,7 @@ export default {
     // show parameter info
     onParamAboutClick (key, name, data) {
       const prs = Mdf.paramRunSetByName(
-        ((this.runOrSet || '') === 'set') ? this.worksetTextByName(this.nameDigest) : this.runTextByDigest(this.nameDigest),
+        ((this.runOrSet || '') === 'set') ? this.worksetTextByName(this.nameOrDigest) : this.runTextByDigest(this.nameOrDigest),
         name)
       const pt = Mdf.paramTextByName(this.theModel, name)
 
@@ -98,7 +98,7 @@ export default {
     onParamClick (key, name, data) {
       const pt = Mdf.paramTextByName(this.theModel, name)
       this.$router.push(
-        '/model/' + this.digest + '/' + this.runOrSet + '/' + this.nameDigest + '/parameter/' + pt.Param.Name)
+        '/model/' + this.digest + '/' + this.runOrSet + '/' + this.nameOrDigest + '/parameter/' + pt.Param.Name)
     },
 
     // update tree view: handler for parameter list re-loaded
@@ -269,7 +269,7 @@ export default {
     this.setTreeData()
     this.$emit('tab-mounted',
       this.runOrSet === 'run' ? 'parameter-run-list' : 'parameter-set-list',
-      { digest: this.digest, runOrSet: this.runOrSet, runSetKey: this.nameDigest })
+      { digest: this.digest, runOrSet: this.runOrSet, runSetKey: this.nameOrDigest })
   }
 }
 </script>

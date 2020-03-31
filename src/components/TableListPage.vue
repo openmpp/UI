@@ -5,7 +5,7 @@
   <template v-if="isTableList()">
 
     <OmTreeList
-      :treeId="'table-list-tree-' + nameDigest"
+      :treeId="'table-list-tree-' + nameOrDigest"
       :treeDataTickle="treeDataTickle"
       :isAnyHidden="isAnyHidden"
       :isShowHidden="isShowHidden"
@@ -37,7 +37,7 @@ export default {
 
   props: {
     digest: { type: String, default: '' },
-    nameDigest: { type: String, default: '' }
+    nameOrDigest: { type: String, default: '' } // run digest
   },
 
   data () {
@@ -60,11 +60,14 @@ export default {
 
   methods: {
     // check if model output tables list ready to be useed
-    isTableList () { return Mdf.legthOfTableTextList(this.theModel) > 0 },
+    isTableList () {
+      const rt = this.runTextByDigestOrName(this.nameOrDigest)
+      return Mdf.isNotEmptyRunText(rt) && Mdf.isRunSuccess(rt) && Mdf.legthOfTableTextList(this.theModel) > 0
+    },
 
     // show output table info
     onTableAboutClick (key, name, data) {
-      this.$refs.tableNoteDlg.showTableInfo(Mdf.tableTextByName(this.theModel, name), this.runTextByDigestOrName(this.nameDigest))
+      this.$refs.tableNoteDlg.showTableInfo(Mdf.tableTextByName(this.theModel, name), this.runTextByDigestOrName(this.nameOrDigest))
     },
     // show group description and notes info
     onGroupAboutClick (key, name, data) {
@@ -79,7 +82,7 @@ export default {
     onTableClick (key, name, data) {
       const t = Mdf.tableTextByName(this.theModel, name)
       this.$router.push(
-        '/model/' + this.digest + '/run/' + this.nameDigest + '/table/' + t.Table.Name)
+        '/model/' + this.digest + '/run/' + this.nameOrDigest + '/table/' + t.Table.Name)
     },
 
     // update tree view: handler for table list re-loaded
@@ -248,7 +251,7 @@ export default {
 
   mounted () {
     this.setTreeData()
-    this.$emit('tab-mounted', 'table-list', { digest: this.digest, runOrSet: 'run', runSetKey: this.nameDigest })
+    this.$emit('tab-mounted', 'table-list', { digest: this.digest, runOrSet: 'run', runSetKey: this.nameOrDigest })
   }
 }
 </script>

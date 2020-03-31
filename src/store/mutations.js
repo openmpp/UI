@@ -181,6 +181,7 @@ const mutations = {
   // update current selection: run and workset if model digest not the same
   [COMMIT.THE_SELECTED] (state, sel) {
     if (!sel || !sel.hasOwnProperty('ModelDigest') || typeof sel.ModelDigest !== typeof 'string') return
+    if ((sel.ModelDigest || '') === '') return
 
     if ((sel.ModelDigest || '') !== state.theSelected.ModelDigest) {
       state.theSelected = emptyTheSelected()
@@ -197,7 +198,6 @@ const mutations = {
     if (sel.hasOwnProperty('ws') && Mdf.isWorksetText(sel.ws)) {
       if (Mdf.isNotEmptyWorksetText(sel.ws) && sel.ws.ModelDigest === sel.ModelDigest) {
         state.theSelected.ws = sel.ws
-        // if (!isSelRun) state.theSelected.isRun = false
       } else {
         state.theSelected.ws = Mdf.emptyWorksetText()
       }
@@ -206,7 +206,6 @@ const mutations = {
     if (sel.hasOwnProperty('run') && Mdf.isRunText(sel.run)) {
       if (Mdf.isNotEmptyRunText(sel.run) && sel.run.ModelDigest === sel.ModelDigest) {
         state.theSelected.run = sel.run
-        // if (!isSelRun) state.theSelected.isRun = true
       } else {
         state.theSelected.run = Mdf.emptyRunText()
         sel.isRun = false

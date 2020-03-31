@@ -21,10 +21,10 @@ export default {
 
   /* eslint-disable no-multi-spaces */
   props: {
-    digest: '',     // model digest or name
-    paramName: '',  // parameter name
-    runOrSet: '',   // if "run" then model run if "set" then workset
-    nameDigest: ''  // workset name or model run digest or name
+    digest: '',      // model digest or name
+    paramName: '',   // parameter name
+    runOrSet: '',    // if "run" then model run if "set" then workset
+    nameOrDigest: '' // workset name or model run digest or name
   },
 
   data () {
@@ -45,7 +45,7 @@ export default {
       rowFields: [],
       otherFields: [],
       filterState: {},
-      pvRef: 'pv-' + this.digest + '-' + this.paramName + '-' + this.runOrSet + '-' + this.nameDigest,
+      pvRef: 'pv-' + this.digest + '-' + this.paramName + '-' + this.runOrSet + '-' + this.nameOrDigest,
       inpData: Object.freeze([]),
       ctrl: {
         isRowColControls: true,
@@ -92,7 +92,7 @@ export default {
     routeKey () {
       this.initView()
       this.doRefreshDataPage()
-      this.$emit('tab-new-route', 'parameter', { digest: this.digest, runOrSet: this.runOrSet, runSetKey: this.nameDigest, ptName: this.paramName })
+      this.$emit('tab-new-route', 'parameter', { digest: this.digest, runOrSet: this.runOrSet, runSetKey: this.nameOrDigest, itemKey: this.paramName })
       this.$emit('edit-updated', this.edt.isUpdated, this.routeKey)
     },
     isEditUpdated () {
@@ -101,7 +101,7 @@ export default {
   },
   computed: {
     routeKey () {
-      return Mdf.paramRouteKey(this.digest, this.paramName, this.runOrSet, this.nameDigest)
+      return Mdf.paramRouteKey(this.digest, this.paramName, this.runOrSet, this.nameOrDigest)
     },
     isEditUpdated () {
       return this.edt.isUpdated
@@ -151,8 +151,8 @@ export default {
     },
     // update workset read-only status: handler for model page event
     refreshWsEditStatus (key) {
-      if (!!key && key === this.nameDigest) {
-        const wsSrc = this.isFromWs ? this.worksetTextByName(this.nameDigest) : Mdf.emptyWorksetText()
+      if (!!key && key === this.nameOrDigest) {
+        const wsSrc = this.isFromWs ? this.worksetTextByName(this.nameOrDigest) : Mdf.emptyWorksetText()
         this.edt.isEnabled = this.isFromWs && Mdf.isNotEmptyWorksetText(wsSrc) && !wsSrc.IsReadonly
       }
     },
@@ -297,9 +297,9 @@ export default {
       this.paramType = Mdf.typeTextById(this.theModel, (this.paramText.Param.TypeId || 0))
 
       this.isFromWs = ((this.runOrSet || '') === 'set')
-      const wsSrc = this.isFromWs ? this.worksetTextByName(this.nameDigest) : Mdf.emptyWorksetText()
+      const wsSrc = this.isFromWs ? this.worksetTextByName(this.nameOrDigest) : Mdf.emptyWorksetText()
       this.paramRunSet = Mdf.paramRunSetByName(
-        this.isFromWs ? wsSrc : this.runTextByDigest(this.nameDigest),
+        this.isFromWs ? wsSrc : this.runTextByDigest(this.nameOrDigest),
         this.paramName)
       this.subCount = this.paramRunSet.SubCount || 0
       this.isNullable = this.paramText.Param.hasOwnProperty('IsExtendable') && (this.paramText.Param.IsExtendable || false)
@@ -503,7 +503,7 @@ export default {
 
       // exit if parameter not found in model run or workset
       if (!Mdf.isParamRunSet(this.paramRunSet)) {
-        let m = 'Parameter not found in ' + this.nameDigest
+        let m = 'Parameter not found in ' + this.nameOrDigest
         this.msg = m
         console.log(m)
         this.loadWait = false
@@ -517,7 +517,7 @@ export default {
       let layout = Puih.makeSelectLayout(this.paramName, this.otherFields, SUB_ID_DIM)
       let u = this.omppServerUrl +
         '/api/model/' + (this.digest || '') +
-        (this.isFromWs ? '/workset/' : '/run/') + (this.nameDigest || '') +
+        (this.isFromWs ? '/workset/' : '/run/') + (this.nameOrDigest || '') +
         '/parameter/value-id'
 
       // retrieve page from server, it must be: {Layout: {...}, Page: [...]}
@@ -552,7 +552,7 @@ export default {
 
       // exit if parameter not found in model run or workset
       if (!Mdf.isParamRunSet(this.paramRunSet)) {
-        let m = 'Parameter not found in ' + this.nameDigest
+        let m = 'Parameter not found in ' + this.nameOrDigest
         this.msg = m
         console.log(m)
         this.saveWait = false
@@ -573,7 +573,7 @@ export default {
       // url to update parameter data
       let u = this.omppServerUrl +
         '/api/model/' + (this.digest || '') +
-        '/workset/' + (this.nameDigest || '') +
+        '/workset/' + (this.nameOrDigest || '') +
         '/parameter/' + (this.paramName || '') + '/new/value-id'
 
       // send data page to the server, response body expected to be empty
@@ -608,7 +608,7 @@ export default {
   mounted () {
     this.initView()
     this.doRefreshDataPage()
-    this.$emit('tab-mounted', 'parameter', { digest: this.digest, runOrSet: this.runOrSet, runSetKey: this.nameDigest, ptName: this.paramName })
+    this.$emit('tab-mounted', 'parameter', { digest: this.digest, runOrSet: this.runOrSet, runSetKey: this.nameOrDigest, itemKey: this.paramName })
     this.$nextTick(() => {
       this.$emit('edit-updated', this.edt.isUpdated, this.routeKey)
     })

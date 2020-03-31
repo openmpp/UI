@@ -108,7 +108,6 @@ export default {
 
 <!-- local scope css: this component only -->
 <style lang="scss" scoped>
-  /* note dialog */
   .note-table {
     display: table;
     margin-top: 0.5rem;

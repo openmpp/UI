@@ -71,6 +71,7 @@ export default {
       return this.loadModelDone && this.loadRunDone && this.loadRunListDone && this.loadWsDone && this.loadWsListDone
     },
     isSuccessTheRun () { return Mdf.isRunSuccess(this.theSelected.run) },
+    isInProgressTheRun () { return Mdf.isRunInProgress(this.theSelected.run) },
 
     runTextCount () { return Mdf.runTextCount(this.runTextList) },
     worksetTextCount () { return Mdf.worksetTextCount(this.worksetTextList) },
@@ -177,7 +178,9 @@ export default {
       this.loadRunDone = true
       if (!!isSuccess && (dgst || '') !== '') {
         this.doTabRefreshItem(dgst)
-        this.selectedRunDns = dgst
+        this.selectedRunDns = this.theSelected.run.RunDigest
+        //
+        if (this.selectedRunDns !== dgst) console.warn('cannot select run:', dgst)
       }
     },
     doneWsListLoad (isSuccess) {
@@ -253,6 +256,20 @@ export default {
       const ti = this.makeTabInfo(kind, routeParts)
       const k = this.tabLst.findIndex((t) => t.key === ti.key)
       if (k >= 0) this.tabLst[k].path = ti.path
+    },
+
+    // update tab title
+    onTabTitleUpdate (kind, routeParts) {
+      const ti = this.makeTabInfo(kind, routeParts)
+      const k = this.tabLst.findIndex((t) => t.key === ti.key)
+      if (k >= 0) this.tabLst[k].title = ti.title
+    },
+
+    // run log selected from run list: go to run log page
+    onRunLogSelect (stamp) {
+      const rp = { digest: this.digest, runOrSet: 'run', runStamp: stamp }
+      this.doTabAdd('run-log', rp)
+      this.doTabLink('run-log', rp, true)
     },
 
     // toggle workset readonly status
@@ -363,7 +380,7 @@ export default {
       // make new tab
       let t = {
         kind: kind,
-        ptName: (routeParts.ptName || ''), // parameter name or output table name
+        itemKey: (routeParts.itemKey || ''), // parameter name, output table name or run stamp
         key: (ti.key || ''),
         path: (ti.path || ''),
         runOrSet: ti.runOrSet,
@@ -390,7 +407,7 @@ export default {
     },
 
     // return tab info: {key, path, runOrSet, title, pos}
-    // by tab kind and route parts: {digest, runOrSet, runSetKey, ptName}
+    // by tab kind and route parts: {digest, runOrSet, runSetKey, itemKey}
     makeTabInfo (kind, rp) {
       // empty tab info: invalid default value
       const emptyTabInfo = () => { return { key: '', path: '', runOrSet: '', title: '', pos: 0 } }
@@ -448,26 +465,41 @@ export default {
             pos: TABLE_LST_TAB_POS
           }
         case 'parameter':
-          const pds = Mdf.descrOfDescrNote(Mdf.paramTextByName(this.theModel, rp.ptName))
+          const pds = Mdf.descrOfDescrNote(Mdf.paramTextByName(this.theModel, rp.itemKey))
           return {
-            key: Mdf.paramRouteKey(this.digest, (rp.ptName || '-'), rp.runOrSet, rp.runSetKey),
-            path: '/model/' + this.digest + '/' + (rp.runOrSet || '') + '/' + (rp.runSetKey || '') + '/parameter/' + (rp.ptName || ''),
+            key: Mdf.paramRouteKey(this.digest, (rp.itemKey || '-'), rp.runOrSet, rp.runSetKey),
+            path: '/model/' + this.digest + '/' + (rp.runOrSet || '') + '/' + (rp.runSetKey || '') + '/parameter/' + (rp.itemKey || ''),
             runOrSet: rp.runOrSet || '',
-            title: (pds !== '') ? pds : rp.ptName || '',
+            title: (pds !== '') ? pds : rp.itemKey || '',
             pos: FREE_TAB_POS
           }
         case 'table':
-          const tds = Mdf.descrOfDescrNote(Mdf.tableTextByName(this.theModel, rp.ptName))
+          const tds = Mdf.descrOfDescrNote(Mdf.tableTextByName(this.theModel, rp.itemKey))
           return {
-            key: Mdf.tableRouteKey(this.digest, (rp.ptName || '-'), (rp.runSetKey || '')),
-            path: '/model/' + this.digest + '/run/' + (rp.runSetKey || '') + '/table/' + (rp.ptName || ''),
+            key: Mdf.tableRouteKey(this.digest, (rp.itemKey || '-'), (rp.runSetKey || '')),
+            path: '/model/' + this.digest + '/run/' + (rp.runSetKey || '') + '/table/' + (rp.itemKey || ''),
             runOrSet: 'run',
-            title: (tds !== '') ? tds : rp.ptName || '',
+            title: (tds !== '') ? tds : rp.itemKey || '',
+            pos: FREE_TAB_POS
+          }
+        case 'run-log':
+          let rn = ''
+          for (const rt of this.runTextList) {
+            if (rt.ModelDigest === rp.digest && rt.RunStamp === rp.runStamp) {
+              rn = rt.Name
+              break
+            }
+          }
+          return {
+            key: Mdf.runLogRouteKey(this.digest, (rp.runStamp || '')),
+            path: '/model/' + this.digest + '/run-log/' + (rp.runStamp || ''),
+            runOrSet: 'run',
+            title: (rn !== '') ? rn : rp.runStamp || '',
             pos: FREE_TAB_POS
           }
       }
       // default
-      console.log('tab kind invalid', kind)
+      console.warn('tab kind invalid', kind)
       return emptyTabInfo()
     },
 
