@@ -262,6 +262,7 @@ export default {
     // confirm input edit by lost focus
     onCellInputBlur () {
       const ckey = this.pvEdit.cellKey
+      if ((ckey || '') === '') return // exit on blur before focus: Chrome vs Firefox
       this.cellInputConfirm(this.pvEdit.cellValue, ckey)
       this.pvEdit.cellKey = ''
       this.pvEdit.cellValue = ''
