@@ -2,7 +2,7 @@
 <template>
 
 <om-mcw-dialog :id="id" ref="tableNoteDlg" :scrollable="true" acceptText="OK">
-  <template #header><span>{{tableDescr}}</span></template>
+  <template #header><span>{{tableDescr || tableName}}</span></template>
   <div v-if="(tableNote !== '')">{{tableNote}}</div>
   <div v-if="(exprDescr !== '' || exprNote || '' !== '')">
     <br v-if="(tableNote !== '')"/>

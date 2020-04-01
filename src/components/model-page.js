@@ -159,16 +159,16 @@ export default {
     },
     doneRunListLoad (isSuccess) {
       this.loadRunListDone = true
-      if (!isSuccess) {
+      if (!isSuccess || Mdf.runTextCount(this.runTextList) <= 0) {
         this.loadRunDone = true // do not refresh run: run list empty
         this.runDnsRefresh = ''
         this.dispatchTheSelected({ ModelDigest: this.digest, run: Mdf.emptyRunText(), isRun: this.isRunSelected })
         return
       }
       // else: if run already selected then make sure it still exist, if not exist then use first run
-      let isEmpty = !Mdf.isNotEmptyRunText(this.theSelected.run)
+      const isEmpty = !Mdf.isNotEmptyRunText(this.theSelected.run)
       if (isEmpty || !this.isExistInRunTextList(this.theSelected.run)) {
-        let r0 = this.runTextByIndex(0)
+        const r0 = this.runTextByIndex(0)
         this.runDnsRefresh = r0.RunDigest
         this.dispatchTheSelected({ ModelDigest: this.digest, run: r0, isRun: this.isRunSelected })
       } else {
@@ -188,11 +188,12 @@ export default {
         this.loadWsDone = true // do not refresh workset: workset list empty
         this.wsNameRefresh = ''
         this.dispatchTheSelected({ ModelDigest: this.digest, ws: Mdf.emptyWorksetText(), isRun: this.isRunSelected })
+        return
       }
       // else: if workset already selected then make sure it still exist, if not exist then use first workset
-      let isEmpty = !Mdf.isNotEmptyWorksetText(this.theSelected.ws)
+      const isEmpty = !Mdf.isNotEmptyWorksetText(this.theSelected.ws)
       if (isEmpty || !this.isExistInWorksetTextList(this.theSelected.ws)) {
-        let w0 = this.worksetTextByIndex(0)
+        const w0 = this.worksetTextByIndex(0)
         this.wsNameRefresh = w0.Name
         this.dispatchTheSelected({ ModelDigest: this.digest, ws: w0, isRun: this.isRunSelected })
       } else {
