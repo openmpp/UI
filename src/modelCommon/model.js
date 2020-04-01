@@ -36,8 +36,8 @@ export const emptyModel = () => {
 export const isModelList = (ml) => {
   if (!ml) return false
   if (!Hlpr.hasLength(ml)) return false
-  for (let k = 0; k < ml.length; k++) {
-    if (!isModel(ml[k])) return false
+  for (const m of ml) {
+    if (!isModel(m)) return false
   }
   return true
 }

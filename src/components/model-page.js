@@ -55,8 +55,8 @@ export default {
       saveWsStatusTickle: false,
       modelName: '',
       isRunSelected: false, // if true then last selection was from run list else workset
-      selectedRunDns: '',   // run digest selected (run name, run stamp)
-      selectedWsName: '',   // workset name selected
+      runDnsRefresh: '',    // run digest selected (run name, run stamp)
+      wsNameRefresh: '',    // workset name to refresh
       isRunSetHint: false,  // highlight run or workset change
       isRunModelTab: false, // if true then current tab is run model tab
       tabLst: [],           // tabs properties
@@ -108,6 +108,7 @@ export default {
       runTextByDigest: GET.RUN_TEXT_BY_DIGEST,
       isExistInRunTextList: GET.IS_EXIST_IN_RUN_TEXT_LIST,
       isExistInWorksetTextList: GET.IS_EXIST_IN_WORKSET_TEXT_LIST,
+      runTextByDigestIfFinal: GET.RUN_TEXT_BY_DIGEST_IF_FINAL,
       worksetTextList: GET.WORKSET_TEXT_LIST,
       worksetTextByIndex: GET.WORKSET_TEXT_BY_IDX,
       worksetTextByName: GET.WORKSET_TEXT_BY_NAME,
@@ -160,7 +161,7 @@ export default {
       this.loadRunListDone = true
       if (!isSuccess) {
         this.loadRunDone = true // do not refresh run: run list empty
-        this.selectedRunDns = ''
+        this.runDnsRefresh = ''
         this.dispatchTheSelected({ ModelDigest: this.digest, run: Mdf.emptyRunText(), isRun: this.isRunSelected })
         return
       }
@@ -168,48 +169,45 @@ export default {
       let isEmpty = !Mdf.isNotEmptyRunText(this.theSelected.run)
       if (isEmpty || !this.isExistInRunTextList(this.theSelected.run)) {
         let r0 = this.runTextByIndex(0)
-        this.selectedRunDns = r0.RunDigest
+        this.runDnsRefresh = r0.RunDigest
         this.dispatchTheSelected({ ModelDigest: this.digest, run: r0, isRun: this.isRunSelected })
       } else {
-        if (this.selectedRunDns === '') this.selectedRunDns = this.theSelected.run.RunDigest
+        this.runDnsRefresh = this.theSelected.run.RunDigest
       }
     },
     doneRunLoad (isSuccess, dgst) {
       this.loadRunDone = true
       if (!!isSuccess && (dgst || '') !== '') {
         this.doTabRefreshItem(dgst)
-        this.selectedRunDns = this.theSelected.run.RunDigest
-        //
-        if (this.selectedRunDns !== dgst) console.warn('cannot select run:', dgst)
+        this.runDnsRefresh = dgst
       }
     },
     doneWsListLoad (isSuccess) {
       this.loadWsListDone = true
       if (!isSuccess) {
         this.loadWsDone = true // do not refresh workset: workset list empty
-        this.selectedWsName = ''
+        this.wsNameRefresh = ''
         this.dispatchTheSelected({ ModelDigest: this.digest, ws: Mdf.emptyWorksetText(), isRun: this.isRunSelected })
       }
       // else: if workset already selected then make sure it still exist, if not exist then use first workset
       let isEmpty = !Mdf.isNotEmptyWorksetText(this.theSelected.ws)
       if (isEmpty || !this.isExistInWorksetTextList(this.theSelected.ws)) {
         let w0 = this.worksetTextByIndex(0)
-        this.selectedWsName = w0.Name
+        this.wsNameRefresh = w0.Name
         this.dispatchTheSelected({ ModelDigest: this.digest, ws: w0, isRun: this.isRunSelected })
       } else {
-        if (this.selectedWsName === '') this.selectedWsName = this.theSelected.ws.Name
+        this.wsNameRefresh = this.theSelected.ws.Name
       }
     },
     doneWsLoad (isSuccess, name) {
       this.loadWsDone = true
       if (!!isSuccess && (name || '') !== '') {
-        this.selectedWsName = name
         this.doTabRefreshItem(name)
         this.doTabRefreshWsEditStatus(name)
       }
     },
     doneWsStatusUpdate (isSuccess, name) {
-      if (!!isSuccess && (name || '') !== '') this.selectedWsName = name
+      if (!!isSuccess && (name || '') !== '') this.wsNameRefresh = name
       // refersh current workset
       this.refreshWsTickle = !this.refreshWsTickle
     },
@@ -232,7 +230,7 @@ export default {
         console.warn('run digest is empty')
         return
       }
-      this.selectedRunDns = dgst
+      this.runDnsRefresh = dgst
       this.doTabPathRefresh('table-list', { digest: this.digest, runOrSet: 'run', runSetKey: dgst })
       this.doTabPathRefresh('parameter-run-list', { digest: this.digest, runOrSet: 'run', runSetKey: dgst })
       this.doRunSetHint()
@@ -243,7 +241,7 @@ export default {
         console.warn('workset name is empty')
         return
       }
-      this.selectedWsName = name
+      this.wsNameRefresh = name
       this.doTabPathRefresh('parameter-set-list', { digest: this.digest, runOrSet: 'set', runSetKey: name })
       this.doRunSetHint()
     },
@@ -352,16 +350,28 @@ export default {
         isNew = true
         this.isRunSelected = kind === 'run-list'
       }
+
+      // check: if this run already loaded and completed then use loaded value else refresh run
       if (routeParts.runOrSet === 'run' && (routeParts.runSetKey || '') !== '') {
         isNew = !this.isRunSelected || routeParts.runSetKey !== this.theSelected.run.RunDigest
-        if (isNew) this.selectedRunDns = routeParts.runSetKey
+        if (isNew) {
+          const rt = this.runTextByDigestIfFinal(routeParts.runSetKey)
+          if (Mdf.isNotEmptyRunText(rt)) {
+            this.dispatchTheSelected({ ModelDigest: this.digest, run: rt, isRun: this.isRunSelected })
+            this.runDnsRefresh = ''
+          } else {
+            this.runDnsRefresh = routeParts.runSetKey
+          }
+        }
         this.isRunSelected = true
       }
+
       if (routeParts.runOrSet === 'set' && (routeParts.runSetKey || '') !== '') {
         isNew = this.isRunSelected || routeParts.runSetKey !== this.theSelected.ws.Name
-        if (isNew) this.selectedWsName = routeParts.runSetKey
+        if (isNew) this.wsNameRefresh = routeParts.runSetKey
         this.isRunSelected = false
       }
+
       if (isNew) this.doRunSetHint()
     },
 

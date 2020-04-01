@@ -16,10 +16,11 @@ const GET = {
   MODEL_LIST_COUNT: 'modelListCount',
   THE_MODEL: 'theModel',
   MODEL_LANG: 'modelLangCode',
+  IS_EXIST_IN_RUN_TEXT_LIST: 'isExistInRunTextList',
   RUN_TEXT_BY_IDX: 'runTextByIndex',
   RUN_TEXT_BY_DIGEST: 'runTextByDigest',
   RUN_TEXT_BY_DIGEST_OR_NAME: 'runTextByDigestOrName',
-  IS_EXIST_IN_RUN_TEXT_LIST: 'isExistInRunTextList',
+  RUN_TEXT_BY_DIGEST_IF_FINAL: 'runTextByDigestIfFinal',
   RUN_TEXT_LIST: 'runTextList',
   WORKSET_TEXT_BY_IDX: 'worksetTextByIndex',
   WORKSET_TEXT_BY_NAME: 'worksetTextByName',
@@ -54,6 +55,11 @@ const getters = {
     return lang
   },
 
+  [GET.IS_EXIST_IN_RUN_TEXT_LIST]: state => (rt) => {
+    if (!Mdf.isNotEmptyRunText(rt) || !Mdf.isLength(state.runTextList)) return false
+    return state.runTextList.findIndex((r) => rt.ModelDigest === r.ModelDigest && rt.RunDigest === r.RunDigest) >= 0
+  },
+
   [GET.RUN_TEXT_BY_IDX]: state =>
     (idx) => (Mdf.isLength(state.runTextList) && idx >= 0 && idx < state.runTextList.length) ? state.runTextList[idx] : Mdf.emptyRunText(),
 
@@ -62,15 +68,17 @@ const getters = {
 
   [GET.RUN_TEXT_BY_DIGEST_OR_NAME]: state => (digestOrName) => {
     if (!Mdf.isLength(state.runTextList) || (digestOrName || '') === '') return Mdf.emptyRunText()
-    let k = state.runTextList.findIndex((r) => r.RunDigest === digestOrName)
+    let k = state.runTextList.findIndex((r) => r.RunDigest === digestOrName) // find by run digest
     if (k >= 0) return state.runTextList[k]
-    k = state.runTextList.findIndex((r) => r.Name === digestOrName)
+    k = state.runTextList.findIndex((r) => r.Name === digestOrName) // find by run name
     return (k >= 0) ? state.runTextList[k] : Mdf.emptyRunText()
   },
 
-  [GET.IS_EXIST_IN_RUN_TEXT_LIST]: state => (rt) => {
-    if (!Mdf.isNotEmptyRunText(rt) || !Mdf.isLength(state.runTextList)) return false
-    return state.runTextList.findIndex((r) => rt.ModelDigest === r.ModelDigest && rt.RunDigest === r.RunDigest) >= 0
+  // return run text by digest if it is completed and parameter list not empty else return empty run text
+  [GET.RUN_TEXT_BY_DIGEST_IF_FINAL]: state => (digest) => {
+    if (!Mdf.isLength(state.runTextList) || (digest || '') === '') return Mdf.emptyRunText()
+    const k = state.runTextList.findIndex((rt) => rt.RunDigest === digest)
+    return (k >= 0 && Mdf.isRunCompleted(state.runTextList[k]) && Mdf.lengthOf(state.runTextList[k].Param) > 0) ? state.runTextList[k] : Mdf.emptyRunText()
   },
 
   [GET.WORKSET_TEXT_BY_IDX]: state =>

@@ -158,6 +158,7 @@
         </router-link>
 
       </nav>
+      <!--
       <hr class="mdc-list-divider" role="separator" />
 
       <nav class="mdc-list">
@@ -165,8 +166,8 @@
           <i class="menu-start mdc-list-item__graphic material-icons" aria-hidden="true">cloud_queue</i>
           <span class="mdc-list-item__text">Service Status</span>
         </router-link>
-
       </nav>
+      -->
 
     </div>
   </om-mcw-drawer>

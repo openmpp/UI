@@ -11,6 +11,7 @@ const DISPATCH = {
   EMPTY_MODEL: 'dispatchEmptyModel',
   EMPTY_MODEL_LIST: 'dispatchEmptyModelList',
   RUN_TEXT: 'dispatchRunText',
+  RUN_TEXT_STATUS_UPDATE: 'dispatchRunTextStatusUpdate',
   RUN_TEXT_LIST: 'dispatchRunTextList',
   EMPTY_RUN_TEXT_LIST: 'dispatchEmptyRunTextList',
   WORKSET_TEXT: 'dispatchWorksetText',
@@ -70,6 +71,11 @@ const actions = {
   [DISPATCH.RUN_TEXT] ({ commit, dispatch }, rt) {
     commit(COMMIT.RUN_TEXT, rt)
     dispatch(DISPATCH.THE_SELECTED, { ModelDigest: rt.ModelDigest, run: rt })
+  },
+
+  // update run status and update data-time, also update selected run
+  [DISPATCH.RUN_TEXT_STATUS_UPDATE] ({ commit }, rp) {
+    commit(COMMIT.RUN_TEXT_STATUS_UPDATE, rp)
   },
 
   // set new value to run list

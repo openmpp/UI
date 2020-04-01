@@ -116,9 +116,9 @@
         @done="doneModelLoad"
         @wait="()=>{}">
       </refresh-model>
-      <refresh-run v-if="(selectedRunDns || '') !== ''"
+      <refresh-run v-if="(runDnsRefresh || '') !== ''"
         :model-digest="digest"
-        :run-digest="selectedRunDns"
+        :run-digest="runDnsRefresh"
         :refresh-tickle="refreshTickle"
         :refresh-run-tickle="refreshRunTickle"
         @done="doneRunLoad"
@@ -131,9 +131,9 @@
         @done="doneRunListLoad"
         @wait="()=>{}">
       </refresh-run-list>
-      <refresh-workset v-if="(selectedWsName || '') !== ''"
+      <refresh-workset v-if="(wsNameRefresh || '') !== ''"
         :model-digest="digest"
-        :workset-name="selectedWsName"
+        :workset-name="wsNameRefresh"
         :refresh-tickle="refreshTickle"
         :refresh-ws-tickle="refreshWsTickle"
         @done="doneWsLoad"
@@ -146,9 +146,9 @@
         @done="doneWsListLoad"
         @wait="()=>{}">
       </refresh-workset-list>
-      <update-workset-status v-if="(selectedWsName || '') !== ''"
+      <update-workset-status v-if="(wsNameRefresh || '') !== ''"
         :model-digest="digest"
-        :workset-name="selectedWsName"
+        :workset-name="wsNameRefresh"
         :enable-edit="!isWsEdit"
         :save-ws-status-tickle="saveWsStatusTickle"
         @done="doneWsStatusUpdate"

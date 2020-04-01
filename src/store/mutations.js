@@ -9,6 +9,7 @@ const COMMIT = {
   MODEL_LIST: 'commitModelList',
   THE_MODEL: 'commitModel',
   RUN_TEXT: 'commitRunText',
+  RUN_TEXT_STATUS_UPDATE: 'commitRunTextStatusUpdate',
   RUN_TEXT_DELETE: 'commitRunTextDelete',
   RUN_TEXT_LIST: 'commitRunTextList',
   RUN_TEXT_LIST_ON_NEW: 'commitRunTextListOnNew',
@@ -72,6 +73,31 @@ const mutations = {
 
     let k = state.runTextList.findIndex((r) => rt.ModelDigest === r.ModelDigest && rt.RunDigest === r.RunDigest)
     if (k >= 0) state.runTextList[k] = Mdf._cloneDeep(rt)
+  },
+
+  // update run status and update data-time, also update selected run
+  [COMMIT.RUN_TEXT_STATUS_UPDATE] (state, rp) {
+    if (!rp || !Mdf.isLength(state.runTextList)) return
+    if (!rp.hasOwnProperty('ModelDigest') || !rp.hasOwnProperty('RunDigest')) return
+
+    let k = state.runTextList.findIndex((r) => r.ModelDigest === rp.ModelDigest && r.RunDigest === rp.RunDigest)
+    if (k < 0) return
+
+    const isSel = Mdf.isNotEmptyRunText(state.theSelected.run) &&
+      state.theSelected.run.ModelDigest === rp.ModelDigest && state.theSelected.run.RunDigest === rp.RunDigest
+
+    if (rp.hasOwnProperty('Status')) {
+      if ((rp.Status || '') !== '') {
+        state.runTextList[k].Status = rp.Status
+        if (isSel) state.theSelected.run.Status = rp.Status
+      }
+    }
+    if (rp.hasOwnProperty('UpdateDateTime')) {
+      if ((rp.UpdateDateTime || '') !== '') {
+        state.runTextList[k].UpdateDateTime = rp.UpdateDateTime
+        if (isSel) state.theSelected.run.UpdateDateTime = rp.UpdateDateTime
+      }
+    }
   },
 
   // delete run text

@@ -132,6 +132,8 @@ export default {
       this.isInitRun = true
       this.runStamp = ''
       this.isRunOptsShow = false
+      this.isRunOptsAdvShow = false
+      this.isRunOptsMpiShow = false
     },
     // check MPI process number is valid
     onMpiNpInputBlur () {
@@ -223,7 +225,9 @@ export default {
       this.runOpts.runName = this.autoNewRunName() // new run name for next run
     },
     // pass event from child component to grand parent
-    onRunListRefresh () { this.$emit('run-list-refresh') },
+    onRunListRefresh () {
+      this.$emit('run-list-refresh')
+    },
 
     // show message, ex: "invalid profile list"
     doShowSnackbarMessage (msg) {

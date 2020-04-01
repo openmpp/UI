@@ -10,8 +10,8 @@
         <span
           @click="showRunInfo(r)"
           class="om-note-link mdc-list-item__graphic material-icons"
-          :title="'About ' + r.Name"
-          :alt="'About ' + r.Name">
+          :title="'About: ' + r.Name"
+          :alt="'About: ' + r.Name">
             <span v-if="isSuccess(r)">description</span>
             <span v-else-if="isInProgress(r)">directions_run</span>
             <span v-else>error_outline</span>
@@ -20,8 +20,8 @@
         <span
           @click="doRunLogClick(r.RunStamp)"
           class="om-note-link mdc-list-item__graphic material-icons"
-          :title="'Run log ' + r.Name"
-          :alt="'Run log ' + r.Name">
+          :title="'Run Log: ' + r.Name"
+          :alt="'Run Log: ' + r.Name">
             <span>subject</span>
         </span>
 

@@ -1,12 +1,13 @@
 // import axios from 'axios'
-import { mapGetters } from 'vuex'
-import { GET } from '@/store'
+import { mapGetters, mapActions } from 'vuex'
+import { GET, DISPATCH } from '@/store'
 import * as Mdf from '@/modelCommon'
 import RunLogRefresh from './RunLogRefresh'
 import RunProgressRefresh from './RunProgressRefresh'
 
 /* eslint-disable no-multi-spaces */
 const MAX_EMPTY_LOG_COUNT = 10         // pause progress refresh if empty response exceed this count (10 = 10 seconds)
+const MAX_SEND_COUNT = 4               // max request to send without response
 const RUN_PROGRESS_REFRESH_TIME = 1000 // msec, run progress refresh time
 const RUN_PROGRESS_SUB_RATIO = 4       // multipler for refresh time to get sub values progress
 const MIN_LOG_COUNT = 200              // min size of page log read request
@@ -28,6 +29,11 @@ export default {
       isProgressRefresh: false,
       refreshInt: '',
       refreshCount: 0,
+      lastRunListgDt: 0,
+      lastLogDt: 0,
+      lastProgressDt: 0,
+      sendLogCount: 0,
+      sendProgressCount: 0,
       runName: '',
       runDigest: '',
       runState: Mdf.emptyRunState(),
@@ -44,6 +50,7 @@ export default {
       return Mdf.runLogRouteKey(this.digest, this.runStamp)
     },
     ...mapGetters({
+      runTextByDigest: GET.RUN_TEXT_BY_DIGEST,
       runTextList: GET.RUN_TEXT_LIST
     })
   },
@@ -87,22 +94,30 @@ export default {
       if (this.isRefreshPaused) return
       if (!this.runName) this.setRunNameDigestByStamp(this.runStamp)
       //
-      this.isLogRefresh = !this.isLogRefresh
+      if (this.sendLogCount++ < MAX_SEND_COUNT) this.isLogRefresh = !this.isLogRefresh
+
       this.refreshCount++
       if (this.refreshCount < RUN_PROGRESS_SUB_RATIO || (this.refreshCount % RUN_PROGRESS_SUB_RATIO) === 1) {
-        this.isProgressRefresh = !this.isProgressRefresh
+        if (this.sendProgressCount++ < MAX_SEND_COUNT) this.isProgressRefresh = !this.isProgressRefresh
       }
     },
     // pause on/off run progress refresh
     runRefreshPauseToggle () {
       this.emptyLogCount = 0
       this.refreshCount = 0
+      this.sendLogCount = 0
+      this.sendProgressCount = 0
       this.isRefreshPaused = !this.isRefreshPaused
     },
     startRefreshProgress () {
       this.isRefreshPaused = false
       this.refreshCount = 0
       this.emptyLogCount = 0
+      this.lastRunListgDt = 0
+      this.lastLogDt = 0
+      this.lastProgressDt = 0
+      this.sendLogCount = 0
+      this.sendProgressCount = 0
       this.refreshInt = setInterval(this.refreshRunProgress, RUN_PROGRESS_REFRESH_TIME)
     },
     stopRefreshProgress () {
@@ -110,14 +125,20 @@ export default {
       clearInterval(this.refreshInt)
     },
 
-    // model current run log progress: response from server
+    // model current run log status and page: response from server
     doneRunLogRefresh (ok, rlp) {
+      this.sendLogCount = 0
+      const now = Date.now()
+      if (now - this.lastLogDt < RUN_PROGRESS_REFRESH_TIME) return // protect from timeouts storm
+      this.lastLogDt = now
+
       if (!ok) return
+
       if (!Mdf.isNotEmptyRunStateLog(rlp)) {
         if (this.emptyLogCount++ > MAX_EMPTY_LOG_COUNT) this.isRefreshPaused = true // pause refresh if run state and log not available
         return
       }
-      this.runState = Mdf.toRunStateFromLog(rlp)
+      this.runState = Mdf.toRunStateFromLog(rlp) // new run log page
       this.emptyLogCount = 0
 
       // update log lines
@@ -132,34 +153,64 @@ export default {
       // check is it final update: model run completed
       let isDone = (this.runState.IsFinal && rlp.Offset + rlp.Size >= rlp.TotalSize)
       if (!isDone) {
+        // not last log page: continue
         this.logStart = this.logLines.length
         this.logCount = rlp.TotalSize - this.logStart
         if (this.logCount < MIN_LOG_COUNT) this.logCount = MIN_LOG_COUNT
+
+        // if run stamp not exist in run list then update run list
+        if (!this.runDigest && now - this.lastRunListgDt > RUN_PROGRESS_REFRESH_TIME) {
+          this.$emit('run-list-refresh')
+          this.lastRunListgDt = now
+        }
       } else {
+        // run state final and last log page
         this.stopRefreshProgress()
         this.isProgressRefresh = !this.isProgressRefresh // last refersh of run progress
         this.isRefreshCompleted = true
-        this.$emit('run-list-refresh')
+
+        // refersh run list if run digest not defined by run progress response
+        if ((this.runDigest || '') === '') this.$emit('run-list-refresh')
       }
     },
 
     // model run status progress: response from server
-    doneRunProgressRefresh (ok, rpl) {
-      if (!ok || !Mdf.isLength(rpl)) return // empty run progress or error
+    doneRunProgressRefresh (ok, rpLst) {
+      this.sendProgressCount = 0
+      const now = Date.now()
+      if (now - this.lastProgressDt < RUN_PROGRESS_REFRESH_TIME) return // protect from timeouts storm
+      this.lastProgressDt = now
 
-      this.runProgress = rpl
+      if (!ok || !Mdf.isLength(rpLst)) return // empty run progress or error
 
-      // if last run progress entry not empty then update run name, run digest and digest refresh run list
-      const n = Mdf.lengthOf(rpl) - 1
-      if (!Mdf.isNotEmptyRunStatusProgress(rpl[n])) return
+      this.runProgress = rpLst // new run progress array
 
-      if (!!rpl[n].Name && !!rpl[n].RunDigest && (this.runName !== rpl[n].Name || this.runDigest !== rpl[n].RunDigest)) {
-        this.runName = rpl[n].Name
-        this.runDigest = rpl[n].RunDigest
+      // on the new run check if it is exist in run list
+      const rp = rpLst[Mdf.lengthOf(rpLst) - 1]
+      if (!Mdf.isNotEmptyRunStatusProgress(rp)) return
+
+      // update tab title with new run name
+      if (this.runName !== rp.Name || this.runDigest !== rp.RunDigest) {
+        this.runName = rp.Name
+        this.runDigest = rp.RunDigest
         this.$emit('tab-title-update', 'run-log', { digest: this.digest, runOrSet: 'run', runStamp: this.runStamp, runSetKey: (this.runDigest || '') })
-        this.$emit('run-list-refresh')
       }
-    }
+
+      // if run not exist in run list then refresh run list else update status and update date-time
+      const rTxt = this.runTextByDigest(this.runDigest)
+      if (Mdf.isNotEmptyRunText(rTxt)) {
+        if (rTxt.Status !== rp.Status || rTxt.UpdateDateTime !== rp.UpdateDateTime) this.dispatchRunTextStatusUpdate(rp)
+      } else {
+        if (now - this.lastRunListgDt > RUN_PROGRESS_REFRESH_TIME) {
+          this.$emit('run-list-refresh')
+          this.lastRunListgDt = now
+        }
+      }
+    },
+
+    ...mapActions({
+      dispatchRunTextStatusUpdate: DISPATCH.RUN_TEXT_STATUS_UPDATE
+    })
   },
 
   mounted () {

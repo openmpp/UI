@@ -61,6 +61,14 @@ export const isRunTextUpdated = (rt, rtOther) => {
     rt.Status !== rtOther.Status || rt.UpdateDateTime !== rtOther.UpdateDateTime
 }
 
+/* eslint-disable no-multi-spaces */
+export const RUN_SUCCESS = 's'      // run completed successfuly
+export const RUN_IN_PROGRESS = 'p'  // run in progress
+export const RUN_INITIAL = 'i'      // run not started yet
+export const RUN_FAILED = 'e'       // run falied (comleted with error)
+export const RUN_EXIT = 'x'         // run exit and not completed
+/* eslint-enable no-multi-spaces */
+
 // retrun true if run completed successfuly
 export const isRunSuccess = (rt) => {
   return isRunText(rt) && rt.Status === RUN_SUCCESS
@@ -71,13 +79,10 @@ export const isRunInProgress = (rt) => {
   return isRunText(rt) && rt.Status === RUN_IN_PROGRESS
 }
 
-/* eslint-disable no-multi-spaces */
-export const RUN_SUCCESS = 's'      // run completed successfuly
-export const RUN_IN_PROGRESS = 'p'  // run in progress
-export const RUN_INITIAL = 'i'      // run not started yet
-export const RUN_FAILED = 'e'       // run falied (comleted with error)
-export const RUN_EXIT = 'x'         // run exit and not completed
-/* eslint-enable no-multi-spaces */
+// retrun true if run completed, status is one of: s=success, x=exit, e=error
+export const isRunCompleted = (rt) => {
+  return isRunText(rt) && (rt.Status === RUN_SUCCESS || rt.Status === RUN_EXIT || rt.Status === RUN_FAILED)
+}
 
 // return run status description by code: i=init p=progress s=success x=exit e=error(failed)
 export const statusText = (rt) => {
@@ -91,6 +96,8 @@ export const statusText = (rt) => {
   return 'unknown'
 }
 
+// RunState: model run state from oms run catalog
+//
 // if this is model run state
 export const isRunState = (rst) => {
   if (!rst) return false
@@ -121,7 +128,9 @@ export const emptyRunState = () => {
   }
 }
 
-// if this is RunStateLog: model run state and run log page
+// RunStateLogPage: RunState and log file page
+//
+// if this is RunStateLogPage: model run state and run log page
 export const isRunStateLog = (rlp) => {
   if (!rlp) return false
   if (!isRunState(rlp)) return false
@@ -129,12 +138,12 @@ export const isRunStateLog = (rlp) => {
     rlp.hasOwnProperty('TotalSize') && Hlpr.hasLength(rlp.Lines)
 }
 
-// if this is not empty RunStateLog: model run state and run log page
+// if this is not empty RunStateLogPage: model run state and run log page
 export const isNotEmptyRunStateLog = (rlp) => {
   return isNotEmptyRunState(rlp)
 }
 
-// return empty RunStateLog: model run state and run log page
+// return empty RunStateLogPage: model run state and run log page
 export const emptyRunStateLog = () => {
   return {
     ModelName: '',
@@ -153,7 +162,7 @@ export const emptyRunStateLog = () => {
   }
 }
 
-// return RunState part of RunStateLog
+// return RunState part of RunStateLogPage
 export const toRunStateFromLog = (rlp) => {
   if (!rlp) return emptyRunState()
   if (!isRunState(rlp)) return emptyRunState()
@@ -170,6 +179,8 @@ export const toRunStateFromLog = (rlp) => {
   }
 }
 
+// run progerss: RunPub with run_lst row array of run_progress fro each sub-value
+//
 // return true if each list element isRunStatusProgress()
 export const isRunStatusProgressList = (rpl) => {
   if (!rpl) return false
