@@ -6,7 +6,7 @@ import RunLogRefresh from './RunLogRefresh'
 import RunProgressRefresh from './RunProgressRefresh'
 
 /* eslint-disable no-multi-spaces */
-const MAX_EMPTY_LOG_COUNT = 10         // pause progress refresh if empty response exceed this count (10 = 10 seconds)
+const MAX_EMPTY_LOG_COUNT = 5          // pause progress refresh if empty response exceed this count (5 = 5 seconds)
 const MAX_SEND_COUNT = 4               // max request to send without response
 const RUN_PROGRESS_REFRESH_TIME = 1000 // msec, run progress refresh time
 const RUN_PROGRESS_SUB_RATIO = 4       // multipler for refresh time to get sub values progress

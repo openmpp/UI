@@ -23,6 +23,7 @@ export default {
       isRunOptsMpiShow: false,
       isInitRun: false,
       runStamp: '', // new run stamp from server
+      runTemplateLst: [],
       mpiDefaultTemplate: '',
       mpiTemplateLst: [],
       profileLst: [],
@@ -35,6 +36,7 @@ export default {
       profileValue: '',
       logVersionValue: 'true',
       sparseOutputValue: 'false',
+      runTmplValue: '',
       mpiOnRootValue: 'false',
       mpiTmplValue: '',
       runOpts: {
@@ -50,6 +52,7 @@ export default {
         csvId: false,
         profile: '',
         sparseOutput: false,
+        runTmpl: '',
         mpiNpCount: 0,
         mpiNotOnRoot: true,
         mpiTmpl: ''
@@ -66,6 +69,9 @@ export default {
 
     // is profile list empty
     isEmptyProfileList () { return !Mdf.isLength(this.profileLst) },
+
+    // is run template list empty
+    isEmptyRunTemplateList () { return !Mdf.isLength(this.runTemplateLst) },
 
     ...mapGetters({
       serverConfig: GET.CONFIG,
@@ -89,7 +95,17 @@ export default {
       this.runOpts.sparseOutput = this.sparseOutputValue === 'true'
       this.runOpts.mpiNotOnRoot = this.mpiOnRootValue === 'false'
 
-      // get template list and select default template
+      // get model run template list
+      // append empty '' string first to make default selection == "no template"
+      this.runTemplateLst = []
+      if (Mdf.isLength(this.serverConfig.RunCatalog.RunTemplates)) {
+        this.runTemplateLst.push('')
+        for (const p of this.serverConfig.RunCatalog.RunTemplates) {
+          this.runTemplateLst.push(p)
+        }
+      }
+
+      // get MPI run template list and select default template
       this.mpiDefaultTemplate = this.serverConfig.RunCatalog.DefaultMpiTemplate
       this.mpiTemplateLst = this.serverConfig.RunCatalog.MpiTemplates
 
@@ -120,6 +136,7 @@ export default {
       this.runOpts.logVersion = this.logVersionValue === 'true'
       this.runOpts.sparseOutput = this.sparseOutputValue === 'true'
       this.runOpts.profile = this.parseTextInput(this.profileValue)
+      this.runOpts.runTmpl = this.parseTextInput(this.runTmplValue)
       this.runOpts.mpiNpCount = this.parseIntNonNegativeInput(this.$refs.mpiNpCountInput.value, 0)
       this.runOpts.mpiNotOnRoot = this.mpiOnRootValue === 'false'
       this.runOpts.workDir = this.parsePathInput(this.workDirValue)
@@ -221,17 +238,16 @@ export default {
         this.runStamp = rst.RunStamp || ''
       } else {
         this.$emit('run-list-refresh')
+        this.$refs.newRunPageSnackbarMsg.doOpen({
+          timeoutMs: -1,
+          labelText: 'Server offline or model run failed to start.'
+        })
       }
       this.runOpts.runName = this.autoNewRunName() // new run name for next run
     },
     // pass event from child component to grand parent
     onRunListRefresh () {
       this.$emit('run-list-refresh')
-    },
-
-    // show message, ex: "invalid profile list"
-    doShowSnackbarMessage (msg) {
-      if (msg) this.$refs.newRunPageSnackbarMsg.doOpen({ labelText: msg })
     },
 
     // receive profile list by model digest
@@ -260,7 +276,7 @@ export default {
         console.log('Server offline or profile list retrive failed.', em)
       }
 
-      if (!isOk) this.doShowSnackbarMessage('Unable to retrive profile list')
+      if (!isOk) this.$refs.newRunPageSnackbarMsg.doOpen({ labelText: 'Unable to retrive profile list' })
     }
   },
 

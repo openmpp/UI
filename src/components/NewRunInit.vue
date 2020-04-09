@@ -96,7 +96,9 @@ export default {
       if (this.uiLang) rv.Opts['OpenM.MessageLanguage'] = this.uiLang
 
       let isMpi = (this.runOpts.mpiNpCount || 0) > 0
-      if (isMpi) {
+      if (!isMpi) {
+        if (this.runOpts.runTmpl) rv.Template = this.runOpts.runTmpl
+      } else {
         rv.Mpi.Np = this.runOpts.mpiNpCount
         if (this.runOpts.mpiTmpl) rv.Template = this.runOpts.mpiTmpl
         if (this.runOpts.mpiNotOnRoot) rv.Opts['OpenM.NotOnRoot'] = 'true'

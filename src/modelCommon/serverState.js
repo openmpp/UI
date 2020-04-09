@@ -16,6 +16,7 @@ export const emptyConfig = () => {
     },
     RunCatalog: {
       LastTimeStamp: '',
+      RunTemplates: [],
       DefaultMpiTemplate: 'mpi.ModelRun.template.txt',
       MpiTemplates: []
     }
@@ -31,7 +32,7 @@ export const isConfig = (c) => {
     return false
   }
   if (!c.ModelCatalog.hasOwnProperty('ModelDir') || !c.ModelCatalog.hasOwnProperty('ModelLogDir') || !c.ModelCatalog.hasOwnProperty('IsLogDirEnabled')) return false
-  if (!c.RunCatalog.hasOwnProperty('DefaultMpiTemplate') || !c.RunCatalog.hasOwnProperty('MpiTemplates')) return false
+  if (!c.RunCatalog.hasOwnProperty('RunTemplates') || !c.RunCatalog.hasOwnProperty('DefaultMpiTemplate') || !c.RunCatalog.hasOwnProperty('MpiTemplates')) return false
 
-  return Hlpr.hasLength(c.RunCatalog.MpiTemplates)
+  return Hlpr.hasLength(c.RunCatalog.RunTemplates) && Hlpr.hasLength(c.RunCatalog.MpiTemplates)
 }

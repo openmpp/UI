@@ -185,6 +185,18 @@
               </span>
             </span>
           </div>
+          <div class="panel-row">
+            <label for="run-tmpl-input" class="panel-cell">Model Run Template:</label>
+            <select
+              :disabled="isEmptyRunTemplateList || runOpts.mpiNpCount > 0"
+              ref="runTmplInput"
+              v-model.lazy="runTmplValue"
+              alt="Template to run the model"
+              title="Template to run the model"
+              class="panel-cell panel-value panel-cell-min-width">
+                <option v-for="opt in runTemplateLst" :key="opt" :value="opt">{{opt}}</option>
+            </select>
+          </div>
         </div>
 
         <div

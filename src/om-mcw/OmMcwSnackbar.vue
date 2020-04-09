@@ -56,6 +56,7 @@ export default {
     },
     doOpen (opts) {
       if (opts) {
+        if (opts.timeoutMs) this.mdcSnackbar.timeoutMs = opts.timeoutMs
         if (opts.labelText || '') this.mdcSnackbar.labelText = opts.labelText
         if (opts.actionButtonText || '') this.mdcSnackbar.actionButtonText = opts.actionButtonText
       }
