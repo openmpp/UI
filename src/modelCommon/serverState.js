@@ -7,8 +7,7 @@ export const emptyConfig = () => {
   return {
     RootDir: '',
     RowPageMaxSize: 100,
-    LoginUrl: '',
-    LogoutUrl: '',
+    Env: {},
     ModelCatalog: {
       ModelDir: '',
       ModelLogDir: '',
@@ -27,12 +26,18 @@ export const emptyConfig = () => {
 export const isConfig = (c) => {
   if (!c) return false
   if (!c.hasOwnProperty('RootDir') || !c.hasOwnProperty('RowPageMaxSize') ||
-    !c.hasOwnProperty('LoginUrl') || !c.hasOwnProperty('LogoutUrl') ||
-    !c.hasOwnProperty('ModelCatalog') || !c.hasOwnProperty('RunCatalog')) {
+    !c.hasOwnProperty('Env') || !c.hasOwnProperty('ModelCatalog') || !c.hasOwnProperty('RunCatalog')) {
     return false
   }
   if (!c.ModelCatalog.hasOwnProperty('ModelDir') || !c.ModelCatalog.hasOwnProperty('ModelLogDir') || !c.ModelCatalog.hasOwnProperty('IsLogDirEnabled')) return false
   if (!c.RunCatalog.hasOwnProperty('RunTemplates') || !c.RunCatalog.hasOwnProperty('DefaultMpiTemplate') || !c.RunCatalog.hasOwnProperty('MpiTemplates')) return false
 
   return Hlpr.hasLength(c.RunCatalog.RunTemplates) && Hlpr.hasLength(c.RunCatalog.MpiTemplates)
+}
+
+// return value of server environemnt variable by key, if no such variable then return empty '' string
+export const configEnvValue = (c, key) => {
+  if (!isConfig(c)) return ''
+  if (!c.Env.hasOwnProperty(key)) return ''
+  return c.Env[key] || ''
 }

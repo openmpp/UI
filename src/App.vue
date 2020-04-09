@@ -238,8 +238,8 @@ export default {
     worksetTextCount () { return Mdf.worksetTextCount(this.worksetTextList) },
     isRunSelected () { return this.theSelected.ModelDigest && this.theSelected.run && this.theSelected.run.RunDigest },
     isWorksetSelected () { return this.theSelected.ModelDigest && this.theSelected.ws && this.theSelected.ws.Name },
-    loginUrl () { return this.serverConfig.LoginUrl },
-    logoutUrl () { return this.serverConfig.LogoutUrl },
+    loginUrl () { return Mdf.configEnvValue(this.serverConfig, 'OM_CFG_LOGIN_URL') },
+    logoutUrl () { return Mdf.configEnvValue(this.serverConfig, 'OM_CFG_LOGOUT_URL') },
 
     ...mapGetters({
       omppServerUrl: GET.OMPP_SRV_URL,

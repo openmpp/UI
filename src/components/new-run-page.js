@@ -24,7 +24,6 @@ export default {
       isInitRun: false,
       runStamp: '', // new run stamp from server
       runTemplateLst: [],
-      mpiDefaultTemplate: '',
       mpiTemplateLst: [],
       profileLst: [],
       // run options
@@ -96,25 +95,31 @@ export default {
       this.runOpts.mpiNotOnRoot = this.mpiOnRootValue === 'false'
 
       // get model run template list
-      // append empty '' string first to make default selection == "no template"
+      // append empty '' string first to allow model run without template
+      // if default run template exist the select it
       this.runTemplateLst = []
       if (Mdf.isLength(this.serverConfig.RunCatalog.RunTemplates)) {
+        const runDefaultTmpl = Mdf.configEnvValue(this.serverConfig, 'OM_CFG_DEFAULT_RUN_TMPL')
+        let isFound = false
+
         this.runTemplateLst.push('')
         for (const p of this.serverConfig.RunCatalog.RunTemplates) {
           this.runTemplateLst.push(p)
+          if (!isFound) isFound = p === runDefaultTmpl
         }
+        this.runTmplValue = isFound ? runDefaultTmpl : this.runTemplateLst[0]
       }
 
       // get MPI run template list and select default template
-      this.mpiDefaultTemplate = this.serverConfig.RunCatalog.DefaultMpiTemplate
+      const mpiDefaultTmpl = this.serverConfig.RunCatalog.DefaultMpiTemplate
       this.mpiTemplateLst = this.serverConfig.RunCatalog.MpiTemplates
 
-      if (this.mpiDefaultTemplate && Mdf.isLength(this.mpiTemplateLst)) {
+      if (mpiDefaultTmpl && Mdf.isLength(this.mpiTemplateLst)) {
         let isFound = false
         for (let k = 0; !isFound && k < this.mpiTemplateLst.length; k++) {
-          isFound = this.mpiTemplateLst[k] === this.mpiDefaultTemplate
+          isFound = this.mpiTemplateLst[k] === mpiDefaultTmpl
         }
-        this.mpiTmplValue = isFound ? this.mpiDefaultTemplate : this.mpiTemplateLst[0]
+        this.mpiTmplValue = isFound ? mpiDefaultTmpl : this.mpiTemplateLst[0]
       }
 
       // get profile list from server
