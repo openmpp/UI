@@ -219,7 +219,7 @@
     align-items: center;
     margin-right: 1px;
     min-height: 2rem;
-    border-top-right-radius: 0.75rem;
+    border-top-right-radius: 1rem;
   }
   .tab-item-active {
     @extend .mdc-theme--primary-bg;
