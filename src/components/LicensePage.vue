@@ -61,18 +61,4 @@ export default {
     white-space: pre;
     font-family: "Roboto Mono", monospace;
   }
-  /*
-  #license-page {
-    flex: 1 0 auto;
-    height: 100%;
-    width: 100%;
-    overflow: auto;
-    white-space: pre;
-    font-family: "Roboto Mono", monospace;
-  }
-  */
-</style>
-
-<!-- import MDC styles -->
-<style lang="scss">
 </style>

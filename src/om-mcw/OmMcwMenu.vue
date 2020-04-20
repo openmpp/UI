@@ -43,7 +43,7 @@ export default {
 
 <!-- local scope css: this component only -->
 <style lang="scss" scoped>
-@import "@material/list/mdc-list";
-@import "@material/menu-surface/mdc-menu-surface";
-@import "@material/menu/mdc-menu";
+// @import "@material/list/mdc-list";
+// @import "@material/menu-surface/mdc-menu-surface";
+// @import "@material/menu/mdc-menu";
 </style>

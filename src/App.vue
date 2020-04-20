@@ -413,5 +413,7 @@ export default {
   @import "@material/top-app-bar/mdc-top-app-bar";
   @import "@material/drawer/mdc-drawer";
   @import "@material/list/mdc-list";
+  @import "@material/menu-surface/mdc-menu-surface";
   @import "@material/menu/mdc-menu";
+  @import "@material/snackbar/mdc-snackbar";
 </style>

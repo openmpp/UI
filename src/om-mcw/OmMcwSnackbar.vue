@@ -86,6 +86,6 @@ export default {
 
 <!-- import MDC styles -->
 <style lang="scss" scoped>
-@import '@material/icon-button/mdc-icon-button';
-@import "@material/snackbar/mdc-snackbar";
+// @import '@material/icon-button/mdc-icon-button';
+// @import "@material/snackbar/mdc-snackbar";
 </style>

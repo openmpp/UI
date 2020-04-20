@@ -96,5 +96,5 @@ export default {
 
 <!-- local scope css: this component only -->
 <style lang="scss" scoped>
-@import "@material/dialog/mdc-dialog";
+// @import "@material/dialog/mdc-dialog";
 </style>

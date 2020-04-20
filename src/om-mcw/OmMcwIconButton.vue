@@ -42,5 +42,5 @@ export default {
 
 <!-- local scope css: this component only -->
 <style lang="scss" scoped>
-@import '@material/icon-button/mdc-icon-button';
+// @import '@material/icon-button/mdc-icon-button';
 </style>

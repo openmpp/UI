@@ -41,5 +41,5 @@ export default {
 
 <!-- local scope css: this component only -->
 <style lang="scss" scoped>
-@import '@material/button/mdc-button';
+// @import '@material/button/mdc-button';
 </style>

@@ -15,7 +15,7 @@ export default {
 </script>
 
 <!-- local scope css: this component only -->
-<style scoped>
+<style lang="scss" scoped>
 
   #under-construction-page {
     text-align: center;

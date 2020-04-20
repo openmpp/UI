@@ -7,7 +7,7 @@ import TableListPage from '@/components/TableListPage'
 import RunListPage from '@/components/RunListPage'
 import WorksetListPage from '@/components/WorksetListPage'
 import ParameterPage from '@/components/ParameterPage'
-import TablePage from '@/components/TablePage'
+// import TablePage from '@/components/TablePage'
 import NewRunPage from '@/components/NewRunPage'
 import RunLogPage from '@/components/RunLogPage'
 import SessionSettings from '@/components/SessionSettingsPage'
@@ -56,7 +56,8 @@ export default new Router({
         },
         {
           path: 'run/:nameOrDigest/table/:tableName',
-          component: TablePage,
+          // component: TablePage,
+          component: () => import(/* webpackChunkName: "table-page" */ '@/components/TablePage'),
           props: true
         },
         {
