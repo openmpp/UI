@@ -1,4 +1,4 @@
-import 'core-js/stable' // IE11
+// import 'core-js/stable' // IE11
 import Vue from 'vue'
 import App from './App.vue'
 import router from './router'

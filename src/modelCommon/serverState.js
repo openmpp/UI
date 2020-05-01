@@ -11,10 +11,10 @@ export const emptyConfig = () => {
     ModelCatalog: {
       ModelDir: '',
       ModelLogDir: '',
-      IsLogDirEnabled: false
+      IsLogDirEnabled: false,
+      LastTimeStamp: ''
     },
     RunCatalog: {
-      LastTimeStamp: '',
       RunTemplates: [],
       DefaultMpiTemplate: 'mpi.ModelRun.template.txt',
       MpiTemplates: []
