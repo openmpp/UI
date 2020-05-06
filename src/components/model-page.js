@@ -179,7 +179,7 @@ export default {
       this.loadRunDone = true
       if (!!isSuccess && (dgst || '') !== '') {
         this.doTabRefreshItem(dgst)
-        this.runDnsRefresh = dgst
+        // this.runDnsRefresh = dgst
       }
     },
     doneWsListLoad (isSuccess) {
