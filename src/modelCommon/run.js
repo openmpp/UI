@@ -103,14 +103,14 @@ export const isRunState = (rst) => {
   if (!rst) return false
   return rst.hasOwnProperty('ModelName') && rst.hasOwnProperty('ModelDigest') &&
     rst.hasOwnProperty('RunStamp') && rst.hasOwnProperty('IsFinal') &&
-    rst.hasOwnProperty('RunName') && rst.hasOwnProperty('UpdateDateTime') &&
+    rst.hasOwnProperty('RunName') && rst.hasOwnProperty('UpdateDateTime') && rst.hasOwnProperty('TaskRunName') &&
     rst.hasOwnProperty('IsLog') && rst.hasOwnProperty('LogFileName')
 }
 
 // if this is not empty model run state
 export const isNotEmptyRunState = (rst) => {
   if (!isRunState(rst)) return false
-  return (rst.ModelDigest || '') !== '' && (rst.RunStamp || '') !== '' && (rst.RunName || '') !== '' && (rst.UpdateDateTime || '') !== ''
+  return (rst.ModelDigest || '') !== '' && (rst.RunStamp || '') !== '' && (rst.UpdateDateTime || '') !== ''
 }
 
 // return model run state
