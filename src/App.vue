@@ -19,7 +19,11 @@
           class="mdc-top-app-bar__title topbar-title-link">
           {{ mainTitle }}
         </router-link>
-        <span v-else class="mdc-top-app-bar__title">{{ mainTitle }}</span>
+        <a v-else
+          href="//github.com/openmpp/other/" target="_blank"
+          class="mdc-top-app-bar__title topbar-title-link"
+          title="Feedback on beta UI version" alt="Feedback on beta UI version">{{ mainTitle }}
+          <span v-if="isBeta"> (please provide feedback on our beta UI)<span class="material-icons">feedback</span></span></a>
 
       </section>
 
@@ -36,6 +40,10 @@
           class="material-icons mdc-top-app-bar__action-item mdc-icon-button"
           title="Refresh"
           alt="Refresh">refresh</button>
+        <a v-if="isBeta && isModel"
+          href="//github.com/openmpp/other/" target="_blank"
+          class="material-icons mdc-top-app-bar__action-item mdc-icon-button"
+          title="Feedback on beta UI version" alt="Feedback on beta UI version">feedback</a>
         <a v-if="loginUrl" :href="loginUrl"
           class="material-icons mdc-top-app-bar__action-item mdc-icon-button"
           title="Login" alt="Login">account_circle</a>
@@ -218,6 +226,7 @@ export default {
       digestNoteDlg: '',
       loadDone: false,
       loadWait: false,
+      isBeta: true,
       msgLoad: ''
     }
   },
@@ -390,7 +399,6 @@ export default {
   .mdc-top-app-bar a {
     text-decoration: none;
   }
-
   /* topbar last section: shrink to fit */
   .topbar-last-section {
     flex: none;
