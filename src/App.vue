@@ -23,7 +23,7 @@
           href="//github.com/openmpp/other/" target="_blank"
           class="mdc-top-app-bar__title topbar-title-link"
           title="Feedback on beta UI version" alt="Feedback on beta UI version">{{ mainTitle }}
-          <span v-if="isBeta"> (please provide feedback on our beta UI)<span class="material-icons">feedback</span></span></a>
+          <span v-if="isBeta"> <span class="material-icons">feedback</span>click to provide feedback on our beta UI</span></a>
 
       </section>
 
