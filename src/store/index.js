@@ -60,11 +60,11 @@ const getters = {
     return state.runTextList.findIndex((r) => rt.ModelDigest === r.ModelDigest && rt.RunDigest === r.RunDigest) >= 0
   },
 
-  [GET.RUN_TEXT_BY_IDX]: state =>
-    (idx) => (Mdf.isLength(state.runTextList) && idx >= 0 && idx < state.runTextList.length) ? state.runTextList[idx] : Mdf.emptyRunText(),
+  [GET.RUN_TEXT_BY_IDX]: state => (idx) =>
+    (Mdf.isLength(state.runTextList) && idx >= 0 && idx < state.runTextList.length) ? state.runTextList[idx] : Mdf.emptyRunText(),
 
-  [GET.RUN_TEXT_BY_DIGEST]: state =>
-    (digest) => (Mdf.isLength(state.runTextList) && (digest || '') !== '') ? (state.runTextList.find((rt) => rt.RunDigest === digest) || Mdf.emptyRunText()) : Mdf.emptyRunText(),
+  [GET.RUN_TEXT_BY_DIGEST]: state => (digest) =>
+    (Mdf.isLength(state.runTextList) && (digest || '') !== '') ? (state.runTextList.find((rt) => rt.RunDigest === digest) || Mdf.emptyRunText()) : Mdf.emptyRunText(),
 
   [GET.RUN_TEXT_BY_DIGEST_OR_NAME]: state => (digestOrName) => {
     if (!Mdf.isLength(state.runTextList) || (digestOrName || '') === '') return Mdf.emptyRunText()
@@ -81,19 +81,19 @@ const getters = {
     return (k >= 0 && Mdf.isRunCompleted(state.runTextList[k]) && Mdf.lengthOf(state.runTextList[k].Param) > 0) ? state.runTextList[k] : Mdf.emptyRunText()
   },
 
-  [GET.WORKSET_TEXT_BY_IDX]: state =>
-    (idx) => (Mdf.isLength(state.worksetTextList) && idx >= 0 && idx < state.worksetTextList.length) ? state.worksetTextList[idx] : Mdf.emptyWorksetText(),
+  [GET.WORKSET_TEXT_BY_IDX]: state => (idx) =>
+    (Mdf.isLength(state.worksetTextList) && idx >= 0 && idx < state.worksetTextList.length) ? state.worksetTextList[idx] : Mdf.emptyWorksetText(),
 
-  [GET.WORKSET_TEXT_BY_NAME]: state =>
-    (name) => (Mdf.isLength(state.worksetTextList) && (name || '') !== '') ? (state.worksetTextList.find((wt) => wt.Name === name) || Mdf.emptyWorksetText()) : Mdf.emptyWorksetText(),
+  [GET.WORKSET_TEXT_BY_NAME]: state => (name) =>
+    (Mdf.isLength(state.worksetTextList) && (name || '') !== '') ? (state.worksetTextList.find((wt) => wt.Name === name) || Mdf.emptyWorksetText()) : Mdf.emptyWorksetText(),
 
   [GET.IS_EXIST_IN_WORKSET_TEXT_LIST]: state => (wt) => {
     if (!Mdf.isNotEmptyWorksetText(wt) || !Mdf.isLength(state.worksetTextList)) return false
     return state.worksetTextList.findIndex((w) => w.ModelDigest === wt.ModelDigest && w.Name === wt.Name) >= 0
   },
 
-  [GET.PARAM_VIEW]: (state) =>
-    (key) => state.paramViews.hasOwnProperty(key) ? Mdf._cloneDeep(state.paramViews[key]) : void 0,
+  [GET.PARAM_VIEW]: (state) => (key) =>
+    state.paramViews.hasOwnProperty(key) ? Mdf._cloneDeep(state.paramViews[key]) : void 0,
 
   // count updated parameters by model prefix, if prefix empty then count all updated parameters
   [GET.PARAM_VIEW_UPDATED_COUNT]: (state) => (prefix) => {
