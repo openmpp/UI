@@ -31,9 +31,6 @@ export const toClipboard = input => {
   document.body.appendChild(textarea)
 
   if (navigator.userAgent.match(/ipad|ipod|iphone/i)) {
-    const editable = textarea.contentEditable
-    const readOnly = textarea.readOnly
-
     textarea.contentEditable = true
     textarea.readOnly = true
 
@@ -46,9 +43,6 @@ export const toClipboard = input => {
     selection.removeAllRanges()
     selection.addRange(range)
     textarea.setSelectionRange(0, 999999)
-
-    textarea.contentEditable = editable
-    textarea.readOnly = readOnly
   } else {
     textarea.select()
   }
