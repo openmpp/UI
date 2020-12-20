@@ -1,0 +1,83 @@
+<!-- run info bar: show run info in flex bar -->
+<template>
+  <div
+    class="row reverse-wrap items-center"
+    >
+
+    <q-btn
+      @click="onShowRunNote"
+      :disable="!isNotEmptyRun"
+      flat
+      dense
+      class="col-auto bg-primary text-white rounded-borders q-mr-xs"
+      :icon="isSuccess ? 'mdi-information' : (isInProgress ? 'mdi-run' : 'mdi-alert-circle-outline')"
+      :title="$t('About') + ' ' + runText.Name"
+      />
+
+    <div
+      class="col-auto"
+      >
+      <span>{{ runText.Name }}<br />
+      <span class="om-text-descr"><span class="mono">{{ lastDateTimeStr }} </span>{{ descrOfRun }}</span></span>
+    </div>
+
+  </div>
+</template>
+
+<script>
+import { mapState, mapGetters } from 'vuex'
+import * as Mdf from 'src/model-common'
+
+export default {
+  name: 'RunBar',
+
+  props: {
+    modelDigest: { type: String, default: '' },
+    runDigest: { type: String, default: '' },
+    refreshRunTickle: { type: Boolean, default: false }
+  },
+
+  data () {
+    return {
+      runText: Mdf.emptyRunText()
+    }
+  },
+
+  computed: {
+    isNotEmptyRun () { return Mdf.isNotEmptyRunText(this.runText) },
+    isSuccess () { return this.runText.Status === Mdf.RUN_SUCCESS },
+    isInProgress (status) { return this.runText.Status === Mdf.RUN_IN_PROGRESS || this.runText.Status === Mdf.RUN_INITIAL },
+    lastDateTimeStr () { return Mdf.dtStr(this.runText.UpdateDateTime) },
+    descrOfRun () { return Mdf.descrOfTxt(this.runText) },
+
+    ...mapState('model', {
+      runTextListUpdated: state => state.runTextListUpdated
+    }),
+    ...mapGetters('model', {
+      runTextByDigest: 'runTextByDigest'
+    })
+  },
+
+  watch: {
+    modelDigest () { this.doRefresh() },
+    runDigest () { this.doRefresh() },
+    runTextListUpdated () { this.doRefresh() }
+  },
+
+  methods: {
+    doRefresh () {
+      this.runText = this.runTextByDigest({ ModelDigest: this.modelDigest, RunDigest: this.runDigest })
+    },
+    onShowRunNote () {
+      this.$emit('run-info-click', this.modelDigest, this.runDigest)
+    }
+  },
+
+  mounted () {
+    this.doRefresh()
+  }
+}
+</script>
+
+<style lang="scss" scope="local">
+</style>

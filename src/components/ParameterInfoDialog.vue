@@ -1,0 +1,135 @@
+<template>
+<q-dialog v-model="showDlg">
+  <q-card>
+
+    <q-card-section>
+      <div class="text-h6">{{ title }}</div>
+    </q-card-section>
+
+    <q-card-section class="q-pt-none text-body1">
+
+      <div class="om-note-table mono">
+        <div class="om-note-row">
+          <span class="om-note-cell q-pr-sm">{{ $t('Name') }}:</span><span class="om-note-cell">{{ paramName }}</span>
+        </div>
+
+        <div class="om-note-row">
+          <span class="om-note-cell q-pr-sm">{{ $t('Type') }}:</span><span class="om-note-cell">{{ typeTitle }}</span>
+        </div>
+        <div v-if="paramSize.rank > 1" class="om-note-row">
+          <span class="om-note-cell q-pr-sm">{{ $t('Size') }}:</span><span class="om-note-cell">{{ paramSize.dimSize }} = {{ paramSize.dimTotal }}</span>
+        </div>
+        <div v-if="paramSize.rank === 1" class="om-note-row">
+          <span class="om-note-cell q-pr-sm">{{ $t('Size') }}:</span><span class="om-note-cell">{{ paramSize.dimSize }}</span>
+        </div>
+        <div v-if="paramSize.rank <= 0" class="om-note-row">
+          <span class="om-note-cell q-pr-sm">{{ $t('Rank') }}:</span><span class="om-note-cell">{{ paramSize.rank }}</span>
+        </div>
+        <div v-if="paramRunSet.SubCount > 1" class="om-note-row">
+          <span class="om-note-cell q-pr-sm">{{ $t('Sub-values Count') }}:</span><span class="om-note-cell">{{ paramRunSet.SubCount || 0 }}</span>
+        </div>
+        <div v-if="paramRunSet.SubCount > 1" class="om-note-row">
+          <span class="om-note-cell q-pr-sm">{{ $t('Default Sub Id') }}:</span><span class="om-note-cell">{{ paramRunSet.DefaultSubId || 0 }}</span>
+        </div>
+        <div class="om-note-row">
+          <span class="om-note-cell q-pr-sm">{{ $t('Digest') }}:</span><span class="om-note-cell">{{ paramText.Param.Digest }}</span>
+        </div>
+        <div class="om-note-row">
+          <span class="om-note-cell q-pr-sm">{{ $t('Import Digest') }}:</span><span class="om-note-cell">{{ paramText.Param.ImportDigest }}</span>
+        </div>
+      </div>
+
+      <div v-if="valueNotes" class="q-pt-md">{{ valueNotes }}</div>
+      <div v-if="notes" class="q-pt-md">{{ notes }}</div>
+    </q-card-section>
+
+    <q-card-actions align="right">
+      <q-btn flat label="OK" color="primary" v-close-popup />
+    </q-card-actions>
+
+  </q-card>
+</q-dialog>
+</template>
+
+<script>
+import { mapState, mapGetters } from 'vuex'
+import * as Mdf from 'src/model-common'
+
+export default {
+  name: 'ParameterInfoDialog',
+
+  props: {
+    showTickle: { type: Boolean, default: false },
+    paramName: { type: String, default: '' },
+    runDigest: { type: String, default: '' },
+    worksetName: { type: String, default: '' }
+  },
+
+  data () {
+    return {
+      showDlg: false,
+      paramText: Mdf.emptyParamText(),
+      title: '',
+      notes: '',
+      valueNotes: '',
+      typeTitle: '',
+      paramSize: Mdf.emptyParamSize(),
+      paramRunSet: Mdf.emptyParamRunSet()
+    }
+  },
+
+  computed: {
+    ...mapState('model', {
+      theModel: state => state.theModel
+    }),
+    ...mapGetters('model', {
+      runTextByDigest: 'runTextByDigest',
+      worksetTextByName: 'worksetTextByName'
+    })
+  },
+
+  watch: {
+    showTickle () {
+      // find parameter in model parameters list
+      this.paramText = Mdf.paramTextByName(this.theModel, this.paramName)
+      if (!Mdf.isNotEmptyParamText(this.paramText)) {
+        console.warn('parameter not found by name:', this.paramName)
+        this.$q.notify({ type: 'negative', message: this.$t('Parameter not found') })
+        return
+      }
+
+      // find parameter sub-values info in model run or workset
+      this.paramRunSet = Mdf.emptyParamRunSet()
+      if ((this.runDigest || '') !== '') {
+        this.paramRunSet = Mdf.paramRunSetByName(
+          this.runTextByDigest({ ModelDigest: Mdf.modelDigest(this.theModel), RunDigest: this.runDigest }),
+          this.paramName)
+      } else {
+        if ((this.worksetName || '') !== '') {
+          this.paramRunSet = Mdf.paramRunSetByName(
+            this.worksetTextByName({ ModelDigest: Mdf.modelDigest(this.theModel), Name: this.worksetName }),
+            this.paramName)
+        }
+      }
+
+      // basic parameter info and value notes
+      this.title = Mdf.descrOfDescrNote(this.paramText) || this.paramText.Param.Name
+      this.notes = Mdf.noteOfDescrNote(this.paramText)
+      this.valueNotes = Mdf.noteOfTxt(this.paramRunSet)
+
+      // find parameter type
+      const t = Mdf.typeTextById(this.theModel, (this.paramText.Param.TypeId || 0))
+      this.typeTitle = Mdf.descrOfDescrNote(t)
+      if ((this.typeTitle || '') === '') this.typeTitle = t.Type.Name || ''
+
+      // find parameter size info
+      this.paramSize = Mdf.paramSizeByName(this.theModel, this.paramName)
+
+      this.showDlg = true
+    }
+  }
+}
+</script>
+
+<style lang="scss" scope="local">
+</style>
