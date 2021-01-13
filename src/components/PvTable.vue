@@ -210,8 +210,7 @@
 
 // table header
 .pv-hdr {
-  // font-weight: 500;
-  font-weight: map-get($text-weights, "medium");
+  font-weight: map-get($text-weights, "medium"); // 500;
   background-color: whitesmoke;
   @extend .pv-cell;
 }

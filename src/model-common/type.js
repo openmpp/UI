@@ -137,7 +137,8 @@ export const intTypeText = (md) => {
 }
 
 // enum is array of TypeEnumTxt[]
-// each TypeEnumTxt[k] must have Enum {EnumId: 0, Name: 'uniqueName'} and optional DescrNote
+// each TypeEnumTxt[i] must have:
+//  .Enum: {EnumId: 0, Name: 'uniqueCode'} and optional .DescrNote: {Descr: 'Some Label', Note: 'It can be long notes'}
 
 // find type size by TypeId: TypeTxt.TypeEnumTxt.length
 export const typeEnumSizeById = (md, typeId) => {
@@ -155,7 +156,7 @@ export const isEnum = (t) => {
 
 // find enum code by enum id or empty string if not found
 export const enumCodeById = (typeTxt, enumId) => {
-  if (!typeTxt || !Hlpr.isLength(typeTxt.TypeEnumTxt)) return ''
+  if (!typeTxt || !typeTxt.hasOwnProperty('TypeEnumTxt') || !Hlpr.isLength(typeTxt.TypeEnumTxt)) return ''
   for (let k = 0; k < typeTxt.TypeEnumTxt.length; k++) {
     if (isEnum(typeTxt.TypeEnumTxt[k]) && typeTxt.TypeEnumTxt[k].Enum.EnumId === enumId) {
       return (typeTxt.TypeEnumTxt[k].Enum.Name || '')
@@ -164,9 +165,47 @@ export const enumCodeById = (typeTxt, enumId) => {
   return '' // not found
 }
 
+// return array of enum Ids by array of codes
+export const codeArrayToEnumIdArray = (typeTxt, codeArr) => {
+  if (!typeTxt || !typeTxt.hasOwnProperty('TypeEnumTxt')) return []
+
+  const cLen = Hlpr.lengthOf(codeArr)
+  const tLen = Hlpr.lengthOf(typeTxt.TypeEnumTxt)
+  if (tLen <= 0 || cLen <= 0) return []
+
+  const eArr = Array(cLen)
+  let n = 0
+  for (let k = 0; k < tLen; k++) {
+    if (codeArr.findIndex(c => c === typeTxt.TypeEnumTxt[k].Enum.Name) >= 0) {
+      eArr[n++] = typeTxt.TypeEnumTxt[k].Enum.EnumId
+    }
+  }
+  eArr.length = n // remove size of not found
+  return eArr
+}
+
+// return array of codes by array of enum Ids
+export const enumIdArrayToCodeArray = (typeTxt, enumIdArr) => {
+  if (!typeTxt || !typeTxt.hasOwnProperty('TypeEnumTxt')) return []
+
+  const eLen = Hlpr.lengthOf(enumIdArr)
+  const tLen = Hlpr.lengthOf(typeTxt.TypeEnumTxt)
+  if (tLen <= 0 || eLen <= 0) return []
+
+  const cArr = Array(eLen)
+  let n = 0
+  for (let k = 0; k < tLen; k++) {
+    if (enumIdArr.findIndex(eId => eId === typeTxt.TypeEnumTxt[k].Enum.EnumId) >= 0) {
+      cArr[n++] = typeTxt.TypeEnumTxt[k].Enum.Name || ''
+    }
+  }
+  cArr.length = n // remove size of not found
+  return cArr
+}
+
 // find enum description or code by enum id or empty string if not found
 export const enumDescrOrCodeById = (typeTxt, enumId) => {
-  if (!typeTxt || !Hlpr.isLength(typeTxt.TypeEnumTxt)) return ''
+  if (!typeTxt || !typeTxt.hasOwnProperty('TypeEnumTxt') || !Hlpr.isLength(typeTxt.TypeEnumTxt)) return ''
   for (let k = 0; k < typeTxt.TypeEnumTxt.length; k++) {
     if (isEnum(typeTxt.TypeEnumTxt[k]) && typeTxt.TypeEnumTxt[k].Enum.EnumId === enumId) {
       return Dnf.descrOfDescrNote(typeTxt.TypeEnumTxt[k]) || (typeTxt.TypeEnumTxt[k].Enum.Name || '')
@@ -177,7 +216,7 @@ export const enumDescrOrCodeById = (typeTxt, enumId) => {
 
 // find enum id by description or code retrun null if not found
 export const enumIdByDescrOrCode = (typeTxt, enumDc) => {
-  if (!typeTxt || !Hlpr.isLength(typeTxt.TypeEnumTxt)) return null
+  if (!typeTxt || !typeTxt.hasOwnProperty('TypeEnumTxt') || !Hlpr.isLength(typeTxt.TypeEnumTxt)) return null
   for (let k = 0; k < typeTxt.TypeEnumTxt.length; k++) {
     if (isEnum(typeTxt.TypeEnumTxt[k])) {
       const dc = Dnf.descrOfDescrNote(typeTxt.TypeEnumTxt[k]) || (typeTxt.TypeEnumTxt[k].Enum.Name || '')
@@ -189,7 +228,7 @@ export const enumIdByDescrOrCode = (typeTxt, enumDc) => {
 
 // return enum by index, retrun null if index out of range
 export const enumByIdx = (typeTxt, idx) => {
-  if (!typeTxt || !Hlpr.isLength(typeTxt.TypeEnumTxt)) return null
+  if (!typeTxt || !typeTxt.hasOwnProperty('TypeEnumTxt') || !Hlpr.isLength(typeTxt.TypeEnumTxt)) return null
   if (idx < 0 || idx >= typeTxt.TypeEnumTxt.length) return null
 
   return isEnum(typeTxt.TypeEnumTxt[idx]) ? typeTxt.TypeEnumTxt[idx].Enum : null
@@ -197,7 +236,7 @@ export const enumByIdx = (typeTxt, idx) => {
 
 // return array of all codes from TypeEnumTxt[]
 export const enumCodeArray = (typeTxt) => {
-  if (!typeTxt || !Hlpr.isLength(typeTxt.TypeEnumTxt)) return []
+  if (!typeTxt || !typeTxt.hasOwnProperty('TypeEnumTxt') || !Hlpr.isLength(typeTxt.TypeEnumTxt)) return []
   const codeArr = []
   for (let k = 0; k < typeTxt.TypeEnumTxt.length; k++) {
     if (!isEnum(typeTxt.TypeEnumTxt[k])) {
@@ -211,7 +250,7 @@ export const enumCodeArray = (typeTxt) => {
 
 // return array of all description or code from TypeEnumTxt[]
 export const enumDescrOrCodeArray = (typeTxt) => {
-  if (!typeTxt || !Hlpr.isLength(typeTxt.TypeEnumTxt)) return []
+  if (!typeTxt || !typeTxt.hasOwnProperty('TypeEnumTxt') || !Hlpr.isLength(typeTxt.TypeEnumTxt)) return []
   const dcArr = []
   for (let k = 0; k < typeTxt.TypeEnumTxt.length; k++) {
     if (!isEnum(typeTxt.TypeEnumTxt[k])) {

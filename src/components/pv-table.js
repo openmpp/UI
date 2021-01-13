@@ -1,7 +1,7 @@
 /*
 Properties:
 
-rowFields[], colFields[], otherFields[]: array of dimensions, each element for example::
+rowFields[], colFields[], otherFields[]: array of dimensions, example of each element:
   {
     name: 'dim0',
     label: 'Salary',

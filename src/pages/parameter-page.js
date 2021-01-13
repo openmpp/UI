@@ -1,5 +1,6 @@
 import { mapState, mapGetters, mapActions } from 'vuex'
 import * as Mdf from 'src/model-common'
+import * as Idb from 'src/idb/idb'
 import RunBar from 'components/RunBar.vue'
 import WorksetBar from 'components/WorksetBar.vue'
 import RunInfoDialog from 'components/RunInfoDialog.vue'
@@ -131,7 +132,7 @@ export default {
     },
 
     // show or hide row/column/other bars
-    toggleRowColControls () {
+    onToggleRowColControls () {
       this.ctrl.isRowColControls = !this.ctrl.isRowColControls
       this.dispatchParamView({ key: this.routeKey, isRowColControls: this.ctrl.isRowColControls })
     },
@@ -149,21 +150,121 @@ export default {
       if (!this.pvc.formatter) return
       this.pvc.formatter.doLess()
     },
+    // copy tab separated values to clipboard: forward actions to pivot table component
+    onCopyToClipboard () {
+      this.$refs.omPivotTable.onCopyTsv()
+    },
     // reload parameter data and reset pivot view to default
-    onReload () {
+    async onReloadDefaultView () {
       if (this.pvc.formatter) {
         this.pvc.formatter.resetOptions()
       }
-      this.setDefaultPageView()
+      await this.restoreDefaultView()
+      this.setPageView()
       this.doRefreshDataPage()
     },
-    // pivot table view updated: item keys layout updated
-    onPvKeyPos (keyPos) {
-      this.pvKeyPos = keyPos
+    // save current view as default parameter view
+    async onSaveDefaultView () {
+      const pv = this.paramView(this.routeKey)
+      if (!pv) {
+        console.warn('Parameter view not found:', this.routeKey)
+        return
+      }
+
+      // convert selection values from enum Ids to enum codes for rows, columns, others dimensions
+      const enumIdsToCodes = (pvSrc) => {
+        const dst = []
+        for (const p of pvSrc) {
+          if (!p.values) continue // empty selection
+
+          const dt = this.paramText.ParamDimsTxt.find((d) => d.Dim.Name === p.name)
+          if (!dt) {
+            console.warn('Error: dimension not found:', p.name)
+            continue
+          }
+          const t = Mdf.typeTextById(this.theModel, (dt.Dim.TypeId || 0))
+
+          dst.push({
+            name: p.name,
+            values: Mdf.enumIdArrayToCodeArray(t, p.values)
+          })
+        }
+        return dst
+      }
+
+      // convert parameter view to "default" view: replace enum Ids with enum codes, ignore edit {} state
+      const dv = {
+        rows: enumIdsToCodes(pv.rows),
+        cols: enumIdsToCodes(pv.cols),
+        others: enumIdsToCodes(pv.others),
+        isRowColControls: this.ctrl.isRowColControls,
+        rowColMode: this.pvc.rowColMode
+      }
+
+      // save into indexed db
+      try {
+        const dbCon = await Idb.connection()
+        const rw = await dbCon.openReadWrite(Mdf.modelName(this.theModel))
+        await rw.put(this.parameterName, dv)
+      } catch (e) {
+        console.warn('Unable to save default parameter view', e)
+        this.$q.notify({ type: 'negative', message: this.$t('Unable to save default parameter view') })
+      }
     },
 
-    // copy tab separated values to clipboard: forward actions to pivot table component
-    onCopyToClipboard () { this.$refs.omPivotTable.onCopyTsv() },
+    // restore default parameter view
+    async restoreDefaultView () {
+      // select default parameter view from inxeded db
+      let dv
+      try {
+        const dbCon = await Idb.connection()
+        const rd = await dbCon.openReadOnly(Mdf.modelName(this.theModel))
+        dv = await rd.getByKey(this.parameterName)
+      } catch (e) {
+        console.warn('Unable to restore default parameter view', this.parameterName, e)
+        this.$q.notify({ type: 'negative', message: this.$t('Unable to restore default parameter view') + ': ' + this.parameterName })
+        return
+      }
+      // exit if not found or empty
+      if (!dv || !dv.hasOwnProperty('rows') || !dv.hasOwnProperty('cols') || !dv.hasOwnProperty('others')) {
+        return
+      }
+
+      // convert parameter view from "default" view: replace enum codes with enum Ids
+      const enumCodesToIds = (pvSrc) => {
+        const dst = []
+        for (const p of pvSrc) {
+          if (!p.values) continue // empty selection
+
+          const dt = this.paramText.ParamDimsTxt.find((d) => d.Dim.Name === p.name)
+          if (!dt) {
+            continue // unknown dimension: skip
+          }
+          const t = Mdf.typeTextById(this.theModel, (dt.Dim.TypeId || 0))
+
+          dst.push({
+            name: p.name,
+            values: Mdf.codeArrayToEnumIdArray(t, p.values)
+          })
+        }
+        return dst
+      }
+      const rows = enumCodesToIds(dv.rows)
+      const cols = enumCodesToIds(dv.cols)
+      const others = enumCodesToIds(dv.others)
+
+      // if is not empty any of selection rows, columns, other dimensions
+      // then store pivot view: do insert or replace of the view
+      if (Mdf.isLength(rows) || Mdf.isLength(cols) || Mdf.isLength(others)) {
+        this.dispatchParamView({
+          key: this.routeKey,
+          view: Pcvt.pivotState(rows, cols, others, dv.isRowColControls, dv.rowColMode || 2)
+        })
+      }
+    },
+
+    // pivot table view updated: item keys layout updated
+    onPvKeyPos (keyPos) { this.pvKeyPos = keyPos },
 
     // start of editor methods
     //
@@ -186,7 +287,7 @@ export default {
     },
 
     // save if data editied
-    doEditSave () {
+    onEditSave () {
       this.doSaveDataPage()
     },
 
@@ -373,7 +474,7 @@ export default {
       this.subCount = this.paramRunSet.SubCount || 0
 
       // adjust controls
-      this.edt.isEnabled = !this.isFromRun && isFound && Mdf.isNotEmptyWorksetText(src) && !src.IsReadonly
+      this.edt.isEnabled = !this.isFromRun && Mdf.isNotEmptyWorksetText(src) && !src.IsReadonly
       Pcvt.resetEdit(this.edt) // clear editor state
 
       const isRc = this.paramSize.rank > 0 || this.subCount > 1
@@ -494,16 +595,19 @@ export default {
 
       // set columns layout and refresh the data
       this.setPageView()
-      this.ctrl.isPvDimsTickle = !this.ctrl.isPvDimsTickle
     },
 
     // set page view: use previous page view from store or default
-    setPageView () {
-      // if previous page view not exist then set default view and store it
-      const pv = this.paramView(this.routeKey)
+    async setPageView () {
+      // if previous page view exist in session store
+      let pv = this.paramView(this.routeKey)
       if (!pv) {
-        this.setDefaultPageView()
-        return
+        await this.restoreDefaultView() // restore default parameter view, if exist
+        pv = this.paramView(this.routeKey) // check if default view of parameter restored
+        if (!pv) {
+          this.setInitialPageView() // setup and use initial view of parameter
+          return
+        }
       }
       // else: restore previous view
 
@@ -539,10 +643,14 @@ export default {
 
       this.ctrl.isRowColControls = !!pv.isRowColControls
       this.pvc.rowColMode = typeof pv.rowColMode === typeof 1 ? pv.rowColMode : 0
+
+      // refresh pivot view: both dimensions labels and table body
+      this.ctrl.isPvDimsTickle = !this.ctrl.isPvDimsTickle
+      this.ctrl.isPvTickle = !this.ctrl.isPvTickle
     },
 
-    // set default page view parameters
-    setDefaultPageView () {
+    // set initial page view for parameter
+    setInitialPageView () {
       // set rows, columns and other:
       //   first dimension on rows
       //   last dimension on columns
@@ -579,8 +687,12 @@ export default {
       // store pivot view
       this.dispatchParamView({
         key: this.routeKey,
-        view: Pcvt.pivotState(this.rowFields, this.colFields, this.otherFields, this.ctrl.isRowColControls, this.pvc.rowColMode, this.edt)
+        view: Pcvt.pivotStateFromFields(this.rowFields, this.colFields, this.otherFields, this.ctrl.isRowColControls, this.pvc.rowColMode, this.edt)
       })
+
+      // refresh pivot view: both dimensions labels and table body
+      this.ctrl.isPvDimsTickle = !this.ctrl.isPvDimsTickle
+      this.ctrl.isPvTickle = !this.ctrl.isPvTickle
     },
 
     // find model run or input workset and check if parameter exist in model or workset

@@ -53,7 +53,7 @@
         :title="(edt.isEdit ? $t('Discard changes of') : $t('Edit')) + ' ' + parameterName"
         />
       <q-btn
-        @click="doEditSave"
+        @click="onEditSave"
         :disable="!edt.isEnabled || !edt.isUpdated"
         flat
         dense
@@ -82,7 +82,7 @@
     </template>
 
     <q-btn
-      @click="toggleRowColControls"
+      @click="onToggleRowColControls"
       :disable="!ctrl.isRowColModeToggle"
       flat
       dense
@@ -151,13 +151,23 @@
       :title="$t('Copy tab separated values to clipboard') + ': Ctrl+C'"
       />
     <q-btn
-      @click="onReload"
+      @click="onReloadDefaultView"
       :disable="edt.isEdit"
       flat
       dense
       class="col-auto bg-primary text-white rounded-borders q-mr-xs"
       icon="mdi-cog-refresh-outline"
       :title="$t('Reset table view to default and reload') + ' ' + parameterName"
+      />
+
+    <q-btn
+      @click="onSaveDefaultView"
+      :disable="edt.isEdit"
+      flat
+      dense
+      class="col-auto bg-primary text-white rounded-borders q-mr-xs"
+      icon="mdi-content-save-cog"
+      :title="$t('Save table view as default view of') + ' ' + parameterName"
       />
 
     <div

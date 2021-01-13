@@ -262,9 +262,11 @@
           <q-item-label>{{ $t('Service Status') }}</q-item-label>
           <q-item-label caption>{{ $t('Service status and model(s) run queue') }}</q-item-label>
         </q-item-section>
+        <!--
         <q-item-section avatar>
           <q-badge v-if="modelCount" color="secondary" :label="modelCount" />
         </q-item-section>
+        -->
       </q-item>
 
     </q-list>

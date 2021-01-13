@@ -79,54 +79,27 @@ export const parseTsv = (src, rowLimit = -1, colLimit = -1) => {
 }
 
 /* eslint-disable no-multi-spaces */
-// return empty pivot editor state
-export const emptyEdit = () => {
-  return {
-    isEnabled: false,   // if true then edit value
-    kind: EDIT_STRING,  // default: string text input editor
-    // current editor state
-    isEdit: false,      // if true then edit in progress
-    isUpdated: false,   // if true then cell value(s) updated
-    cellKey: '',        // current eidtor focus cell
-    cellValue: '',      // current eidtor input value
-    updated: {},        // updated cells
-    history: [],        // update history
-    lastHistory: 0      // length of update history, changed by undo-redo
-  }
-}
-/* eslint-enable no-multi-spaces */
 
-// clean edit state and history
-export const resetEdit = (edit) => {
-  edit.isEdit = false
-  edit.isUpdated = false
-  edit.cellKey = ''
-  edit.cellValue = ''
-  edit.updated = {}
-  edit.history = []
-  edit.lastHistory = 0
-}
-
-// make pivot state as rows, columns, others dimensions: name and selected items value(s) and editor state
+// set pivot state as rows, columns, others dimensions: name and selected items value(s) and editor state
 /*
   {
     rows:   [ { name: ..., values: [...] }, {...} ],
     cols:   [ { name: ..., values: [...] }, {...} ],
     others: [ { name: ..., values: [...] }, {...} ],
     isRowColControls: true, // show or hide row-column controls
-    rowColMode: 2, // pivot table display mode: 0, 1 or 2
+    rowColMode: 2,          // pivot table display mode: 0, 1 or 2
     edit: {
-      editor state and undo history
+      // editor state and undo history
     }
   }
 */
 export const pivotState = (rows, cols, others, isRowColControls, rowColMode, edit) => {
   const state = {
-    rows: pivotStateFields(rows),
-    cols: pivotStateFields(cols),
-    others: pivotStateFields(others),
+    rows: rows || [],
+    cols: cols || [],
+    others: others || [],
     isRowColControls: !!isRowColControls,
-    rowColMode: typeof rowColMode === typeof 1 ? rowColMode : 0,
+    rowColMode: typeof rowColMode === typeof 1 ? rowColMode : 2, // default: 2 = use spans and show dim names
     edit: emptyEdit()
   }
 
@@ -136,16 +109,29 @@ export const pivotState = (rows, cols, others, isRowColControls, rowColMode, edi
   return state
 }
 
-// make pivot state fields part (rows or columns or others dimensions): name and selected items value(s)
+// make pivot state by converting selected items for rows, columns, others dimensions into { name: ..., values: [...] }
+export const pivotStateFromFields = (rows, cols, others, isRowColControls, rowColMode, edit) => {
+  return pivotState(
+    pivotStateFields(rows),
+    pivotStateFields(cols),
+    pivotStateFields(others),
+    isRowColControls,
+    rowColMode,
+    edit
+  )
+}
+
+// make pivot state fields part for each rows or columns or others dimensions:
+//  dimension name and selected items value(s)
 /*
   [
     {
       name:   'Age',
-      values: ['age-10', 'age-20', 'age-30']
+      values:  [10, 20, 30] // values are enum Ids, correspoding enum codes can be: ['age10', 'age20', 'age30']
     },
     {
       name:   'Sex',
-      values: ['F', 'M']
+      values:  [0, 1]       // values are enum Ids, correspoding enum codes can be: ['F', 'M']
     }
   ]
 */
@@ -161,3 +147,31 @@ export const pivotStateFields = (fields) => {
   }
   return dst
 }
+
+// return empty pivot editor state
+export const emptyEdit = () => {
+  return {
+    isEnabled: false,   // if true then edit value
+    kind: EDIT_STRING,  // default: string text input editor
+    // current editor state
+    isEdit: false,      // if true then edit in progress
+    isUpdated: false,   // if true then cell value(s) updated
+    cellKey: '',        // current eidtor focus cell
+    cellValue: '',      // current eidtor input value
+    updated: {},        // updated cells
+    history: [],        // update history
+    lastHistory: 0      // length of update history, changed by undo-redo
+  }
+}
+
+// clean edit state and history
+export const resetEdit = (edit) => {
+  edit.isEdit = false
+  edit.isUpdated = false
+  edit.cellKey = ''
+  edit.cellValue = ''
+  edit.updated = {}
+  edit.history = []
+  edit.lastHistory = 0
+}
+/* eslint-enable no-multi-spaces */

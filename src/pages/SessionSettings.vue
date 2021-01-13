@@ -102,9 +102,6 @@ export default {
     }),
     ...mapState('uiState', {
       uiLang: state => state.uiLang
-    }),
-    ...mapGetters('uiState', {
-      paramViewUpdatedCount: 'paramViewUpdatedCount'
     })
   },
 
@@ -120,7 +117,9 @@ export default {
       dispatchRunTextList: 'runTextList',
       dispatchWorksetTextList: 'worksetTextList'
     })
-  }
+  },
+
+  mounted () { }
 }
 </script>
 
