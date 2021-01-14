@@ -82,11 +82,22 @@
     </template>
 
     <q-btn
+      @click="onCopyToClipboard"
+      flat
+      dense
+      class="col-auto bg-primary text-white rounded-borders"
+      icon="mdi-content-copy"
+      :title="$t('Copy tab separated values to clipboard') + ': Ctrl+C'"
+      />
+    <q-separator vertical inset spaced="sm" color="secondary" />
+
+    <q-btn
       @click="onToggleRowColControls"
       :disable="!ctrl.isRowColModeToggle"
       flat
       dense
-      class="col-auto bg-primary text-white rounded-borders q-mr-xs"
+      class="col-auto bg-primary text-white rounded-borders"
+      :class="{ 'q-mr-xs' : ctrl.isRowColModeToggle || ctrl.formatOpts }"
       icon="tune"
       :title="ctrl.isRowColControls ? $t('Hide rows and columns bars') : $t('Show rows and columns bars')"
       />
@@ -115,7 +126,8 @@
         :disable="pvc.rowColMode === 0"
         flat
         dense
-        class="col-auto bg-primary text-white rounded-borders q-mr-xs"
+        class="col-auto bg-primary text-white rounded-borders"
+        :class="{ 'q-mr-xs' : ctrl.formatOpts }"
         icon="mdi-view-module-outline"
         :title="$t('Table view: always show rows and columns item')"
         />
@@ -136,29 +148,12 @@
         :disable="!ctrl.formatOpts.isDoLess"
         flat
         dense
-        class="col-auto bg-primary text-white rounded-borders q-mr-xs"
+        class="col-auto bg-primary text-white rounded-borders"
         icon="mdi-decimal-decrease"
         :title="$t('Show less decimals')"
         />
     </template>
-
-    <q-btn
-      @click="onCopyToClipboard"
-      flat
-      dense
-      class="col-auto bg-primary text-white rounded-borders q-mr-xs"
-      icon="mdi-content-copy"
-      :title="$t('Copy tab separated values to clipboard') + ': Ctrl+C'"
-      />
-    <q-btn
-      @click="onReloadDefaultView"
-      :disable="edt.isEdit"
-      flat
-      dense
-      class="col-auto bg-primary text-white rounded-borders q-mr-xs"
-      icon="mdi-cog-refresh-outline"
-      :title="$t('Reset table view to default and reload') + ' ' + parameterName"
-      />
+    <q-separator vertical inset spaced="sm" color="secondary" />
 
     <q-btn
       @click="onSaveDefaultView"
@@ -168,6 +163,15 @@
       class="col-auto bg-primary text-white rounded-borders q-mr-xs"
       icon="mdi-content-save-cog"
       :title="$t('Save table view as default view of') + ' ' + parameterName"
+      />
+    <q-btn
+      @click="onReloadDefaultView"
+      :disable="edt.isEdit"
+      flat
+      dense
+      class="col-auto bg-primary text-white rounded-borders q-mr-xs"
+      icon="mdi-cog-refresh-outline"
+      :title="$t('Reset table view to default and reload') + ' ' + parameterName"
       />
 
     <div

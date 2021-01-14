@@ -209,7 +209,9 @@ export default {
       } catch (e) {
         console.warn('Unable to save default parameter view', e)
         this.$q.notify({ type: 'negative', message: this.$t('Unable to save default parameter view') })
+        return
       }
+      this.$q.notify({ type: 'info', message: this.$t('Default view of parameter saved') + ': ' + this.parameterName })
     },
 
     // restore default parameter view
