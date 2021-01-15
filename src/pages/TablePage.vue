@@ -48,9 +48,19 @@
       :disable="tv.kind === 2"
       flat
       dense
-      class="col-auto bg-primary text-white rounded-borders q-mr-xs"
+      class="col-auto bg-primary text-white rounded-borders"
       icon="mdi-iframe-variable-outline"
       :title="$t('View all accumulators and sub-values (sub-samples)')"
+      />
+    <q-separator vertical inset spaced="sm" color="secondary" />
+
+    <q-btn
+      @click="togglePivotControls"
+      flat
+      dense
+      class="col-auto bg-primary text-white rounded-borders q-mr-xs"
+      :icon="pvtState.isShowUI ? 'mdi-tune' : 'mdi-tune-vertical'"
+      :title="pvtState.isShowUI ? $t('Hide pivot controls') : $t('Show pivot controls')"
       />
     <q-btn
       @click="showMoreDecimals"
@@ -66,18 +76,12 @@
       :disable="pvtState.nDecimals <= 0 && !pvtState.isAllDecimals"
       flat
       dense
-      class="col-auto bg-primary text-white rounded-borders q-mr-xs"
+      class="col-auto bg-primary text-white rounded-borders"
       icon="mdi-decimal-decrease"
       :title="$t('Show less decimals')"
       />
-    <q-btn
-      @click="togglePivotControls"
-      flat
-      dense
-      class="col-auto bg-primary text-white rounded-borders q-mr-xs"
-      :icon="pvtState.isShowUI ? 'mdi-tune' : 'mdi-tune-vertical'"
-      :title="pvtState.isShowUI ? $t('Hide pivot controls') : $t('Show pivot controls')"
-      />
+    <q-separator vertical inset spaced="sm" color="secondary" />
+
     <q-btn
       @click="doResetView"
       flat

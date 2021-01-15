@@ -52,7 +52,7 @@ export default {
       },
       dimProp: [],
       exprDecimals: {},
-      maxDecimals: 2,
+      maxDecimals: 4,
       exprLabels: {},
       accLabels: {},
       colLabels: [],
@@ -189,7 +189,7 @@ export default {
       // expression labels and decimals
       this.exprLabels = {}
       this.exprDecimals = {}
-      this.maxDecimals = 0
+      this.maxDecimals = -1
       for (let j = 0; j < this.tableText.TableExprTxt.length; j++) {
         if (!this.tableText.TableExprTxt[j].hasOwnProperty('Expr')) continue
 
@@ -204,9 +204,10 @@ export default {
         this.exprDecimals[eId] = dec
         if (this.maxDecimals < dec) this.maxDecimals = dec
       }
+      if (this.maxDecimals < 0) this.maxDecimals = 4 // if model decimals=-1, which is display all then limit maxDecimals = 4 before display all
       this.pvtState.nDecimals = this.maxDecimals
 
-      // accumultor labels
+      // accumulator labels
       this.accLabels = {}
       for (let j = 0; j < this.tableText.TableAccTxt.length; j++) {
         if (!this.tableText.TableAccTxt[j].hasOwnProperty('Acc')) continue
@@ -478,8 +479,11 @@ export default {
       if (exprId === void 0 || exprId === null || exprId < 0) { // expression id undefined
         return val.toString()
       }
+      if (this.pvtState.isAllDecimals) {
+        return val.toString()
+      }
       const dec = this.exprDecimals[exprId]
-      return (dec !== void 0 && dec !== null) ? val.toFixed(dec) : val.toString()
+      return (dec !== void 0 && dec !== null && dec >= 0) ? val.toFixed(dec) : val
     },
 
     // get page of table data from current model run: expressions or accumulators

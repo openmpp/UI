@@ -98,7 +98,7 @@
       dense
       class="col-auto bg-primary text-white rounded-borders"
       :class="{ 'q-mr-xs' : ctrl.isRowColModeToggle || ctrl.formatOpts }"
-      icon="tune"
+      :icon="ctrl.isRowColControls ? 'mdi-tune' : 'mdi-tune-vertical'"
       :title="ctrl.isRowColControls ? $t('Hide rows and columns bars') : $t('Show rows and columns bars')"
       />
 
@@ -140,8 +140,8 @@
         flat
         dense
         class="col-auto bg-primary text-white rounded-borders q-mr-xs"
-        :icon="ctrl.formatOpts.isSrcShow && ctrl.formatOpts.isDoMore ? 'mdi-magnify-plus-outline' : 'mdi-decimal-increase'"
-        :title="ctrl.formatOpts.isSrcShow && ctrl.formatOpts.isDoMore ? $t('Show source value') : $t('Show more decimals')"
+        icon="mdi-decimal-increase"
+        :title="$t('Increase precision or show source value')"
         />
       <q-btn
         @click="onShowLessFormat"
@@ -150,7 +150,7 @@
         dense
         class="col-auto bg-primary text-white rounded-borders"
         icon="mdi-decimal-decrease"
-        :title="$t('Show less decimals')"
+        :title="$t('Decrease precision')"
         />
     </template>
     <q-separator vertical inset spaced="sm" color="secondary" />
