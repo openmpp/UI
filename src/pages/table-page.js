@@ -1,5 +1,5 @@
 /* eslint-disable no-multi-spaces */
-import { mapState, mapGetters } from 'vuex'
+import { mapState, mapGetters, mapActions } from 'vuex'
 import * as Mdf from 'src/model-common'
 import { ReactInVue } from 'vuera'
 import PivotReact from 'src/rv/PivotReact.react.jsx'
@@ -76,6 +76,9 @@ export default {
     }),
     ...mapGetters('model', {
       runTextByDigest: 'runTextByDigest'
+    }),
+    ...mapGetters('uiState', {
+      tableView: 'tableView'
     }),
     ...mapState('serverState', {
       omsUrl: state => state.omsUrl
@@ -226,29 +229,25 @@ export default {
       this.tv.kind = kind.EXPR
       this.tv.start = 0
       this.tv.size = 0  // unlimited page size
-      // this.tv.size = 0 Math.min(20, this.tableSize.dimTotal * this.tableSize.exprCount)
-      this.setPivotView()
+
+      // if previous page view exist in session store
+      // const tv = this.tableView(this.routeKey)
+      // const isRestored = !!tv
+      // if (isRestored) {
+      //   this.tv.kind = tv?.kind || kind.EXPR
+      //   this.pvtState.rows = tv?.rows || []
+      //   this.pvtState.cols = tv?.cols || [this.colLabels[0]]
+      //   this.pvtState.valueFilter = tv?.filter || {}
+      // }
+      this.setPivotView(false)
     },
 
     // set pivot table initial layout
-    setPivotView () {
+    setPivotView (isRestored = false) {
       this.pvtState.isToggleUI = false        // prevent UI controls hide / show toggle
       this.pvtState.isDecimalsUpdate = false  // prevent decimals update in pivot table
 
-      // dimension columns
-      this.colLabels = []
-      for (let j = 0; j < this.tableSize.rank; j++) {
-        this.colLabels.push((this.dimProp[j].label || this.dimProp[j].name))
-      }
-      this.colLabels.push(this.tableText.ExprDescr || 'Measure') // expression dimension
-
-      // value column or accumulator sub-value column
-      if (this.tv.kind === kind.EXPR) {
-        this.colLabels.push('Value')   // expression value
-      } else {
-        this.colLabels.push('Sub #')    // sub id column
-        this.colLabels.push('SubValue') // sub-value column
-      }
+      this.makeColLabels()
       const colCount = this.colLabels.length
 
       // expression value view:
@@ -257,8 +256,9 @@ export default {
       // accumulators view:
       //   sub id on columns, measure name on rows, all dimensions on others
       //   sub-values into body aggregators (pivot.vals[])
-      this.pvtState.rows = []
-      this.pvtState.cols = []
+      // value filters: include only one value for "other" dimensions
+      if (!isRestored) this.makeRowsCols()
+
       this.pvtState.vals = []
       this.pvtState.hiddenFromAggregators = []
       this.pvtState.hiddenFromDragDrop = []
@@ -266,25 +266,15 @@ export default {
       if (this.tv.kind === kind.EXPR) {
         const nVal = this.tableSize.rank + 1 // value position
 
-        this.pvtState.cols.push(this.colLabels[this.tableSize.rank])
-
-        if (this.tableSize.rank > 0) {
-          this.pvtState.rows.push(this.colLabels[0])
-        }
-
         for (let n = 0; n < nVal; n++) {
           this.pvtState.hiddenFromAggregators.push(this.colLabels[n])
         }
 
         this.pvtState.vals.push(this.colLabels[nVal])
         this.pvtState.hiddenFromDragDrop.push(this.colLabels[nVal])
-
-        // else accumulators view
       } else {
+        // else accumulators view
         const nSub0 = this.tableSize.rank + 2 // first sub-value position
-
-        this.pvtState.rows.push(this.colLabels[this.tableSize.rank])
-        this.pvtState.cols.push(this.colLabels[this.tableSize.rank + 1])
 
         for (let n = 0; n < nSub0; n++) {
           this.pvtState.hiddenFromAggregators.push(this.colLabels[n])
@@ -294,24 +284,6 @@ export default {
           this.pvtState.vals.push(this.colLabels[n])
           this.pvtState.hiddenFromDragDrop.push(this.colLabels[n])
         }
-      }
-
-      // include only one value for "other" dimensions
-      // if there "All" item then only "All" else first item
-      // due to react-pivottable bug we have to exclude all items except one
-      this.pvtState.valueFilter = {}
-      const n0 = this.tv.kind === kind.EXPR ? 1 : 0
-
-      for (let n = n0; n < this.tableSize.rank; n++) {
-        const dcArr = Mdf.enumDescrOrCodeArray(this.dimProp[n].typeText)
-        if (!dcArr) continue
-        const attr = this.colLabels[n]
-
-        this.pvtState.valueFilter[attr] = dcArr.reduce((r, v, i) => {
-          if (i === 0 && !this.dimProp[n].isTotal) return r   // do not exclude first item if no "All" in that dimension
-          r[v] = true
-          return r
-        }, {})
       }
 
       // sort order: same as enum lables for dimensions
@@ -352,6 +324,75 @@ export default {
 
       // make empty data: column headers and empty row of values
       this.pvtState.data = Object.freeze([this.colLabels.slice(), Array(colCount).fill('')])
+
+      // store pivot view
+      // this.dispatchTableView({
+      //   key: this.routeKey,
+      //   view: {
+      //     kind: this.tv.kind,
+      //     rows: this.pvtState.rows,
+      //     cols: this.pvtState.cols,
+      //     filter: this.pvtState.valueFilter
+      //   }
+      // })
+    },
+
+    // setup make colunm labels (attributes in react-pivottable terms)
+    makeColLabels () {
+      // add dimension(s) lables
+      this.colLabels = []
+      for (let j = 0; j < this.tableSize.rank; j++) {
+        this.colLabels.push((this.dimProp[j].label || this.dimProp[j].name))
+      }
+      this.colLabels.push(this.tableText.ExprDescr || this.$t('Measure')) // expression dimension
+
+      // value column or accumulator sub-value column
+      if (this.tv.kind === kind.EXPR) {
+        this.colLabels.push('Value')   // expression value
+      } else {
+        this.colLabels.push('Sub #')    // sub id column
+        this.colLabels.push('Sub-value') // sub-value column
+      }
+      return this.colLabels
+    },
+
+    // setup rows, columns and value filters
+    makeRowsCols () {
+      // expression value view:
+      //   measure name on columns, first dimension on rows, rest of dimensions on others
+      // accumulators view:
+      //   sub id on columns, measure name on rows, all dimensions on others
+      this.pvtState.rows = []
+      this.pvtState.cols = []
+
+      if (this.tv.kind === kind.EXPR) {
+        this.pvtState.cols.push(this.colLabels[this.tableSize.rank])
+        if (this.tableSize.rank > 0) {
+          this.pvtState.rows.push(this.colLabels[0])
+        }
+      } else {
+        this.pvtState.rows.push(this.colLabels[this.tableSize.rank])
+        this.pvtState.cols.push(this.colLabels[this.tableSize.rank + 1])
+      }
+
+      // setup value filters: for each dimension column create list of items to hide
+      // include only one value for "other" dimensions
+      // if there "All" item then only "All" else first item
+      // due to react-pivottable bug we have to exclude all items except one
+      this.pvtState.valueFilter = {}
+      const n0 = this.tv.kind === kind.EXPR ? 1 : 0
+
+      for (let n = n0; n < this.tableSize.rank; n++) {
+        const dcArr = Mdf.enumDescrOrCodeArray(this.dimProp[n].typeText)
+        if (!dcArr) continue
+        const attr = this.colLabels[n]
+
+        this.pvtState.valueFilter[attr] = dcArr.reduce((r, v, i) => {
+          if (i === 0 && !this.dimProp[n].isTotal) return r   // do not exclude first item if no "All" in that dimension
+          r[v] = true
+          return r
+        }, {})
+      }
     },
 
     // update table data from response data page
@@ -516,14 +557,14 @@ export default {
         const response = await this.$axios.post(u, layout)
         const rsp = response.data
         let d = []
-        if (!!rsp && rsp.hasOwnProperty('Page')) {
-          if ((rsp.Page.length || 0) > 0) d = rsp.Page
+        if (rsp) {
+          if ((rsp?.Page?.length || 0) > 0) d = rsp.Page
         }
         const lt = { Offset: 0, Size: 0, IsLastPage: true }
-        if (!!rsp && rsp.hasOwnProperty('Layout')) {
-          if ((rsp.Layout.Offset || 0) > 0) lt.Offset = rsp.Layout.Offset || 0
-          if ((rsp.Layout.Size || 0) > 0) lt.Size = rsp.Layout.Size || 0
-          if (rsp.Layout.hasOwnProperty('IsLastPage')) lt.IsLastPage = !!rsp.Layout.IsLastPage
+        if (rsp) {
+          if ((rsp?.Layout?.Offset || 0) > 0) lt.Offset = rsp.Layout.Offset || 0
+          if ((rsp?.Layout?.Size || 0) > 0) lt.Size = rsp.Layout.Size || 0
+          lt.IsLastPage = !!rsp?.Layout?.IsLastPage
         }
 
         // set page view state: is next page exist
@@ -578,7 +619,11 @@ export default {
       if (this.tv.kind === kind.ACC) layout.OrderBy.push({ IndexOne: 2 })
 
       return layout
-    }
+    },
+
+    ...mapActions('uiState', {
+      dispatchTableView: 'tableView'
+    })
   },
 
   mounted () {

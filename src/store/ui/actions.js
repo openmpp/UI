@@ -54,3 +54,32 @@ export const paramViewDeleteByModelWorkset = ({ dispatch }, modelWorkset) => {
 export const paramViewDeleteByPrefix = ({ commit }, prefix) => {
   commit('paramViewDeleteByPrefix', prefix)
 }
+
+// insert or replace table view by route key
+export const tableView = ({ commit }, tv) => {
+  commit('tableView', tv)
+}
+
+// delete table view by route key, if exist
+export const tableViewDelete = ({ commit }, key) => {
+  commit('tableViewDelete', key)
+}
+
+// delete table view by model prefix
+export const tableViewDeleteByModel = ({ dispatch }, modelDigest) => {
+  dispatch('tableViewDeleteByPrefix', '/model/' + (modelDigest || '-') + '/')
+}
+
+// delete table view by model digest and run digest prefix
+export const tableViewDeleteByModelRun = ({ dispatch }, modelRun) => {
+  const m = modelRun?.digest || '-'
+  const r = modelRun?.runDigest || '-'
+  dispatch(
+    'tableViewDeleteByPrefix', '/model/' + m + '/run/' + r + '/parameter/'
+  )
+}
+
+// delete table view by route prefix, if prefix '' empty then delete all
+export const tableViewDeleteByPrefix = ({ commit }, prefix) => {
+  commit('tableViewDeleteByPrefix', prefix)
+}

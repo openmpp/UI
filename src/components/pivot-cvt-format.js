@@ -234,10 +234,7 @@ const formatNumber = {
     const opts = Object.assign({},
       {
         isNullable: false,  // if true then allow empty (NULL) value
-        isLocale: false,    // if true then return toLocaleString()
-        groupSep: '',       // if not empty then use as thousands group separator, ex: ',' = 1,234.5678
-        groupLen: 3,        // grouping size, by default =3 (thousands), ex: 2 = 12,34.5678
-        decimalSep: '.',    // decimals separator, ex: ',' = 1234,5678
+        locale: '',         // locale name, if defined then return toLocaleString()
         nDecimal: -1,       // if >= 0 then number of decimals else show all decimals, ex: 2 => 1234.56
         maxDecimal: 4       // max decimals to display, using toFixed(nDecimal) and nDecimal <= maxDecimal
       },
@@ -251,7 +248,20 @@ const formatNumber = {
     }
     if (!opts) return val // no options: default output
 
-    if (opts.isLocale) return val.toLocaleString() // localized numeric format
+    // if locale defined then use built-in locale conversion
+    if (opts.locale) {
+      return opts.nDecimal < 0
+        ? val.toString()
+        : (
+          opts.nDecimal > 0
+            ? val.toLocaleString(opts.locale, { minimumFractionDigits: opts.nDecimal })
+            : val.toLocaleString(opts.locale, { maximumFractionDigits: opts.nDecimal })
+        )
+    }
+    // else use default numeric formating, example: 1,234.5678
+    const groupSep = ','   // thousands group separator
+    const groupLen = 3     // grouping size
+    const decimalSep = '.' // decimals separator
 
     // convert to numeric string, optionally with fixed decimals
     const src = opts.nDecimal >= 0 ? val.toFixed(opts.nDecimal) : val.toString()
@@ -262,23 +272,23 @@ const formatNumber = {
     const nD = src.search(/(\.|e|E)/)
     const left = nD > 0 ? src.substr(0, nD) : src
     const rest = nD >= 0
-      ? (opts.decimalSep !== '.')
-        ? src.substr(nD).replace('.', opts.decimalSep)
+      ? (decimalSep !== '.')
+        ? src.substr(nD).replace('.', decimalSep)
         : src.substr(nD)
       : ''
 
     // if only decimals
     // or no integer part digit grouping required then return numeric string
     let nL = left.length
-    if (nL <= 0 || !opts.groupSep) return left + rest
+    if (nL <= 0 || !groupSep) return left + rest
 
     const isSign = left[0] === '-' || left[0] === '+'
     let isLast = false
     let sL = ''
     do {
-      const n = nL - opts.groupLen
+      const n = nL - groupLen
       isLast = n <= 0 || (isSign && n === 1)
-      sL = (!isLast ? opts.groupSep + left.substr(n, opts.groupLen) : left.substr(0, nL)) + sL
+      sL = (!isLast ? groupSep + left.substr(n, groupLen) : left.substr(0, nL)) + sL
       nL = n
     } while (!isLast)
 

@@ -88,6 +88,9 @@ export default {
       runTextByDigest: 'runTextByDigest',
       worksetTextByName: 'worksetTextByName'
     }),
+    ...mapState('uiState', {
+      uiLang: state => state.uiLang
+    }),
     ...mapGetters('uiState', {
       paramView: 'paramView'
     }),
@@ -228,7 +231,7 @@ export default {
         return
       }
       // exit if not found or empty
-      if (!dv || !dv.hasOwnProperty('rows') || !dv.hasOwnProperty('cols') || !dv.hasOwnProperty('others')) {
+      if (!dv || !dv?.rows || !dv?.cols || !dv?.others) {
         return
       }
 
@@ -472,7 +475,7 @@ export default {
       this.paramSize = Mdf.paramSizeByName(this.theModel, this.parameterName)
       this.paramType = Mdf.typeTextById(this.theModel, (this.paramText.Param.TypeId || 0))
 
-      this.isNullable = this.paramText.Param.hasOwnProperty('IsExtendable') && (this.paramText.Param.IsExtendable || false)
+      this.isNullable = this.paramText.Param?.IsExtendable || false
       this.subCount = this.paramRunSet.SubCount || 0
 
       // adjust controls
@@ -551,8 +554,18 @@ export default {
       // setup process value and format value handlers:
       //  if parameter type is one of built-in then process and format value as float, int, boolen or string
       //  else parameter type is enum-based: process and format value as int enum id
+      let lc = this.uiLang || this.$q.lang.getLocale() || ''
+      if (lc) {
+        try {
+          const cla = Intl.getCanonicalLocales(lc)
+          lc = cla?.[0] || ''
+        } catch (e) {
+          lc = ''
+          console.warn('Error: undefined canonical locale:', e)
+        }
+      }
       this.pvc.processValue = Pcvt.asIsPval
-      this.pvc.formatter = Pcvt.formatDefault({ isNullable: this.isNullable })
+      this.pvc.formatter = Pcvt.formatDefault({ isNullable: this.isNullable, locale: lc })
       this.pvc.cellClass = 'pv-cell-right' // numeric cell value style by default
       this.ctrl.formatOpts = void 0
       this.edt.kind = Pcvt.EDIT_NUMBER
@@ -560,11 +573,11 @@ export default {
       if (Mdf.isBuiltIn(this.paramType.Type)) {
         if (Mdf.isFloat(this.paramType.Type)) {
           this.pvc.processValue = Pcvt.asFloatPval
-          this.pvc.formatter = Pcvt.formatFloat({ isNullable: this.isNullable, nDecimal: -1, groupSep: ',' }) // decimal: -1 is to show source float value
+          this.pvc.formatter = Pcvt.formatFloat({ isNullable: this.isNullable, locale: lc, nDecimal: -1 }) // decimal: -1 is to show source float value
         }
         if (Mdf.isInt(this.paramType.Type)) {
           this.pvc.processValue = Pcvt.asIntPval
-          this.pvc.formatter = Pcvt.formatInt({ isNullable: this.isNullable, groupSep: ',' })
+          this.pvc.formatter = Pcvt.formatInt({ isNullable: this.isNullable, locale: lc })
         }
         if (Mdf.isBool(this.paramType.Type)) {
           this.pvc.processValue = Pcvt.asBoolPval
@@ -767,8 +780,8 @@ export default {
         const response = await this.$axios.post(u, layout)
         const rsp = response.data
         let d = []
-        if (!!rsp && rsp.hasOwnProperty('Page')) {
-          if ((rsp.Page.length || 0) > 0) d = rsp.Page
+        if (rsp) {
+          if ((rsp?.Page?.length || 0) > 0) d = rsp.Page
         }
 
         // update pivot table view

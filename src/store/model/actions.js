@@ -25,6 +25,7 @@ export const theModel = ({ dispatch, commit, state }, model) => {
   // clear parameters view state if new model selected
   if (digest !== storeDigest) {
     dispatch('uiState/paramViewDeleteByModel', storeDigest, { root: true })
+    dispatch('uiState/tableViewDeleteByModel', storeDigest, { root: true })
   }
   // clear selected run if new model selected
   if (Mdf.isLength(state.runTextList)) {

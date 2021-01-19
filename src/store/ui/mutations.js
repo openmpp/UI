@@ -61,8 +61,33 @@ export const paramViewDeleteByPrefix = (state, prefix) => {
   if (typeof prefix !== typeof 'string') return
 
   for (const key in state.paramViews) {
-    if (!state.paramViews.hasOwnProperty(key)) continue
     if (prefix && !key.startsWith(prefix)) continue
+    if (!state.paramViews.hasOwnProperty(key)) continue
     delete state.paramViews[key]
+  }
+}
+
+// insert or replace table view by route key (key must be non-empty string)
+export const tableView = (state, tv) => {
+  if (!tv || !tv?.key) return
+  if (typeof tv.key !== typeof 'string' || tv.key === '') return
+
+  // insert new or replace existing table view
+  if (tv?.view) state.tableViews[tv.key] = Mdf._cloneDeep(tv.view)
+}
+
+// delete table view by route key, if exist (key must be a string)
+export const tableViewDelete = (state, key) => {
+  if (typeof key === typeof 'string' && state.tableViews?.[key]) delete state.tableViews[key]
+}
+
+// delete table view by prefix of route key (it must be a string), if prefix '' empty then delete all
+export const tableViewDeleteByPrefix = (state, prefix) => {
+  if (typeof prefix !== typeof 'string') return
+
+  for (const key in state.tableViews) {
+    if (prefix && !key.startsWith(prefix)) continue
+    if (!state.tableViews?.[key]) continue
+    delete state.tableViews[key]
   }
 }
