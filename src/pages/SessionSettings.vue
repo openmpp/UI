@@ -20,6 +20,7 @@
           <td class="settings-cell q-pa-sm">
             <q-btn
               @click="doModelListClear"
+              :disable="!modelCount"
               flat
               dense
               class="bg-primary text-white rounded-borders"
@@ -35,6 +36,7 @@
           <td class="settings-cell q-pa-sm">
             <q-btn
               @click="doModelClear"
+              :disable="!isModel"
               flat
               dense
               class="bg-primary text-white rounded-borders"
@@ -50,6 +52,7 @@
           <td class="settings-cell q-pa-sm">
             <q-btn
               @click="doRunTextListClear"
+              :disable="!runCount"
               flat
               dense
               class="bg-primary text-white rounded-borders"
@@ -65,6 +68,7 @@
           <td class="settings-cell q-pa-sm">
             <q-btn
               @click="doWorksetTextListClear"
+              :disable="!worksetCount"
               flat
               dense
               class="bg-primary text-white rounded-borders"
@@ -80,6 +84,21 @@
           <td class="settings-cell q-pa-sm">&nbsp;</td>
           <td class="settings-cell q-pa-sm om-text-secondary">{{ $t('Language') }}:</td>
           <td class="settings-cell q-pa-sm">{{ uiLangTitle }}</td>
+        </tr>
+
+        <tr>
+          <th colspan="3" class="settings-cell q-pa-sm">
+            <q-btn
+              @click="doSaveModelView"
+              :disable="!isModel"
+              flat
+              dense
+              no-caps
+              class="bg-primary text-white rounded-borders q-pr-xs"
+              icon="mdi-content-save-cog"
+              :label="$t('Save views of') + (isModel ? (' ' + modelTitle) : '')"
+              />
+          </th>
         </tr>
 
       </tbody>
@@ -123,6 +142,7 @@
 import { mapState, mapGetters, mapActions } from 'vuex'
 import * as Mdf from 'src/model-common'
 import * as Idb from 'src/idb/idb'
+import { exportFile } from 'quasar'
 
 export default {
   name: 'SessionSettings',
@@ -137,6 +157,7 @@ export default {
 
   computed: {
     uiLangTitle () { return this.uiLang !== '' ? this.uiLang : this.$t('Default') },
+    isModel () { return Mdf.isModel(this.theModel) },
     modelTitle () { return Mdf.isModel(this.theModel) ? Mdf.modelTitle(this.theModel) : this.$t('Not selected') },
     runCount () { return Mdf.runTextCount(this.runTextList) },
     worksetCount () { return Mdf.worksetTextCount(this.worksetTextList) },
@@ -162,6 +183,34 @@ export default {
 
     // retrun parameter description by name
     parameterDescr (pName) { return Mdf.descrOfDescrNote(Mdf.paramTextByName(this.theModel, pName)) },
+
+    // download parameters views
+    doSaveModelView () {
+      const name = Mdf.modelName(this.theModel) + '.json'
+
+      // make parameter views json
+      const rs = this.dbRows.filter(r => this.paramIdx.findIndex(p => p.name === r.key) >= 0)
+      let vs = ''
+      if (Mdf.isLength(rs)) {
+        try {
+          vs = JSON.stringify(rs)
+        } catch (e) {
+          vs = ''
+          console.warn('Error at stringify of:', rs)
+        }
+      }
+      if (!vs) {
+        this.$q.notify({ type: 'negative', message: this.$t('Unable to save views') + ': ' + name })
+        return
+      }
+
+      // save as modelName.json
+      const ret = exportFile(name, vs, 'application/json')
+      if (!ret) {
+        console.warn('Unable to save views:', name, ret)
+        this.$q.notify({ type: 'negative', message: this.$t('Unable to save views') + ': ' + name })
+      }
+    },
 
     // delete parameter default view
     async doRemoveParamDefaultView (pName) {
@@ -207,7 +256,7 @@ export default {
         for (const key of keyArr) {
           const v = await rd.getByKey(key)
           if (v || v === {}) {
-            this.dbRows.push({ key: key, value: v })
+            this.dbRows.push({ key: key, view: v })
           }
         }
       } catch (e) {
