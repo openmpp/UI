@@ -9,11 +9,6 @@
     :label="$t('Session state and settings')"
     >
     <table class="settings-table q-mb-sm">
-      <!--
-      <thead>
-        <tr><th colspan="3" class="settings-cell text-weight-medium q-pa-sm">{{ $t('Session state and settings') }}</th></tr>
-      </thead>
-      -->
       <tbody>
 
         <tr>
@@ -87,18 +82,49 @@
         </tr>
 
         <tr>
-          <th colspan="3" class="settings-cell q-pa-sm">
+          <td colspan="3" class="settings-cell q-pa-sm">
+            <span class="row">
             <q-btn
-              @click="doSaveModelView"
+              @click="onDownloadViews"
               :disable="!isModel"
               flat
               dense
               no-caps
-              class="bg-primary text-white rounded-borders q-pr-xs"
+              align="left"
+              class="bg-primary text-white rounded-borders col-grow"
               icon="mdi-content-save-cog"
-              :label="$t('Save views of') + (isModel ? (' ' + modelTitle) : '')"
+              :label="isModel ? $t('Download views of') +' ' + modelTitle : $t('Download model views')"
               />
-          </th>
+            </span>
+          </td>
+        </tr>
+
+        <tr>
+          <td class="settings-cell q-pa-sm">
+            <q-btn
+              @click="onUploadViews"
+              :disable="!isModel || !isUploadFile"
+              flat
+              dense
+              class="bg-primary text-white rounded-borders"
+              icon="mdi-cog-refresh-outline"
+              :title="$t('Upload views of') + (isModel ? (' ' + modelTitle) : '')"
+              />
+          </td>
+          <td colspan="2" class="settings-cell q-pa-sm">
+            <q-file
+              v-model="uploadFile"
+              :disable="!isModel"
+              accept="application/json"
+              outlined
+              dense
+              clearable
+              hide-bottom-space
+              color="primary"
+              :label="isModel ? $t('Upload views of') +' ' + modelTitle : $t('Upload model views')"
+              >
+            </q-file>
+          </td>
         </tr>
 
       </tbody>
@@ -118,7 +144,7 @@
       <q-item v-for="p of paramIdx" :key="p.name">
         <q-item-section avatar>
           <q-btn
-            @click="doRemoveParamDefaultView(p.name)"
+            @click="doRemoveParamView(p.name)"
             flat
             dense
             class="bg-primary text-white rounded-borders"
@@ -149,6 +175,7 @@ export default {
 
   data () {
     return {
+      uploadFile: null,
       dbRows: [],
       paramIdxCount: 0, // number of parameters where default view stored in database
       paramIdx: [] // parameter names and index in dbRows, if db row exist
@@ -158,9 +185,13 @@ export default {
   computed: {
     uiLangTitle () { return this.uiLang !== '' ? this.uiLang : this.$t('Default') },
     isModel () { return Mdf.isModel(this.theModel) },
+    modelName () { return Mdf.modelName(this.theModel) },
     modelTitle () { return Mdf.isModel(this.theModel) ? Mdf.modelTitle(this.theModel) : this.$t('Not selected') },
     runCount () { return Mdf.runTextCount(this.runTextList) },
     worksetCount () { return Mdf.worksetTextCount(this.worksetTextList) },
+    isUploadFile () {
+      return this.uploadFile instanceof File && (this.uploadFile?.name || '') !== '' && this.uploadFile?.type === 'application/json'
+    },
 
     ...mapState('model', {
       theModel: state => state.theModel,
@@ -185,41 +216,91 @@ export default {
     parameterDescr (pName) { return Mdf.descrOfDescrNote(Mdf.paramTextByName(this.theModel, pName)) },
 
     // download parameters views
-    doSaveModelView () {
-      const name = Mdf.modelName(this.theModel) + '.json'
+    onDownloadViews () {
+      const fName = this.modelName + '.json'
 
       // make parameter views json
-      const rs = this.dbRows.filter(r => this.paramIdx.findIndex(p => p.name === r.key) >= 0)
+      const ps = this.dbRows.filter(r => this.paramIdx.findIndex(p => p.name === r.key) >= 0)
       let vs = ''
-      if (Mdf.isLength(rs)) {
+      if (Mdf.isLength(ps)) {
         try {
-          vs = JSON.stringify(rs)
+          vs = JSON.stringify({
+            model: {
+              name: this.modelName,
+              parameterViews: ps
+            }
+          })
         } catch (e) {
           vs = ''
-          console.warn('Error at stringify of:', rs)
+          console.warn('Error at stringify of:', ps)
         }
       }
       if (!vs) {
-        this.$q.notify({ type: 'negative', message: this.$t('Unable to save views') + ': ' + name })
+        this.$q.notify({ type: 'negative', message: this.$t('Unable to save views') + ': ' + this.modelName })
         return
       }
 
       // save as modelName.json
-      const ret = exportFile(name, vs, 'application/json')
+      const ret = exportFile(fName, vs, 'application/json')
       if (!ret) {
-        console.warn('Unable to save views:', name, ret)
-        this.$q.notify({ type: 'negative', message: this.$t('Unable to save views') + ': ' + name })
+        console.warn('Unable to save views:', fName, ret)
+        this.$q.notify({ type: 'negative', message: this.$t('Unable to save views') + ': ' + fName })
+      }
+    },
+
+    // upload parameter views
+    async onUploadViews () {
+      if (!this.isUploadFile) return
+
+      // read and parse parameter views json
+      let vs
+      try {
+        const t = await this.uploadFile.text()
+        if (t) vs = JSON.parse(t)
+      } catch (e) {
+        vs = undefined
+        console.warn('Error at json parse of text from:', this.uploadFile)
+      }
+      if (!vs || vs?.model?.name !== this.modelName) {
+        this.$q.notify({ type: 'negative', message: this.$t('Unable to restore views') + ': ' + this.modelName })
+        return
+      }
+
+      // write parameter views into indexed db
+      let count = 0
+      if (Array.isArray(vs.model?.parameterViews) && vs.model?.parameterViews?.length) {
+        let name = ''
+        try {
+          const dbCon = await Idb.connection()
+          const rw = await dbCon.openReadWrite(this.modelName)
+          for (const v of vs.model.parameterViews) {
+            if (!v?.key || !v?.view) continue
+            name = v.key
+            await rw.put(v.key, v.view)
+            count++
+          }
+        } catch (e) {
+          console.warn('Unable to save default parameter view:', name, e)
+          this.$q.notify({ type: 'negative', message: this.$t('Unable to save default parameter view') + ': ' + name })
+          return
+        }
+      }
+      // refresh parameter views: read new version of views from database
+      if (count) {
+        this.doReadParameterViews()
+        this.$q.notify({ type: 'info', message: this.$t('Updated {count} parameter view(s)', { count: count }) })
+      } else {
+        this.$q.notify({ type: 'info', message: this.$t('No parameter views found') + ': ' + this.modelName })
       }
     },
 
     // delete parameter default view
-    async doRemoveParamDefaultView (pName) {
-      const mName = Mdf.modelName(this.theModel)
-      if (!mName) return // model not selected
+    async doRemoveParamView (pName) {
+      if (!this.modelName) return // model not selected
 
       try {
         const dbCon = await Idb.connection()
-        const rw = await dbCon.openReadWrite(mName)
+        const rw = await dbCon.openReadWrite(this.modelName)
         await rw.remove(pName)
       } catch (e) {
         console.warn('Unable to erase default view of parameter', pName, e)
@@ -237,19 +318,27 @@ export default {
     },
 
     // refresh model settings: select from indexed db
-    async doRefresh () {
+    doRefresh () {
       this.dbRows = []
       this.paramIdx = []
       this.paramIdxCount = 0
+      this.uploadFile = null
+      if (this.modelName) {
+        this.doReadParameterViews()
+      }
+    },
 
-      const mName = Mdf.modelName(this.theModel)
-      if (!mName) return // model not selected
+    // select all parameter views from indexed db
+    async doReadParameterViews () {
+      this.dbRows = []
+      this.paramIdx = []
+      this.paramIdxCount = 0
 
       // select all rows from model indexed db
       this.dbRows = []
       try {
         const dbCon = await Idb.connection()
-        const rd = await dbCon.openReadOnly(mName)
+        const rd = await dbCon.openReadOnly(this.modelName)
         const keyArr = await rd.getAllKeys()
         if (!Mdf.isLength(keyArr)) return // no rows in model db
 
@@ -260,8 +349,8 @@ export default {
           }
         }
       } catch (e) {
-        console.warn('Unable to retrive model settings', mName, e)
-        this.$q.notify({ type: 'negative', message: this.$t('Unable to retrive model settings') + ': ' + mName })
+        console.warn('Unable to retrive model settings', this.modelName, e)
+        this.$q.notify({ type: 'negative', message: this.$t('Unable to retrive model settings') + ': ' + this.modelName })
         return
       }
       if (!Mdf.isLength(this.dbRows)) return // no rows in model db or all rows are empty

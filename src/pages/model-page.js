@@ -219,7 +219,7 @@ export default {
         console.warn('onTabCloseClick error: not found tab key:', tabPath)
         return
       }
-      this.tabItems.splice(nPos, 1)
+      this.tabItems = this.tabItems.filter((ti, idx) => idx !== nPos)
 
       // if tab was active then focus on the next tab
       if (tabPath === this.activeTabKey || tabPath === this.$route.path) {
