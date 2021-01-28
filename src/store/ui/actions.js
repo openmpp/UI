@@ -28,31 +28,23 @@ export const paramViewDelete = ({ commit }, key) => {
 }
 
 // delete parameter view by model prefix
-export const paramViewDeleteByModel = ({ dispatch }, modelDigest) => {
-  dispatch('paramViewDeleteByPrefix', '/model/' + (modelDigest || '-') + '/')
+export const paramViewDeleteByModel = ({ commit }, modelDigest) => {
+  commit('paramViewDeleteByModel', modelDigest)
 }
 
 // delete parameter view by model digest and run digest prefix
-export const paramViewDeleteByModelRun = ({ dispatch }, modelRun) => {
-  const m = modelRun.hasOwnProperty('digest') ? (modelRun.digest || '-') : '-'
-  const r = modelRun.hasOwnProperty('runDigest') ? (modelRun.runDigest || '-') : '-'
-  dispatch(
-    'paramViewDeleteByPrefix', '/model/' + m + '/run/' + r + '/parameter/'
-  )
+export const paramViewDeleteByModelRun = ({ commit }, modelRun) => {
+  commit('paramViewDeleteByModelRun', modelRun)
 }
 
 // delete parameter view by model digest and workset name prefix
-export const paramViewDeleteByModelWorkset = ({ dispatch }, modelWorkset) => {
-  const m = modelWorkset.hasOwnProperty('digest') ? (modelWorkset.digest || '-') : '-'
-  const w = modelWorkset.hasOwnProperty('worksetName') ? (modelWorkset.worksetName || '-') : '-'
-  dispatch(
-    'paramViewDeleteByPrefix', '/model/' + m + '/set/' + w + '/parameter/'
-  )
+export const paramViewDeleteByModelWorkset = ({ commit }, modelWorkset) => {
+  commit('paramViewDeleteByModelWorkset', modelWorkset)
 }
 
-// delete parameter view by route prefix, if prefix '' empty then delete all
-export const paramViewDeleteByPrefix = ({ commit }, prefix) => {
-  commit('paramViewDeleteByPrefix', prefix)
+// delete parameter view by model name and parameter name
+export const paramViewDeleteByModelParameterName = ({ commit }, modelNameParamName) => {
+  commit('paramViewDeleteByModelParameterName', modelNameParamName)
 }
 
 // insert or replace table view by route key
@@ -66,20 +58,6 @@ export const tableViewDelete = ({ commit }, key) => {
 }
 
 // delete table view by model prefix
-export const tableViewDeleteByModel = ({ dispatch }, modelDigest) => {
-  dispatch('tableViewDeleteByPrefix', '/model/' + (modelDigest || '-') + '/')
-}
-
-// delete table view by model digest and run digest prefix
-export const tableViewDeleteByModelRun = ({ dispatch }, modelRun) => {
-  const m = modelRun?.digest || '-'
-  const r = modelRun?.runDigest || '-'
-  dispatch(
-    'tableViewDeleteByPrefix', '/model/' + m + '/run/' + r + '/parameter/'
-  )
-}
-
-// delete table view by route prefix, if prefix '' empty then delete all
-export const tableViewDeleteByPrefix = ({ commit }, prefix) => {
-  commit('tableViewDeleteByPrefix', prefix)
+export const tableViewDeleteByModel = ({ commit }, modelDigest) => {
+  // commit('tableViewDeleteByModel', modelDigest)
 }

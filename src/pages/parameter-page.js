@@ -263,7 +263,12 @@ export default {
       if (Mdf.isLength(rows) || Mdf.isLength(cols) || Mdf.isLength(others)) {
         this.dispatchParamView({
           key: this.routeKey,
-          view: Pcvt.pivotState(rows, cols, others, dv.isRowColControls, dv.rowColMode || 2)
+          view: Pcvt.pivotState(rows, cols, others, dv.isRowColControls, dv.rowColMode || 2),
+          digest: this.digest || '',
+          modelName: Mdf.modelName(this.theModel),
+          runDigest: this.runDigest || '',
+          worksetName: this.worksetName || '',
+          parameterName: this.parameterName || ''
         })
       }
     },
@@ -702,7 +707,12 @@ export default {
       // store pivot view
       this.dispatchParamView({
         key: this.routeKey,
-        view: Pcvt.pivotStateFromFields(this.rowFields, this.colFields, this.otherFields, this.ctrl.isRowColControls, this.pvc.rowColMode, this.edt)
+        view: Pcvt.pivotStateFromFields(this.rowFields, this.colFields, this.otherFields, this.ctrl.isRowColControls, this.pvc.rowColMode, this.edt),
+        digest: this.digest || '',
+        modelName: Mdf.modelName(this.theModel),
+        runDigest: this.runDigest || '',
+        worksetName: this.worksetName || '',
+        parameterName: this.parameterName || ''
       })
 
       // refresh pivot view: both dimensions labels and table body

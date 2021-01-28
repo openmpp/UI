@@ -115,7 +115,7 @@
             <q-file
               v-model="uploadFile"
               :disable="!isModel"
-              accept="application/json"
+              accept=".view.json"
               outlined
               dense
               clearable
@@ -207,8 +207,15 @@ export default {
   },
 
   methods: {
-    doModelClear () { this.dispatchTheModel(Mdf.emptyModel()) },
     doModelListClear () { this.dispatchModelList([]) },
+    doModelClear () {
+      this.dbRows = []
+      this.paramIdx = []
+      this.paramIdxCount = 0
+      this.uploadFile = null
+
+      this.dispatchTheModel(Mdf.emptyModel())
+    },
     doRunTextListClear () { this.dispatchRunTextList([]) },
     doWorksetTextListClear () { this.dispatchWorksetTextList([]) },
 
@@ -217,10 +224,10 @@ export default {
 
     // download parameters views
     onDownloadViews () {
-      const fName = this.modelName + '.json'
+      const fName = this.modelName + '.view.json'
 
       // make parameter views json
-      const ps = this.dbRows.filter(r => this.paramIdx.findIndex(p => p.name === r.key) >= 0)
+      const ps = this.dbRows.filter(r => this.paramIdx.findIndex(p => p.name === r.name) >= 0)
       let vs = ''
       if (Mdf.isLength(ps)) {
         try {
@@ -274,9 +281,9 @@ export default {
           const dbCon = await Idb.connection()
           const rw = await dbCon.openReadWrite(this.modelName)
           for (const v of vs.model.parameterViews) {
-            if (!v?.key || !v?.view) continue
-            name = v.key
-            await rw.put(v.key, v.view)
+            if (!v?.name || !v?.view) continue
+            name = v.name
+            await rw.put(v.name, v.view)
             count++
           }
         } catch (e) {
@@ -323,9 +330,8 @@ export default {
       this.paramIdx = []
       this.paramIdxCount = 0
       this.uploadFile = null
-      if (this.modelName) {
-        this.doReadParameterViews()
-      }
+
+      if (this.modelName) this.doReadParameterViews()
     },
 
     // select all parameter views from indexed db
@@ -345,7 +351,7 @@ export default {
         for (const key of keyArr) {
           const v = await rd.getByKey(key)
           if (v || v === {}) {
-            this.dbRows.push({ key: key, view: v })
+            this.dbRows.push({ name: key, view: v })
           }
         }
       } catch (e) {
@@ -357,7 +363,7 @@ export default {
 
       // refresh parameter index: for each parameter name find index in db rows, if exist
       for (const p of this.theModel.ParamTxt) {
-        const idx = this.dbRows.findIndex(r => r.key === p.Param.Name)
+        const idx = this.dbRows.findIndex(r => r.name === p.Param.Name)
         if (idx >= 0) this.paramIdx.push({ name: p.Param.Name, dbIdx: idx })
       }
       this.paramIdxCount = Mdf.lengthOf(this.paramIdx)

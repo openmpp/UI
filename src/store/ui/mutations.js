@@ -16,54 +16,81 @@ export const worksetNameSelected = (state, name) => {
 
 // insert, replace or update parameter view by route key (key must be non-empty string)
 export const paramView = (state, pv) => {
-  if (!pv || !pv.hasOwnProperty('key')) return
+  if (!pv || !pv?.key) return
   if (typeof pv.key !== typeof 'string' || pv.key === '') return
 
   // insert new or replace existing parameter view
-  if (pv.hasOwnProperty('view')) {
-    if (pv.view !== void 0 && pv.view !== null) {
-      state.paramViews[pv.key] = Mdf._cloneDeep(pv.view)
-    }
+  if (pv?.view) {
+    state.paramViews[pv.key] = Mdf._cloneDeep({
+      view: pv.view,
+      digest: pv?.digest || '',
+      modelName: pv?.modelName || '',
+      runDigest: pv?.runDigest || '',
+      worksetName: pv?.worksetName || '',
+      parameterName: pv?.parameterName || ''
+    })
     return
   }
   // else: update existing parameter view
-  if (!state.paramViews.hasOwnProperty(pv.key)) return // parameter view not found
-  const p = state.paramViews[pv.key]
-  if (!p) return // parameter view not found
+  if (!state.paramViews?.[pv.key]?.view) return // parameter view not found
 
-  if (pv.hasOwnProperty('rows')) {
-    if (typeof pv.rows === typeof []) state.paramViews[pv.key].rows = Mdf._cloneDeep(pv.rows)
+  if (Array.isArray(pv?.rows)) {
+    state.paramViews[pv.key].view.rows = Mdf._cloneDeep(pv.rows)
   }
-  if (pv.hasOwnProperty('cols')) {
-    if (typeof pv.cols === typeof []) state.paramViews[pv.key].cols = Mdf._cloneDeep(pv.cols)
+  if (Array.isArray(pv?.cols)) {
+    state.paramViews[pv.key].view.cols = Mdf._cloneDeep(pv.cols)
   }
-  if (pv.hasOwnProperty('others')) {
-    if (typeof pv.others === typeof []) state.paramViews[pv.key].others = Mdf._cloneDeep(pv.others)
+  if (Array.isArray(pv?.others)) {
+    state.paramViews[pv.key].view.others = Mdf._cloneDeep(pv.others)
   }
-  if (pv.hasOwnProperty('isRowColControls')) {
-    if (typeof pv.isRowColControls === typeof true) state.paramViews[pv.key].isRowColControls = pv.isRowColControls
+  if (typeof pv?.isRowColControls === typeof true) {
+    state.paramViews[pv.key].view.isRowColControls = pv.isRowColControls
   }
-  if (pv.hasOwnProperty('rowColMode')) {
-    if (typeof pv.rowColMode === typeof 1) state.paramViews[pv.key].rowColMode = pv.rowColMode
+  if (typeof pv?.rowColMode === typeof 1) {
+    state.paramViews[pv.key].view.rowColMode = pv.rowColMode
   }
-  if (pv.hasOwnProperty('edit')) {
-    if (pv.edit !== void 0 && pv.edit !== null) state.paramViews[pv.key].edit = Mdf._cloneDeep(pv.edit)
+  if (pv?.edit) {
+    state.paramViews[pv.key].view.edit = Mdf._cloneDeep(pv.edit)
   }
 }
 
 // delete parameter view by route key, if exist (key must be a string)
 export const paramViewDelete = (state, key) => {
-  if (typeof key === typeof 'string' && state.paramViews.hasOwnProperty[key]) delete state.paramViews[key]
+  if (typeof key === typeof 'string' && state.paramViews?.[key]) delete state.paramViews[key]
 }
 
-// delete parameter view by prefix of route key (it must be a string), if prefix '' empty then delete all
-export const paramViewDeleteByPrefix = (state, prefix) => {
-  if (typeof prefix !== typeof 'string') return
-
+// delete parameter view by model prefix
+export const paramViewDeleteByModel = (state, modelDigest) => {
+  const m = (typeof modelDigest === typeof 'string') ? modelDigest : '-'
   for (const key in state.paramViews) {
-    if (prefix && !key.startsWith(prefix)) continue
-    if (!state.paramViews.hasOwnProperty(key)) continue
-    delete state.paramViews[key]
+    if (state.paramViews?.[key]?.digest === m) delete state.paramViews[key]
+  }
+}
+
+// delete parameter view by model digest and run digest prefix
+export const paramViewDeleteByModelRun = (state, modelRun) => {
+  const m = (typeof modelRun?.digest === typeof 'string') ? modelRun.digest : '-'
+  const r = (typeof modelRun?.runDigest === typeof 'string') ? modelRun.runDigest : '-'
+  for (const key in state.paramViews) {
+    if (state.paramViews?.[key]?.digest === m && state.paramViews?.[key]?.runDigest === r) delete state.paramViews[key]
+  }
+}
+
+// delete parameter view by model digest and workset name prefix
+export const paramViewDeleteByModelWorkset = (state, modelWorkset) => {
+  const m = (typeof modelWorkset?.digest === typeof 'string') ? modelWorkset.digest : '-'
+  const w = (typeof modelWorkset?.worksetName === typeof 'string') ? modelWorkset.worksetName : '-'
+  for (const key in state.paramViews) {
+    if (state.paramViews?.[key]?.digest === m && state.paramViews?.[key]?.worksetName === w) delete state.paramViews[key]
+  }
+}
+
+// delete parameter view by model name and parameter name
+export const paramViewDeleteByModelParameterName = (state, modelNameParamName) => {
+  const m = (typeof modelNameParamName?.modelName === typeof 'string') ? modelNameParamName.modelName : '-'
+  const p = (typeof modelNameParamName?.parameterName === typeof 'string') ? modelNameParamName.parameterName : '-'
+  for (const key in state.paramViews) {
+    if (state.paramViews?.[key]?.modelName === m && state.paramViews?.[key]?.parameterName === p) delete state.paramViews[key]
   }
 }
 
@@ -79,15 +106,4 @@ export const tableView = (state, tv) => {
 // delete table view by route key, if exist (key must be a string)
 export const tableViewDelete = (state, key) => {
   if (typeof key === typeof 'string' && state.tableViews?.[key]) delete state.tableViews[key]
-}
-
-// delete table view by prefix of route key (it must be a string), if prefix '' empty then delete all
-export const tableViewDeleteByPrefix = (state, prefix) => {
-  if (typeof prefix !== typeof 'string') return
-
-  for (const key in state.tableViews) {
-    if (prefix && !key.startsWith(prefix)) continue
-    if (!state.tableViews?.[key]) continue
-    delete state.tableViews[key]
-  }
 }
