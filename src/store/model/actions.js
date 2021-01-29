@@ -15,6 +15,7 @@ export const langList = ({ commit }, ml) => {
 export const theModel = ({ dispatch, commit, state }, model) => {
   const digest = Mdf.modelDigest(model)
   const storeDigest = Mdf.modelDigest(state.theModel)
+  const isEmpty = digest === ''
 
   commit('theModel', model)
   commit('wordListOnNew', digest)
@@ -25,19 +26,15 @@ export const theModel = ({ dispatch, commit, state }, model) => {
   // clear parameters view state if new model selected
   if (digest !== storeDigest) {
     // keep view state on model switch
-    // dispatch('uiState/deleteByModel', storeDigest, { root: true })
+    // dispatch('uiState/viewDeleteByModel', storeDigest, { root: true })
   }
   // clear selected run if new model selected
-  if (Mdf.isLength(state.runTextList)) {
-    if (state.runTextList[0].ModelDigest !== digest) {
-      dispatch('uiState/runDigestSelected', '', { root: true })
-    }
+  if (isEmpty || state?.runTextList?.[0]?.ModelDigest !== digest) {
+    dispatch('uiState/runDigestSelected', '', { root: true })
   }
   // clear selected workset if new model selected
-  if (Mdf.isLength(state.worksetTextList)) {
-    if (state.worksetTextList[0].ModelDigest !== digest) {
-      dispatch('uiState/worksetNameSelected', '', { root: true })
-    }
+  if (isEmpty || state?.worksetTextList?.[0]?.ModelDigest !== digest) {
+    dispatch('uiState/worksetNameSelected', '', { root: true })
   }
 }
 

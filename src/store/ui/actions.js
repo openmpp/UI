@@ -23,7 +23,7 @@ export const tabsView = ({ commit }, modelTabs) => {
 }
 
 // delete parameter views, table views and model tab list by model digest
-export const deleteByModel = ({ dispatch, commit }, modelDigest) => {
+export const viewDeleteByModel = ({ dispatch, commit }, modelDigest) => {
   dispatch('paramViewDeleteByModel', modelDigest)
   dispatch('tableViewDeleteByModel', modelDigest)
   commit('tabsViewDeleteByModel', modelDigest)

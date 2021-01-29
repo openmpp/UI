@@ -207,11 +207,15 @@ export default {
 
   methods: {
     onModelClear () {
+      const digest = Mdf.modelDigest(this.theModel)
       this.clearState()
+      this.dispatchViewDeleteByModel(digest)
       this.dispatchTheModel(Mdf.emptyModel())
     },
     onModelListClear () {
+      const digest = Mdf.modelDigest(this.theModel)
       this.clearState()
+      this.dispatchViewDeleteByModel(digest)
       this.dispatchModelList([])
     },
     onRunTextListClear () { this.dispatchRunTextList([]) },
@@ -370,6 +374,9 @@ export default {
       dispatchModelList: 'modelList',
       dispatchRunTextList: 'runTextList',
       dispatchWorksetTextList: 'worksetTextList'
+    }),
+    ...mapActions('uiState', {
+      dispatchViewDeleteByModel: 'viewDeleteByModel'
     })
   },
 
