@@ -21,7 +21,7 @@ export const tabsView = (state, modelTabs) => {
 
   tabsViewDeleteByModel(state, m) // remove existing tabs for the model
 
-  for (const t of modelTabs?.tabs) {
+  for (const t of modelTabs.tabs) {
     if (typeof t?.kind === typeof 'string' && t?.routeParts?.digest === m) {
       state.tabsView.push({ kind: t.kind, routeParts: t.routeParts })
     }

@@ -227,6 +227,7 @@ export default {
         console.warn('onTabCloseClick error: not found tab key:', tabPath)
         return
       }
+      const kind = this.tabItems[nPos].kind
       this.tabItems = this.tabItems.filter((ti, idx) => idx !== nPos)
 
       // if tab was active then focus on the next tab
@@ -238,7 +239,8 @@ export default {
           this.$router.push(this.activeTabKey)
         }
       }
-      this.storeTabItems() // save list of tab item in state store
+      // if parameter or table tab closed then save list of tab item in state store
+      if (kind === 'run-parameter' || kind === 'set-parameter' || kind === 'table') this.storeTabItems()
     },
 
     // save list of parameters or tables tabs in store state
@@ -285,7 +287,8 @@ export default {
       } else {
         this.tabItems.push(ti)
       }
-      this.storeTabItems() // save list of tab item in state store
+      // if parameter or table tab added then save list of tab item in state store
+      if (kind === 'run-parameter' || kind === 'set-parameter' || kind === 'table') this.storeTabItems()
 
       return (ti.path || '')
     },
