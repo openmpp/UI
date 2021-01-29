@@ -28,13 +28,13 @@
       @click="onWorksetEditToggle"
       flat
       dense
-      class="col-auto bg-primary text-white rounded-borders"
+      class="col-auto bg-primary text-white rounded-borders q-mr-xs"
       :icon="isEditWorkset ? 'mdi-content-save-edit' : 'mdi-square-edit-outline'"
       :title="(isEditWorkset ? $t('Save') : $t('Edit')) + ' ' + worksetText.Name"
       />
 
     <div
-      class="col-auto q-ml-xs"
+      class="col-auto"
       >
       <span>{{ worksetText.Name }}<br />
       <span class="om-text-descr"><span class="mono">{{ lastDateTimeStr }} </span>{{ descrOfWorkset }}</span></span>

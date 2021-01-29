@@ -44,7 +44,7 @@
         @click="onWorksetEditToggle"
         flat
         dense
-        class="col-auto bg-primary text-white rounded-borders"
+        class="col-auto bg-primary text-white rounded-borders q-mr-xs"
         :icon="isEditWorksetCurrent ? 'mdi-content-save-edit' : 'mdi-square-edit-outline'"
         :title="(isEditWorksetCurrent ? $t('Save') : $t('Edit')) + ' ' + worksetNameSelected"
         />
@@ -56,7 +56,7 @@
         >
         <div
           :key="worksetNameSelected"
-          class="col-auto q-ml-sm"
+          class="col-auto"
           >
           <span>{{ worksetNameSelected }}<br />
           <span class="om-text-descr"><span class="mono">{{ dateTimeStr(worksetCurrent.UpdateDateTime) }} </span>{{ descrWorksetCurrent }}</span></span>

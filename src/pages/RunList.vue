@@ -43,7 +43,8 @@
         @click="doShowRunNote(runDigestSelected)"
         flat
         dense
-        class="col-auto bg-primary text-white rounded-borders"
+        class="col-auto text-white rounded-borders q-mr-xs"
+        :class="(isSuccess(runCurrent.Status) || isInProgress(runCurrent.Status)) ? 'bg-primary' : 'bg-warning'"
         :icon="isSuccess(runCurrent.Status) ? 'mdi-information' : (isInProgress(runCurrent.Status) ? 'mdi-run' : 'mdi-alert-circle-outline')"
         :title="$t('About') + ' ' + runCurrent.Name"
         />
@@ -55,7 +56,7 @@
         >
         <div
           :key="runDigestSelected"
-          class="col-auto q-ml-sm"
+          class="col-auto"
           >
           <span>{{ runCurrent.Name }}<br />
           <span class="om-text-descr"><span class="mono">{{ dateTimeStr(runCurrent.UpdateDateTime) }} </span>{{ descrRunCurrent }}</span></span>
@@ -153,7 +154,7 @@
               flat
               round
               dense
-              color="primary"
+              :color="(isSuccess(prop.node.status) || isInProgress(prop.node.status)) ? 'primary' : 'warning'"
               class="col-auto"
               :icon="isSuccess(prop.node.status) ? 'mdi-information' : (isInProgress(prop.node.status) ? 'mdi-run' : 'mdi-alert-circle-outline')"
               :title="$t('About') + ' ' + prop.node.label"

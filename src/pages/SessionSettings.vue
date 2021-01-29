@@ -14,7 +14,7 @@
         <tr>
           <td class="settings-cell q-pa-sm">
             <q-btn
-              @click="doModelListClear"
+              @click="onModelListClear"
               :disable="!modelCount"
               flat
               dense
@@ -30,7 +30,7 @@
         <tr>
           <td class="settings-cell q-pa-sm">
             <q-btn
-              @click="doModelClear"
+              @click="onModelClear"
               :disable="!isModel"
               flat
               dense
@@ -46,7 +46,7 @@
         <tr>
           <td class="settings-cell q-pa-sm">
             <q-btn
-              @click="doRunTextListClear"
+              @click="onRunTextListClear"
               :disable="!runCount"
               flat
               dense
@@ -62,7 +62,7 @@
         <tr>
           <td class="settings-cell q-pa-sm">
             <q-btn
-              @click="doWorksetTextListClear"
+              @click="onWorksetTextListClear"
               :disable="!worksetCount"
               flat
               dense
@@ -132,7 +132,7 @@
   </q-expansion-item>
 
   <q-expansion-item
-    :disable="!paramIdxCount"
+    :disable="!paramIdx.length"
     switch-toggle-side
     expand-separator
     default-opened
@@ -144,7 +144,7 @@
       <q-item v-for="p of paramIdx" :key="p.name">
         <q-item-section avatar>
           <q-btn
-            @click="doRemoveParamView(p.name)"
+            @click="onRemoveParamView(p.name)"
             flat
             dense
             class="bg-primary text-white rounded-borders"
@@ -175,10 +175,9 @@ export default {
 
   data () {
     return {
-      uploadFile: null,
       dbRows: [],
-      paramIdxCount: 0, // number of parameters where default view stored in database
-      paramIdx: [] // parameter names and index in dbRows, if db row exist
+      paramIdx: [], // parameter names and index in dbRows, if db row exist
+      uploadFile: null
     }
   },
 
@@ -207,20 +206,30 @@ export default {
   },
 
   methods: {
-    doModelListClear () { this.dispatchModelList([]) },
-    doModelClear () {
-      this.dbRows = []
-      this.paramIdx = []
-      this.paramIdxCount = 0
-      this.uploadFile = null
-
+    onModelClear () {
+      this.clearState()
       this.dispatchTheModel(Mdf.emptyModel())
     },
-    doRunTextListClear () { this.dispatchRunTextList([]) },
-    doWorksetTextListClear () { this.dispatchWorksetTextList([]) },
+    onModelListClear () {
+      this.clearState()
+      this.dispatchModelList([])
+    },
+    onRunTextListClear () { this.dispatchRunTextList([]) },
+    onWorksetTextListClear () { this.dispatchWorksetTextList([]) },
+    clearState () {
+      this.dbRows = []
+      this.paramIdx = []
+      this.uploadFile = null
+    },
 
     // retrun parameter description by name
     parameterDescr (pName) { return Mdf.descrOfDescrNote(Mdf.paramTextByName(this.theModel, pName)) },
+
+    // refresh model settings: select from indexed db
+    doRefresh () {
+      this.clearState()
+      if (this.modelName) this.doReadParameterViews()
+    },
 
     // download parameters views
     onDownloadViews () {
@@ -302,7 +311,7 @@ export default {
     },
 
     // delete parameter default view
-    async doRemoveParamView (pName) {
+    async onRemoveParamView (pName) {
       if (!this.modelName) return // model not selected
 
       try {
@@ -316,7 +325,6 @@ export default {
       }
 
       this.paramIdx = this.paramIdx.filter(p => p.name !== pName)
-      this.paramIdxCount = Mdf.lengthOf(this.paramIdx)
 
       this.$q.notify({
         type: 'info',
@@ -324,21 +332,10 @@ export default {
       })
     },
 
-    // refresh model settings: select from indexed db
-    doRefresh () {
-      this.dbRows = []
-      this.paramIdx = []
-      this.paramIdxCount = 0
-      this.uploadFile = null
-
-      if (this.modelName) this.doReadParameterViews()
-    },
-
     // select all parameter views from indexed db
     async doReadParameterViews () {
       this.dbRows = []
       this.paramIdx = []
-      this.paramIdxCount = 0
 
       // select all rows from model indexed db
       this.dbRows = []
@@ -366,7 +363,6 @@ export default {
         const idx = this.dbRows.findIndex(r => r.name === p.Param.Name)
         if (idx >= 0) this.paramIdx.push({ name: p.Param.Name, dbIdx: idx })
       }
-      this.paramIdxCount = Mdf.lengthOf(this.paramIdx)
     },
 
     ...mapActions('model', {

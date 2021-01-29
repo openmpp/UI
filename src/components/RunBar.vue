@@ -9,7 +9,8 @@
       :disable="!isNotEmptyRun"
       flat
       dense
-      class="col-auto bg-primary text-white rounded-borders q-mr-xs"
+      class="col-auto text-white rounded-borders q-mr-xs"
+      :class="(isSuccess || isInProgress) ? 'bg-primary' : 'bg-warning'"
       :icon="isSuccess ? 'mdi-information' : (isInProgress ? 'mdi-run' : 'mdi-alert-circle-outline')"
       :title="$t('About') + ' ' + runText.Name"
       />
