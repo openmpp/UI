@@ -14,6 +14,25 @@ export const worksetNameSelected = (state, name) => {
   if (typeof name === typeof 'string') state.worksetNameSelected = name
 }
 
+// replace tab items with new list by model digest
+export const tabsView = (state, modelTabs) => {
+  const m = (typeof modelTabs?.digest === typeof 'string') ? modelTabs.digest : ''
+  if (!m || !Array.isArray(modelTabs?.tabs)) return
+
+  tabsViewDeleteByModel(state, m) // remove existing tabs for the model
+
+  for (const t of modelTabs?.tabs) {
+    if (typeof t?.kind === typeof 'string' && t?.routeParts?.digest === m) {
+      state.tabsView.push({ kind: t.kind, routeParts: t.routeParts })
+    }
+  }
+}
+
+// remove all tab items (for example on model switch)
+export const tabsViewDeleteByModel = (state, modelDigest) => {
+  state.tabsView = state.tabsView.filter(t => t?.routeParts?.digest !== modelDigest)
+}
+
 // insert, replace or update parameter view by route key (key must be non-empty string)
 export const paramView = (state, pv) => {
   if (!pv || !pv?.key) return
@@ -59,7 +78,7 @@ export const paramViewDelete = (state, key) => {
   if (typeof key === typeof 'string' && state.paramViews?.[key]) delete state.paramViews[key]
 }
 
-// delete parameter view by model prefix
+// delete parameter view by model digest
 export const paramViewDeleteByModel = (state, modelDigest) => {
   const m = (typeof modelDigest === typeof 'string') ? modelDigest : '-'
   for (const key in state.paramViews) {
@@ -67,7 +86,7 @@ export const paramViewDeleteByModel = (state, modelDigest) => {
   }
 }
 
-// delete parameter view by model digest and run digest prefix
+// delete parameter view by model digest and run digest
 export const paramViewDeleteByModelRun = (state, modelRun) => {
   const m = (typeof modelRun?.digest === typeof 'string') ? modelRun.digest : '-'
   const r = (typeof modelRun?.runDigest === typeof 'string') ? modelRun.runDigest : '-'
@@ -76,7 +95,7 @@ export const paramViewDeleteByModelRun = (state, modelRun) => {
   }
 }
 
-// delete parameter view by model digest and workset name prefix
+// delete parameter view by model digest and workset name
 export const paramViewDeleteByModelWorkset = (state, modelWorkset) => {
   const m = (typeof modelWorkset?.digest === typeof 'string') ? modelWorkset.digest : '-'
   const w = (typeof modelWorkset?.worksetName === typeof 'string') ? modelWorkset.worksetName : '-'

@@ -1,6 +1,17 @@
 // UI session state
 import * as Mdf from 'src/model-common'
 
+// return copy tab items by model digest
+export const tabsView = (state) => (modelDigest) => {
+  if (typeof modelDigest !== typeof 'string' || !Array.isArray(state?.tabsView)) return []
+
+  const tv = []
+  for (const t of state.tabsView) {
+    if (t?.routeParts?.digest === modelDigest) tv.push(Mdf._cloneDeep(t))
+  }
+  return tv
+}
+
 // return copy of parameter view by key
 export const paramView = (state) => (key) => {
   return state.paramViews?.[key]?.view ? Mdf._cloneDeep(state.paramViews[key].view) : undefined

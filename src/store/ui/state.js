@@ -6,6 +6,7 @@ export default function () {
     worksetNameSelected: '',
     taskNameSelected: '',
     paramViews: {},
-    tableViews: {}
+    tableViews: {},
+    tabsView: []
   }
 }

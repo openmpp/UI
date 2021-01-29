@@ -17,6 +17,18 @@ export const worksetNameSelected = ({ commit }, name) => {
   commit('worksetNameSelected', name)
 }
 
+// replace tab items with new value
+export const tabsView = ({ commit }, modelTabs) => {
+  commit('tabsView', modelTabs)
+}
+
+// delete parameter views, table views and model tab list by model digest
+export const deleteByModel = ({ dispatch, commit }, modelDigest) => {
+  dispatch('paramViewDeleteByModel', modelDigest)
+  dispatch('tableViewDeleteByModel', modelDigest)
+  commit('tabsViewDeleteByModel', modelDigest)
+}
+
 // insert or update parameter view by route key
 export const paramView = ({ commit }, pv) => {
   commit('paramView', pv)
@@ -27,17 +39,17 @@ export const paramViewDelete = ({ commit }, key) => {
   commit('paramViewDelete', key)
 }
 
-// delete parameter view by model prefix
+// delete parameter view by model digest
 export const paramViewDeleteByModel = ({ commit }, modelDigest) => {
   commit('paramViewDeleteByModel', modelDigest)
 }
 
-// delete parameter view by model digest and run digest prefix
+// delete parameter view by model digest and run digest
 export const paramViewDeleteByModelRun = ({ commit }, modelRun) => {
   commit('paramViewDeleteByModelRun', modelRun)
 }
 
-// delete parameter view by model digest and workset name prefix
+// delete parameter view by model digest and workset name
 export const paramViewDeleteByModelWorkset = ({ commit }, modelWorkset) => {
   commit('paramViewDeleteByModelWorkset', modelWorkset)
 }
@@ -57,7 +69,7 @@ export const tableViewDelete = ({ commit }, key) => {
   commit('tableViewDelete', key)
 }
 
-// delete table view by model prefix
+// delete table view by model digest
 export const tableViewDeleteByModel = ({ commit }, modelDigest) => {
   // commit('tableViewDeleteByModel', modelDigest)
 }

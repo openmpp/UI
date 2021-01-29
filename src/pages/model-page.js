@@ -70,7 +70,8 @@ export default {
       worksetNameSelected: state => state.worksetNameSelected
     }),
     ...mapGetters('uiState', {
-      paramViewUpdatedCount: 'paramViewUpdatedCount'
+      paramViewUpdatedCount: 'paramViewUpdatedCount',
+      tabsView: 'tabsView'
     })
   },
 
@@ -82,9 +83,16 @@ export default {
   methods: {
     // update page view
     doRefresh () {
+      const tv = this.tabsView(this.digest) // list of additional tabs: parameters or tables tabs
+
       this.doTabAdd('run-list', { digest: this.digest })
       this.doTabAdd('set-list', { digest: this.digest })
       this.doTabAdd('new-run', { digest: this.digest })
+
+      // restore additional tabs
+      for (const t of tv) {
+        if (t?.kind && t?.routeParts?.digest) this.doTabAdd(t.kind, t.routeParts)
+      }
 
       // if current path is not a one of tabs then route to the first tab
       for (const t of this.tabItems) {
@@ -230,6 +238,18 @@ export default {
           this.$router.push(this.activeTabKey)
         }
       }
+      this.storeTabItems() // save list of tab item in state store
+    },
+
+    // save list of parameters or tables tabs in store state
+    storeTabItems () {
+      const tv = []
+      for (const t of this.tabItems) {
+        if (t.kind === 'run-parameter' || t.kind === 'set-parameter' || t.kind === 'table') {
+          tv.push({ kind: t.kind, routeParts: t.routeParts })
+        }
+      }
+      this.dispatchTabsView({ digest: this.digest, tabs: tv })
     },
 
     // tab mounted: add to the tab list and if this is current router path then make this tab active
@@ -265,12 +285,16 @@ export default {
       } else {
         this.tabItems.push(ti)
       }
+      this.storeTabItems() // save list of tab item in state store
+
       return (ti.path || '')
     },
 
     makeTabInfo (kind, routeParts) {
       // empty tab info: invalid default value
-      const emptyTabInfo = () => { return { kind: (kind || ''), path: '', title: '', pos: 0, updated: false } }
+      const emptyTabInfo = () => {
+        return { kind: (kind || ''), path: '', routeParts: { digest: '' }, title: '', pos: 0, updated: false }
+      }
 
       // tab kind must be defined and model digest same as current model
       if ((kind || '') === '' || !routeParts || (routeParts.digest || '') !== this.digest) return emptyTabInfo()
@@ -280,6 +304,7 @@ export default {
           return {
             kind: kind,
             path: '/model/' + this.digest + '/run-list',
+            routeParts: routeParts,
             title: this.$t('Model Runs'),
             pos: RUN_LST_TAB_POS,
             updated: false
@@ -289,6 +314,7 @@ export default {
           return {
             kind: kind,
             path: '/model/' + this.digest + '/set-list',
+            routeParts: routeParts,
             title: this.$t('Input Scenarios'),
             pos: WS_LST_TAB_POS,
             updated: false
@@ -304,6 +330,7 @@ export default {
             kind: kind,
             // path: '/model/' + this.digest + '/run/' + routeParts.runDigest + '/parameter/' + routeParts.parameterName,
             path: Mdf.parameterRunPath(this.digest, routeParts.runDigest, routeParts.parameterName),
+            routeParts: routeParts,
             title: (pds !== '') ? pds : routeParts.parameterName,
             pos: FREE_TAB_POS,
             updated: false
@@ -320,6 +347,7 @@ export default {
             kind: kind,
             // path: '/model/' + this.digest + '/set/' + routeParts.worksetName + '/parameter/' + routeParts.parameterName,
             path: Mdf.parameterWorksetPath(this.digest, routeParts.worksetName, routeParts.parameterName),
+            routeParts: routeParts,
             title: (pds !== '') ? pds : routeParts.parameterName,
             pos: FREE_TAB_POS,
             updated: false
@@ -336,6 +364,7 @@ export default {
             kind: kind,
             // path: '/model/' + this.digest + '/run/' + routeParts.runDigest + '/table/' + routeParts.tableName,
             path: Mdf.tablePath(this.digest, routeParts.runDigest, routeParts.tableName),
+            routeParts: routeParts,
             title: (tds !== '') ? tds : routeParts.tableName,
             pos: FREE_TAB_POS,
             updated: false
@@ -346,6 +375,7 @@ export default {
           return {
             kind: kind,
             path: '/model/' + this.digest + '/new-run',
+            routeParts: routeParts,
             title: this.$t('Run the Model'),
             pos: NEW_RUN_TAB_POS,
             updated: false
@@ -366,6 +396,7 @@ export default {
           return {
             kind: kind,
             path: '/model/' + this.digest + '/run-log/' + routeParts.runStamp,
+            routeParts: routeParts,
             title: (rn !== '') ? rn : routeParts.runStamp,
             pos: FREE_TAB_POS,
             updated: false
@@ -387,7 +418,8 @@ export default {
     ...mapActions('uiState', {
       dispatchRunDigestSelected: 'runDigestSelected',
       dispatchWorksetNameSelected: 'worksetNameSelected',
-      dispatchParamViewDeleteByModel: 'paramViewDeleteByModel'
+      dispatchParamViewDeleteByModel: 'paramViewDeleteByModel',
+      dispatchTabsView: 'tabsView'
     })
   },
 
