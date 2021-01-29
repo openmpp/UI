@@ -19,22 +19,20 @@ export const paramView = (state) => (key) => {
 
 // count parameters view by model digest
 export const paramViewCount = (state) => (modelDigest) => {
-  const prefix = '/model/' + (modelDigest || '-') + '/'
+  const m = (typeof modelDigest === typeof 'string') ? modelDigest : '-'
   let n = 0
   for (const key in state.paramViews) {
-    if (!key.startsWith(prefix)) continue
-    if (!state.paramViews.hasOwnProperty(key)) continue
-    if (state.paramViews[key]) n++
+    if (state.paramViews?.[key]?.digest === m) n++
   }
   return n
 }
 
 // count updated parameters by model digest
 export const paramViewUpdatedCount = (state) => (modelDigest) => {
-  const prefix = '/model/' + (modelDigest || '-') + '/'
+  const m = (typeof modelDigest === typeof 'string') ? modelDigest : '-'
   let n = 0
   for (const key in state.paramViews) {
-    if (!key.startsWith(prefix)) continue
+    if (!state.paramViews?.[key]?.digest === m) continue
     const pv = state.paramViews?.[key]?.view
     if (!!pv && pv.edit?.isUpdated && !!pv.edit.isUpdated) n++
   }
