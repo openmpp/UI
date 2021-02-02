@@ -45,7 +45,12 @@ export const modelList = ({ dispatch, commit }, ml) => {
 }
 
 // update run text
-export const runText = ({ dispatch, commit }, rt) => {
+export const runText = ({ commit }, rt) => {
+  commit('runText', rt)
+}
+
+// update run text and select it as current run
+export const runTextSelected = ({ dispatch, commit }, rt) => {
   commit('runText', rt)
   if (Mdf.isNotEmptyRunText(rt)) {
     dispatch('uiState/runDigestSelected', rt.RunDigest, { root: true })
@@ -77,7 +82,12 @@ export const runTextList = ({ dispatch, commit, state }, rl) => {
 }
 
 // update workset text
-export const worksetText = ({ dispatch, commit }, wt) => {
+export const worksetText = ({ commit }, wt) => {
+  commit('worksetText', wt)
+}
+
+// update workset text and select it as current workset
+export const worksetTextSelected = ({ dispatch, commit }, wt) => {
   commit('worksetText', wt)
   if (Mdf.isNotEmptyWorksetText(wt)) {
     dispatch('uiState/worksetNameSelected', wt.Name, { root: true })

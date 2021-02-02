@@ -8,8 +8,8 @@ export default {
   props: {
     modelDigest: { type: String, default: '' },
     worksetName: { type: String, default: '' },
-    isReadonly: { type: Boolean, defaut: false },
-    updateStatusTickle: { type: Boolean, defaut: false }
+    isReadonly: { type: Boolean, default: false },
+    updateStatusTickle: { type: Boolean, default: false }
   },
 
   render () { return {} },

@@ -7,15 +7,13 @@ import * as Hlpr from './helper'
 // number of model parameters
 export const paramCount = (md) => {
   if (!Mdl.isModel(md)) return 0
-  if (!md.hasOwnProperty('ParamTxt')) return 0
-  return Hlpr.lengthOf(md.ParamTxt)
+  return md?.ParamTxt?.length || 0
 }
 
 // is model has parameter text list and each element is Param
 export const isParamTextList = (md) => {
   if (!Mdl.isModel(md)) return false
-  if (!md.hasOwnProperty('ParamTxt')) return false
-  if (!Hlpr.hasLength(md.ParamTxt)) return false
+  if (!Array.isArray(md?.ParamTxt) || (md?.ParamTxt?.length || 0) === 0) return false
   for (let k = 0; k < md.ParamTxt.length; k++) {
     if (!isParam(md.ParamTxt[k].Param)) return false
   }
@@ -25,14 +23,13 @@ export const isParamTextList = (md) => {
 // return true if this is non empty Param
 export const isParam = (p) => {
   if (!p) return false
-  if (!p.hasOwnProperty('ParamId') || !p.hasOwnProperty('Name') || !p.hasOwnProperty('Digest')) return false
-  return (p.Name || '') !== '' && (p.Digest || '') !== ''
+  return (p?.ParamId || -1) >= 0 || (p?.Name || '') !== '' || (p?.Digest || '') !== ''
 }
 
 // if this is not empty ParamTxt: parameter id, parameter name, parameter digest
 export const isNotEmptyParamText = (pt) => {
   if (!pt) return false
-  if (!pt.hasOwnProperty('Param') || !pt.hasOwnProperty('DescrNote')) return false
+  if (!pt?.Param || !pt?.DescrNote) return false
   return isParam(pt.Param)
 }
 
@@ -117,8 +114,7 @@ export const paramSizeByName = (md, name) => {
 // return true if this is non empty ParamRunSet
 export const isNotEmptyParamRunSet = (prs) => {
   if (!prs) return false
-  if (!prs.hasOwnProperty('Name') || !prs.hasOwnProperty('SubCount') || !Hlpr.hasLength(prs.Txt)) return false
-  return (prs.Name || '') !== ''
+  return (prs?.Name || '') !== '' && (prs?.SubCount || -1) >= 0 && Array.isArray(prs?.Txt)
 }
 
 // return empty ParamRunSetPub, which is Param[i] of run text or workset text
@@ -135,8 +131,7 @@ export const emptyParamRunSet = () => {
 // return empty value if not found
 export const paramRunSetByName = (rsl, name) => {
   if (!rsl || !name) return emptyParamRunSet()
-  if (!rsl.hasOwnProperty('Param')) return emptyParamRunSet()
-  if (!Hlpr.isLength(rsl.Param)) return emptyParamRunSet()
+  if (!Array.isArray(rsl?.Param) || (rsl?.Param?.length || 0) === 0) return emptyParamRunSet()
   for (let k = 0; k < rsl.Param.length; k++) {
     if (isNotEmptyParamRunSet(rsl.Param[k]) && rsl.Param[k].Name === name) {
       return Hlpr._cloneDeep(rsl.Param[k])

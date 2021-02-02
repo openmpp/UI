@@ -3,9 +3,11 @@ import * as Mdf from 'src/model-common'
 import RefreshModel from 'components/RefreshModel.vue'
 import RefreshRun from 'components/RefreshRun.vue'
 import RefreshRunList from 'components/RefreshRunList.vue'
+import RefreshRunArray from 'components/RefreshRunArray.vue'
 import RefreshWorkset from 'components/RefreshWorkset.vue'
 import RefreshWorksetList from 'components/RefreshWorksetList.vue'
 import UpdateWorksetStatus from 'components/UpdateWorksetStatus.vue'
+import RefreshWorksetArray from 'components/RefreshWorksetArray.vue'
 
 /* eslint-disable no-multi-spaces */
 const RUN_LST_TAB_POS = 1       // model runs list tab position
@@ -16,7 +18,9 @@ const FREE_TAB_POS = 20         // first unassigned tab position
 
 export default {
   name: 'Model',
-  components: { RefreshModel, RefreshRun, RefreshRunList, RefreshWorkset, RefreshWorksetList, UpdateWorksetStatus },
+  components: {
+    RefreshModel, RefreshRun, RefreshRunList, RefreshRunArray, RefreshWorkset, RefreshWorksetList, UpdateWorksetStatus, RefreshWorksetArray
+  },
 
   props: {
     digest: { type: String, default: '' },
@@ -29,12 +33,18 @@ export default {
       loadModelDone: false,
       loadRunDone: false,
       loadRunListDone: false,
+      loadRunViewsDone: false,
       loadWsDone: false,
       loadWsListDone: false,
+      loadWsViewsDone: false,
       refreshRunListTickle: false,
+      refreshRunViewsTickle: false,
+      refreshWsViewsTickle: false,
       modelName: '',
       runDnsCurrent: '',      // run digest selected (run name, run stamp)
       wsNameCurrent: '',      // workset name selected
+      runViewsArray: [],      // digests of runs to refresh to view existing tabs
+      wsViewsArray: [],       // names of worksets to refresh to view existing tabs
       activeTabKey: '',       // active tab path
       tabItems: [],           // tab list
       updatingWsStatus: false,
@@ -50,7 +60,9 @@ export default {
 
   computed: {
     loadWait () {
-      return !this.loadModelDone || !this.loadRunDone || !this.loadRunListDone || !this.loadWsDone || !this.loadWsListDone || this.updatingWsStatus
+      return !this.loadModelDone ||
+        !this.loadRunDone || !this.loadRunListDone || !this.loadRunViewsDone ||
+        !this.loadWsDone || !this.loadWsListDone || this.updatingWsStatus || !this.loadWsViewsDone
     },
     isEmptyTabList () { return !Mdf.isLength(this.tabItems) },
     runTextCount () { return Mdf.runTextCount(this.runTextList) },
@@ -90,8 +102,31 @@ export default {
       this.doTabAdd('new-run', { digest: this.digest })
 
       // restore additional tabs
+      this.runViewsArray = []
+      this.wsViewsArray = []
+
       for (const t of tv) {
-        if (t?.kind && t?.routeParts?.digest) this.doTabAdd(t.kind, t.routeParts)
+        if (t?.kind && t?.routeParts?.digest) {
+          this.doTabAdd(t.kind, t.routeParts)
+
+          const rd = t.routeParts?.runDigest || ''
+          if (rd && rd !== this.runDnsCurrent) this.runViewsArray.push(rd)
+
+          const wsn = t.routeParts?.worksetName || ''
+          if (wsn && wsn !== this.wsNameCurrent) this.wsViewsArray.push(wsn)
+        }
+      }
+
+      // reload run text for additional tabs
+      if (this.runViewsArray.length > 0) {
+        this.refreshRunViewsTickle = !this.refreshRunViewsTickle
+      } else {
+        this.loadRunViewsDone = true
+      }
+      if (this.wsViewsArray.length > 0) {
+        this.refreshWsViewsTickle = !this.refreshWsViewsTickle
+      } else {
+        this.loadWsViewsDone = true
       }
 
       // if current path is not a one of tabs then route to the first tab
@@ -128,6 +163,9 @@ export default {
     doneRunLoad (isSuccess, dgst) {
       this.loadRunDone = true
     },
+    doneRunViewsLoad (isSuccess, count) {
+      this.loadRunViewsDone = true
+    },
     doneWsListLoad (isSuccess) {
       this.loadWsListDone = true
       //
@@ -149,6 +187,9 @@ export default {
     },
     doneUpdateWsStatus (isSuccess, name, isReadonly) {
       this.updatingWsStatus = false
+    },
+    doneWsViewsLoad (isSuccess, count) {
+      this.loadWsViewsDone = true
     },
 
     // run selected from the list: update current run

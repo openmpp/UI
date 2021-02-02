@@ -134,6 +134,15 @@
     @wait="loadRunDone = false"
     >
   </refresh-run>
+  <refresh-run-array v-if="(digest || '') !== ''"
+    :model-digest="digest"
+    :run-digest-array="runViewsArray"
+    :refresh-tickle="refreshTickle"
+    :refresh-all-tickle="refreshRunViewsTickle"
+    @done="doneRunViewsLoad"
+    @wait="loadRunViewsDone = false"
+    >
+  </refresh-run-array>
   <refresh-workset-list
     :digest="digest"
     :refresh-tickle="refreshTickle"
@@ -155,6 +164,15 @@
     @done="doneUpdateWsStatus"
     @wait="updatingWsStatus = true">
   </update-workset-status>
+  <refresh-workset-array v-if="(digest || '') !== ''"
+    :model-digest="digest"
+    :workset-name-array="wsViewsArray"
+    :refresh-tickle="refreshTickle"
+    :refresh-all-tickle="refreshWsViewsTickle"
+    @done="doneWsViewsLoad"
+    @wait="loadWsViewsDone = false"
+    >
+  </refresh-workset-array>
 
   <q-dialog v-model="showAllDiscardDlg">
     <q-card>

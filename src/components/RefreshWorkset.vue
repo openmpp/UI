@@ -8,7 +8,7 @@ export default {
   props: {
     modelDigest: { type: String, default: '' },
     worksetName: { type: String, default: '' },
-    refreshTickle: { type: Boolean, defaut: false }
+    refreshTickle: { type: Boolean, default: false }
   },
 
   render () { return {} },
@@ -36,7 +36,7 @@ export default {
   },
 
   methods: {
-    // refersh workset list
+    // refersh workset-text by workset name
     async doRefresh () {
       if (!this.modelDigest || !this.worksetName) {
         console.warn('Unable to refresh input scenario: model digest or name is empty')
@@ -51,7 +51,7 @@ export default {
       const u = this.omsUrl + '/api/model/' + this.modelDigest + '/workset/' + this.worksetName + '/text' + (this.uiLang !== '' ? '/lang/' + this.uiLang : '')
       try {
         const response = await this.$axios.get(u)
-        this.dispatchWorksetText(response.data) // update workset in store
+        this.dispatchWorksetTextSelected(response.data) // update workset in store
         this.loadDone = true
       } catch (e) {
         let em = ''
@@ -67,7 +67,7 @@ export default {
     },
 
     ...mapActions('model', {
-      dispatchWorksetText: 'worksetText'
+      dispatchWorksetTextSelected: 'worksetTextSelected'
     })
   },
 

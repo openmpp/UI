@@ -8,7 +8,7 @@ export default {
   props: {
     modelDigest: { type: String, default: '' },
     runDigest: { type: String, default: '' },
-    refreshTickle: { type: Boolean, defaut: false }
+    refreshTickle: { type: Boolean, default: false }
   },
 
   render () { return {} },
@@ -51,7 +51,7 @@ export default {
       const u = this.omsUrl + '/api/model/' + this.modelDigest + '/run/' + this.runDigest + '/text' + (this.uiLang !== '' ? '/lang/' + this.uiLang : '')
       try {
         const response = await this.$axios.get(u)
-        this.dispatchRunText(response.data) // update run in store
+        this.dispatchRunTextSelected(response.data) // update run in store
         this.loadDone = true
       } catch (e) {
         let em = ''
@@ -67,7 +67,7 @@ export default {
     },
 
     ...mapActions('model', {
-      dispatchRunText: 'runText'
+      dispatchRunTextSelected: 'runTextSelected'
     })
   },
 
