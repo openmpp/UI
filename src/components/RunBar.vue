@@ -18,8 +18,9 @@
     <div
       class="col-auto"
       >
-      <span>{{ runText.Name }}<br />
+      <span v-if="isNotEmptyRun">{{ runText.Name }}<br />
       <span class="om-text-descr"><span class="mono">{{ lastDateTimeStr }} </span>{{ descrOfRun }}</span></span>
+      <span v-else disabled>{{ $t('Server offline or model run not found') }}</span>
     </div>
 
   </div>
