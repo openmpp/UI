@@ -280,6 +280,7 @@ export default {
       this.isInitRun = false
       this.loadWait = false
       this.$emit('run-list-refresh')
+
       if (!ok) {
         this.$q.notify({ type: 'negative', message: this.$t('Server offline or model run failed to start') })
         return

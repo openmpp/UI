@@ -38,6 +38,7 @@ export default {
       loadWsListDone: false,
       loadWsViewsDone: false,
       refreshRunListTickle: false,
+      refreshRunTickle: false,
       refreshRunViewsTickle: false,
       refreshWsViewsTickle: false,
       modelName: '',
@@ -74,6 +75,7 @@ export default {
       worksetTextList: state => state.worksetTextList
     }),
     ...mapGetters('model', {
+      runTextByDigest: 'runTextByDigest',
       isExistInRunTextList: 'isExistInRunTextList',
       isExistInWorksetTextList: 'isExistInWorksetTextList'
     }),
@@ -110,24 +112,19 @@ export default {
           this.doTabAdd(t.kind, t.routeParts)
 
           const rd = t.routeParts?.runDigest || ''
-          if (rd && rd !== this.runDnsCurrent) this.runViewsArray.push(rd)
+          if (rd && rd !== this.runDigestSelected) this.runViewsArray.push(rd)
 
           const wsn = t.routeParts?.worksetName || ''
-          if (wsn && wsn !== this.wsNameCurrent) this.wsViewsArray.push(wsn)
+          if (wsn && wsn !== this.worksetNameSelected) this.wsViewsArray.push(wsn)
         }
       }
 
       // reload run text for additional tabs
-      if (this.runViewsArray.length > 0) {
-        this.refreshRunViewsTickle = !this.refreshRunViewsTickle
-      } else {
-        this.loadRunViewsDone = true
-      }
-      if (this.wsViewsArray.length > 0) {
-        this.refreshWsViewsTickle = !this.refreshWsViewsTickle
-      } else {
-        this.loadWsViewsDone = true
-      }
+      this.loadRunViewsDone = this.runViewsArray.length <= 0
+      if (!this.loadRunViewsDone) this.refreshRunViewsTickle = !this.refreshRunViewsTickle
+
+      this.loadWsViewsDone = this.wsViewsArray.length <= 0
+      if (!this.loadWsViewsDone) this.refreshWsViewsTickle = !this.refreshWsViewsTickle
 
       // if current path is not a one of tabs then route to the first tab
       for (const t of this.tabItems) {
@@ -138,6 +135,11 @@ export default {
       }
       if (!this.activeTabKey) {
         this.$router.push(this.tabItems[0].path)
+      }
+
+      // check if run selected and ready to use
+      if (this.loadRunListDone && Array.isArray(this?.runTextList) && (this.runTextList?.length || 0) > 0) {
+        this.checkRunSelected()
       }
     },
     doneModelLoad (isSuccess) {
@@ -153,15 +155,39 @@ export default {
         this.dispatchRunDigestSelected('')
         return
       }
-      // else: if run already selected then make sure it still exist, if not exist then use first run
-      if (!!this.runDigestSelected && this.isExistInRunTextList({ ModelDigest: this.digest, RunDigest: this.runDigestSelected })) {
-        this.runDnsCurrent = this.runDigestSelected
-      } else {
+      // else: check if run selected and ready to use
+      this.checkRunSelected()
+    },
+    // check if run selected and ready to use
+    checkRunSelected () {
+      // else: if run not selected then use first run
+      if (!this.runDigestSelected) {
         this.runDnsCurrent = this.runTextList[0].RunDigest
+        this.dispatchRunDigestSelected('')
+        return
       }
+      // else: if run already selected then make sure it still exist
+      const rt = this.runTextByDigest({ ModelDigest: this.digest, RunDigest: this.runDigestSelected })
+      if (!Mdf.isNotEmptyRunText(rt)) {
+        this.runDnsCurrent = this.runTextList[0].RunDigest
+        this.dispatchRunDigestSelected('')
+        return
+      }
+      // else: if run completed and run parameters list loaded then exit
+      if (Mdf.isRunCompletedStatus(rt?.Status) && Array.isArray(rt?.Param) && (rt?.Param?.length || 0) >= 0) {
+        this.loadRunDone = true
+        return
+      }
+      // else: refresh run parameters list and run status
+      this.runDnsCurrent = this.runDigestSelected
+      this.refreshRunTickle = !this.refreshRunTickle
     },
     doneRunLoad (isSuccess, dgst) {
       this.loadRunDone = true
+      //
+      if (isSuccess && (dgst || '') !== '' && (this.runDigestSelected || '') === '') {
+        this.dispatchRunDigestSelected(dgst)
+      }
     },
     doneRunViewsLoad (isSuccess, count) {
       this.loadRunViewsDone = true
@@ -184,6 +210,10 @@ export default {
     },
     doneWsLoad (isSuccess, name) {
       this.loadWsDone = true
+      //
+      if (isSuccess && (name || '') !== '' && (this.worksetNameSelected || '') === '') {
+        this.dispatchWorksetNameSelected(name)
+      }
     },
     doneUpdateWsStatus (isSuccess, name, isReadonly) {
       this.updatingWsStatus = false
@@ -192,6 +222,21 @@ export default {
       this.loadWsViewsDone = true
     },
 
+    // run(s) completed: refresh run text for selected run
+    onRunCompletedList (rcArr) {
+      if (!Array.isArray(rcArr) || rcArr.length === 0) {
+        console.warn('Invalid (empty) list of completed runs')
+        return
+      }
+
+      const idx = ((this.runDigestSelected || '') !== '') ? rcArr.indexOf(this.runDigestSelected) : 0
+
+      if (idx >= 0) {
+        this.runDnsCurrent = rcArr[idx]
+        this.refreshRunTickle = !this.refreshRunTickle
+        this.dispatchRunDigestSelected(rcArr[idx])
+      }
+    },
     // run selected from the list: update current run
     onRunSelect (dgst) {
       if ((dgst || '') === '') {
@@ -199,6 +244,12 @@ export default {
         return
       }
       this.runDnsCurrent = dgst
+      this.refreshRunTickle = !this.refreshRunTickle
+      this.dispatchRunDigestSelected(dgst)
+    },
+    // run started: refresh run list
+    onRunListRefresh () {
+      this.refreshRunListTickle = !this.refreshRunListTickle
     },
     // workset selected from the list: update current workset
     onWorksetSelect (name) {
@@ -207,6 +258,7 @@ export default {
         return
       }
       this.wsNameCurrent = name
+      this.dispatchWorksetNameSelected(name)
     },
     // run parameter selected from parameters list: go to run parameter page
     onRunParamSelect (name) {
@@ -255,10 +307,6 @@ export default {
     onNewRunSelect () {
       const p = this.doTabAdd('new-run', { digest: this.digest })
       if (p) this.$router.push(p)
-    },
-    // run completed: refresh run list
-    onRunListRefresh () {
-      this.refreshRunListTickle = !this.refreshRunListTickle // refersh run list
     },
 
     // on click tab close button: close taband route to the next tab

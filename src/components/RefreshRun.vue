@@ -3,12 +3,13 @@
 import { mapState, mapActions } from 'vuex'
 
 export default {
-  name: 'RefershRun',
+  name: 'RefreshRun',
 
   props: {
     modelDigest: { type: String, default: '' },
     runDigest: { type: String, default: '' },
-    refreshTickle: { type: Boolean, default: false }
+    refreshTickle: { type: Boolean, default: false },
+    refreshRunTickle: { type: Boolean, default: false }
   },
 
   render () { return {} },
@@ -32,13 +33,16 @@ export default {
 
   watch: {
     runDigest () { this.doRefresh() },
-    refreshTickle () { this.doRefresh() }
+    refreshTickle () { this.doRefresh() },
+    refreshRunTickle () { this.doRefresh() }
   },
 
   methods: {
     // refersh run text
     async doRefresh () {
-      if (!this.modelDigest || !this.runDigest) {
+      if (!this.runDigest) return // exit on empty run digest
+
+      if (!this.modelDigest) {
         console.warn('Unable to refresh model run: model digest or run digest is empty')
         this.$q.notify({ type: 'negative', message: this.$t('Unable to refresh model run: digest is empty') })
         return
@@ -51,7 +55,7 @@ export default {
       const u = this.omsUrl + '/api/model/' + this.modelDigest + '/run/' + this.runDigest + '/text' + (this.uiLang !== '' ? '/lang/' + this.uiLang : '')
       try {
         const response = await this.$axios.get(u)
-        this.dispatchRunTextSelected(response.data) // update run in store
+        this.dispatchRunText(response.data) // update run in store
         this.loadDone = true
       } catch (e) {
         let em = ''
@@ -67,7 +71,7 @@ export default {
     },
 
     ...mapActions('model', {
-      dispatchRunTextSelected: 'runTextSelected'
+      dispatchRunText: 'runText'
     })
   },
 

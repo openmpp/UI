@@ -4,7 +4,7 @@ import { mapState, mapActions } from 'vuex'
 import * as Mdf from 'src/model-common'
 
 export default {
-  name: 'RefershRunList',
+  name: 'RefreshRunList',
 
   props: {
     digest: { type: String, default: '' },

@@ -129,12 +129,12 @@ export const emptyParamRunSet = () => {
 
 // find ParamRunSet by parameter name in Param[] array of run text or workset text
 // return empty value if not found
-export const paramRunSetByName = (rsl, name) => {
-  if (!rsl || !name) return emptyParamRunSet()
-  if (!Array.isArray(rsl?.Param) || (rsl?.Param?.length || 0) === 0) return emptyParamRunSet()
-  for (let k = 0; k < rsl.Param.length; k++) {
-    if (isNotEmptyParamRunSet(rsl.Param[k]) && rsl.Param[k].Name === name) {
-      return Hlpr._cloneDeep(rsl.Param[k])
+export const paramRunSetByName = (runOrSet, name) => {
+  if (!runOrSet || !name) return emptyParamRunSet()
+  if (!Array.isArray(runOrSet?.Param) || (runOrSet?.Param?.length || 0) === 0) return emptyParamRunSet()
+  for (let k = 0; k < runOrSet.Param.length; k++) {
+    if (isNotEmptyParamRunSet(runOrSet.Param[k]) && runOrSet.Param[k].Name === name) {
+      return Hlpr._cloneDeep(runOrSet.Param[k])
     }
   }
   return emptyParamRunSet() // not found

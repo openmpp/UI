@@ -86,7 +86,7 @@
             <span class="row">
             <q-btn
               @click="onDownloadViews"
-              :disable="!isModel"
+              :disable="!isModel || !paramIdx.length"
               flat
               dense
               no-caps

@@ -152,7 +152,6 @@ export default {
       lastProgressDt: 0,
       sendLogCount: 0,
       sendProgressCount: 0,
-      lastRunDigest: '',
       runState: Mdf.emptyRunState(),
       runStatusProgress: [],
       emptyLogCount: 0,
@@ -175,15 +174,7 @@ export default {
 
   watch: {
     refreshTickle () { this.initView() },
-    runStamp () { this.initView() },
-    lastRunDigest () {
-      if ((this.lastRunDigest || '') === '') return
-
-      const rTxt = this.runTextByDigest({ ModelDigest: this.digest, RunDigest: this.lastRunDigest })
-      if (!Mdf.isNotEmptyRunText(rTxt)) {
-        this.$emit('run-list-refresh')
-      }
-    }
+    runStamp () { this.initView() }
   },
 
   methods: {
@@ -296,19 +287,31 @@ export default {
 
       if (!ok || !Mdf.isLength(rpLst)) return // empty run progress or error
 
-      this.runStatusProgress = rpLst // new run progress array
+      // update run list progress, check if there is any new runs, status changes or completed runs
+      let isNew = false
+      const rca = []
 
-      // on the new run check if it is exist in run list
-      const rp = rpLst[Mdf.lengthOf(rpLst) - 1]
-      if (!Mdf.isNotEmptyRunStatusProgress(rp)) return
+      for (const rp of rpLst) {
+        if (!Mdf.isNotEmptyRunStatusProgress(rp)) continue
 
-      // if run not exist in run list then refresh run list else update status and update date-time
-      this.lastRunDigest = rp.RunDigest
-      const rTxt = this.runTextByDigest({ ModelDigest: this.digest, RunDigest: this.lastRunDigest })
+        const k = this.runStatusProgress.findIndex(r => r.RunDigest === rp.RunDigest)
+        const st = k >= 0 ? this.runStatusProgress[k].Status : ''
+        isNew = isNew || k < 0 || rp.Status !== st
 
-      if (Mdf.isNotEmptyRunText(rTxt)) {
-        if (rTxt.Status !== rp.Status || rTxt.UpdateDateTime !== rp.UpdateDateTime) this.dispatchRunTextStatusUpdate(rp)
+        if (Mdf.isRunCompletedStatus(rp.Status) && rp.Status !== st) rca.push(rp.RunDigest)
+
+        this.dispatchRunTextStatusUpdate(rp)
       }
+
+      if (isNew) {
+        this.$emit('run-list-refresh') // if any new runs or status change then refresh run list
+      }
+      if (rca.length > 0) {
+        this.$nextTick(() => {
+          this.$emit('run-completed-list', rca) // for completed runs list of parameters must be available
+        })
+      }
+      this.runStatusProgress = rpLst // new run progress array
     },
 
     ...mapActions('model', {

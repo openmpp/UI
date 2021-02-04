@@ -81,7 +81,12 @@ export const isRunInProgress = (rt) => {
 
 // retrun true if run completed, status is one of: s=success, x=exit, e=error
 export const isRunCompleted = (rt) => {
-  return isRunText(rt) && (rt.Status === RUN_SUCCESS || rt.Status === RUN_EXIT || rt.Status === RUN_FAILED)
+  return isRunText(rt) && isRunCompletedStatus(rt.Status)
+}
+
+// retrun true if run completed, status is one of: s=success, x=exit, e=error
+export const isRunCompletedStatus = (code) => {
+  return code === RUN_SUCCESS || code === RUN_EXIT || code === RUN_FAILED
 }
 
 // return run status description by code: i=init p=progress s=success x=exit e=error(failed)

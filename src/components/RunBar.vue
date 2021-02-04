@@ -48,7 +48,7 @@ export default {
   computed: {
     isNotEmptyRun () { return Mdf.isNotEmptyRunText(this.runText) },
     isSuccess () { return this.runText.Status === Mdf.RUN_SUCCESS },
-    isInProgress (status) { return this.runText.Status === Mdf.RUN_IN_PROGRESS || this.runText.Status === Mdf.RUN_INITIAL },
+    isInProgress () { return this.runText.Status === Mdf.RUN_IN_PROGRESS || this.runText.Status === Mdf.RUN_INITIAL },
     lastDateTimeStr () { return Mdf.dtStr(this.runText.UpdateDateTime) },
     descrOfRun () { return Mdf.descrOfTxt(this.runText) },
 

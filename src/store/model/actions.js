@@ -49,14 +49,6 @@ export const runText = ({ commit }, rt) => {
   commit('runText', rt)
 }
 
-// update run text and select it as current run
-export const runTextSelected = ({ dispatch, commit }, rt) => {
-  commit('runText', rt)
-  if (Mdf.isNotEmptyRunText(rt)) {
-    dispatch('uiState/runDigestSelected', rt.RunDigest, { root: true })
-  }
-}
-
 // update run status and update data-time, also update selected run
 export const runTextStatusUpdate = ({ commit }, rp) => {
   commit('runTextStatusUpdate', rp)
@@ -84,14 +76,6 @@ export const runTextList = ({ dispatch, commit, state }, rl) => {
 // update workset text
 export const worksetText = ({ commit }, wt) => {
   commit('worksetText', wt)
-}
-
-// update workset text and select it as current workset
-export const worksetTextSelected = ({ dispatch, commit }, wt) => {
-  commit('worksetText', wt)
-  if (Mdf.isNotEmptyWorksetText(wt)) {
-    dispatch('uiState/worksetNameSelected', wt.Name, { root: true })
-  }
 }
 
 // set current workset status: set readonly status and update date-time

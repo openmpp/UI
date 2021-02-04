@@ -54,7 +54,10 @@ export const runText = (state, rt) => {
   if (!Mdf.isNotEmptyRunText(rt) || !Mdf.isLength(state.runTextList)) return
 
   const k = state.runTextList.findIndex((r) => rt.ModelDigest === r.ModelDigest && rt.RunDigest === r.RunDigest)
-  if (k >= 0) state.runTextList[k] = Mdf._cloneDeep(rt)
+  if (k >= 0) {
+    state.runTextList[k] = Mdf._cloneDeep(rt)
+    state.runTextListUpdated++
+  }
 }
 
 // update run status and update data-time, also update selected run
@@ -126,7 +129,10 @@ export const worksetText = (state, wt) => {
   if (!Mdf.isNotEmptyWorksetText(wt) || !Mdf.isLength(state.worksetTextList)) return
 
   const k = state.worksetTextList.findIndex((w) => w.ModelDigest === wt.ModelDigest && w.Name === wt.Name)
-  if (k >= 0) state.worksetTextList[k] = Mdf._cloneDeep(wt)
+  if (k >= 0) {
+    state.worksetTextList[k] = Mdf._cloneDeep(wt)
+    state.worksetTextListUpdated++
+  }
 }
 
 // delete workset text by model digest and workset name

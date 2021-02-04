@@ -108,6 +108,7 @@
     @run-log-select="onRunLogSelect"
     @new-run-select="onNewRunSelect"
     @run-list-refresh="onRunListRefresh"
+    @run-completed-list="onRunCompletedList"
     >
   </router-view>
 
@@ -126,10 +127,11 @@
     @wait="loadRunListDone = false"
     >
   </refresh-run-list>
-  <refresh-run v-if="(runDnsCurrent || '') !== ''"
+  <refresh-run v-if="(digest || '') !== ''"
     :model-digest="digest"
     :run-digest="runDnsCurrent"
     :refresh-tickle="refreshTickle"
+    :refresh-run-tickle="refreshRunTickle"
     @done="doneRunLoad"
     @wait="loadRunDone = false"
     >

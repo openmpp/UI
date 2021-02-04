@@ -51,7 +51,7 @@ export default {
       const u = this.omsUrl + '/api/model/' + this.modelDigest + '/workset/' + this.worksetName + '/text' + (this.uiLang !== '' ? '/lang/' + this.uiLang : '')
       try {
         const response = await this.$axios.get(u)
-        this.dispatchWorksetTextSelected(response.data) // update workset in store
+        this.dispatchWorksetText(response.data) // update workset in store
         this.loadDone = true
       } catch (e) {
         let em = ''
@@ -67,7 +67,7 @@ export default {
     },
 
     ...mapActions('model', {
-      dispatchWorksetTextSelected: 'worksetTextSelected'
+      dispatchWorksetText: 'worksetText'
     })
   },
 
