@@ -100,11 +100,12 @@ export const runTextList = (state, rtl) => {
 
   rtl.reverse() // sort in reverse chronological order
 
-  // if parameter text was not empty then copy it into new run text list
+  // if parameter text or table list was not empty then copy it into new run text list
   for (const rt of rtl) {
     const k = state.runTextList.findIndex((r) => rt.ModelDigest === r.ModelDigest && rt.RunDigest === r.RunDigest)
     if (k >= 0) {
       if (Mdf.lengthOf(rt.Param) <= 0 && Mdf.lengthOf(state.runTextList[k].Param) > 0) rt.Param = Mdf._cloneDeep(state.runTextList[k].Param)
+      if (Mdf.lengthOf(rt.Table) <= 0 && Mdf.lengthOf(state.runTextList[k].Table) > 0) rt.Table = Mdf._cloneDeep(state.runTextList[k].Table)
     }
   }
   state.runTextList = rtl

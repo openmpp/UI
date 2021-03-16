@@ -198,6 +198,7 @@ export default {
   'Table view: hide rows and columns name': 'Vue tableau: masquez le nom des lignes et des colonnes',
   'Template to run the model': 'La traverse pour exécuter le modèle',
   'Template to run the model on MPI cluster': 'Modèle pour exécuter la traverse sur un cluster MPI',
+  'This table is excluded from model run results': "Cette table est exclue des résultats d'exécution du modèle",
   'Too many columns pasted': 'Trop de colonnes collées',
   'Too many rows pasted': 'Trop de lignes collées',
   'Unable to erase default view of parameter': "Impossible d'effacer la vue par défaut du paramètre",

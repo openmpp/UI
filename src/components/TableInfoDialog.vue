@@ -30,14 +30,17 @@
         <div v-if="(runText.SubCount || 0) > 1" class="om-note-row">
           <span class="om-note-cell q-pr-sm">{{ $t('Sub-values Count') }}:</span><span class="om-note-cell">{{ runText.SubCount || 0 }}</span>
         </div>
-        <div class="om-note-row">
-          <span class="om-note-cell q-pr-sm">{{ $t('Digest') }}:</span><span class="om-note-cell">{{ tableText.Table.Digest }}</span>
-        </div>
-        <div class="om-note-row">
-          <span class="om-note-cell q-pr-sm">{{ $t('Import Digest') }}:</span><span class="om-note-cell">{{ tableText.Table.ImportDigest }}</span>
-        </div>
+        <template v-if="isRunHasTable">
+          <div class="om-note-row">
+            <span class="om-note-cell q-pr-sm">{{ $t('Digest') }}:</span><span class="om-note-cell">{{ tableText.Table.Digest }}</span>
+          </div>
+          <div class="om-note-row">
+            <span class="om-note-cell q-pr-sm">{{ $t('Import Digest') }}:</span><span class="om-note-cell">{{ tableText.Table.ImportDigest }}</span>
+          </div>
+        </template>
       </div>
 
+      <div v-if="!isRunHasTable" class="q-pt-md">{{ $t('This table is excluded from model run results') }}</div>
       <div v-if="tableText.ExprDescr" class="q-pt-md">{{ tableText.ExprDescr }}</div>
       <div v-if="tableText.ExprNote" class="q-pt-md">{{ tableText.ExprNote }}</div>
       <div v-if="notes" class="q-pt-md">{{ notes }}</div>
@@ -71,6 +74,7 @@ export default {
       title: '',
       notes: '',
       tableSize: Mdf.emptyTableSize(),
+      isRunHasTable: false,
       runText: Mdf.emptyRunText()
     }
   },
@@ -101,8 +105,9 @@ export default {
       this.title = this.tableText.TableDescr || this.tableText.Name
       this.notes = this.tableText.TableNote
 
-      // find table size info
+      // find table size info and check is this table included into the run
       this.tableSize = Mdf.tableSizeByName(this.theModel, this.tableName)
+      this.isRunHasTable = Mdf.isRunTextHasTable(this.runText, this.tableName)
 
       this.showDlg = true
     }

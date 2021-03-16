@@ -23,7 +23,7 @@ export const isRunText = (rt) => {
   if (!rt.hasOwnProperty('Name') || !rt.hasOwnProperty('RunDigest') || !rt.hasOwnProperty('ValueDigest')) return false
   if (!rt.hasOwnProperty('RunStamp') || !rt.hasOwnProperty('SubCount') || !rt.hasOwnProperty('Status')) return false
   if (!rt.hasOwnProperty('CreateDateTime') || !rt.hasOwnProperty('UpdateDateTime')) return false
-  if (!Hlpr.hasLength(rt.Param) || !Hlpr.hasLength(rt.Txt)) return false
+  if (!Array.isArray(rt.Param) || !Array.isArray(rt.Table) || !Array.isArray(rt.Txt)) return false
   return true
 }
 
@@ -49,8 +49,19 @@ export const emptyRunText = () => {
     CreateDateTime: '',
     UpdateDateTime: '',
     Param: [],
+    Table: [],
     Txt: []
   }
+}
+
+// retrun true if table included in run text: find table name in run tables array
+export const isRunTextHasTable = (rt, name) => {
+  if (!name || !isNotEmptyRunText(rt)) return false
+
+  for (let k = 0; k < rt.Table.length; k++) {
+    if ((rt.Table[k]?.Name || '') === name) return true
+  }
+  return false
 }
 
 // return true if this is not the same run text or it is updated: different run status or update time.

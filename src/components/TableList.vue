@@ -21,7 +21,7 @@
 </template>
 
 <script>
-import { mapState } from 'vuex'
+import { mapState, mapGetters } from 'vuex'
 import * as Mdf from 'src/model-common'
 import OmTableTree from 'components/OmTableTree.vue'
 
@@ -39,6 +39,7 @@ export default {
       isAnyTableGroup: false,
       isAnyTableHidden: false,
       isShowTableHidden: false,
+      runCurrent: Mdf.emptyRunText(), // currently selected run
       tableTreeData: [],
       nextId: 100
     }
@@ -47,18 +48,27 @@ export default {
   computed: {
     ...mapState('model', {
       theModel: state => state.theModel,
-      theModelUpdated: state => state.theModelUpdated
+      theModelUpdated: state => state.theModelUpdated,
+      runTextListUpdated: state => state.runTextListUpdated
+    }),
+    ...mapGetters('model', {
+      runTextByDigest: 'runTextByDigest'
+    }),
+    ...mapState('uiState', {
+      runDigestSelected: state => state.runDigestSelected
     })
   },
 
   watch: {
     refreshTickle  () { this.doRefresh() },
+    runTextListUpdated () { this.doRefresh() },
     theModelUpdated () { this.doRefresh() }
   },
 
   methods: {
     // update output tables tree data and refresh tree view
     doRefresh () {
+      this.runCurrent = this.runTextByDigest({ ModelDigest: Mdf.modelDigest(this.theModel), RunDigest: this.runDigestSelected })
       this.tableTreeData = this.makeTableTreeData()
       this.refreshTableTreeTickle = !this.refreshTableTreeTickle
     },
@@ -90,6 +100,12 @@ export default {
       if (!Mdf.isTableTextList(this.theModel)) {
         this.$q.notify({ type: 'negative', message: this.$t('Model output tables list is empty or invalid') })
         return [] // invalid list of output tables
+      }
+
+      // map tables which are included in model run (not suppressed)
+      const trm = {}
+      for (const t of this.theModel.TableTxt) {
+        if (Mdf.isRunTextHasTable(this.runCurrent, t.Table.Name)) trm[t.Table.Name] = true
       }
 
       // make groups map: map group id to group node
@@ -181,6 +197,7 @@ export default {
             const t = Mdf.tableTextById(this.theModel, pc.ChildLeafId)
             if (Mdf.isTable(t.Table)) {
               if (!this.isShowTableHidden && t.Table.IsHidden) continue // skip hidden output table
+              if (!trm[t.Table.Name]) continue // skip suppressed table
 
               csd.item.children.push({
                 key: 'ttl-' + pc.ChildLeafId + '-' + this.nextId++,
@@ -209,6 +226,7 @@ export default {
       for (const t of this.theModel.TableTxt) {
         this.isAnyTableHidden = this.isAnyTableHidden || t.Table.IsHidden
         if (!this.isShowTableHidden && t.Table.IsHidden) continue // skip hidden output table
+        if (!trm[t.Table.Name]) continue // skip suppressed table
 
         if (!ulm[t.Table.TableId]) { // if output table is not a leaf
           td.push({
