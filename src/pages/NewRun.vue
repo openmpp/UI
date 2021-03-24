@@ -350,6 +350,25 @@
             </td>
           </tr>
 
+          <template v-if="enableIni">
+            <tr>
+              <td class="q-pr-xs">
+                <q-checkbox v-model="runOpts.useIni" :label="$t('Use INI-file') + ':'" />
+              </td>
+              <td>{{ runOpts.iniName }}</td>
+            </tr>
+
+            <tr v-if="enableIniAnyKey">
+              <td
+                :disabled="!runOpts.useIni"
+                class="q-pr-xs"
+                >
+                <q-checkbox v-model="runOpts.iniAnyKey" :disable="!runOpts.useIni" :label="$t('Development options') + ':'"/>
+              </td>
+              <td>{{ runOpts.iniName }}</td>
+            </tr>
+          </template>
+
         </table>
       </q-card-section>
     </q-expansion-item>

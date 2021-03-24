@@ -25,6 +25,8 @@ export default {
       runTemplateLst: [],
       mpiTemplateLst: [],
       profileLst: [],
+      enableIni: false,
+      enableIniAnyKey: false,
       csvCodeId: 'enumCode',
       runOpts: {
         runName: '',
@@ -39,6 +41,9 @@ export default {
         workDir: '',
         csvDir: '',
         csvId: false,
+        iniName: '',
+        useIni: false,
+        iniAnyKey: false,
         profile: '',
         sparseOutput: false,
         runTmpl: '',
@@ -130,6 +135,17 @@ export default {
         }
         this.runOpts.mpiTmpl = isFound ? dTmpl : this.mpiTemplateLst[0]
       }
+
+      // check if usage of ini-file options allowed by server
+      let cfgIni = Mdf.configEnvValue(this.serverConfig, 'OM_CFG_INI_ALLOW').toLowerCase()
+      this.enableIni = cfgIni === 'true' || cfgIni === '1' || cfgIni === 'yes'
+      this.runOpts.iniName = this.enableIni ? this.theModel.Model.Name + '.ini' : ''
+
+      cfgIni = Mdf.configEnvValue(this.serverConfig, 'OM_CFG_INI_ANY_KEY').toLowerCase()
+      this.enableIniAnyKey = this.enableIni && (cfgIni === 'true' || cfgIni === '1' || cfgIni === 'yes')
+
+      if (!this.enableIni) this.runOpts.useIni = false
+      if (!this.enableIniAnyKey) this.runOpts.iniAnyKey = false
 
       // get profile list from server
       this.runOpts.profile = ''
@@ -251,6 +267,8 @@ export default {
       this.runOpts.workDir = this.cleanPathInput(this.runOpts.workDir)
       this.runOpts.csvDir = this.cleanPathInput(this.runOpts.csvDir)
       this.runOpts.csvId = (this.csvCodeId || '') !== 'enumCode'
+      this.runOpts.useIni = (this.enableIni && this.runOpts.useIni) || false
+      this.runOpts.iniAnyKey = (this.enableIniAnyKey && this.runOpts.useIni && this.runOpts.iniAnyKey) || false
       this.runOpts.profile = this.cleanTextInput(this.runOpts.profile)
       this.runOpts.sparseOutput = this.runOpts.sparseOutput || false
       this.runOpts.runTmpl = this.cleanTextInput(this.runOpts.runTmpl)
