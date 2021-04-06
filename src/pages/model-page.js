@@ -8,6 +8,8 @@ import RefreshWorkset from 'components/RefreshWorkset.vue'
 import RefreshWorksetList from 'components/RefreshWorksetList.vue'
 import UpdateWorksetStatus from 'components/UpdateWorksetStatus.vue'
 import RefreshWorksetArray from 'components/RefreshWorksetArray.vue'
+import RefreshUserViews from 'components/RefreshUserViews.vue'
+import UploadUserViews from 'components/UploadUserViews.vue'
 
 /* eslint-disable no-multi-spaces */
 const RUN_LST_TAB_POS = 1       // model runs list tab position
@@ -19,7 +21,7 @@ const FREE_TAB_POS = 20         // first unassigned tab position
 export default {
   name: 'Model',
   components: {
-    RefreshModel, RefreshRun, RefreshRunList, RefreshRunArray, RefreshWorkset, RefreshWorksetList, UpdateWorksetStatus, RefreshWorksetArray
+    RefreshModel, RefreshRun, RefreshRunList, RefreshRunArray, RefreshWorkset, RefreshWorksetList, UpdateWorksetStatus, RefreshWorksetArray, RefreshUserViews, UploadUserViews
   },
 
   props: {
@@ -37,10 +39,14 @@ export default {
       loadWsDone: false,
       loadWsListDone: false,
       loadWsViewsDone: false,
+      loadUserViewsDone: false,
       refreshRunListTickle: false,
       refreshRunTickle: false,
       refreshRunViewsTickle: false,
       refreshWsViewsTickle: false,
+      uploadViewsTickle: false,
+      uploadUserViewsTickle: false,
+      uploadUserViewsDone: false,
       modelName: '',
       runDnsCurrent: '',      // run digest selected (run name, run stamp)
       wsNameCurrent: '',      // workset name selected
@@ -63,7 +69,8 @@ export default {
     loadWait () {
       return !this.loadModelDone ||
         !this.loadRunDone || !this.loadRunListDone || !this.loadRunViewsDone ||
-        !this.loadWsDone || !this.loadWsListDone || this.updatingWsStatus || !this.loadWsViewsDone
+        !this.loadWsDone || !this.loadWsListDone || this.updatingWsStatus || !this.loadWsViewsDone ||
+        !this.loadUserViewsDone
     },
     isEmptyTabList () { return !Mdf.isLength(this.tabItems) },
     runTextCount () { return Mdf.runTextCount(this.runTextList) },
@@ -221,6 +228,18 @@ export default {
     doneWsViewsLoad (isSuccess, count) {
       this.loadWsViewsDone = true
     },
+    doneUserViewsLoad (isSuccess, count) {
+      this.loadUserViewsDone = true
+      if (count > 0) {
+        this.$q.notify({ type: 'info', message: this.$t('Updated {count} parameter view(s)', { count: count }) })
+      }
+    },
+    doneUserViewsUpload (isSuccess, count) {
+      this.uploadUserViewsDone = true
+      if (isSuccess && count > 0) {
+        this.$q.notify({ type: 'info', message: this.$t('Uploaded {count} parameter view(s)', { count: count }) })
+      }
+    },
 
     // run(s) completed: refresh run text for selected run
     onRunCompletedList (rcArr) {
@@ -297,6 +316,10 @@ export default {
     onEditUpdated (isUpdated, tabPath) {
       const nPos = this.tabItems.findIndex(t => t.path === tabPath)
       if (nPos >= 0) this.tabItems[nPos].updated = isUpdated
+    },
+    // on parameter default view saved by user
+    onParameterViewSaved (name) {
+      this.uploadUserViewsTickle = !this.uploadUserViewsTickle
     },
     // view run log: add tab with open run log page
     onRunLogSelect (stamp) {

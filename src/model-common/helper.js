@@ -4,7 +4,7 @@ import cloneDeep from 'lodash/cloneDeep'
 export const _cloneDeep = cloneDeep
 
 // return true if argument hasOwnProperty length
-export const hasLength = (a) => { return a && a.hasOwnProperty('length') }
+const hasLength = (a) => { return a && a.hasOwnProperty('length') }
 
 // return true if argument has length > 0
 export const isLength = (a) => { return hasLength(a) && (a.length || 0) > 0 }

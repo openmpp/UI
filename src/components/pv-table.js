@@ -23,7 +23,7 @@ pvData: // array of table rows, for example:
   dimension selection[] is an array of selected enums for each dimension
 
 pvControl: {
-  rowColMode:   row and columns mode: 2 = use spans, show dim names, 1 = use spans, hide dim names, 0 = no spans, hide dim names
+  rowColMode:   rows and columns mode: 2 = use spans, show dim names, 1 = use spans, hide dim names, 0 = no spans, hide dim names
   readValue():  function expected to return table cell value
   processValue: functions are used to aggregate cell value(s)
   formatter: {
@@ -88,7 +88,7 @@ export default {
     pvControl: {
       type: Object,
       default: () => ({
-        rowColMode: 0, // row and columns mode: 2 = use spans and show dim names, 1 = use spans and hide dim names, 0 = no spans and hide dim names
+        rowColMode: Pcvt.NO_SPANS_NO_DIMS_PVT, // rows and columns mode: 2 = use spans and show dim names, 1 = use spans and hide dim names, 0 = no spans and hide dim names
         readValue: (r) => (!r.IsNull ? r.Value : (void 0)),
         processValue: Pcvt.asIsPval,    // default value processing: return as is
         formatter: Pcvt.formatDefault,  // disable format(), parse() and validation by default

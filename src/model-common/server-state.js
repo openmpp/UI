@@ -1,12 +1,11 @@
 // server state and configuration
 
-import * as Hlpr from './helper'
-
 // return empty service configuration
 export const emptyConfig = () => {
   return {
     RootDir: '',
     RowPageMaxSize: 100,
+    AllowUserHome: false,
     Env: {},
     ModelCatalog: {
       ModelDir: '',
@@ -25,14 +24,14 @@ export const emptyConfig = () => {
 // return true if this is service config (it can be empty)
 export const isConfig = (c) => {
   if (!c) return false
-  if (!c.hasOwnProperty('RootDir') || !c.hasOwnProperty('RowPageMaxSize') ||
+  if (!c.hasOwnProperty('RootDir') || !c.hasOwnProperty('RowPageMaxSize') || !c.hasOwnProperty('AllowUserHome') ||
     !c.hasOwnProperty('Env') || !c.hasOwnProperty('ModelCatalog') || !c.hasOwnProperty('RunCatalog')) {
     return false
   }
   if (!c.ModelCatalog.hasOwnProperty('ModelDir') || !c.ModelCatalog.hasOwnProperty('ModelLogDir') || !c.ModelCatalog.hasOwnProperty('IsLogDirEnabled')) return false
   if (!c.RunCatalog.hasOwnProperty('RunTemplates') || !c.RunCatalog.hasOwnProperty('DefaultMpiTemplate') || !c.RunCatalog.hasOwnProperty('MpiTemplates')) return false
 
-  return Hlpr.hasLength(c.RunCatalog.RunTemplates) && Hlpr.hasLength(c.RunCatalog.MpiTemplates)
+  return Array.isArray(c.RunCatalog.RunTemplates) && Array.isArray(c.RunCatalog.MpiTemplates)
 }
 
 // return value of server environemnt variable by key, if no such variable then return empty '' string

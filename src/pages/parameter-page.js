@@ -52,7 +52,7 @@ export default {
         formatOpts: void 0      // hide format controls by default
       },
       pvc: {
-        rowColMode: 2, // rows and columns mode: 2 = use spans and show dim names, 1 = use spans and hide dim names, 0 = no spans and hide dim names
+        rowColMode: Pcvt.SPANS_AND_DIMS_PVT, // rows and columns mode: 2 = use spans and show dim names, 1 = use spans and hide dim names, 0 = no spans and hide dim names
         readValue: (r) => (!r.IsNull ? r.Value : (void 0)),
         processValue: Pcvt.asIsPval,    // default value processing: return as is
         formatter: Pcvt.formatDefault,  // disable format(), parse() and validation by default
@@ -215,6 +215,7 @@ export default {
         return
       }
       this.$q.notify({ type: 'info', message: this.$t('Default view of parameter saved') + ': ' + this.parameterName })
+      this.$emit('parameter-view-saved', this.parameterName)
     },
 
     // restore default parameter view
@@ -263,7 +264,7 @@ export default {
       if (Mdf.isLength(rows) || Mdf.isLength(cols) || Mdf.isLength(others)) {
         this.dispatchParamView({
           key: this.routeKey,
-          view: Pcvt.pivotState(rows, cols, others, dv.isRowColControls, dv.rowColMode || 2),
+          view: Pcvt.pivotState(rows, cols, others, dv.isRowColControls, dv.rowColMode || Pcvt.SPANS_AND_DIMS_PVT),
           digest: this.digest || '',
           modelName: Mdf.modelName(this.theModel),
           runDigest: this.runDigest || '',
@@ -488,7 +489,7 @@ export default {
       Pcvt.resetEdit(this.edt) // clear editor state
 
       const isRc = this.paramSize.rank > 0 || this.subCount > 1
-      this.pvc.rowColMode = isRc ? 2 : 0
+      this.pvc.rowColMode = isRc ? Pcvt.SPANS_AND_DIMS_PVT : Pcvt.NO_SPANS_NO_DIMS_PVT
       this.ctrl.isRowColModeToggle = isRc
       this.ctrl.isRowColControls = isRc
       this.pvKeyPos = []
@@ -662,7 +663,7 @@ export default {
       }
 
       this.ctrl.isRowColControls = !!pv.isRowColControls
-      this.pvc.rowColMode = typeof pv.rowColMode === typeof 1 ? pv.rowColMode : 0
+      this.pvc.rowColMode = typeof pv.rowColMode === typeof 1 ? pv.rowColMode : Pcvt.NO_SPANS_NO_DIMS_PVT
 
       // refresh pivot view: both dimensions labels and table body
       this.ctrl.isPvDimsTickle = !this.ctrl.isPvDimsTickle
@@ -700,7 +701,7 @@ export default {
       this.otherFields = tf
 
       // default row-column mode: no row-column headers for scalar parameters
-      this.pvc.rowColMode = (this.paramSize.rank > 0 || this.subCount > 1) ? 2 : 0
+      this.pvc.rowColMode = (this.paramSize.rank > 0 || this.subCount > 1) ? Pcvt.SPANS_AND_DIMS_PVT : Pcvt.NO_SPANS_NO_DIMS_PVT
 
       Pcvt.resetEdit(this.edt) // clear editor state
 

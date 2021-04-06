@@ -161,6 +161,14 @@
     </q-list>
   </q-expansion-item>
 
+  <upload-user-views
+    :model-name="modelName"
+    :upload-views-tickle="uploadUserViewsTickle"
+    @done="doneUserViewsUpload"
+    @wait="uploadUserViewsDone = false"
+    >
+  </upload-user-views>
+
 </q-page>
 </template>
 
@@ -169,15 +177,19 @@ import { mapState, mapGetters, mapActions } from 'vuex'
 import * as Mdf from 'src/model-common'
 import * as Idb from 'src/idb/idb'
 import { exportFile } from 'quasar'
+import UploadUserViews from 'components/UploadUserViews.vue'
 
 export default {
   name: 'SessionSettings',
+  components: { UploadUserViews },
 
   data () {
     return {
       dbRows: [],
       paramIdx: [], // parameter names and index in dbRows, if db row exist
-      uploadFile: null
+      uploadFile: null,
+      uploadUserViewsTickle: false,
+      uploadUserViewsDone: false
     }
   },
 
@@ -312,6 +324,17 @@ export default {
       } else {
         this.$q.notify({ type: 'info', message: this.$t('No parameter views found') + ': ' + this.modelName })
       }
+
+      // upload parameter views into user home directory
+      this.uploadUserViewsTickle = !this.uploadUserViewsTickle
+    },
+
+    // upload of parameter views completed
+    doneUserViewsUpload (isSuccess, count) {
+      this.uploadUserViewsDone = true
+      if (isSuccess && count > 0) {
+        this.$q.notify({ type: 'info', message: this.$t('Uploaded {count} parameter view(s)', { count: count }) })
+      }
     },
 
     // delete parameter default view
@@ -334,6 +357,9 @@ export default {
         type: 'info',
         message: this.$t('Default view of parameter erased') + ': ' + pName
       })
+
+      // upload parameter views into user home directory
+      this.uploadUserViewsTickle = !this.uploadUserViewsTickle
     },
 
     // select all parameter views from indexed db

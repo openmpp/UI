@@ -1,6 +1,12 @@
 // pivot table value processing: helper functions
 
 /* eslint-disable no-multi-spaces */
+
+// pivot table display mode: rows and columns mode
+export const SPANS_AND_DIMS_PVT = 2   // use spans and show dim names
+export const SPANS_NO_DIMS_PVT = 1    // use spans and hide dim names
+export const NO_SPANS_NO_DIMS_PVT = 0 // no spans and hide dim names
+
 // editor type
 export const EDIT_STRING = 0  // input type text
 export const EDIT_NUMBER = 1  // input type text for float or integer
@@ -87,7 +93,7 @@ export const parseTsv = (src, rowLimit = -1, colLimit = -1) => {
     cols:   [ { name: ..., values: [...] }, {...} ],
     others: [ { name: ..., values: [...] }, {...} ],
     isRowColControls: true, // show or hide row-column controls
-    rowColMode: 2,          // pivot table display mode: 0, 1 or 2
+    rowColMode: SPANS_AND_DIMS_PVT, // rows and columns mode: 2 = use spans and show dim names, 1 = use spans and hide dim names, 0 = no spans and hide dim names
     edit: {
       // editor state and undo history
     }
@@ -99,7 +105,7 @@ export const pivotState = (rows, cols, others, isRowColControls, rowColMode, edi
     cols: cols || [],
     others: others || [],
     isRowColControls: !!isRowColControls,
-    rowColMode: typeof rowColMode === typeof 1 ? rowColMode : 2, // default: 2 = use spans and show dim names
+    rowColMode: typeof rowColMode === typeof 1 ? rowColMode : SPANS_AND_DIMS_PVT, // default: 2 = use spans and show dim names
     edit: emptyEdit()
   }
 

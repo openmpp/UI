@@ -1,7 +1,5 @@
 // db structures common functions: language and language list
 
-import * as Hlpr from './helper'
-
 // hard coded enum code for total enum id
 export const ALL_WORD_CODE = 'all'
 
@@ -50,7 +48,7 @@ export const emptyLangList = () => {
 // return true if each list element isModel()
 export const isLangList = (ml) => {
   if (!ml) return false
-  if (!Hlpr.hasLength(ml)) return false
+  if (!Array.isArray(ml)) return false
   for (const lcn of ml) {
     if (!lcn.hasOwnProperty('LangCode') || !lcn.hasOwnProperty('Name')) return false
   }

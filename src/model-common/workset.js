@@ -14,14 +14,14 @@ export const isWorkset = (ws) => {
   if (!ws.hasOwnProperty('ModelName') || !ws.hasOwnProperty('ModelDigest')) return false
   if (!ws.hasOwnProperty('Name')) return false
   if (!ws.hasOwnProperty('IsReadonly') || !ws.hasOwnProperty('BaseRunDigest') || !ws.hasOwnProperty('UpdateDateTime')) return false
-  if (!Hlpr.hasLength(ws.Param)) return false
+  if (!Array.isArray(ws.Param)) return false
   return true
 }
 
 // if this is workset text
 export const isWorksetText = (wt) => {
   if (!isWorkset(wt)) return false
-  if (!Hlpr.hasLength(wt.Txt)) return false
+  if (!Array.isArray(wt.Txt)) return false
   return true
 }
 
@@ -61,7 +61,7 @@ export const isWorksetStatus = (ws) => {
 // return true if each list element isWorksetText()
 export const isWorksetTextList = (wtl) => {
   if (!wtl) return false
-  if (!Hlpr.hasLength(wtl)) return false
+  if (!Array.isArray(wtl)) return false
   for (let k = 0; k < wtl.length; k++) {
     if (!isWorksetText(wtl[k])) return false
   }

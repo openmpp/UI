@@ -1,5 +1,4 @@
 // db structures common functions: model run and run list
-import * as Hlpr from './helper'
 
 // run count: number of run text entries in the run text list
 export const runTextCount = (rtl) => {
@@ -9,7 +8,7 @@ export const runTextCount = (rtl) => {
 // return true if each list element isRunText()
 export const isRunTextList = (rtl) => {
   if (!rtl) return false
-  if (!Hlpr.hasLength(rtl)) return false
+  if (!Array.isArray(rtl)) return false
   for (let k = 0; k < rtl.length; k++) {
     if (!isRunText(rtl[k])) return false
   }
@@ -151,7 +150,7 @@ export const isRunStateLog = (rlp) => {
   if (!rlp) return false
   if (!isRunState(rlp)) return false
   return rlp.hasOwnProperty('Offset') && rlp.hasOwnProperty('Size') &&
-    rlp.hasOwnProperty('TotalSize') && Hlpr.hasLength(rlp.Lines)
+    rlp.hasOwnProperty('TotalSize') && Array.isArray(rlp.Lines)
 }
 
 // if this is not empty RunStateLogPage: model run state and run log page
@@ -200,7 +199,7 @@ export const toRunStateFromLog = (rlp) => {
 // return true if each list element isRunStatusProgress()
 export const isRunStatusProgressList = (rpl) => {
   if (!rpl) return false
-  if (!Hlpr.hasLength(rpl)) return false
+  if (!Array.isArray(rpl)) return false
   for (let k = 0; k < rpl.length; k++) {
     if (!isRunStatusProgress(rpl[k])) return false
   }
@@ -232,7 +231,7 @@ export const isRunStatusProgress = (rp) => {
   if (!rp.hasOwnProperty('Name') || !rp.hasOwnProperty('RunDigest') || !rp.hasOwnProperty('ValueDigest') || !rp.hasOwnProperty('RunStamp')) return false
   if (!rp.hasOwnProperty('SubCount') || !rp.hasOwnProperty('SubCompleted')) return false
   if (!rp.hasOwnProperty('Status') || !rp.hasOwnProperty('CreateDateTime') || !rp.hasOwnProperty('UpdateDateTime')) return false
-  if (!Hlpr.hasLength(rp.Progress)) return false
+  if (!Array.isArray(rp.Progress)) return false
   return true
 }
 

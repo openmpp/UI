@@ -1,13 +1,12 @@
 // db structures common functions: parameters groups and output tables gropus
 
 import * as Mdl from './model'
-import * as Hlpr from './helper'
 
 // is model has group text list and each element is Group
 export const isGroupTextList = (md) => {
   if (!Mdl.isModel(md)) return false
   if (!md.hasOwnProperty('GroupTxt')) return false
-  if (!Hlpr.hasLength(md.GroupTxt)) return false
+  if (!Array.isArray(md.GroupTxt)) return false
   for (let k = 0; k < md.GroupTxt.length; k++) {
     if (!isGroupText(md.GroupTxt[k])) return false
   }
@@ -18,7 +17,7 @@ export const isGroupTextList = (md) => {
 export const isGroup = (g) => {
   if (!g) return false
   if (!g.hasOwnProperty('GroupId') || !g.hasOwnProperty('Name') || !g.hasOwnProperty('IsParam') || !g.hasOwnProperty('IsHidden')) return false
-  if (!g.hasOwnProperty('GroupPc') || !Hlpr.hasLength(g.GroupPc)) return false
+  if (!g.hasOwnProperty('GroupPc') || !Array.isArray(g.GroupPc)) return false
   return (g.Name || '') !== ''
 }
 

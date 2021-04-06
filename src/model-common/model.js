@@ -1,12 +1,11 @@
 // db structures common functions: model and model list
 
 import * as Dnf from './descr-note'
-import * as Hlpr from './helper'
 
 // return true if each list element isModel()
 export const isModelList = (ml) => {
   if (!ml) return false
-  if (!Hlpr.hasLength(ml)) return false
+  if (!Array.isArray(ml)) return false
   for (const m of ml) {
     if (!isModel(m)) return false
   }

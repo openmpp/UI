@@ -109,6 +109,7 @@
     @new-run-select="onNewRunSelect"
     @run-list-refresh="onRunListRefresh"
     @run-completed-list="onRunCompletedList"
+    @parameter-view-saved="onParameterViewSaved"
     >
   </router-view>
 
@@ -175,6 +176,19 @@
     @wait="loadWsViewsDone = false"
     >
   </refresh-workset-array>
+  <refresh-user-views v-if="loadModelDone"
+    :model-name="modelName"
+    @done="doneUserViewsLoad"
+    @wait="loadUserViewsDone = false"
+    >
+  </refresh-user-views>
+  <upload-user-views
+    :model-name="modelName"
+    :upload-views-tickle="uploadUserViewsTickle"
+    @done="doneUserViewsUpload"
+    @wait="uploadUserViewsDone = false"
+    >
+  </upload-user-views>
 
   <q-dialog v-model="showAllDiscardDlg">
     <q-card>

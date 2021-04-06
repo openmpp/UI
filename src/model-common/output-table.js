@@ -13,7 +13,7 @@ export const tableCount = (md) => {
 // is model has output table text list and each element is Table
 export const isTableTextList = (md) => {
   if (!Mdl.isModel(md)) return false
-  if (!Hlpr.hasLength(md.TableTxt)) return false
+  if (!Array.isArray(md.TableTxt)) return false
   for (let k = 0; k < md.TableTxt.length; k++) {
     if (!isTable(md.TableTxt[k].Table)) return false
   }
@@ -33,7 +33,7 @@ export const isNotEmptyTableText = (tt) => {
   if (!tt.hasOwnProperty('Table')) return false
   if (!isTable(tt.Table)) return false
   return tt.hasOwnProperty('TableDescr') && tt.hasOwnProperty('TableNote') && tt.hasOwnProperty('ExprDescr') && tt.hasOwnProperty('ExprNote') &&
-    Hlpr.hasLength(tt.TableDimsTxt) && Hlpr.hasLength(tt.TableExprTxt) && Hlpr.hasLength(tt.TableAccTxt)
+  Array.isArray(tt.TableDimsTxt) && Array.isArray(tt.TableExprTxt) && Array.isArray(tt.TableAccTxt)
 }
 
 // return empty TableTxt
