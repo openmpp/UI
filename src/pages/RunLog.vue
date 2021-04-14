@@ -282,7 +282,7 @@ export default {
     doneRunProgressRefresh (ok, rpLst) {
       this.sendProgressCount = 0
       const now = Date.now()
-      if (now - this.lastProgressDt < RUN_PROGRESS_REFRESH_TIME) return // protect from timeouts storm
+      if (!this.isRefreshCompleted && now - this.lastProgressDt < RUN_PROGRESS_REFRESH_TIME) return // protect from timeouts storm
       this.lastProgressDt = now
 
       if (!ok || !Mdf.isLength(rpLst)) return // empty run progress or error
