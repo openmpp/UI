@@ -137,7 +137,7 @@
               clickable
               tag="a"
               target="_blank"
-              href="//ompp.sourceforge.io/wiki/"
+              href="//github.com/openmpp/openmpp.github.io/wiki"
               >
               <q-item-section avatar>
                 <q-icon name="link" />
