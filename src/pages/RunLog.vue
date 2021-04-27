@@ -143,6 +143,7 @@ export default {
   data () {
     return {
       isRefreshCompleted: false,
+      isLogCompleted: false,
       isRefreshPaused: false,
       isLogRefresh: false,
       isProgressRefresh: false,
@@ -193,6 +194,7 @@ export default {
     // update page view
     initView () {
       this.isRefreshCompleted = false
+      this.isLogCompleted = false
       this.runState = Mdf.emptyRunState()
       this.runStatusProgress = []
       this.emptyLogCount = 0
@@ -206,29 +208,29 @@ export default {
     refreshRunProgress () {
       if (this.isRefreshPaused) return
       //
-      if (this.sendLogCount++ < MAX_SEND_COUNT) this.isLogRefresh = !this.isLogRefresh
+      if (!this.isLogCompleted && this.sendLogCount++ < MAX_SEND_COUNT) this.isLogRefresh = !this.isLogRefresh
 
       this.refreshCount++
-      if (this.refreshCount < RUN_PROGRESS_SUB_RATIO || (this.refreshCount % RUN_PROGRESS_SUB_RATIO) === 1) {
+      if (this.isLogCompleted || this.refreshCount < RUN_PROGRESS_SUB_RATIO || (this.refreshCount % RUN_PROGRESS_SUB_RATIO) === 1) {
         if (this.sendProgressCount++ < MAX_SEND_COUNT) this.isProgressRefresh = !this.isProgressRefresh
       }
     },
     // pause on/off run progress refresh
     refreshPauseToggle () {
-      this.emptyLogCount = 0
       this.refreshCount = 0
       this.sendLogCount = 0
       this.sendProgressCount = 0
+      this.emptyLogCount = 0
       this.isRefreshPaused = !this.isRefreshPaused
     },
     startRefreshProgress () {
       this.isRefreshPaused = false
-      this.refreshCount = 0
-      this.emptyLogCount = 0
       this.lastLogDt = 0
       this.lastProgressDt = 0
+      this.refreshCount = 0
       this.sendLogCount = 0
       this.sendProgressCount = 0
+      this.emptyLogCount = 0
       this.refreshInt = setInterval(this.refreshRunProgress, RUN_PROGRESS_REFRESH_TIME)
     },
     stopRefreshProgress () {
@@ -238,7 +240,7 @@ export default {
 
     // model current run log status and page: response from server
     doneRunLogRefresh (ok, rslp) {
-      this.sendLogCount = 0
+      this.sendLogCount = !this.isLogCompleted ? 0 : MAX_SEND_COUNT // if log status is final then stop sending log requests
       const now = Date.now()
       if (now - this.lastLogDt < RUN_PROGRESS_REFRESH_TIME) return // protect from timeouts storm
       this.lastLogDt = now
@@ -269,12 +271,7 @@ export default {
         this.logCount = rslp.TotalSize - this.logStart
         if (this.logCount < MIN_LOG_COUNT) this.logCount = MIN_LOG_COUNT
       } else {
-        //
-        // run state final and last log page
-        //
-        this.stopRefreshProgress()
-        this.isProgressRefresh = !this.isProgressRefresh // last refersh of run progress
-        this.isRefreshCompleted = true
+        this.isLogCompleted = true // run state final and last log page received
       }
     },
 
@@ -289,6 +286,7 @@ export default {
 
       // update run list progress, check if there is any new runs, status changes or completed runs
       let isNew = false
+      let isAllCompleted = this.isLogCompleted
       const rca = []
 
       for (const rp of rpLst) {
@@ -298,8 +296,10 @@ export default {
         const st = k >= 0 ? this.runStatusProgress[k].Status : ''
         isNew = isNew || k < 0 || rp.Status !== st
 
-        if (Mdf.isRunCompletedStatus(rp.Status) && rp.Status !== st) rca.push(rp.RunDigest)
+        const isCompleted = Mdf.isRunCompletedStatus(rp.Status)
+        if (isCompleted && rp.Status !== st) rca.push(rp.RunDigest)
 
+        isAllCompleted = isAllCompleted && isCompleted
         this.dispatchRunTextStatusUpdate(rp)
       }
 
@@ -312,6 +312,13 @@ export default {
         })
       }
       this.runStatusProgress = rpLst // new run progress array
+      //
+      // if log completed and all run status completed
+      //
+      if (isAllCompleted) {
+        this.isRefreshCompleted = true
+        this.stopRefreshProgress()
+      }
     },
 
     ...mapActions('model', {
