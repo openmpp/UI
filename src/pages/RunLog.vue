@@ -12,7 +12,7 @@
         flat
         dense
         class="bg-primary text-white rounded-borders"
-        :icon="!isRefreshPaused ? (isLogRefresh ? 'mdi-autorenew' : 'mdi-sync') : 'mdi-play-circle-outline'"
+        :icon="!isRefreshPaused ? (((this.refreshCount % 2) === 1) ? 'mdi-autorenew' : 'mdi-sync') : 'mdi-play-circle-outline'"
         :title="!isRefreshPaused ? $t('Pause') : $t('Refresh')"
         />
       <q-btn
@@ -123,7 +123,8 @@ import RunBar from 'components/RunBar.vue'
 import RunInfoDialog from 'components/RunInfoDialog.vue'
 
 /* eslint-disable no-multi-spaces */
-const MAX_EMPTY_LOG_COUNT = 5          // pause progress refresh if empty response exceed this count (5 = 5 seconds)
+const MAX_EMPTY_LOG_COUNT = 5          // pause log refresh if empty response exceed this count (5 = 5 seconds)
+const MAX_EMPTY_PROGRESS_COUNT = 5     // pause progress refresh if empty response exceed this count (5 = 5 seconds)
 const MAX_SEND_COUNT = 4               // max request to send without response
 const RUN_PROGRESS_REFRESH_TIME = 1000 // msec, run progress refresh time
 const RUN_PROGRESS_SUB_RATIO = 4       // multipler for refresh time to get sub values progress
@@ -147,6 +148,7 @@ export default {
       isRefreshPaused: false,
       isLogRefresh: false,
       isProgressRefresh: false,
+      isToggleRefresh: false,
       refreshInt: '',
       refreshCount: 0,
       lastLogDt: 0,
@@ -156,6 +158,7 @@ export default {
       runState: Mdf.emptyRunState(),
       runStatusProgress: [],
       emptyLogCount: 0,
+      emptyProgressCount: 0,
       logStart: 0,
       logCount: MIN_LOG_COUNT,
       logLines: [],
@@ -198,6 +201,7 @@ export default {
       this.runState = Mdf.emptyRunState()
       this.runStatusProgress = []
       this.emptyLogCount = 0
+      this.emptyProgressCount = 0
       this.logStart = 0
       this.logLines = []
       this.stopRefreshProgress()
@@ -221,6 +225,7 @@ export default {
       this.sendLogCount = 0
       this.sendProgressCount = 0
       this.emptyLogCount = 0
+      this.emptyProgressCount = 0
       this.isRefreshPaused = !this.isRefreshPaused
     },
     startRefreshProgress () {
@@ -231,6 +236,7 @@ export default {
       this.sendLogCount = 0
       this.sendProgressCount = 0
       this.emptyLogCount = 0
+      this.emptyProgressCount = 0
       this.refreshInt = setInterval(this.refreshRunProgress, RUN_PROGRESS_REFRESH_TIME)
     },
     stopRefreshProgress () {
@@ -240,9 +246,9 @@ export default {
 
     // model current run log status and page: response from server
     doneRunLogRefresh (ok, rslp) {
-      this.sendLogCount = !this.isLogCompleted ? 0 : MAX_SEND_COUNT // if log status is final then stop sending log requests
+      this.sendLogCount = 0
       const now = Date.now()
-      if (now - this.lastLogDt < RUN_PROGRESS_REFRESH_TIME) return // protect from timeouts storm
+      if (this.isLogCompleted || now - this.lastLogDt < RUN_PROGRESS_REFRESH_TIME) return // protect from timeouts storm
       this.lastLogDt = now
 
       if (!ok) return
@@ -279,10 +285,16 @@ export default {
     doneRunProgressRefresh (ok, rpLst) {
       this.sendProgressCount = 0
       const now = Date.now()
-      if (!this.isRefreshCompleted && now - this.lastProgressDt < RUN_PROGRESS_REFRESH_TIME) return // protect from timeouts storm
+      if (!this.isLogCompleted && now - this.lastProgressDt < RUN_PROGRESS_REFRESH_TIME) return // protect from timeouts storm
       this.lastProgressDt = now
 
-      if (!ok || !Mdf.isLength(rpLst)) return // empty run progress or error
+      if (!ok) return
+
+      if (!Mdf.isLength(rpLst)) {
+        if (this.emptyProgressCount++ > MAX_EMPTY_PROGRESS_COUNT) this.isRefreshPaused = true // pause refresh if run progress not available
+        return
+      }
+      this.emptyProgressCount = 0 // new progress response
 
       // update run list progress, check if there is any new runs, status changes or completed runs
       let isNew = false

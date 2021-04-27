@@ -157,11 +157,13 @@ export default {
     onCopyToClipboard () {
       this.$refs.omPivotTable.onCopyTsv()
     },
+
     // reload parameter data and reset pivot view to default
     async onReloadDefaultView () {
       if (this.pvc.formatter) {
         this.pvc.formatter.resetOptions()
       }
+      this.dispatchParamViewDelete(this.routeKey) // clean current view
       await this.restoreDefaultView()
       this.setPageView()
       this.doRefreshDataPage()
@@ -866,7 +868,8 @@ export default {
     },
 
     ...mapActions('uiState', {
-      dispatchParamView: 'paramView'
+      dispatchParamView: 'paramView',
+      dispatchParamViewDelete: 'paramViewDelete'
     })
   },
 

@@ -82,6 +82,7 @@ export default {
           this.$q.notify({ type: 'negative', message: this.$t('Unable to restore user views due to mismatch of model name') + ': ' + this.modelName })
           this.loadDone = false // error: model name in server json response must be same as current UI model name
         } else {
+          //
           // write parameter views into indexed db
           if (Array.isArray(vs.model?.parameterViews) && vs.model?.parameterViews?.length) {
             let pName = ''
