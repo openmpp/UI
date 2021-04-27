@@ -1,9 +1,12 @@
-# OpenM++ (ompp-ui)
+# OpenM++ user interface (ompp-ui)
 
-openM++ UI frontend
+This repository is a part of [OpenM++](http://www.openmpp.org/) open source microsimulation platform.
+It contains oms web-service, dbcopy utility and openM++ Go libraries.
 
 ## Project setup
 ```
+git clone https://github.com/openmpp/UI.git ompp-ui
+cd ompp-ui
 npm install
 ```
 
@@ -12,14 +15,14 @@ npm install
 npm run dev
 ```
 
-### Lint the files
-```
-npm run lint
-```
-
 ### Build the app for production
 ```
 npm run build
+```
+
+### Lint the files
+```
+npm run lint
 ```
 
 ### Customize the configuration
@@ -27,4 +30,4 @@ See [Configuring quasar.conf.js](https://quasar.dev/quasar-cli/quasar-conf-js).
 
 **License:** MIT.
 
-**E-mail:** _openmpp dot org at gmail dot com_
+Please visit our [wiki](https://github.com/openmpp/openmpp.github.io/wiki) for more information or e-mail to: _openmpp dot org at gmail dot com_.
