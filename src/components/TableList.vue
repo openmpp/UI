@@ -103,14 +103,18 @@ export default {
       }
 
       // map tables which are included in model run (not suppressed)
-      const trm = {}
+      // skip hidden tables if show hidden tables disabled
+      const tUse = {}
       for (const t of this.theModel.TableTxt) {
-        if (Mdf.isRunTextHasTable(this.runCurrent, t.Table.Name)) trm[t.Table.Name] = true
+        if (!Mdf.isRunTextHasTable(this.runCurrent, t.Table.Name)) continue // skip suppressed table
+
+        this.isAnyTableHidden = this.isAnyTableHidden || t.Table.IsHidden
+        if (this.isShowTableHidden || !t.Table.IsHidden) tUse[t.Table.Name] = true // table not hidden and not suppressed
       }
 
       // make groups map: map group id to group node
       const gLst = this.theModel.GroupTxt
-      const gm = {}
+      const gUse = {}
 
       for (let k = 0; k < gLst.length; k++) {
         if (gLst[k].Group.IsParam) continue // skip parameters group
@@ -119,7 +123,7 @@ export default {
         const isNote = Mdf.noteOfDescrNote(gLst[k]) !== ''
         this.isAnyTableHidden = this.isAnyTableHidden || gLst[k].Group.IsHidden
 
-        gm[gId] = {
+        gUse[gId] = {
           group: gLst[k],
           item: {
             key: 'tgr-' + gId + '-' + this.nextId++,
@@ -134,14 +138,16 @@ export default {
       }
 
       // add top level groups as starting point into groups tree
-      const td = []
-      const sd = []
+      let gTree = []
+      const gProc = []
 
       for (let k = 0; k < gLst.length; k++) {
         if (gLst[k].Group.IsParam) continue // skip parameters group
         if (!this.isShowTableHidden && gLst[k].Group.IsHidden) continue // skip hidden group
 
         const gId = gLst[k].Group.GroupId
+
+        if (!gUse[gId]) continue // skip this group: it is empty group
 
         const isNotTop = gLst.findIndex((gt) => {
           if (gt.Group.IsParam) return false
@@ -151,85 +157,141 @@ export default {
         }) >= 0
         if (isNotTop) continue // not a top level group
 
-        const g = Mdf._cloneDeep(gm[gId].item)
-        td.push(g)
-        sd.push({
+        const g = Mdf._cloneDeep(gUse[gId].item)
+        gTree.push(g)
+        gProc.push({
           gId: gId,
           path: [gId],
           item: g
         })
       }
-      this.isAnyTableGroup = td.length > 0
+      this.isAnyTableGroup = gTree.length > 0
 
       // build groups tree
-      while (sd.length > 0) {
-        const csd = sd.pop()
-        const cg = gm[csd.gId]
+      while (gProc.length > 0) {
+        const gpNow = gProc.pop()
+        const gTxt = gUse[gpNow.gId].group
 
         // make all children of current item
-        for (const pc of cg.group.Group.GroupPc) {
+        for (const pc of gTxt.Group.GroupPc) {
           // if this is a child group
           if (pc.ChildGroupId >= 0) {
-            const g = gm[pc.ChildGroupId]
-            if (g) {
-              if (!this.isShowTableHidden && g.group.Group.IsHidden) continue // skip hidden group
+            const gChildUse = gUse[pc.ChildGroupId]
+            if (gChildUse) {
+              if (!this.isShowTableHidden && gChildUse.group.Group.IsHidden) continue // skip hidden group
 
               // check for circular reference
-              if (csd.path.indexOf(pc.ChildGroupId) >= 0) {
-                console.warn('Error: circular refernece to group:', pc.ChildGroupId, 'path:', csd.path)
+              if (gpNow.path.indexOf(pc.ChildGroupId) >= 0) {
+                console.warn('Error: circular refernece to group:', pc.ChildGroupId, 'path:', gpNow.path)
                 continue // skip this group
               }
 
-              const gn = {
+              const g = {
                 gId: pc.ChildGroupId,
-                path: Mdf._cloneDeep(csd.path),
-                item: Mdf._cloneDeep(g.item)
+                path: Mdf._cloneDeep(gpNow.path),
+                item: Mdf._cloneDeep(gChildUse.item)
               }
-              gn.item.key = 'tgr-' + pc.ChildGroupId + '-' + this.nextId++
-              gn.path.push(gn.gId)
-              sd.push(gn)
-              csd.item.children.push(gn.item)
+              g.item.key = 'tgr-' + pc.ChildGroupId + '-' + this.nextId++
+              g.path.push(g.gId)
+              gProc.push(g)
+              gpNow.item.children.push(g.item)
             }
           }
 
           // if this is a child leaf output table
           if (pc.ChildLeafId >= 0) {
             const t = Mdf.tableTextById(this.theModel, pc.ChildLeafId)
-            if (Mdf.isTable(t.Table)) {
-              if (!this.isShowTableHidden && t.Table.IsHidden) continue // skip hidden output table
-              if (!trm[t.Table.Name]) continue // skip suppressed table
+            if (!Mdf.isTable(t.Table)) continue
+            if (!tUse[t.Table.Name]) continue // skip: table suppressed or hidden
 
-              csd.item.children.push({
-                key: 'ttl-' + pc.ChildLeafId + '-' + this.nextId++,
-                label: t.Table.Name,
-                descr: (t.TableDescr || ''),
-                children: [],
-                isGroup: false,
-                isAbout: true,
-                isAboutEmpty: false
-              })
-            }
+            gpNow.item.children.push({
+              key: 'ttl-' + pc.ChildLeafId + '-' + this.nextId++,
+              label: t.Table.Name,
+              descr: (t.TableDescr || ''),
+              children: [],
+              isGroup: false,
+              isAbout: true,
+              isAboutEmpty: false
+            })
           }
         }
       }
 
-      // add output tables which are not included in any group
-      const ulm = {}
+      // walk the tree and remove empty branches
+      // add top level tree nodes as starting point
+      const wStack = []
+      wStack.push({
+        key: 'table-tree-top-level-node',
+        index: 0,
+        isGroup: true,
+        children: []
+      })
+      for (let k = 0; k < gTree.length; k++) {
+        wStack[0].children.push(gTree[k])
+      }
+
+      // walk the tree until end of top level and remove empty branches
+      while (wStack.length > 0) {
+        const level = wStack[wStack.length - 1]
+
+        // end of current level: pop to the parent level
+        // if current level is empty group then remove it from the parent
+        if (level.index >= level.children.length) {
+          wStack.pop()
+          if (wStack.length <= 0) break // end of tree top level
+
+          const parent = wStack[wStack.length - 1]
+          if (!level.isGroup || level.children.length > 0) {
+            parent.index++ // move to the next child in parent list
+          } else {
+            if (parent.children.length < parent.index) parent.children.splice(parent.index, 1)
+          }
+          continue
+        }
+
+        // for all children of current level do:
+        //   if child is not a group then skip it (go to next child)
+        //   if child is empty group then remove that child
+        //   if child is not empty group then push it to the stack and goto the next level down
+        while (level.index < level.children.length) {
+          const child = level.children[level.index]
+          if (!child.isGroup) {
+            level.index++
+            continue
+          }
+          if (child.children.length <= 0) {
+            level.children.splice(level.index, 1)
+            continue
+          }
+          // else: child is not empty group, go to the one level down
+          wStack.push({
+            key: child.key,
+            index: 0,
+            isGroup: child.isGroup,
+            children: child.children
+          })
+          break // go to the one level down
+        }
+      }
+
+      // remove empty branches from top level of the tree
+      gTree = gTree.filter(g => !g.isGroup || g.children.length > 0)
+
+      // add output tables which are not included in any group (not a leaf nodes)
+      const leafUse = {}
       for (let k = 0; k < gLst.length; k++) {
         if (gLst[k].Group.IsParam) continue // skip parameters group
 
         for (const pc of gLst[k].Group.GroupPc) {
-          if (pc.ChildLeafId >= 0) ulm[pc.ChildLeafId] = true // store leaf output table id
+          if (pc.ChildLeafId >= 0) leafUse[pc.ChildLeafId] = true // store leaf output table id
         }
       }
 
       for (const t of this.theModel.TableTxt) {
-        this.isAnyTableHidden = this.isAnyTableHidden || t.Table.IsHidden
-        if (!this.isShowTableHidden && t.Table.IsHidden) continue // skip hidden output table
-        if (!trm[t.Table.Name]) continue // skip suppressed table
+        if (!tUse[t.Table.Name]) continue // skip: table suppressed or hidden
 
-        if (!ulm[t.Table.TableId]) { // if output table is not a leaf
-          td.push({
+        if (!leafUse[t.Table.TableId]) { // if output table is not a leaf of any group
+          gTree.push({
             key: 'ttl-' + t.Table.TableId + '-' + this.nextId++,
             label: t.Table.Name,
             descr: (t.TableDescr || ''),
@@ -241,7 +303,7 @@ export default {
         }
       }
 
-      return td
+      return gTree
     }
   },
 
