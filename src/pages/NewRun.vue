@@ -241,18 +241,6 @@
                 />
             </td>
           </tr>
-
-          <tr>
-            <td class="q-pr-xs">{{ $t('Log Model Version') }}:</td>
-            <td class="tc-max-width-10 row panel-border rounded-borders">
-              <q-space />
-              <q-toggle
-                v-model="runOpts.logVersion"
-                :title="runOpts.logVersion ? $t('Write model version into run log') : $t('Do not write model version into run log')"
-                />
-            </td>
-          </tr>
-
           <tr>
             <td class="q-pr-xs">{{ $t('Sparse Output Tables') }}:</td>
             <td class="tc-max-width-10 row panel-border rounded-borders">

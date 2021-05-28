@@ -37,7 +37,6 @@ export default {
         threadCount: 1,
         progressPercent: 1,
         progressStep: 0,
-        logVersion: true,
         workDir: '',
         csvDir: '',
         csvId: false,
@@ -275,7 +274,6 @@ export default {
       this.runOpts.mpiNpCount = this.cleanIntNonNegativeInput(this.runOpts.mpiNpCount, 0)
       this.runOpts.mpiOnRoot = this.runOpts.mpiOnRoot || false
       this.runOpts.mpiTmpl = this.cleanTextInput(this.runOpts.mpiTmpl)
-      this.runOpts.logVersion = this.runOpts.logVersion || false
       this.runOpts.progressPercent = this.cleanIntNonNegativeInput(this.runOpts.progressPercent, 1)
 
       this.runOpts.progressStep = this.cleanFloatInput(this.runOpts.progressStep, 0.0)

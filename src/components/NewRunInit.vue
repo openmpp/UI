@@ -19,7 +19,6 @@ export default {
         threadCount: 1,
         progressPercent: 1,
         progressStep: 0,
-        logVersion: true,
         workDir: '',
         csvDir: '',
         csvId: false,
@@ -90,7 +89,6 @@ export default {
       if ((this.runOpts.workDir || '') !== '') rv.Dir = this.runOpts.workDir
       if ((this.runOpts.progressPercent || 1) !== 1) rv.Opts['OpenM.ProgressPercent'] = this.runOpts.progressPercent.toString()
       if (this.runOpts.progressStep) rv.Opts['OpenM.ProgressStep'] = this.runOpts.progressStep.toString()
-      if (this.runOpts.logVersion) rv.Opts['OpenM.Version'] = 'true'
       if ((this.runOpts.csvDir || '') !== '') rv.Opts['OpenM.ParamDir'] = this.runOpts.csvDir
       if (this.runOpts.csvId) rv.Opts['OpenM.IdCsv'] = 'true'
       if (this.runOpts.useIni) rv.Opts['OpenM.IniFile'] = this.runOpts.iniName
