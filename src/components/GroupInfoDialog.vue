@@ -7,12 +7,12 @@
     </q-card-section>
 
     <q-card-section class="q-pt-none text-body1">
-      <div class="om-note-table mono">
+      <div class="om-note-table mono q-pb-md">
         <div class="om-note-row">
           <span class="om-note-cell q-pr-sm">{{ $t('Name') }}:</span><span class="om-note-cell">{{ groupName }}</span>
         </div>
       </div>
-      <div class="q-pt-md">{{ notes }}</div>
+      <div v-if="notes" v-html="notes" />
     </q-card-section>
 
     <q-card-actions align="right">
@@ -26,6 +26,10 @@
 <script>
 import { mapState } from 'vuex'
 import * as Mdf from 'src/model-common'
+import marked from 'marked'
+import hljs from 'highlight.js'
+import 'highlight.js/styles/github.css'
+import sanitizeHtml from 'sanitize-html'
 
 export default {
   name: 'GroupInfoDialog',
@@ -53,7 +57,23 @@ export default {
     showTickle () {
       const groupText = Mdf.groupTextByName(this.theModel, this.groupName)
       this.title = Mdf.descrOfDescrNote(groupText) || this.groupName
-      this.notes = Mdf.noteOfDescrNote(groupText)
+
+      // notes: convert from markdown to html
+      marked.setOptions({
+        renderer: new marked.Renderer(),
+        highlight: (code, lang) => {
+          const language = hljs.getLanguage(lang) ? lang : 'plaintext'
+          return hljs.highlight(code, { language }).value
+        },
+        pedantic: false,
+        gfm: true,
+        breaks: false,
+        smartLists: true
+        // smartypants: true
+      })
+
+      this.notes = marked(sanitizeHtml(Mdf.noteOfDescrNote(groupText)))
+
       this.showDlg = true
     }
   }

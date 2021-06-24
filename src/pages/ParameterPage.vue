@@ -419,7 +419,8 @@
 
   <run-info-dialog v-if="isFromRun" :show-tickle="runInfoTickle" :model-digest="digest" :run-digest="runDigest"></run-info-dialog>
   <workset-info-dialog v-if="!isFromRun" :show-tickle="worksetInfoTickle" :model-digest="digest" :workset-name="worksetName"></workset-info-dialog>
-  <parameter-info-dialog :show-tickle="paramInfoTickle" :param-name="parameterName" :workset-name="worksetName"></parameter-info-dialog>
+  <parameter-info-dialog v-if="isFromRun" :show-tickle="paramInfoTickle" :param-name="parameterName" :run-digest="runDigest"></parameter-info-dialog>
+  <parameter-info-dialog v-if="!isFromRun" :show-tickle="paramInfoTickle" :param-name="parameterName" :workset-name="worksetName"></parameter-info-dialog>
 
   <q-inner-loading :showing="loadWait">
     <q-spinner-gears size="md" color="primary" />

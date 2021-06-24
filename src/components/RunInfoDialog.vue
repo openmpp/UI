@@ -8,7 +8,7 @@
 
     <q-card-section class="q-pt-none text-body1">
 
-      <div class="om-note-table mono">
+      <div class="om-note-table mono q-pb-md">
         <div class="om-note-row">
           <span class="om-note-cell q-pr-sm">{{ $t('Name') }}:</span><span class="om-note-cell">{{ runText.Name }}</span>
         </div>
@@ -41,7 +41,7 @@
         </div>
       </div>
 
-      <div class="q-pt-md">{{ notes }}</div>
+      <div v-if="notes" v-html="notes" />
     </q-card-section>
 
     <q-card-actions align="right">
@@ -55,6 +55,10 @@
 <script>
 import { mapGetters } from 'vuex'
 import * as Mdf from 'src/model-common'
+import marked from 'marked'
+import hljs from 'highlight.js'
+import 'highlight.js/styles/github.css'
+import sanitizeHtml from 'sanitize-html'
 
 export default {
   name: 'RunInfoDialog',
@@ -94,13 +98,29 @@ export default {
         return
       }
 
+      // set basic run info
       this.title = Mdf.descrOfTxt(this.runText) || this.runText.Name
-      this.notes = Mdf.noteOfTxt(this.runText)
       this.isSucess = this.runText.Status === Mdf.RUN_SUCCESS
       this.statusDescr = this.$t(Mdf.statusTextByCode(this.runText.Status))
       this.createDateTime = Mdf.dtStr(this.runText.CreateDateTime)
       this.lastDateTime = Mdf.dtStr(this.runText.UpdateDateTime)
       this.duration = Mdf.toIntervalStr(this.createDateTime, this.lastDateTime)
+
+      // run notes: convert from markdown to html
+      marked.setOptions({
+        renderer: new marked.Renderer(),
+        highlight: (code, lang) => {
+          const language = hljs.getLanguage(lang) ? lang : 'plaintext'
+          return hljs.highlight(code, { language }).value
+        },
+        pedantic: false,
+        gfm: true,
+        breaks: false,
+        smartLists: true
+        // smartypants: true
+      })
+
+      this.notes = marked(sanitizeHtml(Mdf.noteOfTxt(this.runText)))
 
       this.showDlg = true
     }

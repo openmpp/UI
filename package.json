@@ -18,16 +18,19 @@
     "test": "echo \"No test specified\" && exit 0"
   },
   "dependencies": {
+    "@fontsource/roboto-mono": "4.4.5",
     "@quasar/extras": "^1.0.0",
     "axios": "^0.21.1",
     "core-js": "^3.6.5",
+    "highlight.js": "^11.0.1",
+    "marked": "^2.1.2",
     "plotly.js-basic-dist": "^1.51.2",
     "quasar": "^1.0.0",
     "react": "^16.5.2",
     "react-dom": "^16.5.2",
     "react-pivottable": "^0.9.0",
     "react-plotly.js": "^2.4.0",
-    "typeface-roboto-mono": "0.0.75",
+    "sanitize-html": "^2.4.0",
     "vue-i18n": "^8.0.0",
     "vuedraggable": "^2.24.3",
     "vuera": "^0.2.7"
@@ -35,6 +38,7 @@
   "devDependencies": {
     "@babel/preset-react": "^7.12.7",
     "@quasar/app": "^2.0.0",
+    "@types/sanitize-html": "^2.3.1",
     "babel-eslint": "^10.0.1",
     "eslint": "^6.8.0",
     "eslint-config-standard": "^14.1.0",
