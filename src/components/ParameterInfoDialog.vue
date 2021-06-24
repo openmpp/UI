@@ -8,7 +8,7 @@
 
     <q-card-section class="q-pt-none text-body1">
 
-      <div class="om-note-table mono">
+      <div class="om-note-table mono q-pb-md">
         <div class="om-note-row">
           <span class="om-note-cell q-pr-sm">{{ $t('Name') }}:</span><span class="om-note-cell">{{ paramName }}</span>
         </div>
@@ -39,8 +39,8 @@
         </div>
       </div>
 
-      <div v-if="valueNotes" class="q-pt-md">{{ valueNotes }}</div>
-      <div v-if="notes" class="q-pt-md">{{ notes }}</div>
+      <div v-if="valueNotes" v-html="valueNotes" />
+      <div v-if="notes" v-html="notes" />
     </q-card-section>
 
     <q-card-actions align="right">
@@ -54,6 +54,10 @@
 <script>
 import { mapState, mapGetters } from 'vuex'
 import * as Mdf from 'src/model-common'
+import marked from 'marked'
+import hljs from 'highlight.js'
+import 'highlight.js/styles/github.css'
+import sanitizeHtml from 'sanitize-html'
 
 export default {
   name: 'ParameterInfoDialog',
@@ -112,10 +116,25 @@ export default {
         }
       }
 
-      // basic parameter info and value notes
+      // title: parameter description or name
       this.title = Mdf.descrOfDescrNote(this.paramText) || this.paramText.Param.Name
-      this.notes = Mdf.noteOfDescrNote(this.paramText)
-      this.valueNotes = Mdf.noteOfTxt(this.paramRunSet)
+
+      // parameter note and value notes: convert from markdown to html
+      marked.setOptions({
+        renderer: new marked.Renderer(),
+        highlight: (code, lang) => {
+          const language = hljs.getLanguage(lang) ? lang : 'plaintext'
+          return hljs.highlight(code, { language }).value
+        },
+        pedantic: false,
+        gfm: true,
+        breaks: false,
+        smartLists: true
+        // smartypants: true
+      })
+
+      this.notes = marked(sanitizeHtml(Mdf.noteOfDescrNote(this.paramText)))
+      this.valueNotes = marked(sanitizeHtml(Mdf.noteOfTxt(this.paramRunSet)))
 
       // find parameter type
       const t = Mdf.typeTextById(this.theModel, (this.paramText.Param.TypeId || 0))

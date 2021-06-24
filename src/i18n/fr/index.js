@@ -87,6 +87,7 @@ export default {
   'Menu': 'Menu',
   'Model': 'Modèle',
   'model(s)': 'des modèles',
+  'Model not found': 'Modèle introuvable',
   'Model output tables list is empty or invalid': 'La liste des tables de résultats du modèle est vide ou non valide',
   'Model parameters list is empty or invalid': 'La liste des paramètres du modèle est vide ou non valide',
   'Model Run Options': "Options d'exécution du modèle",

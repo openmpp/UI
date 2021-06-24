@@ -271,7 +271,7 @@
     <router-view :refresh-tickle="refreshTickle"></router-view>
   </q-page-container>
 
-  <model-info-dialog :show-tickle="modelInfoTickle" :info="modelInfo"></model-info-dialog>
+  <model-info-dialog :show-tickle="modelInfoTickle" :digest="modelDigest"></model-info-dialog>
 
   <q-inner-loading :showing="loadWait">
     <q-spinner-gears size="xl" color="primary" />
@@ -298,14 +298,6 @@ export default {
       loadWait: false,
       isBeta: true,
       modelInfoTickle: false,
-      modelInfo: {
-        title: '',
-        notes: '',
-        modelName: '',
-        modelDigest: '',
-        createDateTime: '',
-        version: ''
-      },
       langCode: this.$q.lang.getLocale(),
       appLanguages: languages.filter(lang => ['fr', 'en-us'].includes(lang.isoName))
     }
@@ -362,14 +354,6 @@ export default {
   methods: {
     // show model notes dialog
     doShowModelNote () {
-      this.modelInfo = {
-        title: Mdf.descrOfDescrNote(this.theModel),
-        notes: Mdf.noteOfDescrNote(this.theModel),
-        modelName: this.modelName,
-        modelDigest: this.modelDigest,
-        createDateTime: Mdf.dtStr(this.theModel.Model.CreateDateTime),
-        version: this.theModel.Model.Version
-      }
       this.modelInfoTickle = !this.modelInfoTickle
     },
     // new selected language in the menu

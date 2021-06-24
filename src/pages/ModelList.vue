@@ -77,7 +77,7 @@
     </q-tree>
   </div>
 
-  <model-info-dialog :show-tickle="modelInfoTickle" :info="modelInfo"></model-info-dialog>
+  <model-info-dialog :show-tickle="modelInfoTickle" :digest="modelInfoDigest"></model-info-dialog>
 
   <q-inner-loading :showing="loadWait">
     <q-spinner-gears size="lg" color="primary" />
@@ -107,14 +107,7 @@ export default {
       nextId: 100,
       treeData: [],
       modelInfoTickle: false,
-      modelInfo: {
-        title: '',
-        notes: '',
-        modelName: '',
-        modelDigest: '',
-        createDateTime: '',
-        version: ''
-      },
+      modelInfoDigest: '',
       loadDone: false,
       loadWait: false
     }
@@ -129,8 +122,7 @@ export default {
       theModel: state => state.theModel
     }),
     ...mapGetters('model', {
-      modelCount: 'modelListCount',
-      modelByDigest: 'modelByDigest'
+      modelCount: 'modelListCount'
     }),
     ...mapState('uiState', {
       uiLang: state => state.uiLang
@@ -168,15 +160,7 @@ export default {
 
     // show model notes dialog
     doShowModelNote (digest) {
-      const m = this.modelByDigest(digest)
-      this.modelInfo = {
-        title: Mdf.modelTitle(m),
-        notes: Mdf.noteOfDescrNote(m),
-        modelName: Mdf.modelName(m),
-        modelDigest: digest,
-        createDateTime: Mdf.dtStr(m.Model.CreateDateTime),
-        version: m.Model.Version || ''
-      }
+      this.modelInfoDigest = digest
       this.modelInfoTickle = !this.modelInfoTickle
     },
 

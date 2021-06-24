@@ -8,7 +8,7 @@
 
     <q-card-section class="q-pt-none text-body1">
 
-      <div class="om-note-table mono">
+      <div class="om-note-table mono q-pb-md">
         <div class="om-note-row">
           <span class="om-note-cell q-pr-sm">{{ $t('Name') }}:</span><span class="om-note-cell">{{ worksetText.Name }}</span>
         </div>
@@ -26,7 +26,7 @@
         </div>
       </div>
 
-      <div class="q-pt-md">{{ notes }}</div>
+      <div v-if="notes" v-html="notes" />
     </q-card-section>
 
     <q-card-actions align="right">
@@ -40,6 +40,10 @@
 <script>
 import { mapGetters } from 'vuex'
 import * as Mdf from 'src/model-common'
+import marked from 'marked'
+import hljs from 'highlight.js'
+import 'highlight.js/styles/github.css'
+import sanitizeHtml from 'sanitize-html'
 
 export default {
   name: 'WorksetInfoDialog',
@@ -76,10 +80,26 @@ export default {
         return
       }
 
+      // set basic workset info
       this.title = Mdf.descrOfTxt(this.worksetText) || this.worksetText.Name
-      this.notes = Mdf.noteOfTxt(this.worksetText)
       this.lastDateTime = Mdf.dtStr(this.worksetText.UpdateDateTime)
       this.paramCount = Mdf.lengthOf(this.worksetText.Param)
+
+      // workset notes: convert from markdown to html
+      marked.setOptions({
+        renderer: new marked.Renderer(),
+        highlight: (code, lang) => {
+          const language = hljs.getLanguage(lang) ? lang : 'plaintext'
+          return hljs.highlight(code, { language }).value
+        },
+        pedantic: false,
+        gfm: true,
+        breaks: false,
+        smartLists: true
+        // smartypants: true
+      })
+
+      this.notes = marked(sanitizeHtml(Mdf.noteOfTxt(this.worksetText)))
 
       this.showDlg = true
     }

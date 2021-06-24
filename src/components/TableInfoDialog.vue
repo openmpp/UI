@@ -8,7 +8,7 @@
 
     <q-card-section class="q-pt-none text-body1">
 
-      <div class="om-note-table mono">
+      <div class="om-note-table mono q-pb-md">
         <div class="om-note-row">
           <span class="om-note-cell q-pr-sm">{{ $t('Name') }}:</span><span class="om-note-cell">{{ tableName }}</span>
         </div>
@@ -40,10 +40,11 @@
         </template>
       </div>
 
-      <div v-if="!isRunHasTable" class="q-pt-md">{{ $t('This table is excluded from model run results') }}</div>
-      <div v-if="tableText.ExprDescr" class="q-pt-md">{{ tableText.ExprDescr }}</div>
-      <div v-if="tableText.ExprNote" class="q-pt-md">{{ tableText.ExprNote }}</div>
-      <div v-if="notes" class="q-pt-md">{{ notes }}</div>
+      <div v-if="!isRunHasTable" class="q-pb-md">{{ $t('This table is excluded from model run results') }}</div>
+      <div v-if="tableText.ExprDescr" class="q-pb-md">{{ tableText.ExprDescr }}</div>
+
+      <div v-if="exprNotes" v-html="exprNotes" />
+      <div v-if="notes" v-html="notes" />
     </q-card-section>
 
     <q-card-actions align="right">
@@ -57,6 +58,10 @@
 <script>
 import { mapState, mapGetters } from 'vuex'
 import * as Mdf from 'src/model-common'
+import marked from 'marked'
+import hljs from 'highlight.js'
+import 'highlight.js/styles/github.css'
+import sanitizeHtml from 'sanitize-html'
 
 export default {
   name: 'TableInfoDialog',
@@ -73,6 +78,7 @@ export default {
       tableText: Mdf.emptyTableText(),
       title: '',
       notes: '',
+      exprNotes: '',
       tableSize: Mdf.emptyTableSize(),
       isRunHasTable: false,
       runText: Mdf.emptyRunText()
@@ -101,9 +107,25 @@ export default {
       // find current model run
       this.runText = this.runTextByDigest({ ModelDigest: Mdf.modelDigest(this.theModel), RunDigest: this.runDigest })
 
-      // basic table info
+      // title: table description or name
       this.title = this.tableText.TableDescr || this.tableText.Name
-      this.notes = this.tableText.TableNote
+
+      // table note and expression notes: convert from markdown to html
+      marked.setOptions({
+        renderer: new marked.Renderer(),
+        highlight: (code, lang) => {
+          const language = hljs.getLanguage(lang) ? lang : 'plaintext'
+          return hljs.highlight(code, { language }).value
+        },
+        pedantic: false,
+        gfm: true,
+        breaks: false,
+        smartLists: true
+        // smartypants: true
+      })
+
+      this.notes = marked(sanitizeHtml(this.tableText.TableNote))
+      this.exprNotes = marked(sanitizeHtml(this.tableText.ExprNote))
 
       // find table size info and check is this table included into the run
       this.tableSize = Mdf.tableSizeByName(this.theModel, this.tableName)
