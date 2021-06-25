@@ -60,7 +60,6 @@ import { mapState, mapGetters } from 'vuex'
 import * as Mdf from 'src/model-common'
 import marked from 'marked'
 import hljs from 'highlight.js'
-import 'highlight.js/styles/github.css'
 import sanitizeHtml from 'sanitize-html'
 
 export default {
@@ -137,5 +136,6 @@ export default {
 }
 </script>
 
-<style lang="scss" scope="local">
+<style scope="local">
+  @import '~highlight.js/styles/github.css'
 </style>
