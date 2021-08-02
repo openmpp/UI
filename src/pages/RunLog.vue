@@ -6,26 +6,37 @@
     >
     <q-card-section>
 
-      <q-btn
-        v-if="!isRefreshCompleted"
-        @click="refreshPauseToggle"
-        flat
-        dense
-        class="bg-primary text-white rounded-borders"
-        :icon="!isRefreshPaused ? (((this.refreshCount % 2) === 1) ? 'mdi-autorenew' : 'mdi-sync') : 'mdi-play-circle-outline'"
-        :title="!isRefreshPaused ? $t('Pause') : $t('Refresh')"
-        />
-      <q-btn
-        v-else
-        disable
-        flat
-        dense
-        class="bg-primary text-white rounded-borders"
-        icon="mdi-autorenew"
-        :title="$t('Refresh')"
-        />
+      <div
+        class="row reverse-wrap items-center"
+        >
 
-      <span class="q-ml-xs">{{ $t('Progress of') }}: <span :title="$t('Run Stamp')" class="mono om-text-secondary">{{ runStamp }}</span></span>
+        <q-btn
+          v-if="!isRefreshCompleted"
+          @click="refreshPauseToggle"
+          flat
+          dense
+          class="col-auto bg-primary text-white rounded-borders q-mr-xs"
+          :icon="!isRefreshPaused ? (((refreshCount % 2) === 1) ? 'mdi-autorenew' : 'mdi-sync') : 'mdi-play-circle-outline'"
+          :title="!isRefreshPaused ? $t('Pause') : $t('Refresh')"
+          />
+        <q-btn
+          v-else
+          disable
+          flat
+          dense
+          class="col-auto bg-primary text-white rounded-borders q-mr-xs"
+          icon="mdi-autorenew"
+          :title="$t('Refresh')"
+          />
+
+        <div
+          class="col-auto"
+          >
+          <span>{{ $t('Progress of') }}: <span :title="$t('Run Stamp')" class="mono om-text-secondary">{{ runStamp }}</span></span><br />
+          <span class="mono om-text-descr">{{ lastProgressTimeStamp }}</span>
+        </div>
+
+      </div>
 
     </q-card-section>
   </q-card>
@@ -86,7 +97,7 @@
       <span class="mono">{{runState.UpdateDateTime}}</span>
       <span v-if="runState.LogFileName" class="mono"><i>[{{runState.LogFileName}}]</i></span>
       <div>
-        <pre class="log-text">{{logLines.join('\n')}}</pre>
+        <pre>{{logLines.join('\n')}}</pre>
       </div>
     </q-card-section>
   </q-card>
@@ -109,6 +120,7 @@
     @wait="()=>{}"
     >
   </refresh-run-progress>
+
   <run-info-dialog :show-tickle="runInfoTickle" :model-digest="digest" :run-digest="runInfoDigest"></run-info-dialog>
 
 </div>
@@ -148,7 +160,6 @@ export default {
       isRefreshPaused: false,
       isLogRefresh: false,
       isProgressRefresh: false,
-      isToggleRefresh: false,
       refreshInt: '',
       refreshCount: 0,
       lastLogDt: 0,
@@ -168,6 +179,10 @@ export default {
   },
 
   computed: {
+    lastProgressTimeStamp () {
+      return this.lastProgressDt ? Mdf.dtToTimeStamp(new Date(this.lastProgressDt)) : ''
+    },
+
     ...mapGetters('model', {
       runTextByDigest: 'runTextByDigest'
     }),
@@ -184,7 +199,6 @@ export default {
   methods: {
     isSuccess (status) { return status === Mdf.RUN_SUCCESS },
     isInProgress (status) { return status === Mdf.RUN_IN_PROGRESS || status === Mdf.RUN_INITIAL },
-    dateTimeStr (dt) { return Mdf.dtStr(dt) },
     runStatusDescr (status) { return Mdf.statusTextByCode(status) },
     descrOfRun (rd) { return Mdf.descrOfTxt(this.runTextByDigest({ ModelDigest: this.digest, RunDigest: rd })) },
 
@@ -349,7 +363,6 @@ export default {
 </script>
 
 <style lang="scss" scope="local">
-  /* run progress table */
   .pt-table {
     text-align: left;
     border-collapse: collapse;

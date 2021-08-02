@@ -15,11 +15,12 @@ import UploadUserViews from 'components/UploadUserViews.vue'
 const RUN_LST_TAB_POS = 1       // model runs list tab position
 const WS_LST_TAB_POS = 4        // worksets list tab position
 const NEW_RUN_TAB_POS = 8       // new model run tab position
+const DOWNLOADS_TAB_POS = 10    // downloads list tab position
 const FREE_TAB_POS = 20         // first unassigned tab position
 /* eslint-enable no-multi-spaces */
 
 export default {
-  name: 'Model',
+  name: 'ModelPage',
   components: {
     RefreshModel, RefreshRun, RefreshRunList, RefreshRunArray, RefreshWorkset, RefreshWorksetList, UpdateWorksetStatus, RefreshWorksetArray, RefreshUserViews, UploadUserViews
   },
@@ -332,6 +333,11 @@ export default {
       const p = this.doTabAdd('new-run', { digest: this.digest })
       if (p) this.$router.push(p)
     },
+    // view download list: add tab with open download page
+    onDownloadSelect () {
+      const p = this.doTabAdd('download-list', { digest: this.digest })
+      if (p) this.$router.push(p)
+    },
 
     // on click tab close button: close taband route to the next tab
     onTabCloseClick (tabPath) {
@@ -415,6 +421,8 @@ export default {
       // tab kind must be defined and model digest same as current model
       if ((kind || '') === '' || !routeParts || (routeParts.digest || '') !== this.digest) return emptyTabInfo()
 
+      let rn = ''
+
       switch (kind) {
         case 'run-list':
           return {
@@ -442,9 +450,9 @@ export default {
             return emptyTabInfo()
           }
           const pds = Mdf.descrOfDescrNote(Mdf.paramTextByName(this.theModel, routeParts.parameterName))
+          // path: '/model/' + this.digest + '/run/' + routeParts.runDigest + '/parameter/' + routeParts.parameterName,
           return {
             kind: kind,
-            // path: '/model/' + this.digest + '/run/' + routeParts.runDigest + '/parameter/' + routeParts.parameterName,
             path: Mdf.parameterRunPath(this.digest, routeParts.runDigest, routeParts.parameterName),
             routeParts: routeParts,
             title: (pds !== '') ? pds : routeParts.parameterName,
@@ -459,9 +467,9 @@ export default {
             return emptyTabInfo()
           }
           const pds = Mdf.descrOfDescrNote(Mdf.paramTextByName(this.theModel, routeParts.parameterName))
+          // path: '/model/' + this.digest + '/set/' + routeParts.worksetName + '/parameter/' + routeParts.parameterName,
           return {
             kind: kind,
-            // path: '/model/' + this.digest + '/set/' + routeParts.worksetName + '/parameter/' + routeParts.parameterName,
             path: Mdf.parameterWorksetPath(this.digest, routeParts.worksetName, routeParts.parameterName),
             routeParts: routeParts,
             title: (pds !== '') ? pds : routeParts.parameterName,
@@ -476,9 +484,9 @@ export default {
             return emptyTabInfo()
           }
           const tds = Mdf.descrOfDescrNote(Mdf.tableTextByName(this.theModel, routeParts.itemKey))
+          // path: '/model/' + this.digest + '/run/' + routeParts.runDigest + '/table/' + routeParts.tableName,
           return {
             kind: kind,
-            // path: '/model/' + this.digest + '/run/' + routeParts.runDigest + '/table/' + routeParts.tableName,
             path: Mdf.tablePath(this.digest, routeParts.runDigest, routeParts.tableName),
             routeParts: routeParts,
             title: (tds !== '') ? tds : routeParts.tableName,
@@ -502,7 +510,7 @@ export default {
             console.warn('Invalid (empty) run stamp:', routeParts.runStamp)
             return emptyTabInfo()
           }
-          let rn = ''
+          rn = routeParts.runStamp
           for (const rt of this.runTextList) {
             if (rt.ModelDigest === routeParts.digest && rt.RunStamp === routeParts.runStamp) {
               rn = rt.Name
@@ -513,11 +521,21 @@ export default {
             kind: kind,
             path: '/model/' + this.digest + '/run-log/' + routeParts.runStamp,
             routeParts: routeParts,
-            title: (rn !== '') ? rn : routeParts.runStamp,
+            title: rn,
             pos: FREE_TAB_POS,
             updated: false
           }
         }
+
+        case 'download-list':
+          return {
+            kind: kind,
+            path: '/model/' + this.digest + '/download-list',
+            routeParts: routeParts,
+            title: this.$t('Downloads'),
+            pos: DOWNLOADS_TAB_POS,
+            updated: false
+          }
       }
       // default
       console.warn('tab kind invalid:', kind)

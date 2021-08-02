@@ -54,6 +54,10 @@ export default {
     }),
     ...mapState('uiState', {
       runDigestSelected: state => state.runDigestSelected
+    }),
+    ...mapState('serverState', {
+      omsUrl: state => state.omsUrl,
+      serverConfig: state => state.config
     })
   },
 
@@ -115,6 +119,19 @@ export default {
         return
       }
       this.$emit('run-log-select', stamp)
+    },
+
+    // click on run download: start run download and show download list page
+    doDownloadRun (dgst) {
+      // if run digest is empty or run not completed successfully then do not show download page
+      if (!dgst || !Mdf.isRunSuccess(
+        this.runTextByDigest({ ModelDigest: this.digest, RunDigest: dgst })
+      )) {
+        this.$q.notify({ type: 'negative', message: this.$t('Unable to download model run, it is not completed successfully') })
+        return
+      }
+
+      this.startRunDownload(dgst) // start run download and show download page on success
     },
 
     // show or hide parameters tree
@@ -180,6 +197,31 @@ export default {
         })
       }
       return td
+    },
+
+    // start run download
+    async startRunDownload (dgst) {
+      let isOk = false
+      let msg = ''
+
+      const u = this.omsUrl + '/api/download/model/' + this.digest + '/run/' + (dgst || '')
+      try {
+        // send download request to the server, response expected to be empty on success
+        await this.$axios.post(u)
+        isOk = true
+      } catch (e) {
+        try {
+          if (e.response) msg = e.response.data || ''
+        } finally {}
+        console.warn('Unable to download model run', msg)
+      }
+      if (!isOk) {
+        this.$q.notify({ type: 'negative', message: this.$t('Unable to download model run') + (msg ? (': ' + msg) : '') })
+        return
+      }
+
+      this.$emit('download-select', this.digest) // download started: show download list page
+      this.$q.notify({ type: 'info', message: this.$t('Model run download started') })
     }
   },
 

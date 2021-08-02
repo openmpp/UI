@@ -88,7 +88,7 @@ Expected array of tree items as:
             :disable="prop.node.isAboutEmpty"
             color="primary"
             class="col-auto"
-            icon="mdi-information"
+            icon="mdi-information-outline"
             :title="$t('About') + ' ' + prop.node.label"
             />
           <div
@@ -112,7 +112,7 @@ Expected array of tree items as:
             :disable="!prop.node.isAbout || prop.node.isAboutEmpty"
             color="primary"
             class="col-auto"
-            icon="mdi-information"
+            icon="mdi-information-outline"
             :title="$t('About') + ' ' + prop.node.label"
             />
           <div class="col">

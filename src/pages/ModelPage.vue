@@ -35,6 +35,7 @@
             <q-icon v-if="t.updated && t.kind === 'set-parameter'" name="mdi-content-save-edit" size="sm" class="self-center q-pr-xs"/>
             <q-icon v-if="t.kind === 'table'" name="mdi-application-export" size="sm" class="self-center q-pr-xs"/>
             <q-icon v-if="t.kind === 'run-log'" name="mdi-text-subject" size="sm" class="self-center q-pr-xs"/>
+            <q-icon v-if="t.kind === 'download-list'" name="mdi-file-download-outline" size="sm" class="self-center q-pr-xs"/>
             <span class="col-shrink om-tab-title" :title="$t(t.title)">{{ $t(t.title) }}</span>
             <q-badge v-if="t.kind === 'run-list'" transparent outline class="q-ml-xs">{{ runTextCount }}</q-badge>
             <q-badge v-if="t.kind === 'set-list'" transparent outline class="q-ml-xs">{{ worksetTextCount }}</q-badge>
@@ -82,6 +83,7 @@
               <q-icon v-if="t.updated && t.kind === 'set-parameter'" name="mdi-content-save-edit" />
               <q-icon v-if="t.kind === 'table'" name="mdi-application-export" />
               <q-icon v-if="t.kind === 'run-log'" name="mdi-text-subject" />
+              <q-icon v-if="t.kind === 'download-list'" name="mdi-file-download-outline" />
             </q-item-section>
             <q-item-section>
               <q-item-label lines="1" :title="$t(t.title)">{{ $t(t.title) }}</q-item-label>
@@ -106,6 +108,7 @@
     @set-update-readonly="onWorksetReadonlyUpdate"
     @edit-updated="onEditUpdated"
     @run-log-select="onRunLogSelect"
+    @download-select="onDownloadSelect"
     @new-run-select="onNewRunSelect"
     @run-list-refresh="onRunListRefresh"
     @run-completed-list="onRunCompletedList"

@@ -156,7 +156,7 @@
               dense
               :color="(isSuccess(prop.node.status) || isInProgress(prop.node.status)) ? 'primary' : 'warning'"
               class="col-auto"
-              :icon="isSuccess(prop.node.status) ? 'mdi-information' : (isInProgress(prop.node.status) ? 'mdi-run' : 'mdi-alert-circle-outline')"
+              :icon="isSuccess(prop.node.status) ? 'mdi-information-outline' : (isInProgress(prop.node.status) ? 'mdi-run' : 'mdi-alert-circle-outline')"
               :title="$t('About') + ' ' + prop.node.label"
               />
             <q-btn
@@ -169,6 +169,17 @@
               class="col-auto"
               icon="mdi-text-subject"
               :title="$t('Run Log') + ': ' + prop.node.label"
+              />
+            <q-btn
+              :disable="!serverConfig.AllowDownload || !isSuccess(prop.node.status)"
+              @click.stop="doDownloadRun(prop.node.digest)"
+              flat
+              round
+              dense
+              :color="isSuccess(prop.node.status) ? 'primary' : 'secondary'"
+              class="col-auto"
+              icon="mdi-file-download-outline"
+              :title="$t('Download') + ' ' + prop.node.label"
               />
             <div class="col">
               <span>{{ prop.node.label }}<br />

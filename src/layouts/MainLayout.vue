@@ -19,7 +19,7 @@
         flat
         round
         dense
-        icon="mdi-information"
+        icon="mdi-information-outline"
         class="q-ml-sm"
         :title="$t('About') + ' ' + modelName"
         />
@@ -232,6 +232,20 @@
           <q-item-label>{{ $t('Run the Model') }}</q-item-label>
         </q-item-section>
       </q-item>
+
+      <q-item
+        clickable
+        :disable="!serverConfig.AllowDownload || !isModel"
+        :to="'/model/' + modelDigest + '/download-list'"
+        >
+        <q-item-section avatar>
+          <q-icon name="mdi-file-download-outline" />
+        </q-item-section>
+        <q-item-section>
+          <q-item-label>{{ $t('Downloads') }}</q-item-label>
+          <q-item-label caption>{{ $t('Download model data') }}</q-item-label>
+        </q-item-section>
+      </q-item>
       <q-separator />
 
       <q-item
@@ -268,7 +282,11 @@
   </q-drawer>
 
   <q-page-container>
-    <router-view :refresh-tickle="refreshTickle"></router-view>
+    <router-view
+      :refresh-tickle="refreshTickle"
+      @download-select="onDownloadSelect"
+      >
+    </router-view>
   </q-page-container>
 
   <model-info-dialog :show-tickle="modelInfoTickle" :digest="modelDigest"></model-info-dialog>
@@ -368,6 +386,15 @@ export default {
     doRefresh () {
       this.doConfigRefresh()
       this.refreshTickle = !this.refreshTickle
+    },
+
+    // view download page
+    onDownloadSelect (digest) {
+      if (!digest) {
+        this.$q.notify({ type: 'negative', message: this.$t('Unable to download model') })
+        return
+      }
+      this.$router.push('/download-list/model/' + digest) // show download model page for model selected from model list
     },
 
     // receive server configuration, including configuration of model catalog and run catalog

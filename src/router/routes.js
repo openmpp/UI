@@ -43,8 +43,18 @@ const routes = [
             path: 'run-log/:runStamp',
             component: () => import('pages/RunLog'),
             props: true
+          },
+          {
+            path: 'download-list',
+            component: () => import('pages/DownloadList'),
+            props: true
           }
         ]
+      },
+      {
+        path: '/download-list/model/:digest',
+        component: () => import('pages/DownloadList'),
+        props: true
       },
       { path: '/settings', component: () => import('pages/SessionSettings') },
       { path: '/license', component: () => import('pages/LicensePage') }

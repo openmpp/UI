@@ -60,8 +60,19 @@
             dense
             color="primary"
             class="col-auto"
-            icon="mdi-information"
+            icon="mdi-information-outline"
             :title="$t('About') + ' ' + prop.node.label"
+            />
+          <q-btn
+            v-if="serverConfig.AllowDownload"
+            @click.stop="doModelDownload(prop.node.digest)"
+            flat
+            round
+            dense
+            color="primary"
+            class="col-auto"
+            icon="mdi-file-download-outline"
+            :title="$t('Download') + ' ' + prop.node.label"
             />
           <router-link
             :to="'/model/' + prop.node.digest"
@@ -128,7 +139,8 @@ export default {
       uiLang: state => state.uiLang
     }),
     ...mapState('serverState', {
-      omsUrl: state => state.omsUrl
+      omsUrl: state => state.omsUrl,
+      serverConfig: state => state.config
     })
   },
 
@@ -162,6 +174,15 @@ export default {
     doShowModelNote (digest) {
       this.modelInfoDigest = digest
       this.modelInfoTickle = !this.modelInfoTickle
+    },
+
+    // click on model download: start model download and show download list page
+    doModelDownload (digest) {
+      if (!digest) {
+        this.$q.notify({ type: 'negative', message: this.$t('Unable to download model') })
+        return
+      }
+      this.startModelDownload(digest) // start model download and show download page on success
     },
 
     // return tree of models
@@ -210,6 +231,31 @@ export default {
       }
 
       this.loadWait = false
+    },
+
+    // start model download
+    async startModelDownload (dgst) {
+      let isOk = false
+      let msg = ''
+
+      const u = this.omsUrl + '/api/download/model/' + (dgst || '')
+      try {
+        // send download request to the server, response expected to be empty on success
+        await this.$axios.post(u)
+        isOk = true
+      } catch (e) {
+        try {
+          if (e.response) msg = e.response.data || ''
+        } finally {}
+        console.warn('Unable to download model', msg)
+      }
+      if (!isOk) {
+        this.$q.notify({ type: 'negative', message: this.$t('Unable to download model') + (msg ? (': ' + msg) : '') })
+        return
+      }
+
+      this.$emit('download-select', dgst) // download started: show download list page
+      this.$q.notify({ type: 'info', message: this.$t('Model download started') })
     },
 
     ...mapActions('model', {

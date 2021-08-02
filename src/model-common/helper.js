@@ -24,8 +24,14 @@ export const tablePath = (model, runDigest, tableName) => {
   return '/model/' + (model || '-') + '/run/' + (runDigest || '-') + '/table/' + (tableName || '-')
 }
 
-// return date-time string: truncate timestamp
+// return date-time string: truncate milliseconds from timestamp
 export const dtStr = (ts) => { return ((typeof ts === typeof 'string') ? (ts || '').substr(0, 19) : '') }
+
+// format date-time string to timestamp string: 2021-07-16 13:40:53.882 2021_07_16_13_40_53_882
+export const toUnderscoreTimeStamp = (ts) => {
+  if (!ts || typeof ts !== typeof 'string') return ''
+  return ts.replace(/[:\s-.]/g, '_')
+}
 
 // format date-time to timestamp string: YYYY-MM-DD hh:mm:ss.SSS
 export const dtToTimeStamp = (dt) => {
@@ -81,4 +87,27 @@ export const toIntervalStr = (startTs, stopTs) => {
       ('00' + s.toString()).slice(-2)
   }
   return ''
+}
+
+// convert size in bytes to KB, MB,... rounded value and unit name
+export const fileSizeParts = (size) => {
+  if (!size || typeof size !== typeof 1 || size < 0) return { val: '0', name: '' }
+
+  if (size < 1024) {
+    return { val: size.toFixed(0), name: 'Bytes' }
+  }
+  size /= 1024.0
+  if (size < 1024) {
+    return { val: size.toFixed(2), name: 'KB' }
+  }
+  size /= 1024.0
+  if (size < 1024) {
+    return { val: size.toFixed(2), name: 'MB' }
+  }
+  size /= 1024.0
+  if (size < 1024) {
+    return { val: size.toFixed(2), name: 'GB' }
+  }
+  size /= 1024.0
+  return { val: size.toFixed(2), name: 'TB' }
 }

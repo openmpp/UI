@@ -33,7 +33,7 @@
         />
       <q-btn
         @click="onNewRunClick"
-        :disable="isEditWorksetCurrent"
+        :disable="!isReadonlyWorksetCurrent"
         flat
         dense
         class="col-auto bg-primary text-white rounded-borders q-mr-xs"
@@ -45,8 +45,8 @@
         flat
         dense
         class="col-auto bg-primary text-white rounded-borders q-mr-xs"
-        :icon="isEditWorksetCurrent ? 'mdi-content-save-edit' : 'mdi-square-edit-outline'"
-        :title="(isEditWorksetCurrent ? $t('Save') : $t('Edit')) + ' ' + worksetNameSelected"
+        :icon="!isReadonlyWorksetCurrent ? 'mdi-content-save-edit' : 'mdi-square-edit-outline'"
+        :title="(!isReadonlyWorksetCurrent ? $t('Save') : $t('Edit')) + ' ' + worksetNameSelected"
         />
 
       <transition
@@ -143,8 +143,19 @@
               dense
               color="primary"
               class="col-auto"
-              icon="mdi-information"
+              icon="mdi-information-outline"
               :title="$t('About') + ' ' + prop.node.label"
+              />
+            <q-btn
+              :disable="!serverConfig.AllowDownload || !prop.node.isReadonly"
+              @click.stop="doDownloadWorkset(prop.node.label)"
+              flat
+              round
+              dense
+              :color="prop.node.isReadonly ? 'primary' : 'secondary'"
+              class="col-auto"
+              icon="mdi-file-download-outline"
+              :title="$t('Download') + ' ' + prop.node.label"
               />
             <div class="col">
               <span>{{ prop.node.label }}<br />
@@ -209,7 +220,7 @@ export default {
     paramCountWorksetCurrent () { return Mdf.worksetParamCount(this.worksetCurrent) },
 
     // if true then selected workset in edit mode else read-only and model run enabled
-    isEditWorksetCurrent () {
+    isReadonlyWorksetCurrent () {
       return Mdf.isNotEmptyWorksetText(this.worksetCurrent) && !this.worksetCurrent.IsReadonly
     },
 
@@ -223,6 +234,10 @@ export default {
     }),
     ...mapState('uiState', {
       worksetNameSelected: state => state.worksetNameSelected
+    }),
+    ...mapState('serverState', {
+      omsUrl: state => state.omsUrl,
+      serverConfig: state => state.config
     })
   },
 
@@ -275,6 +290,22 @@ export default {
       this.worksetInfoTickle = !this.worksetInfoTickle
     },
 
+    // click on  workset download: start run download and show download list page
+    doDownloadWorkset (name) {
+      // if name is empty or workset is not read-only then do not show rn download page
+      if (!name) {
+        this.$q.notify({ type: 'negative', message: this.$t('Unable to download input scenario, it is not a read-only') })
+        return
+      }
+      const wt = this.worksetTextByName({ ModelDigest: this.digest, Name: name })
+      if (!wt || !wt.IsReadonly) {
+        this.$q.notify({ type: 'negative', message: this.$t('Unable to download input scenario, it is not a read-only') })
+        return
+      }
+
+      this.startWorksetDownload(name) // start workset download and show download page on success
+    },
+
     // new model run using current workset name: open model run tab
     onNewRunClick () {
       this.$emit('new-run-select')
@@ -322,6 +353,7 @@ export default {
         td.push({
           key: 'wtl-' + wt.Name + '-' + this.nextId++,
           label: wt.Name,
+          isReadonly: wt.IsReadonly,
           lastTime: Mdf.dtStr(wt.UpdateDateTime),
           descr: Mdf.descrOfTxt(wt),
           children: [],
@@ -329,6 +361,31 @@ export default {
         })
       }
       return td
+    },
+
+    // start workset download
+    async startWorksetDownload (name) {
+      let isOk = false
+      let msg = ''
+
+      const u = this.omsUrl + '/api/download/model/' + this.digest + '/workset/' + (name || '')
+      try {
+        // send download request to the server, response expected to be empty on success
+        await this.$axios.post(u)
+        isOk = true
+      } catch (e) {
+        try {
+          if (e.response) msg = e.response.data || ''
+        } finally {}
+        console.warn('Unable to download model workset', msg)
+      }
+      if (!isOk) {
+        this.$q.notify({ type: 'negative', message: this.$t('Unable to download input scenario') + (msg ? (': ' + msg) : '') })
+        return
+      }
+
+      this.$emit('download-select', this.digest) // download started: show download list page
+      this.$q.notify({ type: 'info', message: this.$t('Model input scenario download started') })
     }
   },
 
