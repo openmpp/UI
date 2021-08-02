@@ -221,7 +221,7 @@ export default {
 
     // if true then selected workset in edit mode else read-only and model run enabled
     isReadonlyWorksetCurrent () {
-      return Mdf.isNotEmptyWorksetText(this.worksetCurrent) && !this.worksetCurrent.IsReadonly
+      return Mdf.isNotEmptyWorksetText(this.worksetCurrent) && this.worksetCurrent.IsReadonly
     },
 
     ...mapState('model', {

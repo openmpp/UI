@@ -142,6 +142,7 @@
         </q-item>
 
         <template v-if="dl.IsFolder && dl.Folder === folderSelected">
+          <q-separator />
           <q-item
             v-for="fi in downloadFileLst" :key="(fi.Path || 'no-path') + '-' + (fi.ModTime || 0).toString()"
             clickable
