@@ -50,7 +50,7 @@
   </q-card>
 
   <q-card
-    v-for="dl in downloadLogLst" :key="(dl.LogFileName || 'no-log') + '-' + (dl.LogNsTime || 0).toString()"
+    v-for="dl in downloadLst" :key="(dl.LogFileName || 'no-log') + '-' + (dl.LogNsTime || 0).toString()"
     class="q-ma-sm"
     >
 

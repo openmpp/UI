@@ -10,7 +10,8 @@ import WorksetInfoDialog from 'components/WorksetInfoDialog.vue'
 /* eslint-disable no-multi-spaces */
 const LOG_REFRESH_TIME = 1000               // msec, log files refresh interval
 const MAX_LOG_SEND_COUNT = 4                // max request to send without response
-const MAX_LOG_NO_DATA_COUNT = 15            // pause log refresh if no new data or empty response exceed this count (15 = 15 seconds)
+const MAX_LOG_NO_DATA_COUNT = 5             // pause log refresh if no new data or empty response exceed this count (5 = 5 seconds)
+const MAX_LOG_RECENT_COUNT = 149            // pause log refresh if "recent" progess and no new data exceed this count
 const MAX_LOG_WAIT_PROGRESS_COUNT = 20 * 60 // "recent" progress threshold (20 * 60 = 20 minutes)
 /* eslint-enable no-multi-spaces */
 
@@ -25,7 +26,7 @@ export default {
 
   data () {
     return {
-      downloadLogLst: [],
+      downloadLst: [],
       folderSelected: '',
       downloadFileLst: [],
       totalLogCount: 0,
@@ -126,7 +127,7 @@ export default {
         return
       }
 
-      this.downloadLogLst = []
+      this.downloadLst = []
       this.folderSelected = ''
       this.downloadFileLst = []
       this.stopLogRefresh()
@@ -162,10 +163,16 @@ export default {
 
         // refresh files list in selected folder
         if ((this.folderSelected || '') !== '') {
-          this.doFolderFilesRefresh(this.folderSelected)
+          const st = this.statusByFolder(this.folderSelected)
+          if (this.isProgress(st)) this.doFolderFilesRefresh(this.folderSelected)
         }
       }
       this.logRefreshCount++
+    },
+    // return downlod status by folder
+    statusByFolder (folder) {
+      const n = this.downloadLst.findIndex((dl) => dl.Folder === folder)
+      return n >= 0 ? this.downloadLst[n].Status : ''
     },
 
     // retrive list of download log files by model digest
@@ -224,11 +231,12 @@ export default {
         }
       }
 
+      // pause refresh if no changes in log files
       // wait longer if there is a "recent" progress
       const isRecent = nProgress > 0 && (Date.now() - (maxTime / 1000000) < 1000 * MAX_LOG_WAIT_PROGRESS_COUNT)
 
       if (this.logAllKey === logKey) {
-        if (this.logNoDataCount++ > MAX_LOG_NO_DATA_COUNT * (isRecent ? 10 : 1)) this.isLogRefreshPaused = true // pause refresh if no changes in log files
+        this.isLogRefreshPaused = this.logNoDataCount++ > (!isRecent ? MAX_LOG_NO_DATA_COUNT : MAX_LOG_RECENT_COUNT)
       } else {
         this.logNoDataCount = 0 // new data found
       }
@@ -236,20 +244,20 @@ export default {
       // copy log file show / hide status
       for (let k = 0; k < dLst.length; k++) {
         dLst[k].isShowLog = false
-        const n = this.downloadLogLst.findIndex((dl) => dl.LogFileName === dLst[k].LogFileName)
+        const n = this.downloadLst.findIndex((dl) => dl.LogFileName === dLst[k].LogFileName)
         if (n >= 0) {
-          dLst[k].isShowLog = this.downloadLogLst[n].isShowLog
+          dLst[k].isShowLog = this.downloadLst[n].isShowLog
         }
       }
 
       // replace download log list
-      this.downloadLogLst = dLst
+      this.downloadLst = dLst
 
       this.logAllKey = logKey
       this.readyLogCount = nReady
       this.progressLogCount = nProgress
       this.errorLogCount = nError
-      this.totalLogCount = this.downloadLogLst.length
+      this.totalLogCount = this.downloadLst.length
     },
 
     // retrive list of files in download folder
