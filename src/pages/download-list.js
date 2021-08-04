@@ -114,10 +114,28 @@ export default {
         this.folderSelected = ''
       } else {
         this.folderSelected = folder
-        if (this.isLogRefreshPaused) {
-          this.doFolderFilesRefresh(this.folderSelected)
+        this.doFolderFilesRefresh(this.folderSelected)
+      }
+    },
+    // refersh log files list
+    onLogRefresh () {
+      if (this.isLogRefreshPaused) return
+      //
+      if (this.logSendCount++ < MAX_LOG_SEND_COUNT) {
+        this.doLogListRefresh()
+
+        // refresh files list in selected folder
+        if ((this.folderSelected || '') !== '') {
+          const st = this.statusByFolder(this.folderSelected)
+          if (this.isProgress(st)) this.doFolderFilesRefresh(this.folderSelected)
         }
       }
+      this.logRefreshCount++
+    },
+    // return downlod status by folder
+    statusByFolder (folder) {
+      const n = this.downloadLst.findIndex((dl) => dl.Folder === folder)
+      return n >= 0 ? this.downloadLst[n].Status : ''
     },
 
     // update page view
@@ -152,27 +170,6 @@ export default {
     stopLogRefresh () {
       this.logRefreshCount = 0
       clearInterval(this.logRefreshInt)
-    },
-
-    // refersh log files list
-    onLogRefresh () {
-      if (this.isLogRefreshPaused) return
-      //
-      if (this.logSendCount++ < MAX_LOG_SEND_COUNT) {
-        this.doLogListRefresh()
-
-        // refresh files list in selected folder
-        if ((this.folderSelected || '') !== '') {
-          const st = this.statusByFolder(this.folderSelected)
-          if (this.isProgress(st)) this.doFolderFilesRefresh(this.folderSelected)
-        }
-      }
-      this.logRefreshCount++
-    },
-    // return downlod status by folder
-    statusByFolder (folder) {
-      const n = this.downloadLst.findIndex((dl) => dl.Folder === folder)
-      return n >= 0 ? this.downloadLst[n].Status : ''
     },
 
     // retrive list of download log files by model digest
