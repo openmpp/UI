@@ -412,7 +412,7 @@
           <tr
             :disabled="runOpts.mpiNpCount <= 0"
             >
-            <td class="q-pr-xs">{{ $t('Use MPI Root for Modelling') }}:</td>
+            <td class="q-pr-xs">{{ $t('MPI Model Run Template') }}:</td>
             <td>
               <q-select
                 v-model="runOpts.mpiTmpl"
