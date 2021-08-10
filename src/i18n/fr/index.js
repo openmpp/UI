@@ -28,6 +28,7 @@ export default {
   'Default view of parameter saved': 'Vue par défaut du paramètre enregistré',
   'Delete': 'Supprimer',
   'Delete download of': 'Supprimer le téléchargement de',
+  'Deleted': 'Supprimé',
   'Deleting': 'Suppression',
   'Description': 'La description',
   'Development options': 'Options de développement',

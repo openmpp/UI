@@ -93,7 +93,7 @@
           :title="((folderSelected || '') !== dl.Folder ? $t('Expand') : $t('Collapse')) + ': ' + dl.Folder"
           />
         <q-btn
-          v-if="!isDeleteKind(dl.Kind)"
+          v-if="!isDeleteKind(dl.Kind) && !isProgress(dl.Status)"
           @click="onShowDeleteClick(dl.Folder)"
           flat
           dense

@@ -318,11 +318,13 @@ export default {
         console.warn('Invald (empty) folder name')
         return // exit on empty folder
       }
+      this.$q.notify({ type: 'info', message: this.$t('Deleting') + ': ' + folder })
+
       this.loadWait = true
       let isOk = false
       let msg = ''
 
-      const u = this.omsUrl + '/api/download/delete/' + (folder || '')
+      const u = this.omsUrl + '/api/download/sync/delete/' + (folder || '')
       try {
         const response = await this.$axios.delete(u)
         msg = response.data
@@ -340,7 +342,7 @@ export default {
         return
       }
 
-      this.$q.notify({ type: 'info', message: this.$t('Deleting') + ': ' + folder })
+      this.$q.notify({ type: 'info', message: this.$t('Deleted') + ': ' + folder })
     }
   },
 
