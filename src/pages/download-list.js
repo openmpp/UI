@@ -46,7 +46,9 @@ export default {
       runInfoTickle: false,
       runInfoDigest: '',
       worksetInfoTickle: false,
-      worksetInfoName: ''
+      worksetInfoName: '',
+      showDeleteDialog: false,
+      folderToDelete: ''
     }
   },
 
@@ -76,7 +78,8 @@ export default {
     isModelKind (kind) { return kind === 'model' },
     isRunKind (kind) { return kind === 'run' },
     isWorksetKind (kind) { return kind === 'workset' },
-    isUnkownKind (kind) { return kind !== 'model' && kind !== 'run' && kind !== 'workset' },
+    isDeleteKind (kind) { return kind === 'delete' },
+    isUnkownKind (kind) { return kind !== 'model' && kind !== 'run' && kind !== 'workset' && kind !== 'delete' },
     fileTimeStamp (t) {
       if (!t || t <= 0) return ''
 
@@ -136,6 +139,21 @@ export default {
     statusByFolder (folder) {
       const n = this.downloadLst.findIndex((dl) => dl.Folder === folder)
       return n >= 0 ? this.downloadLst[n].Status : ''
+    },
+
+    // delete download results by folder name
+    onShowDeleteClick (folder) {
+      this.folderToDelete = folder
+      this.showDeleteDialog = !this.showDeleteDialog
+    },
+    // delete download results by folder name
+    onYesDeleteClick (folder) {
+      this.doDeleteDownload(folder)
+      this.folderToDelete = ''
+
+      // refresh downloads list
+      this.logRefreshPauseToggle()
+      this.isLogRefreshPaused = false
     },
 
     // update page view
@@ -199,9 +217,12 @@ export default {
       }
       this.loadWait = false
 
-      if (!isOk || !dLst || !Array.isArray(dLst) || dLst.length <= 0 || !Mdf.isDownloadLogList(dLst)) {
-        if (this.logNoDataCount++ > MAX_LOG_NO_DATA_COUNT) this.isLogRefreshPaused = true // pause refresh if no log files exist
+      if (!isOk || !dLst || !Array.isArray(dLst) || !Mdf.isDownloadLogList(dLst)) {
+        if (this.logNoDataCount++ > MAX_LOG_NO_DATA_COUNT) this.isLogRefreshPaused = true // pause refresh on errors
         return
+      }
+      if (dLst.length <= 0) {
+        if (this.logNoDataCount++ > MAX_LOG_NO_DATA_COUNT) this.isLogRefreshPaused = true // pause refresh if no log files exist
       }
 
       // check if any changes in log files and update status counts
@@ -289,6 +310,37 @@ export default {
       for (const fi of fLst) {
         if (!fi.IsDir) this.downloadFileLst.push(fi)
       }
+    },
+
+    // delete download by folder name
+    async doDeleteDownload (folder) {
+      if (!folder) {
+        console.warn('Invald (empty) folder name')
+        return // exit on empty folder
+      }
+      this.loadWait = true
+      let isOk = false
+      let msg = ''
+
+      const u = this.omsUrl + '/api/download/delete/' + (folder || '')
+      try {
+        const response = await this.$axios.delete(u)
+        msg = response.data
+        isOk = true
+      } catch (e) {
+        try {
+          if (e.response) msg = e.response.data || ''
+        } finally {}
+        console.warn('Error at delete of:', folder, msg)
+      }
+      this.loadWait = false
+
+      if (!isOk) {
+        this.$q.notify({ type: 'negative', message: this.$t('Unable to delete') + ': ' + folder })
+        return
+      }
+
+      this.$q.notify({ type: 'info', message: this.$t('Deleting') + ': ' + folder })
     }
   },
 

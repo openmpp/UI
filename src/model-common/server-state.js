@@ -47,7 +47,7 @@ export const configEnvValue = (c, key) => {
 // DownloadStatusLog contains download status info and content of log file
 type DownloadStatusLog struct {
   Status      string   // if not empty then one of: progress ready error
-  Kind        string   // if not empty then one of: model run workset
+  Kind        string   // if not empty then one of: model, run, workset or delete
   ModelDigest string   // content of Model Digest:
   RunDigest   string   // content of Run  Digest:
   WorksetName string   // contenet of Scenario Name:
@@ -66,7 +66,7 @@ type DownloadStatusLog struct {
 export const emptyDownloadLog = () => {
   return {
     Status: '',      // if not empty then one of: progress ready error
-    Kind: '',        // if not empty then one of: model run workset
+    Kind: '',        // if not empty then one of: model, run, workset or delete
     ModelDigest: '',
     RunDigest: '',
     WorksetName: '',

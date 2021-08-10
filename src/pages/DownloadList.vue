@@ -84,12 +84,31 @@
         class="row reverse-wrap items-center q-pt-sm"
         >
         <q-btn
+          v-if="!isDeleteKind(dl.Kind)"
           @click="onFolderTreeClick(dl.Folder)"
           flat
           dense
           class="col-auto bg-primary text-white rounded-borders q-mr-xs"
           icon="mdi-file-tree"
           :title="((folderSelected || '') !== dl.Folder ? $t('Expand') : $t('Collapse')) + ': ' + dl.Folder"
+          />
+        <q-btn
+          v-if="!isDeleteKind(dl.Kind)"
+          @click="onShowDeleteClick(dl.Folder)"
+          flat
+          dense
+          class="col-auto bg-primary text-white rounded-borders q-mr-xs"
+          icon="mdi-delete"
+          :title="$t('Delete') + ': ' + dl.Folder"
+          />
+        <q-btn
+          v-else
+          disable
+          flat
+          dense
+          class="col-auto bg-primary text-white rounded-borders q-mr-xs"
+          icon="mdi-delete-clock"
+          :title="$t('Deleting') + ': ' + dl.Folder"
           />
         <q-btn
           :disable="!dl.Lines.length"
@@ -169,6 +188,25 @@
   <model-info-dialog :show-tickle="modelInfoTickle" :digest="modelInfoDigest"></model-info-dialog>
   <run-info-dialog :show-tickle="runInfoTickle" :model-digest="modelInfoDigest" :run-digest="runInfoDigest"></run-info-dialog>
   <workset-info-dialog :show-tickle="worksetInfoTickle" :model-digest="modelInfoDigest" :workset-name="worksetInfoName"></workset-info-dialog>
+
+  <q-dialog v-model="showDeleteDialog">
+    <q-card>
+      <q-card-section class="row items-center">
+        <q-avatar icon="mdi-delete" color="primary" text-color="white" />
+        <span class="q-ml-sm">{{ $t('Delete download of') + ': ' + folderToDelete }}</span>
+      </q-card-section>
+      <q-card-actions align="right">
+        <q-btn flat v-close-popup color="primary" :label="$t('No')" />
+        <q-btn
+        @click="onYesDeleteClick(folderToDelete)"
+        flat
+        v-close-popup
+        color="primary"
+        :label="$t('Yes')"
+        />
+      </q-card-actions>
+    </q-card>
+  </q-dialog>
 
 </div>
 </template>
