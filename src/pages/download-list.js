@@ -321,7 +321,7 @@ export default {
       this.loadWait = true
       let isOk = false
 
-      const u = this.omsUrl + '/api/download/sync/delete/' + (folder || '')
+      const u = this.omsUrl + '/api/download/delete/' + (folder || '')
       try {
         // send download request to the server, response expected to be empty on success
         await this.$axios.delete(u)
