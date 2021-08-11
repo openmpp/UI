@@ -147,6 +147,17 @@
               :title="$t('About') + ' ' + prop.node.label"
               />
             <q-btn
+              :disable="!prop.node.label || prop.node.isReadonly"
+              @click.stop="onShowWorksetDelete(prop.node.label)"
+              flat
+              round
+              dense
+              color="primary"
+              class="col-auto"
+              icon="mdi-delete-outline"
+              :title="$t('Delete') + ': ' + prop.node.label"
+              />
+            <q-btn
               :disable="!serverConfig.AllowDownload || !prop.node.isReadonly"
               @click.stop="doDownloadWorkset(prop.node.label)"
               flat
@@ -174,6 +185,13 @@
   <workset-info-dialog :show-tickle="worksetInfoTickle" :model-digest="digest" :workset-name="worksetInfoName"></workset-info-dialog>
   <parameter-info-dialog :show-tickle="paramInfoTickle" :param-name="paramInfoName" :workset-name="worksetNameSelected"></parameter-info-dialog>
   <group-info-dialog :show-tickle="groupInfoTickle" :group-name="groupInfoName"></group-info-dialog>
+  <delete-confirm-dialog
+    @delete-yes="onYesWorksetDelete"
+    :show-tickle="showDeleteDialog"
+    :item-name="worksetNameToDelete"
+    :dialog-title="$t('Delete input scenario') + '?'"
+    >
+  </delete-confirm-dialog>
 
 </div>
 
@@ -186,10 +204,11 @@ import WorksetParameterList from 'components/WorksetParameterList.vue'
 import WorksetInfoDialog from 'components/WorksetInfoDialog.vue'
 import ParameterInfoDialog from 'components/ParameterInfoDialog.vue'
 import GroupInfoDialog from 'components/GroupInfoDialog.vue'
+import DeleteConfirmDialog from 'components/DeleteConfirmDialog.vue'
 
 export default {
   name: 'WorksetList',
-  components: { WorksetParameterList, WorksetInfoDialog, ParameterInfoDialog, GroupInfoDialog },
+  components: { WorksetParameterList, WorksetInfoDialog, ParameterInfoDialog, GroupInfoDialog, DeleteConfirmDialog },
 
   props: {
     digest: { type: String, default: '' },
@@ -210,7 +229,9 @@ export default {
       groupInfoName: '',
       paramInfoTickle: false,
       paramInfoName: '',
-      nextId: 100
+      nextId: 100,
+      worksetNameToDelete: ',',
+      showDeleteDialog: false
     }
   },
 
@@ -290,7 +311,17 @@ export default {
       this.worksetInfoTickle = !this.worksetInfoTickle
     },
 
-    // click on  workset download: start run download and show download list page
+    // show yes/no dialog to confirm workset delete
+    onShowWorksetDelete (name) {
+      this.worksetNameToDelete = name
+      this.showDeleteDialog = !this.showDeleteDialog
+    },
+    // user answer yes to confirm delete model workset
+    onYesWorksetDelete (name) {
+      this.doWorksetDelete(name)
+    },
+
+    // click on  workset download: start workset download and show download list page
     doDownloadWorkset (name) {
       // if name is empty or workset is not read-only then do not show rn download page
       if (!name) {
@@ -361,6 +392,36 @@ export default {
         })
       }
       return td
+    },
+
+    // delete workset
+    async doWorksetDelete (name) {
+      if (!name) {
+        console.warn('Unable to delete: invalid (empty) workset name')
+        return
+      }
+      this.$q.notify({ type: 'info', message: this.$t('Deleting') + ': ' + name })
+
+      let isOk = false
+      const u = this.omsUrl + '/api/model/' + this.digest + '/workset/' + (name || '')
+      try {
+        await this.$axios.delete(u) // response expected to be empty on success
+        isOk = true
+      } catch (e) {
+        let em = ''
+        try {
+          if (e.response) em = e.response.data || ''
+        } finally {}
+        console.warn('Error at delete workset', name, em)
+      }
+      if (!isOk) {
+        this.$q.notify({ type: 'negative', message: this.$t('Unable to delete') + ': ' + name })
+        return
+      }
+
+      // refresh workset list from the server
+      this.$emit('set-list-refresh')
+      this.$q.notify({ type: 'info', message: this.$t('Deleted') + ': ' + name })
     },
 
     // start workset download

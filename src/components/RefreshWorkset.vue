@@ -8,7 +8,8 @@ export default {
   props: {
     modelDigest: { type: String, default: '' },
     worksetName: { type: String, default: '' },
-    refreshTickle: { type: Boolean, default: false }
+    refreshTickle: { type: Boolean, default: false },
+    refreshWorksetTickle: { type: Boolean, default: false }
   },
 
   render () { return {} },
@@ -32,7 +33,8 @@ export default {
 
   watch: {
     worksetName () { this.doRefresh() },
-    refreshTickle () { this.doRefresh() }
+    refreshTickle () { this.doRefresh() },
+    refreshWorksetTickle () { this.doRefresh() }
   },
 
   methods: {
@@ -72,7 +74,7 @@ export default {
   },
 
   mounted () {
-    // if current run already loaded then exit
+    // if current workset already loaded then exit
     if (!!this.modelDigest && !!this.worksetName && this.worksetNameSelected === this.worksetName) {
       this.loadDone = true
       this.$emit('done', this.loadDone, this.worksetName)

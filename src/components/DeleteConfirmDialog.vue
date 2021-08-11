@@ -1,0 +1,61 @@
+<template>
+<q-dialog v-model="showDlg">
+  <q-card class="text-body1">
+
+    <q-card-section
+      v-if="dialogTitle"
+      class="text-h6 bg-primary text-white"
+      >
+      {{ dialogTitle }}
+    </q-card-section>
+
+   <q-card-section class="row items-center">
+      <q-avatar icon="mdi-delete" color="primary" text-color="white" />
+      <span class="q-ml-sm">{{ bodyText ? bodyText : itemName }}</span>
+    </q-card-section>
+
+    <q-card-actions align="right">
+      <q-btn flat v-close-popup color="primary" :label="$t('No')" />
+      <q-btn
+      @click="onYesDeleteClick"
+      flat
+      v-close-popup
+      color="primary"
+      :label="$t('Yes')"
+      />
+    </q-card-actions>
+
+  </q-card>
+</q-dialog>
+</template>
+
+<script>
+export default {
+  name: 'DeleteConfirmDialog',
+
+  props: {
+    showTickle: { type: Boolean, default: false, required: true },
+    itemName: { type: String, default: '', required: true },
+    itemId: { type: String, default: '' },
+    kind: { type: String, default: '' },
+    bodyText: { type: String, default: '' },
+    dialogTitle: { type: String, default: '' }
+  },
+
+  watch: {
+    showTickle () { this.showDlg = true }
+  },
+
+  data () {
+    return {
+      showDlg: false
+    }
+  },
+
+  methods: {
+    onYesDeleteClick () {
+      this.$emit('delete-yes', this.itemName, this.itemId, this.kind)
+    }
+  }
+}
+</script>

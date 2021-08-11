@@ -189,24 +189,13 @@
   <run-info-dialog :show-tickle="runInfoTickle" :model-digest="modelInfoDigest" :run-digest="runInfoDigest"></run-info-dialog>
   <workset-info-dialog :show-tickle="worksetInfoTickle" :model-digest="modelInfoDigest" :workset-name="worksetInfoName"></workset-info-dialog>
 
-  <q-dialog v-model="showDeleteDialog">
-    <q-card>
-      <q-card-section class="row items-center">
-        <q-avatar icon="mdi-delete" color="primary" text-color="white" />
-        <span class="q-ml-sm">{{ $t('Delete download of') + ': ' + folderToDelete }}</span>
-      </q-card-section>
-      <q-card-actions align="right">
-        <q-btn flat v-close-popup color="primary" :label="$t('No')" />
-        <q-btn
-        @click="onYesDeleteClick(folderToDelete)"
-        flat
-        v-close-popup
-        color="primary"
-        :label="$t('Yes')"
-        />
-      </q-card-actions>
-    </q-card>
-  </q-dialog>
+  <delete-confirm-dialog
+    @delete-yes="onYesDownloadDelete"
+    :show-tickle="showDeleteDialog"
+    :item-name="folderToDelete"
+    :dialog-title="$t('Delete download files') + '?'"
+    >
+  </delete-confirm-dialog>
 
 </div>
 </template>

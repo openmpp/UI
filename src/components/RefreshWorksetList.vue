@@ -8,7 +8,8 @@ export default {
 
   props: {
     digest: { type: String, default: '' },
-    refreshTickle: { type: Boolean, default: false }
+    refreshTickle: { type: Boolean, default: false },
+    refreshWorksetListTickle: { type: Boolean, default: false }
   },
 
   render () { return {} },
@@ -33,7 +34,8 @@ export default {
   },
 
   watch: {
-    refreshTickle () { this.doRefresh() }
+    refreshTickle () { this.doRefresh() },
+    refreshWorksetListTickle () { this.doRefresh() }
   },
 
   methods: {

@@ -6,10 +6,11 @@ import RunInfoDialog from 'components/RunInfoDialog.vue'
 import ParameterInfoDialog from 'components/ParameterInfoDialog.vue'
 import TableInfoDialog from 'components/TableInfoDialog.vue'
 import GroupInfoDialog from 'components/GroupInfoDialog.vue'
+import DeleteConfirmDialog from 'components/DeleteConfirmDialog.vue'
 
 export default {
   name: 'RunList',
-  components: { RunParameterList, TableList, RunInfoDialog, ParameterInfoDialog, TableInfoDialog, GroupInfoDialog },
+  components: { RunParameterList, TableList, RunInfoDialog, ParameterInfoDialog, TableInfoDialog, GroupInfoDialog, DeleteConfirmDialog },
 
   props: {
     digest: { type: String, default: '' },
@@ -33,7 +34,10 @@ export default {
       paramInfoName: '',
       tableInfoTickle: false,
       tableInfoName: '',
-      nextId: 100
+      nextId: 100,
+      runNameToDelete: '',
+      runDigestToDelete: '',
+      showDeleteDialog: false
     }
   },
 
@@ -121,6 +125,17 @@ export default {
       this.$emit('run-log-select', stamp)
     },
 
+    // show yes/no dialog to confirm run delete
+    onShowRunDelete (runName, dgst) {
+      this.runNameToDelete = runName
+      this.runDigestToDelete = dgst
+      this.showDeleteDialog = !this.showDeleteDialog
+    },
+    // user answer yes to confirm delete model run
+    onYesRunDelete (runName, dgst) {
+      this.doRunDelete(dgst, runName)
+    },
+
     // click on run download: start run download and show download list page
     doDownloadRun (dgst) {
       // if run digest is empty or run not completed successfully then do not show download page
@@ -197,6 +212,36 @@ export default {
         })
       }
       return td
+    },
+
+    // delete run
+    async doRunDelete (dgst, runName) {
+      if (!dgst) {
+        console.warn('Unable to delete: invalid (empty) run digest')
+        return
+      }
+      this.$q.notify({ type: 'info', message: this.$t('Deleting') + ': ' + dgst + ' ' + (runName || '') })
+
+      let isOk = false
+      const u = this.omsUrl + '/api/model/' + this.digest + '/run/' + (dgst || '')
+      try {
+        await this.$axios.delete(u) // response expected to be empty on success
+        isOk = true
+      } catch (e) {
+        let em = ''
+        try {
+          if (e.response) em = e.response.data || ''
+        } finally {}
+        console.warn('Error at delete model run', dgst, runName, em)
+      }
+      if (!isOk) {
+        this.$q.notify({ type: 'negative', message: this.$t('Unable to delete') + ': ' + dgst + ' ' + (runName || '') })
+        return
+      }
+
+      // refresh run list from the server
+      this.$emit('run-list-refresh')
+      this.$q.notify({ type: 'info', message: this.$t('Deleted') + ': ' + dgst + ' ' + (runName || '') })
     },
 
     // start run download

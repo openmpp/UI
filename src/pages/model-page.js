@@ -43,6 +43,8 @@ export default {
       loadUserViewsDone: false,
       refreshRunListTickle: false,
       refreshRunTickle: false,
+      refreshWsListTickle: false,
+      refreshWsTickle: false,
       refreshRunViewsTickle: false,
       refreshWsViewsTickle: false,
       uploadViewsTickle: false,
@@ -215,6 +217,7 @@ export default {
         this.wsNameCurrent = this.worksetNameSelected
       } else {
         this.wsNameCurrent = this.worksetTextList[0].Name
+        this.dispatchWorksetNameSelected('')
       }
     },
     doneWsLoad (isSuccess, name) {
@@ -280,6 +283,10 @@ export default {
       }
       this.wsNameCurrent = name
       this.dispatchWorksetNameSelected(name)
+    },
+    // refresh workset list, for example after delete
+    onWorksetListRefresh () {
+      this.refreshWsListTickle = !this.refreshWsListTickle
     },
     // run parameter selected from parameters list: go to run parameter page
     onRunParamSelect (name) {

@@ -113,6 +113,7 @@
     @run-list-refresh="onRunListRefresh"
     @run-completed-list="onRunCompletedList"
     @parameter-view-saved="onParameterViewSaved"
+    @set-list-refresh="onWorksetListRefresh"
     >
   </router-view>
 
@@ -152,6 +153,7 @@
   <refresh-workset-list
     :digest="digest"
     :refresh-tickle="refreshTickle"
+    :refresh-workset-list-tickle="refreshWsListTickle"
     @done="doneWsListLoad"
     @wait="loadWsListDone = false">
   </refresh-workset-list>
@@ -159,6 +161,7 @@
     :model-digest="digest"
     :workset-name="wsNameCurrent"
     :refresh-tickle="refreshTickle"
+    :refresh-workset-tickle="refreshWsTickle"
     @done="doneWsLoad"
     @wait="loadWsDone = false">
   </refresh-workset>

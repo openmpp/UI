@@ -6,6 +6,7 @@ import WorksetBar from 'components/WorksetBar.vue'
 import ModelInfoDialog from 'components/ModelInfoDialog.vue'
 import RunInfoDialog from 'components/RunInfoDialog.vue'
 import WorksetInfoDialog from 'components/WorksetInfoDialog.vue'
+import DeleteConfirmDialog from 'components/DeleteConfirmDialog.vue'
 
 /* eslint-disable no-multi-spaces */
 const LOG_REFRESH_TIME = 1000               // msec, log files refresh interval
@@ -17,7 +18,7 @@ const MAX_LOG_WAIT_PROGRESS_COUNT = 20 * 60 // "recent" progress threshold (20 *
 
 export default {
   name: 'DownloadList',
-  components: { ModelBar, RunBar, WorksetBar, ModelInfoDialog, RunInfoDialog, WorksetInfoDialog },
+  components: { ModelBar, RunBar, WorksetBar, ModelInfoDialog, RunInfoDialog, WorksetInfoDialog, DeleteConfirmDialog },
 
   props: {
     digest: { type: String, default: '' },
@@ -147,11 +148,8 @@ export default {
       this.showDeleteDialog = !this.showDeleteDialog
     },
     // delete download results by folder name
-    onYesDeleteClick (folder) {
+    onYesDownloadDelete (folder) {
       this.doDeleteDownload(folder)
-      this.folderToDelete = ''
-
-      // refresh downloads list
       this.logRefreshPauseToggle()
       this.isLogRefreshPaused = false
     },
@@ -315,25 +313,25 @@ export default {
     // delete download by folder name
     async doDeleteDownload (folder) {
       if (!folder) {
-        console.warn('Invald (empty) folder name')
-        return // exit on empty folder
+        console.warn('Unable to delete: invalid (empty) folder name')
+        return
       }
       this.$q.notify({ type: 'info', message: this.$t('Deleting') + ': ' + folder })
 
       this.loadWait = true
       let isOk = false
-      let msg = ''
 
       const u = this.omsUrl + '/api/download/sync/delete/' + (folder || '')
       try {
-        const response = await this.$axios.delete(u)
-        msg = response.data
+        // send download request to the server, response expected to be empty on success
+        await this.$axios.delete(u)
         isOk = true
       } catch (e) {
+        let em = ''
         try {
-          if (e.response) msg = e.response.data || ''
+          if (e.response) em = e.response.data || ''
         } finally {}
-        console.warn('Error at delete of:', folder, msg)
+        console.warn('Error at delete of:', folder, em)
       }
       this.loadWait = false
 

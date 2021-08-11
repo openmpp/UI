@@ -171,6 +171,17 @@
               :title="$t('Run Log') + ': ' + prop.node.label"
               />
             <q-btn
+              :disable="!prop.node.digest || isInProgress(prop.node.status)"
+              @click.stop="onShowRunDelete(prop.node.label, prop.node.digest)"
+              flat
+              round
+              dense
+              color="primary"
+              class="col-auto"
+              icon="mdi-delete-outline"
+              :title="$t('Delete') + ': ' + prop.node.label"
+              />
+            <q-btn
               :disable="!serverConfig.AllowDownload || !isSuccess(prop.node.status)"
               @click.stop="doDownloadRun(prop.node.digest)"
               flat
@@ -199,6 +210,14 @@
   <parameter-info-dialog :show-tickle="paramInfoTickle" :param-name="paramInfoName" :run-digest="runDigestSelected"></parameter-info-dialog>
   <table-info-dialog :show-tickle="tableInfoTickle" :table-name="tableInfoName" :run-digest="runDigestSelected"></table-info-dialog>
   <group-info-dialog :show-tickle="groupInfoTickle" :group-name="groupInfoName"></group-info-dialog>
+  <delete-confirm-dialog
+    @delete-yes="onYesRunDelete"
+    :show-tickle="showDeleteDialog"
+    :item-name="runNameToDelete"
+    :item-id="runDigestToDelete"
+    :dialog-title="$t('Delete model run') + '?'"
+    >
+  </delete-confirm-dialog>
 
 </div>
 </template>

@@ -118,7 +118,6 @@ type PathItem struct {
   ModTime int64  // file modification time in milliseconds since epoch
 }
 */
-
 // return empty DownloadFileItem
 export const emptyDownloadFileItem = () => {
   return {
