@@ -58,31 +58,6 @@
       <div
         class="row reverse-wrap items-center"
         >
-        <model-bar
-          v-if="isModelKind(dl.Kind)"
-          :model-digest="dl.ModelDigest"
-          @model-info-click="doShowModelNote(dl.ModelDigest)"
-          >
-        </model-bar>
-        <run-bar
-          v-if="isRunKind(dl.Kind)"
-          :model-digest="dl.ModelDigest"
-          :run-digest="dl.RunDigest"
-          @run-info-click="doShowRunNote(dl.ModelDigest,dl.RunDigest)"
-          >
-        </run-bar>
-        <workset-bar
-          v-if="isWorksetKind(dl.Kind)"
-          :model-digest="dl.ModelDigest"
-          :workset-name="dl.WorksetName"
-          @set-info-click="doShowWorksetNote(dl.ModelDigest, dl.WorksetName)"
-          >
-        </workset-bar>
-      </div>
-
-      <div
-        class="row reverse-wrap items-center q-pt-sm"
-        >
         <q-btn
           v-if="!isDeleteKind(dl.Kind)"
           @click="onFolderTreeClick(dl.Folder)"
@@ -110,29 +85,49 @@
           icon="mdi-delete-clock"
           :title="$t('Deleting') + ': ' + dl.Folder"
           />
-        <q-btn
-          :disable="!dl.Lines.length"
-          @click="dl.isShowLog = !dl.isShowLog"
-          flat
-          dense
-          class="col-auto text-white rounded-borders q-mr-xs"
-          :class="isReady(dl.Status) || isProgress(dl.Status) ? 'bg-primary' : 'bg-warning'"
-          icon="mdi-text-subject"
-          :title="dl.LogFileName"
-          />
-        <div
-          class="col-auto"
+        <span class="col-auto no-wrap q-mr-xs">
+          <q-btn
+            :disable="!dl.Lines.length"
+            @click="dl.isShowLog = !dl.isShowLog"
+            no-caps
+            unelevated
+            dense
+            color="primary"
+            class="rounded-borders tab-switch-button"
+            :class="isReady(dl.Status) || isProgress(dl.Status) ? 'bg-primary' : 'bg-warning'"
+            >
+            <q-icon :name="dl.isShowLog ? 'keyboard_arrow_up' : 'keyboard_arrow_down'" />
+            <span>{{ dl.LogFileName }}</span><br />
+            <span class="mono om-text-descr">{{ fileTimeStamp(dl.LogNsTime / 1000000) }}</span>
+          </q-btn>
+        </span>
+        <model-bar
+          v-if="isModelKind(dl.Kind)"
+          :model-digest="dl.ModelDigest"
+          @model-info-click="doShowModelNote(dl.ModelDigest)"
           >
-          <span>{{ dl.LogFileName }}</span><br />
-          <span class="mono om-text-descr">{{ fileTimeStamp(dl.LogNsTime / 1000000) }}</span>
-        </div>
+        </model-bar>
+        <run-bar
+          v-if="isRunKind(dl.Kind)"
+          :model-digest="dl.ModelDigest"
+          :run-digest="dl.RunDigest"
+          @run-info-click="doShowRunNote(dl.ModelDigest,dl.RunDigest)"
+          >
+        </run-bar>
+        <workset-bar
+          v-if="isWorksetKind(dl.Kind)"
+          :model-digest="dl.ModelDigest"
+          :workset-name="dl.WorksetName"
+          @set-info-click="doShowWorksetNote(dl.ModelDigest, dl.WorksetName)"
+          >
+        </workset-bar>
       </div>
 
     </q-card-section>
     <q-separator inset />
 
     <template v-if="dl.isShowLog">
-      <q-card-section class="q-pb-sm">
+      <q-card-section class="q-py-sm">
         <div>
           <pre>{{dl.Lines.join('\n')}}</pre>
         </div>
@@ -140,15 +135,16 @@
       <q-separator inset />
     </template>
 
-    <q-card-section>
-      <q-list>
+    <q-card-section class="q-pt-sm">
 
+      <q-list>
         <q-item
           v-if="dl.IsZip"
           clickable
           tag="a"
           target="_blank"
           :href="'/download/' + dl.ZipFileName"
+          class="q-pl-none"
           :title="$t('Download') + ' ' + dl.ZipFileName"
           >
           <q-item-section avatar>
@@ -159,28 +155,79 @@
             <q-item-label caption>{{ fileTimeStamp(dl.ZipModTime) }}<span>&nbsp;&nbsp;</span>{{ fileSizeStr(dl.ZipSize) }}</q-item-label>
           </q-item-section>
         </q-item>
-
-        <template v-if="dl.IsFolder && dl.Folder === folderSelected">
-          <q-separator />
-          <q-item
-            v-for="fi in downloadFileLst" :key="(fi.Path || 'no-path') + '-' + (fi.ModTime || 0).toString()"
-            clickable
-            tag="a"
-            target="_blank"
-            :href="'/download/' + fi.Path"
-            :title="$t('Download') + ' ' + fi.Path"
-            >
-            <q-item-section avatar>
-              <q-avatar rounded icon="mdi-file-download-outline" size="md" font-size="1.25rem" color="primary" text-color="white" />
-            </q-item-section>
-            <q-item-section>
-              <q-item-label>{{ fi.Path }}</q-item-label>
-              <q-item-label caption>{{ fileTimeStamp(fi.ModTime) }}<span>&nbsp;&nbsp;</span>{{ fileSizeStr(fi.Size) }}</q-item-label>
-            </q-item-section>
-          </q-item>
-        </template>
-
       </q-list>
+
+      <template v-if="dl.IsFolder && dl.Folder === folderSelected">
+        <div
+          class="row no-wrap items-center full-width"
+          >
+          <q-btn
+            v-if="isAnyFolderDir"
+            flat
+            dense
+            class="col-auto bg-primary text-white rounded-borders q-mr-xs om-tree-control-button"
+            :icon="isFolderTreeExpanded ? 'keyboard_arrow_up' : 'keyboard_arrow_down'"
+            :title="isFolderTreeExpanded ? $t('Collapse all') : $t('Expand all')"
+            @click="doToogleExpandFolderTree"
+            />
+          <span class="col-grow">
+            <q-input
+              ref="folderTreeFilterInput"
+              debounce="500"
+              v-model="folderTreeFilter"
+              outlined
+              dense
+              :placeholder="$t('Find files...')"
+              >
+              <template v-slot:append>
+                <q-icon v-if="folderTreeFilter !== ''" name="cancel" class="cursor-pointer" @click="resetFolderFilter" />
+                <q-icon v-else name="search" />
+              </template>
+            </q-input>
+          </span>
+        </div>
+
+        <div class="q-px-sm">
+          <q-tree
+            ref="folderTree"
+            :nodes="folderTreeData"
+            node-key="key"
+            :filter="folderTreeFilter"
+            :filter-method="doFolderTreeFilter"
+            :no-results-label="$t('No files found')"
+            :no-nodes-label="$t('Server offline or no files found')"
+            >
+            <template v-slot:default-header="prop">
+
+              <div
+                v-if="prop.node.isGroup"
+                class="row no-wrap items-center full-width"
+                >
+                <div class="col">
+                  <span>{{ prop.node.label }}<br />
+                  <span class="mono om-text-descr">{{ prop.node.descr }}</span></span>
+                </div>
+              </div>
+
+              <a
+                v-if="!prop.node.isGroup"
+                @click="onFolderLeafClick(prop.node.label, '/download/' + prop.node.Path)"
+                :href="'/download/' + prop.node.Path"
+                target="_blank"
+                :download="prop.node.label"
+                :title="$t('Download') + ' ' + prop.node.label"
+                class="row no-wrap items-center full-width cursor-pointer om-tree-leaf file-link"
+                >
+                <span class="text-primary">{{ prop.node.label }}<br />
+                <span class="mono om-text-descr">{{ prop.node.descr }}</span></span>
+              </a>
+
+            </template>
+          </q-tree>
+        </div>
+
+      </template>
+
     </q-card-section>
 
   </q-card>
@@ -228,5 +275,16 @@
   .pt-cell-center {
     text-align: center;
     @extend .pt-cell;
+  }
+
+  .tab-switch-container {
+    margin-right: 1px;
+  }
+  .tab-switch-button {
+    border-top-right-radius: 1rem;
+  }
+  .file-link {
+    text-decoration: none;
+    // display: inline-block;
   }
 </style>

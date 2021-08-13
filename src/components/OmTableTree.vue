@@ -105,11 +105,12 @@ Expected array of tree items as:
           class="row no-wrap items-center full-width cursor-pointer om-tree-leaf"
           >
           <q-btn
+            v-if="prop.node.isAbout"
             @click.stop="onShowLeafNote(prop.node.key, prop.node.label)"
             flat
             round
             dense
-            :disable="!prop.node.isAbout || prop.node.isAboutEmpty"
+            :disable="prop.node.isAboutEmpty"
             color="primary"
             class="col-auto"
             icon="mdi-information-outline"

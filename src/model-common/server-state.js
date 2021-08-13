@@ -48,17 +48,17 @@ export const configEnvValue = (c, key) => {
 type DownloadStatusLog struct {
   Status      string   // if not empty then one of: progress ready error
   Kind        string   // if not empty then one of: model, run, workset or delete
-  ModelDigest string   // content of Model Digest:
-  RunDigest   string   // content of Run  Digest:
-  WorksetName string   // contenet of Scenario Name:
+  ModelDigest string   // content of "Model Digest:"
+  RunDigest   string   // content of "Run  Digest:"
+  WorksetName string   // content of "Scenario Name:"
   IsFolder    bool     // if true then download folder exist
-  Folder      string   // content of Folder:
+  Folder      string   // content of "Folder:"
   IsZip       bool     // if true then download zip exist
   ZipFileName string   // zip file name
   ZipModTime  int64    // zip modification time in milliseconds since epoch
   ZipSize     int64    // zip file size
   LogFileName string   // log file name
-  LogNsTime   int64    // log file modification time in nanseconds since epoch
+  LogNsTime   int64    // log file modification time in nanoseconds since epoch
   Lines       []string // file content
 }
 */
