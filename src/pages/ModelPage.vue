@@ -199,9 +199,7 @@
   <q-dialog v-model="showAllDiscardDlg">
     <q-card>
 
-      <q-card-section>
-        <div class="text-h6 primary">{{ modelName }}</div>
-      </q-card-section>
+      <q-card-section class="text-h6 bg-primary text-white">{{ modelName }}</q-card-section>
 
       <q-card-section class="q-pt-none text-body1">
         <div>{{ $t('Discard all changes?') }}</div>
