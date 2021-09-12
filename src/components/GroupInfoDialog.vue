@@ -2,9 +2,7 @@
 <q-dialog v-model="showDlg">
   <q-card>
 
-    <q-card-section>
-      <div class="text-h6">{{ title }}</div>
-    </q-card-section>
+    <q-card-section class="text-h6 bg-primary text-white">{{ title }}</q-card-section>
 
     <q-card-section class="q-pt-none text-body1">
       <div class="om-note-table mono q-pb-md">
