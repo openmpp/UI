@@ -50,7 +50,7 @@
   </q-card>
 
   <q-card
-    v-for="dl in downloadLst" :key="(dl.LogFileName || 'no-log') + '-' + (dl.LogNsTime || 0).toString()"
+    v-for="dl in downloadLst" :key="(dl.LogFileName || 'no-log') + '-' + (dl.LogModTime || 0).toString() + '-' + (dl.FolderModTime || 0).toString() + '-' + (dl.ZipModTime || 0).toString()"
     class="q-ma-sm"
     >
 
@@ -97,8 +97,7 @@
             :class="isReady(dl.Status) || isProgress(dl.Status) ? 'bg-primary' : 'bg-warning'"
             >
             <q-icon :name="dl.isShowLog ? 'keyboard_arrow_up' : 'keyboard_arrow_down'" />
-            <span>{{ dl.LogFileName }}</span><br />
-            <span class="mono om-text-descr">{{ fileTimeStamp(dl.LogNsTime / 1000000) }}</span>
+            <span>{{ dl.LogFileName }}</span>
           </q-btn>
         </span>
         <model-bar

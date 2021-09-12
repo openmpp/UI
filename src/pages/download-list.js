@@ -265,7 +265,7 @@ export default {
       let maxTime = 0
 
       for (let k = 0; k < dLst.length; k++) {
-        logKey = logKey + '|' + dLst[k].LogFileName + ':' + dLst[k].LogNsTime.toString()
+        logKey = logKey + '|' + dLst[k].LogFileName + ':' + dLst[k].LogModTime.toString() + ':' + dLst[k].FolderModTime.toString() + ':' + dLst[k].ZipModTime.toString()
 
         switch (dLst[k].Status) {
           case 'ready':
@@ -273,7 +273,9 @@ export default {
             break
           case 'progress':
             nProgress++
-            if (dLst[k].LogNsTime > maxTime) maxTime = dLst[k].LogNsTime
+            if (dLst[k].LogModTime > maxTime) maxTime = dLst[k].LogModTime
+            if (dLst[k].FolderModTime > maxTime) maxTime = dLst[k].FolderModTime
+            if (dLst[k].ZipModTime > maxTime) maxTime = dLst[k].ZipModTime
             break
           case 'error':
             nError++
@@ -281,9 +283,9 @@ export default {
         }
       }
 
-      // pause refresh if no changes in log files
+      // pause refresh if no changes in log files, folders and zip files
       // wait longer if there is a "recent" progress
-      const isRecent = nProgress > 0 && (Date.now() - (maxTime / 1000000) < 1000 * MAX_LOG_WAIT_PROGRESS_COUNT)
+      const isRecent = nProgress > 0 && (Date.now() - maxTime < 1000 * MAX_LOG_WAIT_PROGRESS_COUNT)
 
       if (this.logAllKey === logKey) {
         this.isLogRefreshPaused = this.logNoDataCount++ > (!isRecent ? MAX_LOG_NO_DATA_COUNT : MAX_LOG_RECENT_COUNT)

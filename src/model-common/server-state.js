@@ -46,39 +46,41 @@ export const configEnvValue = (c, key) => {
 /*
 // DownloadStatusLog contains download status info and content of log file
 type DownloadStatusLog struct {
-  Status      string   // if not empty then one of: progress ready error
-  Kind        string   // if not empty then one of: model, run, workset or delete
-  ModelDigest string   // content of "Model Digest:"
-  RunDigest   string   // content of "Run  Digest:"
-  WorksetName string   // content of "Scenario Name:"
-  IsFolder    bool     // if true then download folder exist
-  Folder      string   // content of "Folder:"
-  IsZip       bool     // if true then download zip exist
-  ZipFileName string   // zip file name
-  ZipModTime  int64    // zip modification time in milliseconds since epoch
-  ZipSize     int64    // zip file size
-  LogFileName string   // log file name
-  LogNsTime   int64    // log file modification time in nanoseconds since epoch
-  Lines       []string // file content
+  Status        string   // if not empty then one of: progress ready error
+  Kind          string   // if not empty then one of: model, run, workset or delete
+  ModelDigest   string   // content of "Model Digest:"
+  RunDigest     string   // content of "Run  Digest:"
+  WorksetName   string   // content of "Scenario Name:"
+  IsFolder      bool     // if true then download folder exist
+  Folder        string   // content of "Folder:"
+  FolderModTime int64    // folder modification time in milliseconds since epoch
+  IsZip         bool     // if true then download zip exist
+  ZipFileName   string   // zip file name
+  ZipModTime    int64    // zip modification time in milliseconds since epoch
+  ZipSize       int64    // zip file size
+  LogFileName   string   // log file name
+  LogModTime    int64    // log file modification time in milliseconds since epoch
+  Lines         []string // file content
 }
 */
 // return empty DownloadStatusLog
 export const emptyDownloadLog = () => {
   return {
-    Status: '',      // if not empty then one of: progress ready error
-    Kind: '',        // if not empty then one of: model, run, workset or delete
+    Status: '',       // if not empty then one of: progress ready error
+    Kind: '',         // if not empty then one of: model, run, workset or delete
     ModelDigest: '',
     RunDigest: '',
     WorksetName: '',
-    IsFolder: false, // if true then download folder exist
-    Folder: '',      // folder name with unzipped download content
-    IsZip: false,    // if true then download zip exist
-    ZipFileName: '', // zip file name
-    ZipModTime: 0,   // zip modification time in milliseconds since epoch
-    ZipSize: 0,      // zip file size
-    LogFileName: '', // log file name
-    LogNsTime: 0,    // log file modification time in nanseconds since epoch
-    Lines: []        // log file lines
+    IsFolder: false,  // if true then download folder exist
+    Folder: '',       // folder name with unzipped download content
+    FolderModTime: 0, // folder modification time in milliseconds since epoch
+    IsZip: false,     // if true then download zip exist
+    ZipFileName: '',  // zip file name
+    ZipModTime: 0,    // zip modification time in milliseconds since epoch
+    ZipSize: 0,       // zip file size
+    LogFileName: '',  // log file name
+    LogModTime: 0,    // log file modification time in milliseconds since epoch
+    Lines: []         // log file lines
   }
 }
 /* eslint-enable no-multi-spaces */
@@ -90,9 +92,9 @@ export const isDownloadLog = (d) => {
   if (!d) return false
   if (!d.hasOwnProperty('Status') || !d.hasOwnProperty('Kind') ||
     !d.hasOwnProperty('ModelDigest') || !d.hasOwnProperty('RunDigest') || !d.hasOwnProperty('WorksetName') ||
-    !d.hasOwnProperty('IsFolder') || !d.hasOwnProperty('Folder') ||
+    !d.hasOwnProperty('IsFolder') || !d.hasOwnProperty('Folder') || !d.hasOwnProperty('FolderModTime') ||
     !d.hasOwnProperty('IsZip') || !d.hasOwnProperty('ZipFileName') || !d.hasOwnProperty('ZipModTime') || !d.hasOwnProperty('ZipSize') ||
-    !d.hasOwnProperty('LogFileName') || !d.hasOwnProperty('LogNsTime') || !d.hasOwnProperty('Lines')) {
+    !d.hasOwnProperty('LogFileName') || !d.hasOwnProperty('LogModTime') || !d.hasOwnProperty('Lines')) {
     return false
   }
   return Array.isArray(d.Lines)
