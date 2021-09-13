@@ -111,3 +111,10 @@ export const fileSizeParts = (size) => {
   size /= 1024.0
   return { val: size.toFixed(2), name: 'TB' }
 }
+
+// clean string input: replace special characters "'`$}{@\ with space and trim
+export const cleanTextInput = (sValue) => {
+  if (sValue === '' || sValue === void 0) return ''
+  const s = sValue.replace(/["'`$}{@\\]/g, '\xa0').trim()
+  return s || ''
+}

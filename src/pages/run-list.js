@@ -6,11 +6,14 @@ import RunInfoDialog from 'components/RunInfoDialog.vue'
 import ParameterInfoDialog from 'components/ParameterInfoDialog.vue'
 import TableInfoDialog from 'components/TableInfoDialog.vue'
 import GroupInfoDialog from 'components/GroupInfoDialog.vue'
+import EditDiscardDialog from 'components/EditDiscardDialog.vue'
 import DeleteConfirmDialog from 'components/DeleteConfirmDialog.vue'
+//
+import EasyMDE from 'easymde'
 
 export default {
   name: 'RunList',
-  components: { RunParameterList, TableList, RunInfoDialog, ParameterInfoDialog, TableInfoDialog, GroupInfoDialog, DeleteConfirmDialog },
+  components: { RunParameterList, TableList, RunInfoDialog, ParameterInfoDialog, TableInfoDialog, GroupInfoDialog, EditDiscardDialog, DeleteConfirmDialog },
 
   props: {
     digest: { type: String, default: '' },
@@ -37,7 +40,11 @@ export default {
       nextId: 100,
       runNameToDelete: '',
       runDigestToDelete: '',
-      showDeleteDialog: false
+      showDeleteDialog: false,
+      noteEditorActive: false,
+      runDescrEdit: '',
+      showEditDiscardTickle: false,
+      easyMDE: null
     }
   },
 
@@ -123,6 +130,42 @@ export default {
         return
       }
       this.$emit('run-log-select', stamp)
+    },
+
+    // show run description and notes dialog WORKING HERE
+    onEditRunNote (dgst) {
+      const note = Mdf.noteOfTxt(this.runCurrent)
+      this.runDescrEdit = Mdf.descrOfTxt(this.runCurrent)
+      this.noteEditorActive = true
+      //
+      this.easyMDE = new EasyMDE({
+        element: document.getElementById('EasyMDE'),
+        sideBySideFullscreen: false,
+        toolbar: ['bold', 'italic', 'heading', '|', 'quote', 'code', '|', 'unordered-list', 'ordered-list', '|', 'side-by-side', '|', 'guide']
+      })
+      this.easyMDE.value(note)
+    },
+    // save run notes editor content
+    onSaveRunNote (dgst) {
+      const note = this.easyMDE.value()
+      this.doSaveRunNote(dgst, this.runDescrEdit, note)
+      this.noteEditorActive = false
+      this.easyMDE.toTextArea()
+      this.easyMDE = null
+    },
+    // cancel editing run description and notes
+    onCancelRunNote () {
+      this.showEditDiscardTickle = !this.showEditDiscardTickle
+    },
+    // on user selecting "Yes" from "Cancel Editing" pop-up alert
+    onYesDiscardChanges () {
+      this.noteEditorActive = false
+      this.easyMDE.toTextArea()
+      this.easyMDE = null
+    },
+    // cleanup run description input
+    onRunDescrBlur (e) {
+      this.runDescrEdit = Mdf.cleanTextInput(this.runDescrEdit)
     },
 
     // show yes/no dialog to confirm run delete
@@ -267,6 +310,47 @@ export default {
 
       this.$emit('download-select', this.digest) // download started: show download list page
       this.$q.notify({ type: 'info', message: this.$t('Model run download started') })
+    },
+
+    // save run notes
+    async doSaveRunNote (dgst, descr, note) {
+      let isOk = false
+      let msg = ''
+
+      // validate current run is not empty and has a language
+      if (!Mdf.isNotEmptyRunText(this.runCurrent) || this.runCurrent.Txt.length <= 0 || !this.runCurrent.Txt[0].LangCode) {
+        this.$q.notify({ type: 'negative', message: this.$t('Unable to save model run description and notes, current model run is undefined') })
+        return
+      }
+
+      const u = this.omsUrl + '/api/run/text'
+      const lang = this.runCurrent.Txt[0].LangCode
+      const rt = {
+        ModelDigest: this.digest,
+        RunDigest: dgst,
+        Txt: [{
+          LangCode: lang,
+          Descr: descr || '',
+          Note: note || ''
+        }]
+      }
+      try {
+        // send download request to the server, response expected to be empty on success
+        await this.$axios.patch(u, rt)
+        isOk = true
+      } catch (e) {
+        try {
+          if (e.response) msg = e.response.data || ''
+        } finally {}
+        console.warn('Unable to save model run description and notes', msg)
+      }
+      if (!isOk) {
+        this.$q.notify({ type: 'negative', message: this.$t('Unable to save model run description and notes') + (msg ? (': ' + msg) : '') })
+        return
+      }
+
+      this.$emit('run-select', dgst)
+      this.$q.notify({ type: 'info', message: this.$t('Model run description and notes saved, language: ' + lang) })
     }
   },
 

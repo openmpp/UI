@@ -4,7 +4,7 @@
 
     <q-card-section v-if="dialogTitle" class="text-h6 bg-primary text-white">{{ dialogTitle }} </q-card-section>
 
-   <q-card-section class="row items-center">
+    <q-card-section class="row items-center">
       <q-avatar icon="mdi-delete" color="primary" text-color="white" />
       <span class="q-ml-sm">{{ bodyText ? bodyText : itemName }}</span>
     </q-card-section>
