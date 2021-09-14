@@ -1,7 +1,7 @@
 # OpenM++ user interface (ompp-ui)
 
 This repository is a part of [OpenM++](http://www.openmpp.org/) open source microsimulation platform.
-It contains oms web-service, dbcopy utility and openM++ Go libraries.
+It contains openM++ user interface.
 
 ## Project setup
 ```
