@@ -263,7 +263,7 @@ export default {
         return
       }
       this.runDnsCurrent = dgst
-      this.refreshRunTickle = !this.refreshRunTickle
+      // this.refreshRunTickle = !this.refreshRunTickle
     },
     // run started: refresh run list
     onRunListRefresh () {
@@ -276,7 +276,7 @@ export default {
         return
       }
       this.wsNameCurrent = name
-      this.refreshWsTickle = !this.refreshWsTickle
+      // this.refreshWsTickle = !this.refreshWsTickle
     },
     // refresh workset list, for example after delete
     onWorksetListRefresh () {
