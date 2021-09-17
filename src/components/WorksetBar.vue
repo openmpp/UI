@@ -29,7 +29,7 @@
       flat
       dense
       class="col-auto bg-primary text-white rounded-borders q-mr-xs"
-      :icon="isEditWorkset ? 'mdi-content-save-edit' : 'mdi-table-edit'"
+      :icon="isEditWorkset ? 'mdi-content-save-edit' : 'mdi-folder-edit'"
       :title="(isEditWorkset ? $t('Save') : $t('Edit')) + ' ' + worksetText.Name"
       />
 

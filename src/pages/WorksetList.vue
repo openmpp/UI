@@ -45,7 +45,7 @@
         flat
         dense
         class="col-auto bg-primary text-white rounded-borders q-mr-xs"
-        :icon="!isReadonlyWorksetCurrent ? 'mdi-content-save-edit' : 'mdi-table-edit'"
+        :icon="!isReadonlyWorksetCurrent ? 'mdi-content-save-edit' : 'mdi-folder-edit'"
         :title="(!isReadonlyWorksetCurrent ? $t('Save') : $t('Edit')) + ' ' + worksetNameSelected"
         />
 
