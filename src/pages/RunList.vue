@@ -57,7 +57,7 @@
         dense
         class="col-auto text-white rounded-borders q-mr-xs"
         :class="(isSuccess(runCurrent.Status) || isInProgress(runCurrent.Status)) ? 'bg-primary' : 'bg-warning'"
-        :icon="isSuccess(runCurrent.Status) ? 'mdi-pencil' : (isInProgress(runCurrent.Status) ? 'mdi-run' : 'mdi-alert-circle-outline')"
+        :icon="isSuccess(runCurrent.Status) ? 'mdi-file-document-edit-outline' : (isInProgress(runCurrent.Status) ? 'mdi-run' : 'mdi-alert-circle-outline')"
         :title="$t('Edit notes for') + ' ' + runCurrent.Name"
         />
 

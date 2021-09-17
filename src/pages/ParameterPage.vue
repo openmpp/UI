@@ -49,7 +49,7 @@
         flat
         dense
         class="col-auto bg-primary text-white rounded-borders q-mr-xs"
-        :icon="edt.isEdit ? 'cancel' : 'mdi-square-edit-outline'"
+        :icon="edt.isEdit ? 'cancel' : 'mdi-table-edit'"
         :title="(edt.isEdit ? $t('Discard changes of') : $t('Edit')) + ' ' + parameterName"
         />
       <q-btn

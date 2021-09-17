@@ -31,7 +31,7 @@
             <q-icon v-if="t.kind === 'set-list'" name="mdi-folder-edit" size="sm" class="self-center q-pr-xs"/>
             <q-icon v-if="t.kind === 'new-run'" name="mdi-run" size="sm" class="self-center q-pr-xs"/>
             <q-icon v-if="t.kind === 'run-parameter'" name="mdi-application-import" size="sm" class="self-center q-pr-xs"/>
-            <q-icon v-if="!t.updated && t.kind === 'set-parameter'" name="mdi-square-edit-outline" size="sm" class="self-center q-pr-xs"/>
+            <q-icon v-if="!t.updated && t.kind === 'set-parameter'" name="mdi-table-edit" size="sm" class="self-center q-pr-xs"/>
             <q-icon v-if="t.updated && t.kind === 'set-parameter'" name="mdi-content-save-edit" size="sm" class="self-center q-pr-xs"/>
             <q-icon v-if="t.kind === 'table'" name="mdi-application-export" size="sm" class="self-center q-pr-xs"/>
             <q-icon v-if="t.kind === 'run-log'" name="mdi-text-subject" size="sm" class="self-center q-pr-xs"/>
@@ -79,7 +79,7 @@
               <q-icon v-if="t.kind === 'set-list'" name="mdi-folder-edit-outline" />
               <q-icon v-if="t.kind === 'new-run'" name="mdi-run" />
               <q-icon v-if="t.kind === 'run-parameter'" name="mdi-application-import" />
-              <q-icon v-if="!t.updated && t.kind === 'set-parameter'" name="mdi-square-edit-outline" />
+              <q-icon v-if="!t.updated && t.kind === 'set-parameter'" name="mdi-table-edit" />
               <q-icon v-if="t.updated && t.kind === 'set-parameter'" name="mdi-content-save-edit" />
               <q-icon v-if="t.kind === 'table'" name="mdi-application-export" />
               <q-icon v-if="t.kind === 'run-log'" name="mdi-text-subject" />
