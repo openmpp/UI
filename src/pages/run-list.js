@@ -195,7 +195,7 @@ export default {
     // show or hide parameters tree
     onToogleShowParamTree () {
       this.isParamTreeShow = !this.isParamTreeShow
-      if (this.isParamTreeShow) this.isTableTreeShow = false
+      this.isTableTreeShow = false
     },
     // click on parameter: open current run parameter values tab
     onParamLeafClick (key, name) {
@@ -215,7 +215,7 @@ export default {
     // show or hide output tables tree
     onToogleShowTableTree () {
       this.isTableTreeShow = !this.isTableTreeShow
-      if (this.isTableTreeShow) this.isParamTreeShow = false
+      this.isParamTreeShow = false
     },
     // click on output table: open current run output table values tab
     onTableLeafClick (key, name) {

@@ -349,7 +349,6 @@ export default {
     // show or hide parameters tree
     onToogleShowParamTree () {
       this.isParamTreeShow = !this.isParamTreeShow
-      if (this.isParamTreeShow) this.isTableTreeShow = false
     },
     // click on parameter: open current workset parameter values tab
     onParamLeafClick (key, name) {
