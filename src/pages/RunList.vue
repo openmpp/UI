@@ -260,24 +260,7 @@
       </q-tree>
     </div>
   </q-card>
-<!--
-  <q-dialog v-model="showEditDiscardDlg">
-    <q-card>
 
-      <q-card-section class="text-h6 bg-primary text-white">Cancel Editing</q-card-section>
-
-      <q-card-section class="q-pt-none text-body1">
-        <div>{{ $t('Discard all changes?') }}</div>
-      </q-card-section>
-
-      <q-card-actions align="right">
-        <q-btn flat :label="$t('No')" color="primary" v-close-popup autofocus />
-        <q-btn flat :label="$t('Yes')" color="primary" v-close-popup @click="onYesDiscardChanges" />
-      </q-card-actions>
-
-    </q-card>
-  </q-dialog>
--->
   <run-info-dialog :show-tickle="runInfoTickle" :model-digest="digest" :run-digest="runInfoDigest"></run-info-dialog>
   <parameter-info-dialog :show-tickle="paramInfoTickle" :param-name="paramInfoName" :run-digest="runDigestSelected"></parameter-info-dialog>
   <table-info-dialog :show-tickle="tableInfoTickle" :table-name="tableInfoName" :run-digest="runDigestSelected"></table-info-dialog>

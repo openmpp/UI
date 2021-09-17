@@ -398,27 +398,16 @@
   </div>
   <!-- end of pivot table controls and view -->
 
-  <q-dialog v-model="showEditDiscardDlg">
-    <q-card>
-
-      <q-card-section class="text-h6 bg-primary text-white">{{ parameterName }}</q-card-section>
-
-      <q-card-section class="q-pt-none text-body1">
-        <div>{{ $t('Discard all changes?') }}</div>
-      </q-card-section>
-
-      <q-card-actions align="right">
-        <q-btn flat :label="$t('No')" color="primary" v-close-popup autofocus />
-        <q-btn flat :label="$t('Yes')" color="primary" v-close-popup @click="onYesDiscardChanges" />
-      </q-card-actions>
-
-    </q-card>
-  </q-dialog>
-
   <run-info-dialog v-if="isFromRun" :show-tickle="runInfoTickle" :model-digest="digest" :run-digest="runDigest"></run-info-dialog>
   <workset-info-dialog v-if="!isFromRun" :show-tickle="worksetInfoTickle" :model-digest="digest" :workset-name="worksetName"></workset-info-dialog>
   <parameter-info-dialog v-if="isFromRun" :show-tickle="paramInfoTickle" :param-name="parameterName" :run-digest="runDigest"></parameter-info-dialog>
   <parameter-info-dialog v-if="!isFromRun" :show-tickle="paramInfoTickle" :param-name="parameterName" :workset-name="worksetName"></parameter-info-dialog>
+  <edit-discard-dialog
+    @discard-changes-yes="onYesDiscardChanges"
+    :show-tickle="showEditDiscardDlg"
+    :dialog-title="$t('Discard all changes') + '?'"
+    >
+  </edit-discard-dialog>
 
   <q-inner-loading :showing="loadWait">
     <q-spinner-gears size="md" color="primary" />

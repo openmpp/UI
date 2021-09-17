@@ -66,7 +66,7 @@ type DownloadStatusLog struct {
 // return empty DownloadStatusLog
 export const emptyDownloadLog = () => {
   return {
-    Status: '',       // if not empty then one of: progress ready error
+    Status: '',       // if not empty then one of: progress, ready, error
     Kind: '',         // if not empty then one of: model, run, workset or delete
     ModelDigest: '',
     RunDigest: '',

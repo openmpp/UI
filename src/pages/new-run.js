@@ -192,7 +192,7 @@ export default {
     // cleanup run description input
     onRunDescrBlur (e) {
       for (const lcd in this.runOpts.runDescr) {
-        const descr = this.cleanTextInput((this.runOpts.runDescr[lcd] || ''))
+        const descr = Mdf.cleanTextInput((this.runOpts.runDescr[lcd] || ''))
         this.runOpts.runDescr[lcd] = descr
       }
     },
@@ -223,12 +223,6 @@ export default {
       if (sValue === '' || sValue === void 0) return fDefault
       const f = parseFloat(sValue)
       return !isNaN(f) ? f : fDefault
-    },
-    // clean string input: replace special characters "'`$}{@\ with space and trim
-    cleanTextInput (sValue) {
-      if (sValue === '' || sValue === void 0) return ''
-      const s = sValue.replace(/["'`$}{@\\]/g, '\xa0').trim()
-      return s || ''
     },
     // clean file name input: replace special characters "'`$}{@><:|?*&^;/\ with underscore _ and trim
     cleanFileNameInput (sValue) {
@@ -268,12 +262,12 @@ export default {
       this.runOpts.csvId = (this.csvCodeId || '') !== 'enumCode'
       this.runOpts.useIni = (this.enableIni && this.runOpts.useIni) || false
       this.runOpts.iniAnyKey = (this.enableIniAnyKey && this.runOpts.useIni && this.runOpts.iniAnyKey) || false
-      this.runOpts.profile = this.cleanTextInput(this.runOpts.profile)
+      this.runOpts.profile = Mdf.cleanTextInput(this.runOpts.profile)
       this.runOpts.sparseOutput = this.runOpts.sparseOutput || false
-      this.runOpts.runTmpl = this.cleanTextInput(this.runOpts.runTmpl)
+      this.runOpts.runTmpl = Mdf.cleanTextInput(this.runOpts.runTmpl)
       this.runOpts.mpiNpCount = this.cleanIntNonNegativeInput(this.runOpts.mpiNpCount, 0)
       this.runOpts.mpiOnRoot = this.runOpts.mpiOnRoot || false
-      this.runOpts.mpiTmpl = this.cleanTextInput(this.runOpts.mpiTmpl)
+      this.runOpts.mpiTmpl = Mdf.cleanTextInput(this.runOpts.mpiTmpl)
       this.runOpts.progressPercent = this.cleanIntNonNegativeInput(this.runOpts.progressPercent, 1)
 
       this.runOpts.progressStep = this.cleanFloatInput(this.runOpts.progressStep, 0.0)
@@ -283,7 +277,7 @@ export default {
       this.runOpts.baseRunDigest = (this.useBaseRun && this.isCompletedRunCurrent()) ? this.runDigestSelected || '' : ''
 
       for (const lcd in this.runOpts.runDescr) {
-        this.runOpts.runDescr[lcd] = this.cleanTextInput(this.runOpts.runDescr[lcd])
+        this.runOpts.runDescr[lcd] = Mdf.cleanTextInput(this.runOpts.runDescr[lcd])
       }
 
       // start new model run: send request to the server

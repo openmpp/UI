@@ -6,6 +6,7 @@ import WorksetBar from 'components/WorksetBar.vue'
 import RunInfoDialog from 'components/RunInfoDialog.vue'
 import WorksetInfoDialog from 'components/WorksetInfoDialog.vue'
 import ParameterInfoDialog from 'components/ParameterInfoDialog.vue'
+import EditDiscardDialog from 'components/EditDiscardDialog.vue'
 import draggable from 'vuedraggable'
 import * as Pcvt from 'components/pivot-cvt'
 import * as Puih from './pivot-ui-helper'
@@ -15,7 +16,7 @@ const SUB_ID_DIM = 'SubId' // sub-value id dminesion name
 
 export default {
   name: 'ParameterPage',
-  components: { draggable, PvTable, RunBar, WorksetBar, RunInfoDialog, WorksetInfoDialog, ParameterInfoDialog },
+  components: { draggable, PvTable, RunBar, WorksetBar, RunInfoDialog, WorksetInfoDialog, ParameterInfoDialog, EditDiscardDialog },
 
   props: {
     digest: { type: String, default: '' },

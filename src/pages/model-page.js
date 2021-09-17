@@ -196,9 +196,7 @@ export default {
     doneRunLoad (isSuccess, dgst) {
       this.loadRunDone = true
       //
-      if (isSuccess && (dgst || '') !== '' && (this.runDigestSelected || '') === '') {
-        this.dispatchRunDigestSelected(dgst)
-      }
+      if (isSuccess && (dgst || '') !== '') this.dispatchRunDigestSelected(dgst)
     },
     doneRunViewsLoad (isSuccess, count) {
       this.loadRunViewsDone = true
@@ -223,9 +221,7 @@ export default {
     doneWsLoad (isSuccess, name) {
       this.loadWsDone = true
       //
-      if (isSuccess && (name || '') !== '' && (this.worksetNameSelected || '') === '') {
-        this.dispatchWorksetNameSelected(name)
-      }
+      if (isSuccess && (name || '') !== '') this.dispatchWorksetNameSelected(name)
     },
     doneUpdateWsStatus (isSuccess, name, isReadonly) {
       this.updatingWsStatus = false
@@ -258,7 +254,6 @@ export default {
       if (idx >= 0) {
         this.runDnsCurrent = rcArr[idx]
         this.refreshRunTickle = !this.refreshRunTickle
-        this.dispatchRunDigestSelected(rcArr[idx])
       }
     },
     // run selected from the list: update current run
@@ -269,7 +264,6 @@ export default {
       }
       this.runDnsCurrent = dgst
       this.refreshRunTickle = !this.refreshRunTickle
-      this.dispatchRunDigestSelected(dgst)
     },
     // run started: refresh run list
     onRunListRefresh () {
@@ -282,7 +276,7 @@ export default {
         return
       }
       this.wsNameCurrent = name
-      this.dispatchWorksetNameSelected(name)
+      this.refreshWsTickle = !this.refreshWsTickle
     },
     // refresh workset list, for example after delete
     onWorksetListRefresh () {

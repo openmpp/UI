@@ -2,7 +2,7 @@
 <q-dialog v-model="showDlg">
   <q-card class="text-body1">
 
-    <q-card-section v-if="dialogTitle" class="text-h6 bg-primary text-white">{{ dialogTitle }} </q-card-section>
+    <q-card-section v-if="dialogTitle" class="text-h6 bg-primary text-white">{{ dialogTitle }}</q-card-section>
 
     <q-card-section class="row items-center">
       <q-avatar icon="mdi-delete" color="primary" text-color="white" />

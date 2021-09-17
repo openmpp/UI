@@ -293,13 +293,17 @@ export default {
         this.logNoDataCount = 0 // new data found
       }
 
-      // copy log file show / hide status
+      // notify on completed downloads and copy log file show / hide status
       for (let k = 0; k < dLst.length; k++) {
         dLst[k].isShowLog = false
-        const n = this.downloadLst.findIndex((dl) => dl.LogFileName === dLst[k].LogFileName)
-        if (n >= 0) {
-          dLst[k].isShowLog = this.downloadLst[n].isShowLog
+        const n = this.downloadLst.findIndex((dl) => dl.Folder === dLst[k].Folder)
+        if (n < 0) continue
+
+        if (this.isProgress(this.downloadLst[n].Status) && (this.isModelKind(dLst[k].Kind) || this.isRunKind(dLst[k].Kind) || this.isWorksetKind(dLst[k].Kind))) {
+          if (this.isReady(dLst[k].Status)) this.$q.notify({ type: 'info', message: this.$t('Download completed') + (dLst[k].Folder ? (': ' + dLst[k].Folder) : '') })
+          if (this.isError(dLst[k].Status)) this.$q.notify({ type: 'negative', message: this.$t('Download error') + (dLst[k].Folder ? (': ' + dLst[k].Folder) : '') })
         }
+        dLst[k].isShowLog = this.downloadLst[n].isShowLog
       }
 
       // replace download log list
