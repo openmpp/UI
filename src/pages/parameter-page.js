@@ -62,7 +62,7 @@ export default {
       pvKeyPos: [],           // position of each dimension item in cell key
       edt: Pcvt.emptyEdit(),  // editor options and state shared with child
       isDragging: false,      // if true then user is dragging dimension select control
-      showEditDiscardDlg: false,
+      showEditDiscardTickle: false,
       runInfoTickle: false,
       worksetInfoTickle: false,
       paramInfoTickle: false
@@ -285,7 +285,7 @@ export default {
     // start or stop parameter editing
     doEditToogle () {
       if (this.edt.isEdit && this.edt.isUpdated) { // redirect to dialog to confirm "discard changes?"
-        this.showEditDiscardDlg = true
+        this.showEditDiscardTickle = !this.showEditDiscardTickle
         return
       }
       // else: start editing or stop editing (no changes in data)

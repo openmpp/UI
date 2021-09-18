@@ -404,7 +404,7 @@
   <parameter-info-dialog v-if="!isFromRun" :show-tickle="paramInfoTickle" :param-name="parameterName" :workset-name="worksetName"></parameter-info-dialog>
   <edit-discard-dialog
     @discard-changes-yes="onYesDiscardChanges"
-    :show-tickle="showEditDiscardDlg"
+    :show-tickle="showEditDiscardTickle"
     :dialog-title="$t('Discard all changes') + '?'"
     >
   </edit-discard-dialog>

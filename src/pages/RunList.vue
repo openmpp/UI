@@ -271,7 +271,6 @@
     :dialog-title="$t('Cancel Editing') + '?'"
     >
   </edit-discard-dialog>
-
   <delete-confirm-dialog
     @delete-yes="onYesRunDelete"
     :show-tickle="showDeleteDialog"

@@ -186,7 +186,7 @@ export default {
     },
     // check if run name entered and cleanup input to be compatible with file name rules
     onRunNameBlur (e) {
-      const { isEntered, name } = this.doFileNameClean(this.runOpts.runName)
+      const { isEntered, name } = Mdf.doFileNameClean(this.runOpts.runName)
       this.runOpts.runName = isEntered ? name : ''
     },
     // cleanup run description input
@@ -209,9 +209,6 @@ export default {
     doDirClean (dirValue) {
       return (dirValue || '') ? { isEntered: true, dir: this.cleanPathInput(dirValue) } : { isEntered: false, dir: '' }
     },
-    doFileNameClean (fnValue) {
-      return (fnValue || '') ? { isEntered: true, name: this.cleanFileNameInput(fnValue) } : { isEntered: false, name: '' }
-    },
     // clean integer as non-negative input, ignore + or - sign
     cleanIntNonNegativeInput (sValue, nDefault = 0) {
       if (sValue === '' || sValue === void 0) return nDefault
@@ -223,12 +220,6 @@ export default {
       if (sValue === '' || sValue === void 0) return fDefault
       const f = parseFloat(sValue)
       return !isNaN(f) ? f : fDefault
-    },
-    // clean file name input: replace special characters "'`$}{@><:|?*&^;/\ with underscore _ and trim
-    cleanFileNameInput (sValue) {
-      if (sValue === '' || sValue === void 0) return ''
-      const s = sValue.replace(/["'`$}{@><:|?*&^;/\\]/g, '_').trim()
-      return s || ''
     },
     // clean path input: remove special characters "'`$}{@><:|?*&^; and force it to be relative path and use / separator
     cleanPathInput (sValue) {
@@ -254,7 +245,7 @@ export default {
     // run the model
     onModelRun () {
       // set new run options
-      this.runOpts.runName = this.cleanFileNameInput(this.runOpts.runName)
+      this.runOpts.runName = Mdf.cleanFileNameInput(this.runOpts.runName)
       this.runOpts.subCount = this.cleanIntNonNegativeInput(this.runOpts.subCount, 1)
       this.runOpts.threadCount = this.cleanIntNonNegativeInput(this.runOpts.threadCount, 1)
       this.runOpts.workDir = this.cleanPathInput(this.runOpts.workDir)

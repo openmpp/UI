@@ -53,7 +53,7 @@
               dense
               clearable
               hide-bottom-space
-              :placeholder="$t('Name of new model run') + ' (* ' + $t('Required') + ')'"
+              :placeholder="$t('Name of the new model run') + ' (* ' + $t('Required') + ')'"
               :title="$t('Name of the new model run')"
               >
             </q-input>
