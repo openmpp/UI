@@ -51,7 +51,7 @@
         />
 
       <q-btn
-        v-if="!noteEditorActive"
+        :disable="noteEditorActive"
         @click="onEditRunNote(runDigestSelected)"
         flat
         dense
@@ -59,28 +59,6 @@
         :class="(isSuccess(runCurrent.Status) || isInProgress(runCurrent.Status)) ? 'bg-primary' : 'bg-warning'"
         :icon="isSuccess(runCurrent.Status) ? 'mdi-file-document-edit-outline' : (isInProgress(runCurrent.Status) ? 'mdi-run' : 'mdi-alert-circle-outline')"
         :title="$t('Edit notes for') + ' ' + runCurrent.Name"
-        />
-
-      <q-btn
-        v-if="noteEditorActive"
-        @click="onSaveRunNote(runDigestSelected)"
-        flat
-        dense
-        class="col-auto text-white rounded-borders q-mr-xs"
-        :class="(isSuccess(runCurrent.Status) || isInProgress(runCurrent.Status)) ? 'bg-primary' : 'bg-warning'"
-        :icon="isSuccess(runCurrent.Status) ? 'mdi-content-save-edit' : (isInProgress(runCurrent.Status) ? 'mdi-run' : 'mdi-alert-circle-outline')"
-        :title="$t('Save notes for') + ' ' + runCurrent.Name"
-        />
-
-      <q-btn
-        v-if="noteEditorActive"
-        @click="onCancelRunNote(runDigestSelected)"
-        flat
-        dense
-        class="col-auto text-white rounded-borders q-mr-xs"
-        :class="(isSuccess(runCurrent.Status) || isInProgress(runCurrent.Status)) ? 'bg-primary' : 'bg-warning'"
-        :icon="isSuccess(runCurrent.Status) ? 'mdi-close-circle' : (isInProgress(runCurrent.Status) ? 'mdi-run' : 'mdi-alert-circle-outline')"
-        :title="$t('Discard changes and cancel editing notes for') + ' ' + runCurrent.Name"
         />
 
       <transition
@@ -99,26 +77,19 @@
 
     </div>
 
-    <q-card-section v-show="noteEditorActive" class="q-px-sm q-pt-none">
-      <div class="row items-center q-pb-xs">
-        <span class="col-auto q-pr-xs"> {{ $t('Description') }} :</span>
-        <q-input
-          v-model="runDescrEdit"
-          maxlength="255"
-          size="80"
-          @blur="onRunDescrBlur"
-          outlined
-          dense
-          clearable
-          hide-bottom-space
-          class="col"
-          :placeholder="$t('Model run description')"
-          :title="$t('Model run description')"
-          >
-        </q-input>
-        </div>
-      <textarea style="display: none" id="EasyMDE"></textarea>
-    </q-card-section>
+    <markdown-editor
+      :show-tickle="noteEditorTickle"
+      :the-name="runCurrent.Name"
+      :the-descr="runCurrentDescr()"
+      :the-note="runCurrentNote()"
+      :description-editable="true"
+      :notes-editable="true"
+      :save-note-edit="'save-run-note'"
+      :cancel-note-edit="'cancel-run-note'"
+      @cancel-run-note="onCancelRunNote"
+      @save-run-note="onSaveRunNote"
+    >
+    </markdown-editor>
 
     <q-card-section v-show="isParamTreeShow" class="q-px-sm q-pt-none">
 
@@ -265,12 +236,6 @@
   <parameter-info-dialog :show-tickle="paramInfoTickle" :param-name="paramInfoName" :run-digest="runDigestSelected"></parameter-info-dialog>
   <table-info-dialog :show-tickle="tableInfoTickle" :table-name="tableInfoName" :run-digest="runDigestSelected"></table-info-dialog>
   <group-info-dialog :show-tickle="groupInfoTickle" :group-name="groupInfoName"></group-info-dialog>
-  <edit-discard-dialog
-    @discard-changes-yes="onYesDiscardChanges"
-    :show-tickle="showEditDiscardTickle"
-    :dialog-title="$t('Cancel Editing') + '?'"
-    >
-  </edit-discard-dialog>
   <delete-confirm-dialog
     @delete-yes="onYesRunDelete"
     :show-tickle="showDeleteDialog"
@@ -292,8 +257,4 @@
   .tab-switch-button {
     border-top-right-radius: 1rem;
   }
-</style>
-
-<style scoped>
-  @import 'https://unpkg.com/easymde/dist/easymde.min.css';
 </style>

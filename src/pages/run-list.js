@@ -6,14 +6,12 @@ import RunInfoDialog from 'components/RunInfoDialog.vue'
 import ParameterInfoDialog from 'components/ParameterInfoDialog.vue'
 import TableInfoDialog from 'components/TableInfoDialog.vue'
 import GroupInfoDialog from 'components/GroupInfoDialog.vue'
-import EditDiscardDialog from 'components/EditDiscardDialog.vue'
 import DeleteConfirmDialog from 'components/DeleteConfirmDialog.vue'
-//
-import EasyMDE from 'easymde'
+import MarkdownEditor from 'components/MarkdownEditor.vue'
 
 export default {
   name: 'RunList',
-  components: { RunParameterList, TableList, RunInfoDialog, ParameterInfoDialog, TableInfoDialog, GroupInfoDialog, EditDiscardDialog, DeleteConfirmDialog },
+  components: { RunParameterList, TableList, RunInfoDialog, ParameterInfoDialog, TableInfoDialog, GroupInfoDialog, DeleteConfirmDialog, MarkdownEditor },
 
   props: {
     digest: { type: String, default: '' },
@@ -42,6 +40,7 @@ export default {
       runDigestToDelete: '',
       showDeleteDialog: false,
       noteEditorActive: false,
+      noteEditorTickle: false,
       runDescrEdit: '',
       showEditDiscardTickle: false,
       easyMDE: null
@@ -85,6 +84,8 @@ export default {
     isSuccess (status) { return status === Mdf.RUN_SUCCESS },
     isInProgress (status) { return status === Mdf.RUN_IN_PROGRESS || status === Mdf.RUN_INITIAL },
     dateTimeStr (dt) { return Mdf.dtStr(dt) },
+    runCurrentDescr () { return Mdf.descrOfTxt(this.runCurrent) },
+    runCurrentNote () { return Mdf.noteOfTxt(this.runCurrent) },
 
     // update page view
     doRefresh () {
@@ -134,38 +135,16 @@ export default {
 
     // show run description and notes dialog WORKING HERE
     onEditRunNote (dgst) {
-      const note = Mdf.noteOfTxt(this.runCurrent)
-      this.runDescrEdit = Mdf.descrOfTxt(this.runCurrent)
+      this.noteEditorTickle = !this.noteEditorTickle
       this.noteEditorActive = true
-      //
-      this.easyMDE = new EasyMDE({
-        element: document.getElementById('EasyMDE'),
-        sideBySideFullscreen: false,
-        toolbar: ['bold', 'italic', 'heading', '|', 'quote', 'code', '|', 'unordered-list', 'ordered-list', '|', 'side-by-side', '|', 'guide']
-      })
-      this.easyMDE.value(note)
     },
     // save run notes editor content
-    onSaveRunNote (dgst) {
-      const note = this.easyMDE.value()
-      this.doSaveRunNote(dgst, this.runDescrEdit, note)
+    onSaveRunNote (descr, note) {
+      this.doSaveRunNote(this.runDigestSelected, descr, note)
       this.noteEditorActive = false
-      this.easyMDE.toTextArea()
-      this.easyMDE = null
     },
-    // cancel editing run description and notes
-    onCancelRunNote () {
-      this.showEditDiscardTickle = !this.showEditDiscardTickle
-    },
-    // on user selecting "Yes" from "Cancel Editing" pop-up alert
-    onYesDiscardChanges () {
+    onCancelRunNote (dgst) {
       this.noteEditorActive = false
-      this.easyMDE.toTextArea()
-      this.easyMDE = null
-    },
-    // cleanup run description input
-    onRunDescrBlur (e) {
-      this.runDescrEdit = Mdf.cleanTextInput(this.runDescrEdit)
     },
 
     // show yes/no dialog to confirm run delete

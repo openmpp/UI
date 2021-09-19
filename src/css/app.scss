@@ -20,6 +20,9 @@
   letter-spacing: map-get($body2, "letter-spacing");
   font-weight:    map-get($body2, "weight");
 }
+.om-text-descr-title {
+  color: $grey-8;
+}
 .om-text-descr {
   color: $grey-8;
   @extend .om-text-body2;
