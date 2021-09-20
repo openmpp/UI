@@ -138,7 +138,7 @@ export default {
     // send description and notes to the parent
     onSaveNote () {
       if (this.notesEditable) {
-        this.noteEdit = sanitizeHtml(this.easyMDE.value() || '')
+        this.noteEdit = sanitizeHtml(this.easyMDE.value() || '') // remove unsafe html tags
         this.doHideEditor()
       }
       this.$emit(
