@@ -262,8 +262,8 @@ export default {
         console.warn('selected run digest is empty')
         return
       }
+      if (this.runDnsCurrent === dgst) this.refreshRunTickle = !this.refreshRunTickle
       this.runDnsCurrent = dgst
-      // this.refreshRunTickle = !this.refreshRunTickle
     },
     // run started: refresh run list
     onRunListRefresh () {
@@ -275,8 +275,8 @@ export default {
         console.warn('selected workset name is empty')
         return
       }
+      if (this.wsNameCurrent === name) this.refreshWsTickle = !this.refreshWsTickle
       this.wsNameCurrent = name
-      // this.refreshWsTickle = !this.refreshWsTickle
     },
     // refresh workset list, for example after delete
     onWorksetListRefresh () {
