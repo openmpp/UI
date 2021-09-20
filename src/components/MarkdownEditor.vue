@@ -60,6 +60,8 @@
 
 <script>
 import EasyMDE from 'easymde'
+import hljs from 'highlight.js'
+import sanitizeHtml from 'sanitize-html'
 import EditDiscardDialog from 'components/EditDiscardDialog.vue'
 import * as Mdf from 'src/model-common'
 
@@ -101,7 +103,27 @@ export default {
         this.easyMDE = new EasyMDE({
           element: document.getElementById('EasyMDE'),
           sideBySideFullscreen: false,
-          toolbar: ['bold', 'italic', 'heading', '|', 'quote', 'code', '|', 'unordered-list', 'ordered-list', '|', 'side-by-side', '|', 'guide']
+          toolbar: [
+            'undo', 'redo', '|',
+            'bold', 'italic', 'heading', '|',
+            'quote', 'code', '|',
+            'unordered-list', 'ordered-list', 'table', '|',
+            'side-by-side', '|',
+            'guide'],
+          renderingConfig: {
+            codeSyntaxHighlighting: true,
+            sanitizerFunction: (renderedHTML) => { return sanitizeHtml(renderedHTML) },
+            markedOptions: {
+              highlight: (code, lang) => {
+                const language = hljs.getLanguage(lang) ? lang : 'plaintext'
+                return hljs.highlight(code, { language }).value
+              },
+              pedantic: false,
+              gfm: true,
+              breaks: false,
+              smartLists: true
+            }
+          }
         })
         this.noteEdit = this.theNote
         this.easyMDE.value(this.noteEdit)
@@ -116,10 +138,13 @@ export default {
     // send description and notes to the parent
     onSaveNote () {
       if (this.notesEditable) {
-        this.noteEdit = this.easyMDE.value()
+        this.noteEdit = sanitizeHtml(this.easyMDE.value() || '')
         this.doHideEditor()
       }
-      this.$emit(this.saveNoteEdit, (this.descriptionEditable ? this.descrEdit : ''), this.noteEdit)
+      this.$emit(
+        this.saveNoteEdit,
+        this.descriptionEditable ? this.descrEdit : this.theDescr,
+        this.notesEditable ? this.noteEdit : this.theNote)
     },
 
     // cancel editing description and notes
@@ -148,5 +173,6 @@ export default {
 </script>
 
 <style scoped>
-  @import 'https://unpkg.com/easymde/dist/easymde.min.css';
+  @import '~easymde/dist/easymde.min.css';
+  @import '~highlight.js/styles/github.css';
 </style>
