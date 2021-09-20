@@ -40,10 +40,7 @@ export default {
       runDigestToDelete: '',
       showDeleteDialog: false,
       noteEditorActive: false,
-      noteEditorTickle: false,
-      runDescrEdit: '',
-      showEditDiscardTickle: false,
-      easyMDE: null
+      noteEditorTickle: false
     }
   },
 
