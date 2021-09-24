@@ -39,7 +39,7 @@
       <table v-show="isRunOptsShow">
 
         <tr>
-          <td class="q-pr-xs"><span v-if="!runOpts.runName" class="text-negative">* </span><span>{{ $t('Run Name') }}:</span></td>
+          <td class="q-pr-xs"><span v-if="!runOpts.runName" class="text-negative text-weight-bold">* </span><span>{{ $t('Run Name') }}:</span></td>
           <td>
             <q-input
               v-model="runOpts.runName"

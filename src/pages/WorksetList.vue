@@ -106,7 +106,7 @@
               />
           </td>
           <td class="q-pr-xs">
-            <span class="text-negative">*</span><span class="q-pr-sm">{{ $t('Name') }} :</span>
+            <span class="text-negative text-weight-bold">* </span><span class="q-pr-sm">{{ $t('Name') }} :</span>
           </td>
           <td>
             <q-input
@@ -133,7 +133,11 @@
           <td
             :disabled="!isCompletedRunCurrent()"
             >
-            <q-checkbox v-model="useBaseRun" :disable="!isCompletedRunCurrent()"/>
+            <q-checkbox
+              v-model="useBaseRun"
+              :disable="!isCompletedRunCurrent()"
+              :title="$t('If checked then use Base Run to get input parameters')"
+              />
           </td>
           <td class="q-pr-xs">
             {{$t('Use Base Run') + ':'}}

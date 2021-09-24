@@ -85,6 +85,7 @@ export default {
   'Go Home': 'Rentrer chez soi',
   'Hide pivot controls': 'Masquer les contrôles de pivot',
   'Hide rows and columns bars': 'Masquer les barres de lignes et de colonnes',
+  'If checked then use Base Run to get input parameters': "Si coché, utilisez l'Exécution de Base pour obtenir les paramètres d'entrée",
   'Import Digest': 'Importer le Digest',
   'In progress': 'En cours',
   'in progress': 'en cours',
