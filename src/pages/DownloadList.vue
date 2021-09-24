@@ -237,7 +237,7 @@
 
   <delete-confirm-dialog
     @delete-yes="onYesDownloadDelete"
-    :show-tickle="showDeleteDialog"
+    :show-tickle="showDeleteDialogTickle"
     :item-name="folderToDelete"
     :dialog-title="$t('Delete download files') + '?'"
     >

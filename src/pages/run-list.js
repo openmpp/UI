@@ -11,7 +11,9 @@ import MarkdownEditor from 'components/MarkdownEditor.vue'
 
 export default {
   name: 'RunList',
-  components: { RunParameterList, TableList, RunInfoDialog, ParameterInfoDialog, TableInfoDialog, GroupInfoDialog, DeleteConfirmDialog, MarkdownEditor },
+  components: {
+    RunParameterList, TableList, RunInfoDialog, ParameterInfoDialog, TableInfoDialog, GroupInfoDialog, DeleteConfirmDialog, MarkdownEditor
+  },
 
   props: {
     digest: { type: String, default: '' },
@@ -38,7 +40,7 @@ export default {
       nextId: 100,
       runNameToDelete: '',
       runDigestToDelete: '',
-      showDeleteDialog: false,
+      showDeleteDialogTickle: false,
       noteEditorActive: false,
       noteEditorTickle: false
     }
@@ -148,7 +150,7 @@ export default {
     onShowRunDelete (runName, dgst) {
       this.runNameToDelete = runName
       this.runDigestToDelete = dgst
-      this.showDeleteDialog = !this.showDeleteDialog
+      this.showDeleteDialogTickle = !this.showDeleteDialogTickle
     },
     // user answer yes to confirm delete model run
     onYesRunDelete (runName, dgst) {

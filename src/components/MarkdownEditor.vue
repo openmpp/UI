@@ -1,26 +1,27 @@
 <template>
-  <q-card-section v-show="noteEditorActive" class="q-px-sm q-pt-none">
+  <q-card-section v-show="noteEditorActive">
+
     <div class="row items-center q-pb-xs">
 
       <q-btn
+        v-if="!isHideCancel"
         @click="onCancelNote"
         flat
         dense
         class="col-auto text-white bg-primary rounded-borders q-mr-xs"
         icon="mdi-close-circle"
-        :title="$t('Discard changes and cancel editing notes for') + ' ' + theName"
+        :title="$t('Discard changes and stop editing')"
       />
-
       <q-btn
+        v-if="!isHideSave"
         @click="onSaveNote"
         flat
         dense
         class="col-auto text-white bg-primary rounded-borders q-mr-xs"
         icon="mdi-content-save-edit"
-        :title="$t('Save notes for') + ' ' + theName"
+        :title="$t('Save description and notes')"
       />
-
-      <q-separator vertical spaced="sm" color="secondary" />
+      <q-separator v-if="!isHideCancel || !isHideSave" vertical spaced="sm" color="secondary" />
 
       <span
         v-if="descriptionEditable"
@@ -37,17 +38,18 @@
         clearable
         hide-bottom-space
         class="col"
-        :placeholder="$t('Description of') + ' ' + theName"
-        :title="$t('Description of') + ' ' + theName"
+        :placeholder="descrPrompt ? descrPrompt : $t('Description of') + ' ' + theName"
+        :title="descrPrompt ? descrPrompt : $t('Description of') + ' ' + theName"
       >
       </q-input>
       <div
         v-if="!descriptionEditable"
         class="col om-text-descr-title"
         >{{ theDescr ? theDescr : theName }}</div>
-      </div>
 
-      <textarea style="display: none" id="EasyMDE"></textarea>
+    </div>
+
+    <textarea style="display: none" :id="mdeTextId"></textarea>
 
     <edit-discard-dialog
       @discard-changes-yes="onYesDiscardChanges"
@@ -71,13 +73,17 @@ export default {
 
   props: {
     showTickle: { type: Boolean, default: false, required: true },
-    theName: { type: String, default: '', required: true },
+    theKey: { type: String, default: '' },
+    theName: { type: String, default: '' },
     theNote: { type: String, default: '' },
     notesEditable: { type: Boolean, default: false },
     theDescr: { type: String, default: '' },
+    descrPrompt: { type: String, default: '' },
     descriptionEditable: { type: Boolean, default: false },
-    saveNoteEdit: { type: String, default: 'save-note-edit', required: true },
-    cancelNoteEdit: { type: String, default: 'cancel-note-edit', required: true }
+    saveNoteEdit: { type: String, default: 'save-note-edit' },
+    isHideSave: { type: Boolean, default: false },
+    cancelNoteEdit: { type: String, default: 'cancel-note-edit' },
+    isHideCancel: { type: Boolean, default: false }
   },
 
   watch: {
@@ -86,6 +92,7 @@ export default {
 
   data () {
     return {
+      mdeTextId: 'EasyMDE-' + (this.theKey || ''),
       descrEdit: '',
       noteEdit: '',
       noteEditorActive: false,
@@ -101,7 +108,7 @@ export default {
       //
       if (this.notesEditable) {
         this.easyMDE = new EasyMDE({
-          element: document.getElementById('EasyMDE'),
+          element: document.getElementById(this.mdeTextId),
           sideBySideFullscreen: false,
           toolbar: [
             'undo', 'redo', '|',
@@ -144,16 +151,37 @@ export default {
       this.$emit(
         this.saveNoteEdit,
         this.descriptionEditable ? this.descrEdit : this.theDescr,
-        this.notesEditable ? this.noteEdit : this.theNote)
+        this.notesEditable ? this.noteEdit : this.theNote,
+        this.isUpdated(),
+        this.theKey
+      )
+    },
+
+    // return true if description or notes updated (edited)
+    isUpdated () {
+      return (this.descriptionEditable && this.theDescr !== this.descrEdit) ||
+        (this.notesEditable && this.theNote !== this.easyMDE.value())
+    },
+
+    // return description and notes
+    getDescrNote () {
+      if (this.notesEditable) {
+        this.noteEdit = sanitizeHtml(this.easyMDE.value() || '') // remove unsafe html tags
+      }
+      return {
+        descr: this.descriptionEditable ? this.descrEdit : this.theDescr,
+        note: this.notesEditable ? this.noteEdit : this.theNote,
+        isUpdated: this.isUpdated(),
+        key: this.theKey
+      }
     },
 
     // cancel editing description and notes
     onCancelNote () {
-      if ((!this.descriptionEditable || this.theDescr === this.descrEdit) &&
-          (!this.notesEditable || this.theNote === this.easyMDE.value())) {
-        this.onYesDiscardChanges()
-      } else {
+      if (this.isUpdated()) {
         this.showEditDiscardTickle = !this.showEditDiscardTickle
+      } else {
+        this.onYesDiscardChanges()
       }
     },
     // on user selecting "Yes" from "Cancel Editing" pop-up alert

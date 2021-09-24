@@ -91,6 +91,7 @@
                 v-model="runOpts.runDescr[modelLanguage.LangCode]"
                 maxlength="255"
                 size="80"
+                @blur="onRunDescrBlur"
                 outlined
                 dense
                 clearable

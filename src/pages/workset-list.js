@@ -1,15 +1,20 @@
 import { mapState, mapGetters } from 'vuex'
 import * as Mdf from 'src/model-common'
 import WorksetParameterList from 'components/WorksetParameterList.vue'
+import RunBar from 'components/RunBar.vue'
+import RunInfoDialog from 'components/RunInfoDialog.vue'
 import WorksetInfoDialog from 'components/WorksetInfoDialog.vue'
 import ParameterInfoDialog from 'components/ParameterInfoDialog.vue'
 import GroupInfoDialog from 'components/GroupInfoDialog.vue'
 import EditDiscardDialog from 'components/EditDiscardDialog.vue'
 import DeleteConfirmDialog from 'components/DeleteConfirmDialog.vue'
+import MarkdownEditor from 'components/MarkdownEditor.vue'
 
 export default {
   name: 'WorksetList',
-  components: { WorksetParameterList, WorksetInfoDialog, ParameterInfoDialog, GroupInfoDialog, EditDiscardDialog, DeleteConfirmDialog },
+  components: {
+    WorksetParameterList, RunBar, RunInfoDialog, WorksetInfoDialog, ParameterInfoDialog, GroupInfoDialog, EditDiscardDialog, DeleteConfirmDialog, MarkdownEditor
+  },
 
   props: {
     digest: { type: String, default: '' },
@@ -32,11 +37,18 @@ export default {
       paramInfoName: '',
       nextId: 100,
       worksetNameToDelete: ',',
-      showDeleteDialog: false,
+      showDeleteDialogTickle: false,
       showEditDiscardTickle: false,
+      runCurrent: Mdf.emptyRunText(), // currently selected run
+      //
+      // create new or edit existing workset
       //
       isNewWorksetShow: false,
-      nameOfNewWorkset: ''
+      nameOfNewWorkset: '',
+      txtNewWorkset: [], // workset description and notes
+      useBaseRun: false,
+      runInfoTickle: false,
+      noteEditorNewWorksetTickle: false
     }
   },
 
@@ -44,25 +56,31 @@ export default {
     isNotEmptyWorksetCurrent () { return Mdf.isNotEmptyWorksetText(this.worksetCurrent) },
     descrWorksetCurrent () { return Mdf.descrOfTxt(this.worksetCurrent) },
     paramCountWorksetCurrent () { return Mdf.worksetParamCount(this.worksetCurrent) },
+    isNotEmptyLanguageList () { return Mdf.isLangList(this.langList) },
 
     // if true then selected workset in edit mode else read-only and model run enabled
     isReadonlyWorksetCurrent () {
       return Mdf.isNotEmptyWorksetText(this.worksetCurrent) && this.worksetCurrent.IsReadonly
     },
-    // return true if name of new workset is valid
-    isValidNameOfNewWorkset () {
-      return Mdf.cleanFileNameInput(this.nameOfNewWorkset) !== ''
+    // return true if name of new workset is empty after cleanup
+    isEmptyNameOfNewWorkset () {
+      return (Mdf.cleanFileNameInput(this.nameOfNewWorkset) || '') === ''
     },
 
     ...mapState('model', {
       theModel: state => state.theModel,
       worksetTextList: state => state.worksetTextList,
-      worksetTextListUpdated: state => state.worksetTextListUpdated
+      worksetTextListUpdated: state => state.worksetTextListUpdated,
+      langList: state => state.langList
     }),
     ...mapGetters('model', {
-      worksetTextByName: 'worksetTextByName'
+      runTextByDigest: 'runTextByDigest',
+      worksetTextByName: 'worksetTextByName',
+      isExistInWorksetTextList: 'isExistInWorksetTextList',
+      modelLanguage: 'modelLanguage'
     }),
     ...mapState('uiState', {
+      runDigestSelected: state => state.runDigestSelected,
       worksetNameSelected: state => state.worksetNameSelected
     }),
     ...mapState('serverState', {
@@ -83,10 +101,37 @@ export default {
   methods: {
     dateTimeStr (dt) { return Mdf.dtStr(dt) },
 
+    // retrun true if current run is completed: success, error or exit
+    // if run not successfully completed then it we don't know is it possible to use as base run
+    isCompletedRunCurrent () { return this.runDigestSelected ? Mdf.isRunSuccess(this.runCurrent) : false },
+
     // update page view
     doRefresh () {
       this.treeData = this.makeWorksetTreeData(this.worksetTextList)
       this.worksetCurrent = this.worksetTextByName({ ModelDigest: this.digest, Name: this.worksetNameSelected })
+      this.runCurrent = this.runTextByDigest({ ModelDigest: this.digest, RunDigest: this.runDigestSelected })
+
+      // make list of model languages, description and notes for workset editor
+      this.txtNewWorkset = []
+      if (Mdf.isLangList(this.langList)) {
+        for (const lcn of this.langList) {
+          this.txtNewWorkset.push({
+            LangCode: lcn.LangCode,
+            LangName: lcn.Name,
+            Descr: '',
+            Note: ''
+          })
+        }
+      } else {
+        if (!this.txtNewWorkset.length) {
+          this.txtNewWorkset.push({
+            LangCode: this.modelLanguage.LangCode,
+            LangName: this.modelLanguage.Name,
+            Descr: '',
+            Note: ''
+          })
+        }
+      }
     },
 
     // expand or collapse all workset tree nodes
@@ -119,11 +164,19 @@ export default {
       this.worksetInfoName = name
       this.worksetInfoTickle = !this.worksetInfoTickle
     },
+    // show current run info dialog
+    doShowRunNote (modelDgst, runDgst) {
+      if (modelDgst !== this.digest || runDgst !== this.runDigestSelected) {
+        console.warn('invlaid model digest or run digest:', modelDgst, runDgst)
+        return
+      }
+      this.runInfoTickle = !this.runInfoTickle
+    },
 
     // show yes/no dialog to confirm workset delete
     onShowWorksetDelete (name) {
       this.worksetNameToDelete = name
-      this.showDeleteDialog = !this.showDeleteDialog
+      this.showDeleteDialogTickle = !this.showDeleteDialogTickle
     },
     // user answer yes to confirm delete model workset
     onYesWorksetDelete (name) {
@@ -153,49 +206,6 @@ export default {
     // toggle current workset readonly status: pass event from child up to the next level
     onWorksetEditToggle () {
       this.$emit('set-update-readonly', !this.worksetCurrent.IsReadonly)
-    },
-
-    // create new workset
-    onNewWorkset () {
-      this.isNewWorksetShow = true
-    },
-    // validate and save new workset
-    onSaveNewWorkset () {
-      const name = Mdf.cleanFileNameInput(this.nameOfNewWorkset)
-      this.doCreateNewWorkset(name)
-      //
-      this.nameOfNewWorkset = ''
-      this.isNewWorksetShow = false
-    },
-    // discard new workset
-    onCancelNewWorkset () {
-      if (this.isNewWorksetUpdated()) { // redirect to dialog to confirm "discard changes?"
-        this.showEditDiscardTickle = !this.showEditDiscardTickle
-        return
-      }
-      // else: close new workset editor (no changes in data)
-      this.nameOfNewWorkset = ''
-      this.isNewWorksetShow = false
-    },
-    // on user selecting "Yes" from "discard changes?" pop-up alert
-    onYesDiscardNewWorkset () {
-      this.nameOfNewWorkset = ''
-      this.isNewWorksetShow = false
-    },
-    // return true if new workset info is entered
-    isNewWorksetUpdated () {
-      return (this.nameOfNewWorkset || '') !== ''
-    },
-    // set default name of new workset
-    onNewNameFocus (e) {
-      if (typeof this.nameOfNewWorkset !== typeof 'string' || (this.nameOfNewWorkset || '') === '') {
-        this.nameOfNewWorkset = 'New_' + this.worksetNameSelected + '_' + Mdf.dtToUnderscoreTimeStamp(new Date())
-      }
-    },
-    // check if new workset name entered and cleanup input to be compatible with file name rules
-    onNewNameBlur (e) {
-      const { isEntered, name } = Mdf.doFileNameClean(this.nameOfNewWorkset)
-      this.nameOfNewWorkset = isEntered ? name : ''
     },
 
     // show or hide parameters tree
@@ -245,16 +255,107 @@ export default {
       return td
     },
 
+    // toggle: create new workset or cancel new workset editing
+    doNewWorksetOrCancel () {
+      if (!this.isNewWorksetShow) {
+        this.onNewWorkset()
+      } else {
+        this.onCancelNewWorkset()
+      }
+    },
+    // clean new workset info
+    resetNewWorkset () {
+      this.nameOfNewWorkset = ''
+      this.useBaseRun = false
+      for (const t of this.txtNewWorkset) {
+        t.Descr = ''
+        t.Note = ''
+      }
+    },
     // create new workset
-    async doCreateNewWorkset (name) {
-      // workset name must be valid and cannot be longer than db column
-      if (typeof name !== typeof 'string' || !name || Mdf.cleanFileNameInput(name) !== name || name.length > 255) {
-        console.warn('Invalid (empty) workset name:', name)
-        this.$q.notify({ type: 'info', message: this.$t('Invalid (or empty) input scenario name') + ((name || '') !== '' ? ': ' + (name || '') : '') })
+    onNewWorkset () {
+      this.resetNewWorkset()
+      this.isNewWorksetShow = true
+      this.noteEditorNewWorksetTickle = !this.noteEditorNewWorksetTickle
+    },
+    // discard new workset
+    onCancelNewWorkset () {
+      if ((this.nameOfNewWorkset || '') !== '') { // redirect to dialog to confirm "discard changes?"
+        this.showEditDiscardTickle = !this.showEditDiscardTickle
+        return
+      }
+      // else: close new workset editor (no changes in data)
+      this.nameOfNewWorkset = ''
+      this.isNewWorksetShow = false
+    },
+    // on user selecting "Yes" from "discard changes?" pop-up alert
+    onYesDiscardNewWorkset () {
+      this.resetNewWorkset()
+      this.isNewWorksetShow = false
+    },
+
+    // validate and save new workset
+    onSaveNewWorkset () {
+      const name = Mdf.cleanFileNameInput(this.nameOfNewWorkset)
+      if (name === '') {
+        this.$q.notify({ type: 'negative', message: this.$t('Invalid (or empty) input scenario name') + ((name || '') !== '' ? ': ' + (name || '') : '') })
+        return
+      }
+      // check if the workset with the same name already exist in the model
+      if (this.isExistInWorksetTextList({ ModelDigest: this.digest, Name: name })) {
+        this.$q.notify({ type: 'negative', message: this.$t('Error: input scenario name must be unique') + ': ' + (name || '') })
         return
       }
 
-      const ws = { ModelDigest: this.digest, Name: name }
+      // collect description and notes for each language
+      const txt = []
+      for (const t of this.txtNewWorkset) {
+        const refKey = 'new-ws-note-editor-' + t.LangCode
+        if (!Mdf.isLength(this.$refs[refKey]) || !this.$refs[refKey][0]) continue
+
+        const udn = this.$refs[refKey][0].getDescrNote()
+        txt.push({
+          LangCode: t.LangCode,
+          Descr: udn.descr,
+          Note: udn.note
+        })
+      }
+
+      // create new workset header
+      const ws = {
+        ModelDigest: this.digest,
+        Name: name,
+        IsReadonly: false,
+        BaseRunDigest: ((this.useBaseRun || false) && (this.runDigestSelected || '') !== '') ? this.runDigestSelected : '',
+        Txt: txt,
+        Param: []
+      }
+      this.doCreateNewWorkset(ws)
+
+      this.resetNewWorkset()
+      this.isNewWorksetShow = false
+    },
+
+    // set default name of new workset
+    onNewNameFocus (e) {
+      if (typeof this.nameOfNewWorkset !== typeof 'string' || (this.nameOfNewWorkset || '') === '') {
+        this.nameOfNewWorkset = 'New_' + this.worksetNameSelected + '_' + Mdf.dtToUnderscoreTimeStamp(new Date())
+      }
+    },
+    // check if new workset name entered and cleanup input to be compatible with file name rules
+    onNewNameBlur (e) {
+      const { isEntered, name } = Mdf.doFileNameClean(this.nameOfNewWorkset)
+      this.nameOfNewWorkset = isEntered ? name : ''
+    },
+
+    // create new workset
+    async doCreateNewWorkset (ws) {
+      // workset name must be valid and cannot be longer than db column
+      if (!ws || (ws.Name || '') === '' || typeof ws.Name !== typeof 'string' || Mdf.cleanFileNameInput(ws.Name) !== ws.Name || ws.Namelength > 255) {
+        console.warn('Invalid (empty) workset name:', ws.Name)
+        this.$q.notify({ type: 'negative', message: this.$t('Invalid (or empty) input scenario name') + ((ws.Name || '') !== '' ? ': ' + (ws.Name || '') : '') })
+        return
+      }
 
       let isOk = false
       let nm = ''

@@ -8,14 +8,13 @@
       >
 
       <q-btn
-        @click="onNewWorkset"
-        :disable="isNewWorksetShow"
+        @click="doNewWorksetOrCancel"
         flat
         dense
         class="col-auto bg-primary text-white rounded-borders q-ml-sm"
-        icon="mdi-folder-plus"
-        :title="$t('New input scenario')"
-        />
+        :icon="!isNewWorksetShow ? 'mdi-folder-plus' : 'cancel'"
+        :title="!isNewWorksetShow ? $t('New input scenario') : (nameOfNewWorkset ? $t('Discard changes of') + ' ' + (nameOfNewWorkset || '') : $t('Discard changes and stop editing'))"
+       />
       <q-separator vertical inset spaced="sm" color="secondary" />
 
       <span class="col-auto no-wrap q-mr-xs">
@@ -92,51 +91,92 @@
   <q-card v-show="isNewWorksetShow" class="q-ma-sm">
 
     <q-card-section class="q-pa-sm">
-      <div class="row items-center">
+      <table>
 
-        <q-btn
-          @click="onCancelNewWorkset"
-          flat
-          dense
-          class="col-auto bg-primary text-white rounded-borders q-mr-xs"
-          icon="cancel"
-          :title="!nameOfNewWorkset ? $t('Cancel') : $t('Discard changes of') + ' ' + (nameOfNewWorkset || '')"
-          />
-        <q-btn
-          @click="onSaveNewWorkset"
-          :disable="!isValidNameOfNewWorkset"
-          flat
-          dense
-          class="col-auto bg-primary text-white rounded-borders q-mr-xs"
-          icon="mdi-content-save-edit"
-          :title="$t('Save') + ' ' + (nameOfNewWorkset || '')"
-          />
-        <q-separator vertical inset spaced="sm" color="secondary" />
+        <tr>
+          <td>
+            <q-btn
+              @click="onSaveNewWorkset"
+              :disable="isEmptyNameOfNewWorkset"
+              flat
+              dense
+              class="bg-primary text-white rounded-borders q-mr-xs"
+              icon="mdi-content-save-edit"
+              :title="$t('Save') + ' ' + (nameOfNewWorkset || '')"
+              />
+          </td>
+          <td class="q-pr-xs">
+            <span class="text-negative">*</span><span class="q-pr-sm">{{ $t('Name') }} :</span>
+          </td>
+          <td>
+            <q-input
+              debounce="500"
+              v-model="nameOfNewWorkset"
+              maxlength="255"
+              size="80"
+              required
+              @focus="onNewNameFocus"
+              @blur="onNewNameBlur"
+              :rules="[ val => (val || '') !== '' ]"
+              outlined
+              dense
+              clearable
+              hide-bottom-space
+              :placeholder="$t('Name of the new input scenario') + ' (* ' + $t('Required') + ')'"
+              :title="$t('Name of the new input scenario')"
+              >
+            </q-input>
+          </td>
+        </tr>
 
-        <div class="col-auto q-pr-xs">
-          <span class="text-negative">* </span><span class="q-pr-sm">{{ $t('Name') }} :</span>
-        </div>
-        <q-input
-          debounce="500"
-          v-model="nameOfNewWorkset"
-          maxlength="255"
-          size="80"
-          required
-          @focus="onNewNameFocus"
-          @blur="onNewNameBlur"
-          :rules="[ val => (val || '') !== '' ]"
-          outlined
-          dense
-          clearable
-          hide-bottom-space
-          class="col"
-          :placeholder="$t('Name of the new input scenario') + ' (* ' + $t('Required') + ')'"
-          :title="$t('Name of the new input scenario')"
-          >
-        </q-input>
+        <tr>
+          <td
+            :disabled="!isCompletedRunCurrent()"
+            >
+            <q-checkbox v-model="useBaseRun" :disable="!isCompletedRunCurrent()"/>
+          </td>
+          <td class="q-pr-xs">
+            {{$t('Use Base Run') + ':'}}
+          </td>
+          <td>
+            <run-bar
+              :model-digest="digest"
+              :run-digest="runDigestSelected"
+              @run-info-click="doShowRunNote"
+              >
+            </run-bar>
+          </td>
+        </tr>
 
-      </div>
+      </table>
     </q-card-section>
+
+    <q-expansion-item
+      switch-toggle-side
+      expand-separator
+      header-class="bg-primary text-white"
+      class="q-pa-sm"
+      :label="$t('Description and Notes')"
+      >
+
+      <markdown-editor
+        v-for="t in txtNewWorkset"
+        :key="t.LangCode"
+        class="q-px-none q-py-xs"
+        :ref="'new-ws-note-editor-' + t.LangCode"
+        :show-tickle="noteEditorNewWorksetTickle"
+        :the-key="t.LangCode"
+        :the-descr="t.DescrNewWorkset"
+        :descr-prompt="$t('Input scenario description') + ' (' + t.LangName + ')'"
+        :the-note="t.Note"
+        :description-editable="true"
+        :notes-editable="true"
+        :is-hide-save="true"
+        :is-hide-cancel="true"
+      >
+      </markdown-editor>
+
+    </q-expansion-item>
 
   </q-card>
 
@@ -244,6 +284,7 @@
     </div>
   </q-card>
 
+  <run-info-dialog :show-tickle="runInfoTickle" :model-digest="digest" :run-digest="runDigestSelected"></run-info-dialog>
   <workset-info-dialog :show-tickle="worksetInfoTickle" :model-digest="digest" :workset-name="worksetInfoName"></workset-info-dialog>
   <parameter-info-dialog :show-tickle="paramInfoTickle" :param-name="paramInfoName" :workset-name="worksetNameSelected"></parameter-info-dialog>
   <group-info-dialog :show-tickle="groupInfoTickle" :group-name="groupInfoName"></group-info-dialog>
@@ -255,7 +296,7 @@
   </edit-discard-dialog>
   <delete-confirm-dialog
     @delete-yes="onYesWorksetDelete"
-    :show-tickle="showDeleteDialog"
+    :show-tickle="showDeleteDialogTickle"
     :item-name="worksetNameToDelete"
     :dialog-title="$t('Delete input scenario') + '?'"
     >
@@ -273,5 +314,8 @@
   }
   .tab-switch-button {
     border-top-right-radius: 1rem;
+  }
+  .tc-right {
+    text-align: right;
   }
 </style>

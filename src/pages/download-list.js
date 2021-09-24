@@ -49,7 +49,7 @@ export default {
       runInfoDigest: '',
       worksetInfoTickle: false,
       worksetInfoName: '',
-      showDeleteDialog: false,
+      showDeleteDialogTickle: false,
       folderToDelete: '',
       folderTreeData: [],
       isAnyFolderDir: false,
@@ -177,7 +177,7 @@ export default {
     // delete download results by folder name
     onShowDeleteClick (folder) {
       this.folderToDelete = folder
-      this.showDeleteDialog = !this.showDeleteDialog
+      this.showDeleteDialogTickle = !this.showDeleteDialogTickle
     },
     // delete download results by folder name
     onYesDownloadDelete (folder) {

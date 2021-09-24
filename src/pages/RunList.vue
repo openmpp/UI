@@ -88,6 +88,7 @@
       :cancel-note-edit="'cancel-run-note'"
       @cancel-run-note="onCancelRunNote"
       @save-run-note="onSaveRunNote"
+      class="q-px-sm q-pt-none"
     >
     </markdown-editor>
 
@@ -238,7 +239,7 @@
   <group-info-dialog :show-tickle="groupInfoTickle" :group-name="groupInfoName"></group-info-dialog>
   <delete-confirm-dialog
     @delete-yes="onYesRunDelete"
-    :show-tickle="showDeleteDialog"
+    :show-tickle="showDeleteDialogTickle"
     :item-name="runNameToDelete"
     :item-id="runDigestToDelete"
     :dialog-title="$t('Delete model run') + '?'"
