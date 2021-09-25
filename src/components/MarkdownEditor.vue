@@ -92,7 +92,7 @@ export default {
 
   data () {
     return {
-      mdeTextId: 'EasyMDE-' + (this.theKey || ''),
+      mdeTextId: 'easy-mde-text-' + (this.theKey || ''),
       descrEdit: '',
       noteEdit: '',
       noteEditorActive: false,

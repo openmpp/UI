@@ -147,7 +147,7 @@
           :title="$t('Download') + ' ' + dl.ZipFileName"
           >
           <q-item-section avatar>
-            <q-avatar rounded icon="mdi-folder-zip-outline" size="md" font-size="1.25rem" color="primary" text-color="white" />
+            <q-avatar rounded icon="mdi-folder-download" size="md" font-size="1.25rem" color="primary" text-color="white" />
           </q-item-section>
           <q-item-section>
             <q-item-label>{{ dl.ZipFileName }}</q-item-label>

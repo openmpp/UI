@@ -8,11 +8,13 @@
     :is-any-group="isAnyTableGroup"
     :is-any-hidden="isAnyTableHidden"
     :is-show-hidden="isShowTableHidden"
+    :is-copy-enabled="isTableCopyEnabled"
     :filter-placeholder="$t('Find output table...')"
     :no-results-label="$t('No output tables found')"
     :no-nodes-label="$t('Server offline or no output tables found')"
     @om-table-tree-show-hidden="onToogleHiddenTableTree"
     @om-table-tree-leaf-select="onTableLeafClick"
+    @om-table-tree-leaf-copy="onTableCopyClick"
     @om-table-tree-leaf-note="onShowTableNote"
     @om-table-tree-group-note="onShowGroupNote"
     >
@@ -31,7 +33,8 @@ export default {
   components: { OmTableTree },
 
   props: {
-    refreshTickle: { type: Boolean, default: false }
+    refreshTickle: { type: Boolean, default: false },
+    isTableCopyEnabled: { type: Boolean, default: false }
   },
 
   data () {
@@ -82,6 +85,10 @@ export default {
     // click on output table: open current run output table values tab
     onTableLeafClick (key, name) {
       this.$emit('table-select', key, name)
+    },
+    // click on output table: copy current run output table
+    onTableCopyClick (key) {
+      this.$emit('table-copy', key)
     },
     // click on show output table notes dialog button
     onShowTableNote (key, name) {

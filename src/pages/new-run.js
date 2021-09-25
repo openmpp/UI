@@ -63,6 +63,15 @@ export default {
     isNotEmptyLanguageList () { return Mdf.isLangList(this.langList) },
     isEmptyProfileList () { return !Mdf.isLength(this.profileLst) },
     isEmptyRunTemplateList () { return !Mdf.isLength(this.runTemplateLst) },
+    // return true if current can be used for model run: if workset in read-only state
+    isReadonlyWorksetCurrent () {
+      return this.worksetNameSelected ? this.worksetCurrent.IsReadonly : false
+    },
+    // retrun true if current run is completed: success, error or exit
+    // if run not successfully completed then it we don't know is it possible to use as base run
+    isCompletedRunCurrent () {
+      return this.runDigestSelected ? Mdf.isRunCompleted(this.runCurrent) : false
+    },
 
     ...mapState('model', {
       theModel: state => state.theModel,
@@ -100,8 +109,8 @@ export default {
       this.runOpts.runName = ''
       this.runOpts.worksetName = ''
       this.runOpts.baseRunDigest = ''
-      this.useWorkset = this.isReadonlyWorksetCurrent()
-      this.useBaseRun = !this.isReadonlyWorksetCurrent() && this.isCompletedRunCurrent()
+      this.useWorkset = this.isReadonlyWorksetCurrent
+      this.useBaseRun = !this.isReadonlyWorksetCurrent && this.isCompletedRunCurrent
       this.runOpts.sparseOutput = false
       this.mpiNpCount = 0
       this.runOpts.mpiOnRoot = false
@@ -166,16 +175,6 @@ export default {
         return
       }
       this.worksetInfoTickle = !this.worksetInfoTickle
-    },
-
-    // retrun true if current run is completed: success, error or exit
-    // if run not successfully completed then it we don't know is it possible to use as base run
-    isCompletedRunCurrent () {
-      return this.runDigestSelected ? Mdf.isRunCompleted(this.runCurrent) : false
-    },
-    // return true if current can be used for model run: if workset in read-only state
-    isReadonlyWorksetCurrent () {
-      return this.worksetNameSelected ? this.worksetCurrent.IsReadonly : false
     },
 
     // set default name of new model run
@@ -264,8 +263,8 @@ export default {
       this.runOpts.progressStep = this.cleanFloatInput(this.runOpts.progressStep, 0.0)
       if (this.runOpts.progressStep < 0) this.runOpts.progressStep = 0.0
 
-      this.runOpts.worksetName = (this.useWorkset && this.isReadonlyWorksetCurrent()) ? this.worksetNameSelected || '' : ''
-      this.runOpts.baseRunDigest = (this.useBaseRun && this.isCompletedRunCurrent()) ? this.runDigestSelected || '' : ''
+      this.runOpts.worksetName = (this.useWorkset && this.isReadonlyWorksetCurrent) ? this.worksetNameSelected || '' : ''
+      this.runOpts.baseRunDigest = (this.useBaseRun && this.isCompletedRunCurrent) ? this.runDigestSelected || '' : ''
 
       for (const lcd in this.runOpts.runDescr) {
         this.runOpts.runDescr[lcd] = Mdf.cleanTextInput(this.runOpts.runDescr[lcd])

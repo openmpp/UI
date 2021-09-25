@@ -78,7 +78,9 @@
 
       <workset-parameter-list
         :refresh-tickle="refreshTickle"
+        :is-param-copy-enabled="isNewWorksetShow"
         @set-parameter-select="onParamLeafClick"
+        @set-parameter-copy="onParamWorksetCopy"
         @set-parameter-info-show="doShowParamNote"
         @set-parameter-group-info-show="doShowGroupNote"
         >
@@ -131,11 +133,11 @@
 
         <tr>
           <td
-            :disabled="!isCompletedRunCurrent()"
+            :disabled="!isCompletedRunCurrent"
             >
             <q-checkbox
               v-model="useBaseRun"
-              :disable="!isCompletedRunCurrent()"
+              :disable="!isCompletedRunCurrent"
               :title="$t('If checked then use Base Run to get input parameters')"
               />
           </td>
@@ -154,6 +156,45 @@
 
       </table>
     </q-card-section>
+
+    <q-expansion-item
+      v-if="isNotEmptyWorksetCurrent"
+      switch-toggle-side
+      expand-separator
+      header-class="bg-primary text-white"
+      class="q-pa-sm"
+      >
+      <template v-slot:header>
+        <q-badge transparent outline class="q-mr-xs">{{ paramWsCopyLst.length }}</q-badge><q-item-section>{{ $t('Copy parameter(s) from input scenario') + ': ' + worksetNameSelected }}</q-item-section>
+      </template>
+
+    </q-expansion-item>
+
+    <q-expansion-item
+      v-if="isCompletedRunCurrent"
+      switch-toggle-side
+      expand-separator
+      header-class="bg-primary text-white"
+      class="q-pa-sm"
+      >
+      <template v-slot:header>
+        <q-badge transparent outline class="q-mr-xs">{{ paramRunCopyLst.length }}</q-badge><q-item-section>{{ $t('Copy parameter(s) from model run') + ': ' + runCurrent.Name }}</q-item-section>
+      </template>
+
+      <q-card-section class="q-px-none q-pt-sm">
+
+        <run-parameter-list
+          :refresh-tickle="refreshTickle"
+          :is-param-copy-enabled="isNewWorksetShow"
+          @run-parameter-copy="onParamRunCopy"
+          @run-parameter-info-show="doShowParamRunNote"
+          @run-parameter-group-info-show="doShowGroupNote"
+          >
+        </run-parameter-list>
+
+      </q-card-section>
+
+    </q-expansion-item>
 
     <q-expansion-item
       switch-toggle-side
@@ -290,6 +331,7 @@
 
   <run-info-dialog :show-tickle="runInfoTickle" :model-digest="digest" :run-digest="runDigestSelected"></run-info-dialog>
   <workset-info-dialog :show-tickle="worksetInfoTickle" :model-digest="digest" :workset-name="worksetInfoName"></workset-info-dialog>
+  <parameter-info-dialog :show-tickle="paramRunInfoTickle" :param-name="paramInfoName" :run-digest="runDigestSelected"></parameter-info-dialog>
   <parameter-info-dialog :show-tickle="paramInfoTickle" :param-name="paramInfoName" :workset-name="worksetNameSelected"></parameter-info-dialog>
   <group-info-dialog :show-tickle="groupInfoTickle" :group-name="groupInfoName"></group-info-dialog>
   <edit-discard-dialog

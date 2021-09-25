@@ -151,10 +151,10 @@
 
         <tr>
           <td
-            :disabled="!isReadonlyWorksetCurrent()"
+            :disabled="!isReadonlyWorksetCurrent"
             class="q-pr-xs"
             >
-            <q-checkbox v-model="useWorkset" :disable="!isReadonlyWorksetCurrent()" :label="$t('Use Scenario') + ':'"/>
+            <q-checkbox v-model="useWorkset" :disable="!isReadonlyWorksetCurrent" :label="$t('Use Scenario') + ':'"/>
           </td>
           <td>
             <workset-bar
@@ -168,10 +168,10 @@
 
         <tr>
           <td
-            :disabled="!isCompletedRunCurrent()"
+            :disabled="!isCompletedRunCurrent"
             class="q-pr-xs"
             >
-            <q-checkbox v-model="useBaseRun" :disable="!isCompletedRunCurrent()" :label="$t('Use Base Run') + ':'"/>
+            <q-checkbox v-model="useBaseRun" :disable="!isCompletedRunCurrent" :label="$t('Use Base Run') + ':'"/>
           </td>
           <td>
             <run-bar

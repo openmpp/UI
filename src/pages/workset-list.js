@@ -1,6 +1,7 @@
 import { mapState, mapGetters } from 'vuex'
 import * as Mdf from 'src/model-common'
 import WorksetParameterList from 'components/WorksetParameterList.vue'
+import RunParameterList from 'components/RunParameterList.vue'
 import RunBar from 'components/RunBar.vue'
 import RunInfoDialog from 'components/RunInfoDialog.vue'
 import WorksetInfoDialog from 'components/WorksetInfoDialog.vue'
@@ -13,7 +14,16 @@ import MarkdownEditor from 'components/MarkdownEditor.vue'
 export default {
   name: 'WorksetList',
   components: {
-    WorksetParameterList, RunBar, RunInfoDialog, WorksetInfoDialog, ParameterInfoDialog, GroupInfoDialog, EditDiscardDialog, DeleteConfirmDialog, MarkdownEditor
+    WorksetParameterList,
+    RunParameterList,
+    RunBar,
+    RunInfoDialog,
+    WorksetInfoDialog,
+    ParameterInfoDialog,
+    GroupInfoDialog,
+    EditDiscardDialog,
+    DeleteConfirmDialog,
+    MarkdownEditor
   },
 
   props: {
@@ -40,14 +50,17 @@ export default {
       showDeleteDialogTickle: false,
       showEditDiscardTickle: false,
       runCurrent: Mdf.emptyRunText(), // currently selected run
+      paramRunInfoTickle: false,
       //
       // create new or edit existing workset
       //
       isNewWorksetShow: false,
       nameOfNewWorkset: '',
-      txtNewWorkset: [], // workset description and notes
+      paramWsCopyLst: [],
+      paramRunCopyLst: [],
       useBaseRun: false,
       runInfoTickle: false,
+      txtNewWorkset: [], // workset description and notes
       noteEditorNewWorksetTickle: false
     }
   },
@@ -62,10 +75,13 @@ export default {
     isReadonlyWorksetCurrent () {
       return Mdf.isNotEmptyWorksetText(this.worksetCurrent) && this.worksetCurrent.IsReadonly
     },
-    // return true if name of new workset is empty after cleanup
-    isEmptyNameOfNewWorkset () {
-      return (Mdf.cleanFileNameInput(this.nameOfNewWorkset) || '') === ''
+    // retrun true if current run is completed: success, error or exit
+    // if run not successfully completed then it we don't know is it possible to use as base run
+    isCompletedRunCurrent () {
+      return this.runDigestSelected ? Mdf.isRunSuccess(this.runCurrent) : false
     },
+    // return true if name of new workset is empty after cleanup
+    isEmptyNameOfNewWorkset () { return (Mdf.cleanFileNameInput(this.nameOfNewWorkset) || '') === '' },
 
     ...mapState('model', {
       theModel: state => state.theModel,
@@ -100,10 +116,6 @@ export default {
 
   methods: {
     dateTimeStr (dt) { return Mdf.dtStr(dt) },
-
-    // retrun true if current run is completed: success, error or exit
-    // if run not successfully completed then it we don't know is it possible to use as base run
-    isCompletedRunCurrent () { return this.runDigestSelected ? Mdf.isRunSuccess(this.runCurrent) : false },
 
     // update page view
     doRefresh () {
@@ -221,6 +233,11 @@ export default {
       this.paramInfoName = name
       this.paramInfoTickle = !this.paramInfoTickle
     },
+    // show run parameter notes dialog
+    doShowParamRunNote (key, name) {
+      this.paramInfoName = name
+      this.paramRunInfoTickle = !this.paramRunInfoTickle
+    },
     // show group notes dialog
     doShowGroupNote (key, name) {
       this.groupInfoName = name
@@ -267,6 +284,8 @@ export default {
     resetNewWorkset () {
       this.nameOfNewWorkset = ''
       this.useBaseRun = false
+      this.paramWsCopyLst = []
+      this.paramRunCopyLst = []
       for (const t of this.txtNewWorkset) {
         t.Descr = ''
         t.Note = ''
@@ -346,6 +365,51 @@ export default {
     onNewNameBlur (e) {
       const { isEntered, name } = Mdf.doFileNameClean(this.nameOfNewWorkset)
       this.nameOfNewWorkset = isEntered ? name : ''
+    },
+    // add workset parameter into parameters copy list
+    onParamWorksetCopy (key) {
+      if (!Mdf.isNotEmptyWorksetText(this.worksetCurrent)) {
+        console.warn('Invalid (empty) workset to copy parameter from', key)
+        return
+      }
+      this.addParamToCopyList(key, this.paramWsCopyLst)
+    },
+    // add run parameter into parameters copy list
+    onParamRunCopy (key) {
+      if (!Mdf.isNotEmptyRunText(this.runCurrent)) {
+        console.warn('Invalid (empty) run to copy parameter from', key)
+        return
+      }
+      this.addParamToCopyList(key, this.paramRunCopyLst)
+    },
+    // add run parameter into parameters copy list
+    addParamToCopyList (key, copyLst) {
+      if (!key) {
+        console.warn('Invalid (empty) parameter name to copy', key)
+        return
+      }
+      // find parameter name in the model parameters list
+      const p = Mdf.paramTextByName(this.theModel, key)
+      if (!Mdf.isNotEmptyParamText(p)) {
+        console.warn('Invalid parameter to copy, not found in model parameters list:', key)
+        return
+      }
+
+      // find index where to insert parameter name, if it is not already in the copy list
+      const insPos = copyLst.findIndex((pn) => { return pn.name >= key })
+
+      if (insPos >= 0 && insPos < copyLst.length && copyLst[insPos].name === key) return // parameter already in the list
+
+      const pIns = {
+        key: p.Param.Name,
+        name: p.Param.Name,
+        descr: Mdf.descrOfDescrNote(p) || p.Param.Name
+      }
+      if (insPos >= 0 && insPos < copyLst.length) {
+        copyLst.splice(insPos, 0, pIns)
+      } else {
+        copyLst.push(pIns)
+      }
     },
 
     // create new workset

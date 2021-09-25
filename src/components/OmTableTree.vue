@@ -116,7 +116,18 @@ Expected array of tree items as:
             icon="mdi-information-outline"
             :title="$t('About') + ' ' + prop.node.label"
             />
-          <div class="col">
+          <q-btn
+            v-if="isCopyEnabled"
+            @click.stop="onCopyLeafClick(prop.node.label)"
+            flat
+            round
+            dense
+            color="primary"
+            class="col-auto"
+            icon="mdi-content-copy"
+            :title="$t('Copy') + ' ' + prop.node.label"
+            />
+          <div class="col q-ml-xs">
             <span>{{ prop.node.label }}<br />
             <span class="om-text-descr">{{ prop.node.descr }}</span></span>
           </div>
@@ -143,6 +154,7 @@ export default {
     isAnyGroup: { type: Boolean, default: false },
     isAnyHidden: { type: Boolean, default: false },
     isShowHidden: { type: Boolean, default: false },
+    isCopyEnabled: { type: Boolean, default: false },
     filterPlaceholder: { type: String, default: '' },
     noResultsLabel: { type: String, default: '' },
     noNodesLabel: { type: String, default: '' }
@@ -227,6 +239,10 @@ export default {
     // click on leaf node
     onLeafClick (key, name) {
       this.$emit('om-table-tree-leaf-select', key, name)
+    },
+    // click on leaf copy button
+    onCopyLeafClick (key) {
+      this.$emit('om-table-tree-leaf-copy', key)
     },
     // click on show leaf notes dialog button
     onShowLeafNote (key, name) {

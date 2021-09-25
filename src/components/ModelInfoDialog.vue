@@ -1,5 +1,5 @@
 <template>
-<q-dialog v-model="showDlg">
+<q-dialog full-width v-model="showDlg">
   <q-card>
 
     <q-card-section class="text-h6 bg-primary text-white">{{ title }}</q-card-section>

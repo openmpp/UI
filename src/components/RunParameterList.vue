@@ -8,11 +8,13 @@
     :is-any-group="isAnyParamGroup"
     :is-any-hidden="isAnyParamHidden"
     :is-show-hidden="isShowParamHidden"
+    :is-copy-enabled="isParamCopyEnabled"
     :filter-placeholder="$t('Find parameter...')"
     :no-results-label="$t('No model parameters found')"
     :no-nodes-label="$t('Server offline or no model parameters found')"
     @om-table-tree-show-hidden="onToogleHiddenParamTree"
     @om-table-tree-leaf-select="onParamLeafClick"
+    @om-table-tree-leaf-copy="onParamCopyClick"
     @om-table-tree-leaf-note="onShowParamNote"
     @om-table-tree-group-note="onShowGroupNote"
     >
@@ -31,7 +33,8 @@ export default {
   components: { OmTableTree },
 
   props: {
-    refreshTickle: { type: Boolean, default: false }
+    refreshTickle: { type: Boolean, default: false },
+    isParamCopyEnabled: { type: Boolean, default: false }
   },
 
   data () {
@@ -72,6 +75,10 @@ export default {
     // click on parameter: open current run parameter values tab
     onParamLeafClick (key, name) {
       this.$emit('run-parameter-select', key, name)
+    },
+    // click on parameter: copy current run parameter
+    onParamCopyClick (key) {
+      this.$emit('run-parameter-copy', key)
     },
     // click on show parameter notes dialog button
     onShowParamNote (key, name) {
