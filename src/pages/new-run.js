@@ -180,7 +180,7 @@ export default {
     // set default name of new model run
     onRunNameFocus (e) {
       if (typeof this.runOpts.runName !== typeof 'string' || (this.runOpts.runName || '') === '') {
-        this.runOpts.runName = this.theModel.Model.Name + '_' + (this.isReadonlyWorksetCurrent() ? this.worksetNameSelected + '_' : '') + Mdf.dtToUnderscoreTimeStamp(new Date())
+        this.runOpts.runName = this.theModel.Model.Name + '_' + (this.isReadonlyWorksetCurrent ? this.worksetNameSelected + '_' : '') + Mdf.dtToUnderscoreTimeStamp(new Date())
       }
     },
     // check if run name entered and cleanup input to be compatible with file name rules
