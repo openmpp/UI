@@ -6,7 +6,7 @@
 }
 
 .om-text-secondary {
-  color: $grey-8;
+  color: $om-secondary-text-color;
       // @extend .text-body1;
   font-size:      map-get($body1, "size");
   line-height:    map-get($body1, "line-height");
@@ -21,10 +21,10 @@
   font-weight:    map-get($body2, "weight");
 }
 .om-text-descr-title {
-  color: $grey-8;
+  color: $om-secondary-text-color;
 }
 .om-text-descr {
-  color: $grey-8;
+  color: $om-secondary-text-color;
   @extend .om-text-body2;
 }
 .om-text-descr-selected {

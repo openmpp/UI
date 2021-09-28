@@ -38,8 +38,8 @@
         clearable
         hide-bottom-space
         class="col"
-        :placeholder="descrPrompt ? descrPrompt : $t('Description of') + ' ' + theName"
-        :title="descrPrompt ? descrPrompt : $t('Description of') + ' ' + theName"
+        :placeholder="descrPrompt ? descrPrompt : (theName ? $t('Description of') + ' ' + theName : $t('Description'))"
+        :title="descrPrompt ? descrPrompt : (theName ? $t('Description of') + ' ' + theName : $t('Description'))"
       >
       </q-input>
       <div
@@ -49,7 +49,11 @@
 
     </div>
 
-    <textarea style="display: none" :id="mdeTextId"></textarea>
+    <textarea
+      style="display: none"
+      :id="mdeTextId"
+      :placeholder="notePrompt ? notePrompt : (theName ? $t('Notes for') + ' ' + theName : $t('Notes'))"
+      ></textarea>
 
     <edit-discard-dialog
       @discard-changes-yes="onYesDiscardChanges"
@@ -75,15 +79,17 @@ export default {
     showTickle: { type: Boolean, default: false, required: true },
     theKey: { type: String, default: '' },
     theName: { type: String, default: '' },
-    theNote: { type: String, default: '' },
-    notesEditable: { type: Boolean, default: false },
     theDescr: { type: String, default: '' },
     descrPrompt: { type: String, default: '' },
     descriptionEditable: { type: Boolean, default: false },
+    theNote: { type: String, default: '' },
+    notePrompt: { type: String, default: '' },
+    notesEditable: { type: Boolean, default: false },
     saveNoteEdit: { type: String, default: 'save-note-edit' },
-    isHideSave: { type: Boolean, default: false },
     cancelNoteEdit: { type: String, default: 'cancel-note-edit' },
-    isHideCancel: { type: Boolean, default: false }
+    isHideSave: { type: Boolean, default: false },
+    isHideCancel: { type: Boolean, default: false },
+    langCode: { type: String, default: 'EN' } // MDE default spellchecker support only English US
   },
 
   watch: {
@@ -105,7 +111,7 @@ export default {
     doShowEditor () {
       if (this.descriptionEditable) this.descrEdit = this.theDescr
       this.noteEditorActive = true
-      //
+
       if (this.notesEditable) {
         this.easyMDE = new EasyMDE({
           element: document.getElementById(this.mdeTextId),
@@ -117,6 +123,7 @@ export default {
             'unordered-list', 'ordered-list', 'table', '|',
             'side-by-side', '|',
             'guide'],
+          spellChecker: (this.langCode || '').toLocaleLowerCase().startsWith('en'), // EasyMDE spell checker is EN-US only
           renderingConfig: {
             codeSyntaxHighlighting: true,
             sanitizerFunction: (renderedHTML) => { return sanitizeHtml(renderedHTML) },

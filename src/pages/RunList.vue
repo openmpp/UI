@@ -86,6 +86,7 @@
       :notes-editable="true"
       :save-note-edit="'save-run-note'"
       :cancel-note-edit="'cancel-run-note'"
+      :lang-code="uiLang || $q.lang.getLocale() || ''"
       @cancel-run-note="onCancelRunNote"
       @save-run-note="onSaveRunNote"
       class="q-px-sm q-pt-none"

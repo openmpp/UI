@@ -62,7 +62,8 @@ export default {
       runTextByDigest: 'runTextByDigest'
     }),
     ...mapState('uiState', {
-      runDigestSelected: state => state.runDigestSelected
+      runDigestSelected: state => state.runDigestSelected,
+      uiLang: state => state.uiLang
     }),
     ...mapState('serverState', {
       omsUrl: state => state.omsUrl,
