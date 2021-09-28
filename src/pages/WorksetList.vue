@@ -160,26 +160,89 @@
     <q-expansion-item
       v-if="isNotEmptyWorksetCurrent"
       switch-toggle-side
-      expand-separator
-      header-class="bg-primary text-white"
+      header-class="bg-primary text-white q-py-none"
       class="q-pa-sm"
       >
+
       <template v-slot:header>
-        <q-badge transparent outline class="q-mr-xs">{{ paramWsCopyLst.length }}</q-badge><q-item-section>{{ $t('Copy parameter(s) from input scenario') + ': ' + worksetNameSelected }}</q-item-section>
+        <transition
+          enter-active-class="animated fadeIn"
+          leave-active-class="animated fadeOut"
+          mode="out-in"
+          >
+          <q-item :key="currentWsCopyChangeKey" class="q-pa-none">
+            <q-item-section class="col"><q-badge transparent outline class="q-py-sm">{{ paramWsCopyLst.length }}</q-badge></q-item-section>
+            <q-item-section class="col-grow">{{ $t('Copy parameter(s) from input scenario') + ': ' + worksetNameSelected }}</q-item-section>
+          </q-item>
+        </transition>
       </template>
+
+      <q-list>
+        <q-item
+          v-for="pc of paramWsCopyLst" :key="pc.key"
+          >
+          <q-item-section avatar>
+           <q-btn
+              @click="onRemoveWsFromNewWorkset(pc.name)"
+              flat
+              round
+              dense
+              color="primary"
+              class="col-auto"
+              icon="mdi-delete-outline"
+              :title="$t('Do not copy') + ': ' + pc.name"
+              />
+          </q-item-section>
+          <q-item-section>
+            <q-item-label>{{ pc.name }}</q-item-label>
+            <q-item-label class="om-text-descr">{{ pc.descr }}</q-item-label>
+          </q-item-section>
+        </q-item>
+      </q-list>
 
     </q-expansion-item>
 
     <q-expansion-item
       v-if="isCompletedRunCurrent"
       switch-toggle-side
-      expand-separator
-      header-class="bg-primary text-white"
+      header-class="bg-primary text-white q-py-none"
       class="q-pa-sm"
       >
       <template v-slot:header>
-        <q-badge transparent outline class="q-mr-xs">{{ paramRunCopyLst.length }}</q-badge><q-item-section>{{ $t('Copy parameter(s) from model run') + ': ' + runCurrent.Name }}</q-item-section>
+        <transition
+          enter-active-class="animated fadeIn"
+          leave-active-class="animated fadeOut"
+          mode="out-in"
+          >
+          <q-item :key="currentRunCopyChangeKey" class="q-pa-none">
+            <q-item-section class="col"><q-badge transparent outline class="q-py-sm">{{ paramRunCopyLst.length }}</q-badge></q-item-section>
+            <q-item-section class="col-grow">{{ $t('Copy parameter(s) from model run') + ': ' + runCurrent.Name }}</q-item-section>
+          </q-item>
+        </transition>
       </template>
+
+      <q-list>
+        <q-item
+          v-for="pc of paramRunCopyLst" :key="pc.key"
+          >
+          <q-item-section avatar>
+           <q-btn
+              @click="onRemoveRunFromNewWorkset(pc.name)"
+              flat
+              round
+              dense
+              color="primary"
+              class="col-auto"
+              icon="mdi-delete-outline"
+              :title="$t('Do not copy') + ': ' + pc.name"
+              />
+          </q-item-section>
+          <q-item-section>
+            <q-item-label>{{ pc.name }}</q-item-label>
+            <q-item-label class="om-text-descr">{{ pc.descr }}</q-item-label>
+          </q-item-section>
+        </q-item>
+      </q-list>
 
       <q-card-section class="q-px-none q-pt-sm">
 
@@ -207,17 +270,19 @@
       <markdown-editor
         v-for="t in txtNewWorkset"
         :key="t.LangCode"
-        class="q-px-none q-py-xs"
         :ref="'new-ws-note-editor-' + t.LangCode"
         :show-tickle="noteEditorNewWorksetTickle"
         :the-key="t.LangCode"
         :the-descr="t.DescrNewWorkset"
         :descr-prompt="$t('Input scenario description') + ' (' + t.LangName + ')'"
         :the-note="t.Note"
+        :note-prompt="$t('Input scenario notes') + ' (' + t.LangName + ')'"
         :description-editable="true"
         :notes-editable="true"
         :is-hide-save="true"
         :is-hide-cancel="true"
+        :lang-code="t.LangCode"
+        class="q-px-none q-py-xs"
       >
       </markdown-editor>
 

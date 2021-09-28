@@ -83,6 +83,9 @@ export default {
     // return true if name of new workset is empty after cleanup
     isEmptyNameOfNewWorkset () { return (Mdf.cleanFileNameInput(this.nameOfNewWorkset) || '') === '' },
 
+    currentWsCopyChangeKey () { return this.worksetNameSelected + '-' + this.paramWsCopyLst.length.toString() },
+    currentRunCopyChangeKey () { return this.runDigestSelected + '-' + this.paramRunCopyLst.length.toString() },
+
     ...mapState('model', {
       theModel: state => state.theModel,
       worksetTextList: state => state.worksetTextList,
@@ -111,6 +114,7 @@ export default {
     worksetTextListUpdated () { this.doRefresh() },
     worksetNameSelected () {
       this.worksetCurrent = this.worksetTextByName({ ModelDigest: this.digest, Name: this.worksetNameSelected })
+      this.paramWsCopyLst = []
     }
   },
 
@@ -372,7 +376,7 @@ export default {
         console.warn('Invalid (empty) workset to copy parameter from', key)
         return
       }
-      this.addParamToCopyList(key, this.paramWsCopyLst)
+      this.addParamToCopyList(key, this.paramWsCopyLst, this.paramRunCopyLst)
     },
     // add run parameter into parameters copy list
     onParamRunCopy (key) {
@@ -380,10 +384,12 @@ export default {
         console.warn('Invalid (empty) run to copy parameter from', key)
         return
       }
-      this.addParamToCopyList(key, this.paramRunCopyLst)
+      this.addParamToCopyList(key, this.paramRunCopyLst, this.paramWsCopyLst)
     },
-    // add run parameter into parameters copy list
-    addParamToCopyList (key, copyLst) {
+    // add parameter name into parameters copy list
+    // and remove from other copy list if present
+    // for example remove from run copy list if added into workset copy list
+    addParamToCopyList (key, copyLst, removeLst) {
       if (!key) {
         console.warn('Invalid (empty) parameter name to copy', key)
         return
@@ -409,6 +415,29 @@ export default {
         copyLst.splice(insPos, 0, pIns)
       } else {
         copyLst.push(pIns)
+      }
+
+      // remove parameter name from other list if it exist in that list
+      const rmPos = removeLst.findIndex((pn) => { return pn.name >= key })
+      if (rmPos >= 0 && rmPos < removeLst.length) {
+        removeLst.splice(rmPos, 1)
+      }
+    },
+    // remove workset parameter name from parameters copy list
+    onRemoveWsFromNewWorkset (key) {
+      this.removeParamFromCopyList(key, this.paramWsCopyLst)
+    },
+    // remove run parameter name from parameters copy list
+    onRemoveRunFromNewWorkset (key) {
+      this.removeParamFromCopyList(key, this.paramRunCopyLst)
+    },
+    // remove parameter name from parameters copy list
+    removeParamFromCopyList (key, copyLst) {
+      if (!key || !copyLst) return
+
+      const rmPos = copyLst.findIndex((pn) => { return pn.name >= key })
+      if (rmPos >= 0 && rmPos < copyLst.length) {
+        copyLst.splice(rmPos, 1)
       }
     },
 
