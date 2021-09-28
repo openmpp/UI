@@ -8,13 +8,16 @@
     :is-any-group="isAnyParamGroup"
     :is-any-hidden="isAnyParamHidden"
     :is-show-hidden="isShowParamHidden"
-    :is-copy-enabled="isParamCopyEnabled"
+    :is-copy-enabled="isCopyEnabled"
+    :is-copy-group-enabled="isCopyGroupEnabled"
+    :copy-icon="copyIcon"
     :filter-placeholder="$t('Find parameter...')"
     :no-results-label="$t('No model parameters found')"
     :no-nodes-label="$t('Server offline or no model parameters found')"
     @om-table-tree-show-hidden="onToogleHiddenParamTree"
     @om-table-tree-leaf-select="onParamLeafClick"
-    @om-table-tree-leaf-copy="onParamCopyClick"
+    @om-table-tree-leaf-copy="onCopyClick"
+    @om-table-tree-group-copy="onGroupCopyClick"
     @om-table-tree-leaf-note="onShowParamNote"
     @om-table-tree-group-note="onShowGroupNote"
     >
@@ -34,7 +37,9 @@ export default {
 
   props: {
     refreshTickle: { type: Boolean, default: false },
-    isParamCopyEnabled: { type: Boolean, default: false }
+    isCopyEnabled: { type: Boolean, default: false },
+    isCopyGroupEnabled: { type: Boolean, default: false },
+    copyIcon: { type: String, default: 'mdi-content-copy' }
   },
 
   data () {
@@ -87,9 +92,13 @@ export default {
     onParamLeafClick (key, name) {
       this.$emit('set-parameter-select', key, name)
     },
-    // click on parameter: copy current workset parameter
-    onParamCopyClick (key) {
+    // click on copy parameter: copy current workset parameter
+    onCopyClick (key) {
       this.$emit('set-parameter-copy', key)
+    },
+    // click on copy group: copy group from current workset
+    onGroupCopyClick (key) {
+      this.$emit('set-parameter-group-copy', key)
     },
     // click on show parameter notes dialog button
     onShowParamNote (key, name) {

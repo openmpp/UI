@@ -91,6 +91,17 @@ Expected array of tree items as:
             icon="mdi-information-outline"
             :title="$t('About') + ' ' + prop.node.label"
             />
+          <q-btn
+            v-if="isCopyGroupEnabled"
+            @click.stop="onCopyGroupClick(prop.node.label)"
+            flat
+            round
+            dense
+            color="primary"
+            class="col-auto"
+            :icon="copyIcon"
+            :title="$t('Copy') + ' ' + prop.node.label"
+            />
           <div
             class="col"
             >
@@ -124,7 +135,7 @@ Expected array of tree items as:
             dense
             color="primary"
             class="col-auto"
-            icon="mdi-content-copy"
+            :icon="copyIcon"
             :title="$t('Copy') + ' ' + prop.node.label"
             />
           <div class="col q-ml-xs">
@@ -155,6 +166,8 @@ export default {
     isAnyHidden: { type: Boolean, default: false },
     isShowHidden: { type: Boolean, default: false },
     isCopyEnabled: { type: Boolean, default: false },
+    isCopyGroupEnabled: { type: Boolean, default: false },
+    copyIcon: { type: String, default: 'mdi-content-copy' },
     filterPlaceholder: { type: String, default: '' },
     noResultsLabel: { type: String, default: '' },
     noNodesLabel: { type: String, default: '' }
@@ -243,6 +256,10 @@ export default {
     // click on leaf copy button
     onCopyLeafClick (key) {
       this.$emit('om-table-tree-leaf-copy', key)
+    },
+    // click on group copy button
+    onCopyGroupClick (key) {
+      this.$emit('om-table-tree-group-copy', key)
     },
     // click on show leaf notes dialog button
     onShowLeafNote (key, name) {

@@ -78,9 +78,12 @@
 
       <workset-parameter-list
         :refresh-tickle="refreshTickle"
-        :is-param-copy-enabled="isNewWorksetShow"
+        :is-copy-enabled="isNewWorksetShow"
+        :is-copy-group-enabled="isNewWorksetShow"
+        :copy-icon="'mdi-plus-circle-outline'"
         @set-parameter-select="onParamLeafClick"
         @set-parameter-copy="onParamWorksetCopy"
+        @set-parameter-group-copy="onParamGroupWorksetCopy"
         @set-parameter-info-show="doShowParamNote"
         @set-parameter-group-info-show="doShowGroupNote"
         >
@@ -179,7 +182,7 @@
 
       <q-list>
         <q-item
-          v-for="pc of paramWsCopyLst" :key="pc.key"
+          v-for="pc of paramWsCopyLst" :key="pc.name"
           >
           <q-item-section avatar>
            <q-btn
@@ -189,7 +192,7 @@
               dense
               color="primary"
               class="col-auto"
-              icon="mdi-delete-outline"
+              icon="mdi-minus-circle-outline"
               :title="$t('Do not copy') + ': ' + pc.name"
               />
           </q-item-section>
@@ -223,7 +226,7 @@
 
       <q-list>
         <q-item
-          v-for="pc of paramRunCopyLst" :key="pc.key"
+          v-for="pc of paramRunCopyLst" :key="pc.name"
           >
           <q-item-section avatar>
            <q-btn
@@ -233,7 +236,7 @@
               dense
               color="primary"
               class="col-auto"
-              icon="mdi-delete-outline"
+              icon="mdi-minus-circle-outline"
               :title="$t('Do not copy') + ': ' + pc.name"
               />
           </q-item-section>
@@ -248,8 +251,11 @@
 
         <run-parameter-list
           :refresh-tickle="refreshTickle"
-          :is-param-copy-enabled="isNewWorksetShow"
+          :is-copy-enabled="isNewWorksetShow"
+          :is-copy-group-enabled="isNewWorksetShow"
+          :copy-icon="'mdi-plus-circle-outline'"
           @run-parameter-copy="onParamRunCopy"
+          @run-parameter-group-copy="onParamGroupRunCopy"
           @run-parameter-info-show="doShowParamRunNote"
           @run-parameter-group-info-show="doShowGroupNote"
           >

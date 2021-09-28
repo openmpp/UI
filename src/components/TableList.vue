@@ -8,13 +8,16 @@
     :is-any-group="isAnyTableGroup"
     :is-any-hidden="isAnyTableHidden"
     :is-show-hidden="isShowTableHidden"
-    :is-copy-enabled="isTableCopyEnabled"
+    :is-copy-enabled="isCopyEnabled"
+    :is-copy-group-enabled="isCopyGroupEnabled"
+    :copy-icon="copyIcon"
     :filter-placeholder="$t('Find output table...')"
     :no-results-label="$t('No output tables found')"
     :no-nodes-label="$t('Server offline or no output tables found')"
     @om-table-tree-show-hidden="onToogleHiddenTableTree"
     @om-table-tree-leaf-select="onTableLeafClick"
-    @om-table-tree-leaf-copy="onTableCopyClick"
+    @om-table-tree-leaf-copy="onCopyClick"
+    @om-table-tree-group-copy="onGroupCopyClick"
     @om-table-tree-leaf-note="onShowTableNote"
     @om-table-tree-group-note="onShowGroupNote"
     >
@@ -34,7 +37,9 @@ export default {
 
   props: {
     refreshTickle: { type: Boolean, default: false },
-    isTableCopyEnabled: { type: Boolean, default: false }
+    isCopyEnabled: { type: Boolean, default: false },
+    isCopyGroupEnabled: { type: Boolean, default: false },
+    copyIcon: { type: String, default: 'mdi-content-copy' }
   },
 
   data () {
@@ -86,9 +91,13 @@ export default {
     onTableLeafClick (key, name) {
       this.$emit('table-select', key, name)
     },
-    // click on output table: copy current run output table
-    onTableCopyClick (key) {
+    // click on copy output table: copy output table from current run
+    onCopyClick (key) {
       this.$emit('table-copy', key)
+    },
+    // click on copy group: copy output tables group from current run
+    onGroupCopyClick (key) {
+      this.$emit('table-group-copy', key)
     },
     // click on show output table notes dialog button
     onShowTableNote (key, name) {

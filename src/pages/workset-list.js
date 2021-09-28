@@ -316,7 +316,109 @@ export default {
       this.resetNewWorkset()
       this.isNewWorksetShow = false
     },
+    // set default name of new workset
+    onNewNameFocus (e) {
+      if (typeof this.nameOfNewWorkset !== typeof 'string' || (this.nameOfNewWorkset || '') === '') {
+        this.nameOfNewWorkset = 'New_' + this.worksetNameSelected + '_' + Mdf.dtToUnderscoreTimeStamp(new Date())
+      }
+    },
+    // check if new workset name entered and cleanup input to be compatible with file name rules
+    onNewNameBlur (e) {
+      const { isEntered, name } = Mdf.doFileNameClean(this.nameOfNewWorkset)
+      this.nameOfNewWorkset = isEntered ? name : ''
+    },
+    // add workset parameter into parameters copy list
+    onParamWorksetCopy (name) {
+      this.addParamOrGroupFromWorksetCopy(name, false)
+    },
+    // add workset paramters group into parameters copy list
+    onParamGroupWorksetCopy (name) {
+      this.addParamOrGroupFromWorksetCopy(name, true)
+    },
+    // add workset parameter or paramters group into parameters copy list
+    addParamOrGroupFromWorksetCopy (name, isGroup) {
+      if (!Mdf.isNotEmptyWorksetText(this.worksetCurrent)) {
+        console.warn('Invalid (empty) workset to copy parameter from', name)
+        return
+      }
+      this.addParamToCopyList(name, isGroup, this.paramWsCopyLst, this.paramRunCopyLst)
+    },
+    // add run parameter into parameters copy list
+    onParamRunCopy (name) {
+      this.addParamOrGroupFromRunCopy(name, false)
+    },
+    // add run paramters group into parameters copy list
+    onParamGroupRunCopy (name) {
+      this.addParamOrGroupFromRunCopy(name, true)
+    },
+    // add run parameter or paramters group into parameters copy list
+    addParamOrGroupFromRunCopy (name, isGroup) {
+      if (!Mdf.isNotEmptyRunText(this.runCurrent)) {
+        console.warn('Invalid (empty) run to copy parameter from', name)
+        return
+      }
+      this.addParamToCopyList(name, isGroup, this.paramRunCopyLst, this.paramWsCopyLst)
+    },
+    // add parameter name or parameters group name into parameters copy list
+    // and remove from other copy list if present
+    // for example: remove from run copy list if added into workset copy list
+    addParamToCopyList (name, isGroup, copyLst, removeLst) {
+      if (!name) {
+        console.warn('Invalid (empty) parameter name to copy', name)
+        return
+      }
+      // find parameter name or parameters group in the model
+      let pg = {}
 
+      if (!isGroup) {
+        pg = Mdf.paramTextByName(this.theModel, name)
+        if (!Mdf.isNotEmptyParamText(pg)) {
+          console.warn('Invalid parameter to copy, not found in model parameters list:', name)
+          return
+        }
+      } else {
+        pg = Mdf.groupTextByName(this.theModel, name)
+        if (!Mdf.isGroupText(pg) || !pg?.Group?.IsParam) {
+          console.warn('Invalid parameters group to copy, not found in parameter groups list:', name)
+          return
+        }
+      }
+
+      // find index where to insert parameter name, if it is not already in the copy list
+      const insPos = copyLst.findIndex((pn) => { return pn.name >= name })
+
+      if (insPos >= 0 && insPos < copyLst.length && copyLst[insPos].name === name) return // parameter already in the list
+
+      const pIns = {
+        name: name,
+        isGroup: isGroup,
+        descr: Mdf.descrOfDescrNote(pg) || name
+      }
+      if (insPos >= 0 && insPos < copyLst.length) {
+        copyLst.splice(insPos, 0, pIns)
+      } else {
+        copyLst.push(pIns)
+      }
+
+      this.removeParamFromCopyList(name, removeLst)
+    },
+    // remove workset parameter name or group name from parameters copy list
+    onRemoveWsFromNewWorkset (name) {
+      this.removeParamFromCopyList(name, this.paramWsCopyLst)
+    },
+    // remove run parameter name from parameters copy list
+    onRemoveRunFromNewWorkset (name) {
+      this.removeParamFromCopyList(name, this.paramRunCopyLst)
+    },
+    // remove parameter name or group name from parameters copy list
+    removeParamFromCopyList (name, copyLst) {
+      if (!name || !copyLst) return
+
+      const rmPos = copyLst.findIndex((pn) => { return pn.name === name })
+      if (rmPos >= 0 && rmPos < copyLst.length) {
+        copyLst.splice(rmPos, 1)
+      }
+    },
     // validate and save new workset
     onSaveNewWorkset () {
       const name = Mdf.cleanFileNameInput(this.nameOfNewWorkset)
@@ -330,115 +432,115 @@ export default {
         return
       }
 
-      // collect description and notes for each language
-      const txt = []
-      for (const t of this.txtNewWorkset) {
-        const refKey = 'new-ws-note-editor-' + t.LangCode
-        if (!Mdf.isLength(this.$refs[refKey]) || !this.$refs[refKey][0]) continue
-
-        const udn = this.$refs[refKey][0].getDescrNote()
-        txt.push({
-          LangCode: t.LangCode,
-          Descr: udn.descr,
-          Note: udn.note
-        })
-      }
-
       // create new workset header
       const ws = {
         ModelDigest: this.digest,
         Name: name,
         IsReadonly: false,
         BaseRunDigest: ((this.useBaseRun || false) && (this.runDigestSelected || '') !== '') ? this.runDigestSelected : '',
-        Txt: txt,
-        Param: []
+        Txt: [],
+        Param: [],
+        CopyFrom: []
       }
+
+      // collect description and notes for each language
+      for (const t of this.txtNewWorkset) {
+        const refKey = 'new-ws-note-editor-' + t.LangCode
+        if (!Mdf.isLength(this.$refs[refKey]) || !this.$refs[refKey][0]) continue
+
+        const udn = this.$refs[refKey][0].getDescrNote()
+        if ((udn.descr || udn.note || '') !== '') {
+          ws.Txt.push({
+            LangCode: t.LangCode,
+            Descr: udn.descr,
+            Note: udn.note
+          })
+        }
+      }
+
+      // expand all parameter groups
+      const pUse = {}
+      const gUse = {}
+      const gs = []
+
+      // starting point: append all groups from copy lists
+      for (const pn of this.paramRunCopyLst) {
+        if (pUse[pn.name]) continue
+
+        if (pn.isGroup) {
+          gs.push({
+            name: pn.name,
+            isFromRun: true
+          })
+        } else {
+          ws.CopyFrom.push({
+            Name: pn.name,
+            From: this.runDigestSelected,
+            Kind: 'run'
+          })
+          pUse[pn.name] = true
+        }
+      }
+      for (const pn of this.paramWsCopyLst) {
+        if (pUse[pn.name]) continue
+
+        if (pn.isGroup) {
+          gs.push({
+            name: pn.name,
+            isFromRun: false
+          })
+        } else {
+          ws.CopyFrom.push({
+            Name: pn.name,
+            From: this.worksetNameSelected,
+            Kind: 'set'
+          })
+          pUse[pn.name] = true
+        }
+      }
+
+      // expand each group
+      while (gs.length > 0) {
+        const g = gs.pop()
+
+        if (gUse[g.name]) continue // group already processed
+        gUse[g.name] = true
+
+        const gt = Mdf.groupTextByName(this.theModel, g.name)
+        if (!gt.Group.IsParam) continue // not a parameter group
+
+        for (const pc of gt.Group.GroupPc) {
+          // if this is a child group
+          if (pc.ChildGroupId >= 0) {
+            const cg = Mdf.groupTextById(this.theModel, pc.ChildGroupId)
+            if (cg.Group.Name && !gUse[cg.Group.Name]) {
+              gs.push({
+                name: cg.Group.Name,
+                isFromRun: g.isFromRun
+              })
+            }
+          }
+
+          // if this is a child leaf parameter
+          if (pc.ChildLeafId >= 0) {
+            const cp = Mdf.paramTextById(this.theModel, pc.ChildLeafId)
+            if (cp.Param.Name && !pUse[cp.Param.Name]) {
+              ws.CopyFrom.push({
+                Name: cp.Param.Name,
+                From: g.isFromRun ? this.runDigestSelected : this.worksetNameSelected,
+                Kind: g.isFromRun ? 'run' : 'set'
+              })
+              pUse[cp.Param.Name] = true
+            }
+          }
+        }
+      }
+
+      // send request to create new workset
       this.doCreateNewWorkset(ws)
 
       this.resetNewWorkset()
       this.isNewWorksetShow = false
-    },
-
-    // set default name of new workset
-    onNewNameFocus (e) {
-      if (typeof this.nameOfNewWorkset !== typeof 'string' || (this.nameOfNewWorkset || '') === '') {
-        this.nameOfNewWorkset = 'New_' + this.worksetNameSelected + '_' + Mdf.dtToUnderscoreTimeStamp(new Date())
-      }
-    },
-    // check if new workset name entered and cleanup input to be compatible with file name rules
-    onNewNameBlur (e) {
-      const { isEntered, name } = Mdf.doFileNameClean(this.nameOfNewWorkset)
-      this.nameOfNewWorkset = isEntered ? name : ''
-    },
-    // add workset parameter into parameters copy list
-    onParamWorksetCopy (key) {
-      if (!Mdf.isNotEmptyWorksetText(this.worksetCurrent)) {
-        console.warn('Invalid (empty) workset to copy parameter from', key)
-        return
-      }
-      this.addParamToCopyList(key, this.paramWsCopyLst, this.paramRunCopyLst)
-    },
-    // add run parameter into parameters copy list
-    onParamRunCopy (key) {
-      if (!Mdf.isNotEmptyRunText(this.runCurrent)) {
-        console.warn('Invalid (empty) run to copy parameter from', key)
-        return
-      }
-      this.addParamToCopyList(key, this.paramRunCopyLst, this.paramWsCopyLst)
-    },
-    // add parameter name into parameters copy list
-    // and remove from other copy list if present
-    // for example remove from run copy list if added into workset copy list
-    addParamToCopyList (key, copyLst, removeLst) {
-      if (!key) {
-        console.warn('Invalid (empty) parameter name to copy', key)
-        return
-      }
-      // find parameter name in the model parameters list
-      const p = Mdf.paramTextByName(this.theModel, key)
-      if (!Mdf.isNotEmptyParamText(p)) {
-        console.warn('Invalid parameter to copy, not found in model parameters list:', key)
-        return
-      }
-
-      // find index where to insert parameter name, if it is not already in the copy list
-      const insPos = copyLst.findIndex((pn) => { return pn.name >= key })
-
-      if (insPos >= 0 && insPos < copyLst.length && copyLst[insPos].name === key) return // parameter already in the list
-
-      const pIns = {
-        key: p.Param.Name,
-        name: p.Param.Name,
-        descr: Mdf.descrOfDescrNote(p) || p.Param.Name
-      }
-      if (insPos >= 0 && insPos < copyLst.length) {
-        copyLst.splice(insPos, 0, pIns)
-      } else {
-        copyLst.push(pIns)
-      }
-
-      // remove parameter name from other list if it exist in that list
-      const rmPos = removeLst.findIndex((pn) => { return pn.name >= key })
-      if (rmPos >= 0 && rmPos < removeLst.length) {
-        removeLst.splice(rmPos, 1)
-      }
-    },
-    // remove workset parameter name from parameters copy list
-    onRemoveWsFromNewWorkset (key) {
-      this.removeParamFromCopyList(key, this.paramWsCopyLst)
-    },
-    // remove run parameter name from parameters copy list
-    onRemoveRunFromNewWorkset (key) {
-      this.removeParamFromCopyList(key, this.paramRunCopyLst)
-    },
-    // remove parameter name from parameters copy list
-    removeParamFromCopyList (key, copyLst) {
-      if (!key || !copyLst) return
-
-      const rmPos = copyLst.findIndex((pn) => { return pn.name >= key })
-      if (rmPos >= 0 && rmPos < copyLst.length) {
-        copyLst.splice(rmPos, 1)
-      }
     },
 
     // create new workset
