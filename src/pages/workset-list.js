@@ -439,8 +439,7 @@ export default {
         IsReadonly: false,
         BaseRunDigest: ((this.useBaseRun || false) && (this.runDigestSelected || '') !== '') ? this.runDigestSelected : '',
         Txt: [],
-        Param: [],
-        CopyFrom: []
+        Param: []
       }
 
       // collect description and notes for each language
@@ -473,10 +472,10 @@ export default {
             isFromRun: true
           })
         } else {
-          ws.CopyFrom.push({
+          ws.Param.push({
             Name: pn.name,
-            From: this.runDigestSelected,
-            Kind: 'run'
+            Kind: 'run',
+            From: this.runDigestSelected
           })
           pUse[pn.name] = true
         }
@@ -490,10 +489,10 @@ export default {
             isFromRun: false
           })
         } else {
-          ws.CopyFrom.push({
+          ws.Param.push({
             Name: pn.name,
-            From: this.worksetNameSelected,
-            Kind: 'set'
+            Kind: 'set',
+            From: this.worksetNameSelected
           })
           pUse[pn.name] = true
         }
@@ -525,10 +524,10 @@ export default {
           if (pc.ChildLeafId >= 0) {
             const cp = Mdf.paramTextById(this.theModel, pc.ChildLeafId)
             if (cp.Param.Name && !pUse[cp.Param.Name]) {
-              ws.CopyFrom.push({
+              ws.Param.push({
                 Name: cp.Param.Name,
-                From: g.isFromRun ? this.runDigestSelected : this.worksetNameSelected,
-                Kind: g.isFromRun ? 'run' : 'set'
+                Kind: g.isFromRun ? 'run' : 'set',
+                From: g.isFromRun ? this.runDigestSelected : this.worksetNameSelected
               })
               pUse[cp.Param.Name] = true
             }
