@@ -33,6 +33,7 @@ export default {
 
   data () {
     return {
+      loadWait: false,
       worksetCurrent: Mdf.emptyWorksetText(), // currently selected workset
       isTreeCollapsed: false,
       isAnyGroup: false,
@@ -457,6 +458,12 @@ export default {
         }
       }
 
+      // return true if parameter exist in current workset
+      const isInCurrentWs = (name) => {
+        if (this.worksetCurrent.BaseRunDigest !== '') return true // workset based on the run: all parameters included
+        return this.worksetCurrent.Param.findIndex((p) => p.Name === name) >= 0
+      }
+
       // expand all parameter groups
       const pUse = {}
       const gUse = {}
@@ -489,12 +496,14 @@ export default {
             isFromRun: false
           })
         } else {
-          ws.Param.push({
-            Name: pn.name,
-            Kind: 'set',
-            From: this.worksetNameSelected
-          })
-          pUse[pn.name] = true
+          if (isInCurrentWs(pn.name)) {
+            ws.Param.push({
+              Name: pn.name,
+              Kind: 'set',
+              From: this.worksetNameSelected
+            })
+            pUse[pn.name] = true
+          }
         }
       }
 
@@ -523,7 +532,7 @@ export default {
           // if this is a child leaf parameter
           if (pc.ChildLeafId >= 0) {
             const cp = Mdf.paramTextById(this.theModel, pc.ChildLeafId)
-            if (cp.Param.Name && !pUse[cp.Param.Name]) {
+            if (cp.Param.Name && !pUse[cp.Param.Name] && (g.isFromRun || isInCurrentWs(cp.Param.Name))) {
               ws.Param.push({
                 Name: cp.Param.Name,
                 Kind: g.isFromRun ? 'run' : 'set',
@@ -550,23 +559,29 @@ export default {
         this.$q.notify({ type: 'negative', message: this.$t('Invalid (or empty) input scenario name') + ((ws.Name || '') !== '' ? ': ' + (ws.Name || '') : '') })
         return
       }
+      this.$q.notify({ type: 'info', message: this.$t('Creating') + ': ' + ws.Name })
+      this.loadWait = true
 
       let isOk = false
       let nm = ''
+      let em = ''
       const u = this.omsUrl + '/api/workset-create'
       try {
         const response = await this.$axios.put(u, ws)
         nm = response.data?.Name
         isOk = true
       } catch (e) {
-        let em = ''
         try {
           if (e.response) em = e.response.data || ''
         } finally {}
-        console.warn('Error at cretae workset', name, em)
+        console.warn('Error at create workset', ws.Name, em)
       }
+      this.loadWait = false
       if (!isOk) {
-        this.$q.notify({ type: 'negative', message: this.$t('Unable to create input scenario') + ': ' + name })
+        this.$q.notify({ type: 'negative', message: this.$t('Unable to create input scenario') + ': ' + ws.Name })
+        if (em && typeof em === typeof 'string') {
+          this.$q.notify({ type: 'negative', message: em })
+        }
         return
       }
 
@@ -582,6 +597,7 @@ export default {
         return
       }
       this.$q.notify({ type: 'info', message: this.$t('Deleting') + ': ' + name })
+      this.loadWait = true
 
       let isOk = false
       const u = this.omsUrl + '/api/model/' + this.digest + '/workset/' + (name || '')
@@ -595,6 +611,7 @@ export default {
         } finally {}
         console.warn('Error at delete workset', name, em)
       }
+      this.loadWait = false
       if (!isOk) {
         this.$q.notify({ type: 'negative', message: this.$t('Unable to delete') + ': ' + name })
         return

@@ -92,8 +92,9 @@ Expected array of tree items as:
             :title="$t('About') + ' ' + prop.node.label"
             />
           <q-btn
-            v-if="isCopyGroupEnabled"
+            v-if="isCopyGroup"
             @click.stop="onCopyGroupClick(prop.node.label)"
+            :disable="isCopyDisabled"
             flat
             round
             dense
@@ -128,8 +129,9 @@ Expected array of tree items as:
             :title="$t('About') + ' ' + prop.node.label"
             />
           <q-btn
-            v-if="isCopyEnabled"
+            v-if="isCopy"
             @click.stop="onCopyLeafClick(prop.node.label)"
+            :disable="isCopyDisabled"
             flat
             round
             dense
@@ -165,8 +167,9 @@ export default {
     isAnyGroup: { type: Boolean, default: false },
     isAnyHidden: { type: Boolean, default: false },
     isShowHidden: { type: Boolean, default: false },
-    isCopyEnabled: { type: Boolean, default: false },
-    isCopyGroupEnabled: { type: Boolean, default: false },
+    isCopy: { type: Boolean, default: false },
+    isCopyGroup: { type: Boolean, default: false },
+    isCopyDisabled: { type: Boolean, default: false },
     copyIcon: { type: String, default: 'mdi-content-copy' },
     filterPlaceholder: { type: String, default: '' },
     noResultsLabel: { type: String, default: '' },

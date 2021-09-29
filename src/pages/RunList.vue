@@ -247,6 +247,10 @@
     >
   </delete-confirm-dialog>
 
+  <q-inner-loading :showing="loadWait">
+    <q-spinner-gears size="md" color="primary" />
+  </q-inner-loading>
+
 </div>
 </template>
 

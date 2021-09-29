@@ -78,8 +78,9 @@
 
       <workset-parameter-list
         :refresh-tickle="refreshTickle"
-        :is-copy-enabled="isNewWorksetShow"
-        :is-copy-group-enabled="isNewWorksetShow"
+        :is-copy="isNewWorksetShow"
+        :is-copy-group="isNewWorksetShow"
+        :is-copy-disabled="!isReadonlyWorksetCurrent"
         :copy-icon="'mdi-plus-circle-outline'"
         @set-parameter-select="onParamLeafClick"
         @set-parameter-copy="onParamWorksetCopy"
@@ -251,8 +252,8 @@
 
         <run-parameter-list
           :refresh-tickle="refreshTickle"
-          :is-copy-enabled="isNewWorksetShow"
-          :is-copy-group-enabled="isNewWorksetShow"
+          :is-copy="isNewWorksetShow"
+          :is-copy-group="isNewWorksetShow"
           :copy-icon="'mdi-plus-circle-outline'"
           @run-parameter-copy="onParamRunCopy"
           @run-parameter-group-copy="onParamGroupRunCopy"
@@ -418,6 +419,10 @@
     :dialog-title="$t('Delete input scenario') + '?'"
     >
   </delete-confirm-dialog>
+
+  <q-inner-loading :showing="loadWait">
+    <q-spinner-gears size="md" color="primary" />
+  </q-inner-loading>
 
 </div>
 

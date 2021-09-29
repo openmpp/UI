@@ -22,6 +22,7 @@ export default {
 
   data () {
     return {
+      loadWait: false,
       runCurrent: Mdf.emptyRunText(), // currently selected run
       isRunTreeCollapsed: false,
       isAnyRunGroup: false,
@@ -243,6 +244,7 @@ export default {
         return
       }
       this.$q.notify({ type: 'info', message: this.$t('Deleting') + ': ' + dgst + ' ' + (runName || '') })
+      this.loadWait = true
 
       let isOk = false
       const u = this.omsUrl + '/api/model/' + this.digest + '/run/' + (dgst || '')
@@ -256,6 +258,7 @@ export default {
         } finally {}
         console.warn('Error at delete model run', dgst, runName, em)
       }
+      this.loadWait = false
       if (!isOk) {
         this.$q.notify({ type: 'negative', message: this.$t('Unable to delete') + ': ' + dgst + ' ' + (runName || '') })
         return
@@ -301,6 +304,7 @@ export default {
         this.$q.notify({ type: 'negative', message: this.$t('Unable to save model run description and notes, current model run is undefined') })
         return
       }
+      this.loadWait = true
 
       const u = this.omsUrl + '/api/run/text'
       const lang = this.runCurrent.Txt[0].LangCode
@@ -323,6 +327,7 @@ export default {
         } finally {}
         console.warn('Unable to save model run description and notes', msg)
       }
+      this.loadWait = false
       if (!isOk) {
         this.$q.notify({ type: 'negative', message: this.$t('Unable to save model run description and notes') + (msg ? (': ' + msg) : '') })
         return

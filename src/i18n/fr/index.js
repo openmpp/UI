@@ -20,6 +20,7 @@ export default {
   'Copy parameter(s) from model run': "Copier les paramètre(s) de l'exécution du modèle",
   'Copy tab separated values to clipboard': 'Copier les valeurs séparées par des tabulations dans le presse-papiers',
   'Created': 'Créé',
+  'Creating': 'Création',
   'CSV file(s) contain': 'Les fichiers CSV contiennent',
   'CSV files contain enum code': 'Les fichiers CSV contiennent du code énumération',
   'CSV files contain enum id': 'Les fichiers CSV contiennent un identifiant enum',

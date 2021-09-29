@@ -8,8 +8,9 @@
     :is-any-group="isAnyTableGroup"
     :is-any-hidden="isAnyTableHidden"
     :is-show-hidden="isShowTableHidden"
-    :is-copy-enabled="isCopyEnabled"
-    :is-copy-group-enabled="isCopyGroupEnabled"
+    :is-copy="isCopy"
+    :is-copy-group="isCopyGroup"
+    :is-copy-disabled="isCopyDisabled"
     :copy-icon="copyIcon"
     :filter-placeholder="$t('Find output table...')"
     :no-results-label="$t('No output tables found')"
@@ -37,8 +38,9 @@ export default {
 
   props: {
     refreshTickle: { type: Boolean, default: false },
-    isCopyEnabled: { type: Boolean, default: false },
-    isCopyGroupEnabled: { type: Boolean, default: false },
+    isCopy: { type: Boolean, default: false },
+    isCopyGroup: { type: Boolean, default: false },
+    isCopyDisabled: { type: Boolean, default: false },
     copyIcon: { type: String, default: 'mdi-content-copy' }
   },
 
