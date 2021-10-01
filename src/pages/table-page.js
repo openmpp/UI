@@ -193,6 +193,7 @@ export default {
       this.exprLabels = {}
       this.exprDecimals = {}
       this.maxDecimals = -1
+
       for (let j = 0; j < this.tableText.TableExprTxt.length; j++) {
         if (!this.tableText.TableExprTxt[j].hasOwnProperty('Expr')) continue
 
@@ -212,6 +213,7 @@ export default {
 
       // accumulator labels
       this.accLabels = {}
+
       for (let j = 0; j < this.tableText.TableAccTxt.length; j++) {
         if (!this.tableText.TableAccTxt[j].hasOwnProperty('Acc')) continue
 
@@ -250,19 +252,24 @@ export default {
       this.makeColLabels()
       const colCount = this.colLabels.length
 
+      // dimensions and measure dimension are ordered as [others, row, column]
+      // measure dimension: -1 <= position <= rank, it is inserted as extra dimension at index > measure position
       // expression value view:
-      //   measure name on columns, first dimension on rows, rest of dimensions on others
+      //   dimensions (including measure) on other, last-1 dimension on rows, last dimension on columns
       //   values into body aggregators (pivot.vals[])
       // accumulators view:
-      //   sub id on columns, measure name on rows, all dimensions on others
+      //   sub id on columns, dimensions (including measure) on other, last dimension on rows
       //   sub-values into body aggregators (pivot.vals[])
-      // value filters: include only one value for "other" dimensions
+      // value filters:
+      //   include only one value for "other" dimensions
+      //   if measure dimension on "other" then include only first expression name or accumulator name
       if (!isRestored) this.makeRowsCols()
 
       this.pvtState.vals = []
       this.pvtState.hiddenFromAggregators = []
       this.pvtState.hiddenFromDragDrop = []
 
+      // hide values from aggregators: values are in the table body
       if (this.tv.kind === kind.EXPR) {
         const nVal = this.tableSize.rank + 1 // value position
 
@@ -358,31 +365,66 @@ export default {
 
     // setup rows, columns and value filters
     makeRowsCols () {
+      // dimensions and measure dimension are ordered as [others, row, column]
+      // measure dimension: -1 <= position <= rank, it is inserted as extra dimension at index > measure position
+      // for example: if position = -1 then at index 0 and the rest of dimensions where index >=0 shifted to the index = index+1
+      //
       // expression value view:
-      //   measure name on columns, first dimension on rows, rest of dimensions on others
+      //   dimensions (including measure) on other, last-1 dimension on rows, last dimension on columns
+      //   values into body aggregators (pivot.vals[])
       // accumulators view:
-      //   sub id on columns, measure name on rows, all dimensions on others
+      //   sub id on columns, dimensions (including measure) on other, last dimension on rows
+      //   sub-values into body aggregators (pivot.vals[])
+      const nRank = this.tableSize.rank
+      const isMcol = this.tv.kind === kind.EXPR && (nRank <= 0 || this.tableText.Table.ExprPos >= nRank - 1)
+      const isMrow = !isMcol &&
+        (nRank <= 1 ||
+          (this.tv.kind === kind.EXPR && this.tableText.Table.ExprPos >= nRank - 2) ||
+          (this.tv.kind !== kind.EXPR && this.tableText.Table.ExprPos >= nRank - 1)
+        )
+
       this.pvtState.rows = []
       this.pvtState.cols = []
 
       if (this.tv.kind === kind.EXPR) {
-        this.pvtState.cols.push(this.colLabels[this.tableSize.rank])
-        if (this.tableSize.rank > 0) {
-          this.pvtState.rows.push(this.colLabels[0])
+        if (isMcol) {
+          if (nRank > 0) this.pvtState.rows.push(this.colLabels[nRank - 1])
+          this.pvtState.cols.push(this.colLabels[nRank]) // measure dimension: expression id
         }
-      } else {
-        this.pvtState.rows.push(this.colLabels[this.tableSize.rank])
-        this.pvtState.cols.push(this.colLabels[this.tableSize.rank + 1])
+        if (!isMcol && isMrow) {
+          this.pvtState.rows.push(this.colLabels[nRank])    // measure dimension: expression id
+          if (nRank > 0) this.pvtState.cols.push(this.colLabels[nRank - 1])
+        }
+        if (!isMcol && !isMrow) {
+          if (nRank > 1) this.pvtState.rows.push(this.colLabels[nRank - 2])
+          if (nRank > 0) this.pvtState.cols.push(this.colLabels[nRank - 1])
+        }
+      }
+      if (this.tv.kind !== kind.EXPR) {
+        this.pvtState.cols.push(this.colLabels[nRank + 1]) // sub-value id
+        if (isMrow) {
+          this.pvtState.rows.push(this.colLabels[nRank])   // measure dimension: accumulator id
+        } else {
+          if (nRank > 0) this.pvtState.rows.push(this.colLabels[nRank - 1])
+        }
       }
 
-      // setup value filters: for each dimension column create list of items to hide
-      // include only one value for "other" dimensions
-      // if there "All" item then only "All" else first item
-      // due to react-pivottable bug we have to exclude all items except one
+      // setup value filters:
+      // for each dimension column create list of items to hide
+      //   include only one value for "other" dimensions
+      //   if there "All" item then only "All" else first item
+      //   if measure dimension on "other" then include only first expression name or accumulator name
+      //   due to react-pivottable bug we have to exclude all items except one
       this.pvtState.valueFilter = {}
-      const n0 = this.tv.kind === kind.EXPR ? 1 : 0
 
-      for (let n = n0; n < this.tableSize.rank; n++) {
+      let nLast = nRank
+      if (this.tv.kind === kind.EXPR) {
+        nLast = (isMrow || isMcol) ? nRank - 1 : nRank - 2
+      } else {
+        nLast = (isMrow || isMcol) ? nRank : nRank - 1
+      }
+
+      for (let n = 0; n < nLast; n++) {
         const dcArr = Mdf.enumDescrOrCodeArray(this.dimProp[n].typeText)
         if (!dcArr) continue
         const attr = this.colLabels[n]
@@ -392,6 +434,35 @@ export default {
           r[v] = true
           return r
         }, {})
+      }
+
+      // filter for measure column: first expression or accumulator lable
+      if (!isMrow && !isMcol) {
+        const mAttr = this.colLabels[nRank]
+        if (mAttr) {
+          let isFirst = true
+          if (this.tv.kind === kind.EXPR) {
+            for (const eId in this.exprLabels) {
+              if (!eId || !this.exprLabels.hasOwnProperty(eId)) continue
+              if (isFirst) {
+                this.pvtState.valueFilter[mAttr] = {}
+                isFirst = false
+              } else {
+                if (this.exprLabels[eId]) this.pvtState.valueFilter[mAttr][this.exprLabels[eId]] = true
+              }
+            }
+          } else {
+            for (const eId in this.accLabels) {
+              if (!eId || !this.accLabels.hasOwnProperty(eId)) continue
+              if (isFirst) {
+                this.pvtState.valueFilter[mAttr] = {}
+                isFirst = false
+              } else {
+                if (this.accLabels[eId]) this.pvtState.valueFilter[mAttr][this.accLabels[eId]] = true
+              }
+            }
+          }
+        }
       }
     },
 

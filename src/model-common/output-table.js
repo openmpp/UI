@@ -20,14 +20,14 @@ export const isTableTextList = (md) => {
   return true
 }
 
-// return true if this is non empty Table
+// return true if this is non empty Table: Name and Digest not empty and it also has TableId and ExprPos
 export const isTable = (t) => {
   if (!t) return false
-  if (!t.hasOwnProperty('TableId') || !t.hasOwnProperty('Name') || !t.hasOwnProperty('Digest')) return false
+  if (!t.hasOwnProperty('TableId') || !t.hasOwnProperty('Name') || !t.hasOwnProperty('Digest') || !t.hasOwnProperty('ExprPos')) return false
   return (t.Name || '') !== '' && (t.Digest || '') !== ''
 }
 
-// if this is not empty TableTxt: parameter id, parameter name, parameter digest
+// if this is not empty TableTxt: it has TableId, Name, Digest, arrays of TableDimsTxt TableExprTxt, TableAccTxt and language, descrption, notes text
 export const isNotEmptyTableText = (tt) => {
   if (!tt) return false
   if (!tt.hasOwnProperty('Table')) return false
@@ -43,7 +43,8 @@ export const emptyTableText = () => {
       TableId: 0,
       Name: '',
       Digest: '',
-      ImportDigest: ''
+      ImportDigest: '',
+      ExprPos: 0
     },
     TableDimsTxt: [],
     TableExprTxt: [],
