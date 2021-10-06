@@ -16,9 +16,35 @@
     <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32x32.png">
     <link rel="icon" type="image/png" sizes="16x16" href="icons/favicon-16x16.png">
     <link rel="icon" type="image/ico" href="favicon.ico">
+    <style>
+      @supports not (-ms-high-contrast: none) {
+        .ie-show {
+          display: none;
+        }
+      }
+      @media all and (-ms-high-contrast: none), (-ms-high-contrast: active) {
+        .ie-hide {
+          display: none;
+        }
+        .ie-show {
+          font-weight: bold;
+          color: gray;
+        }
+        .ie-center {
+          margin: auto;
+        }
+        .ie-text-center {
+          text-align: center;
+        }
+      }
+    </style>
   </head>
   <body>
     <!-- DO NOT touch the following DIV -->
     <div id="q-app"></div>
+    <div class="ie-show ie-center">
+      <p class="ie-show ie-text-center">Internet Explorer is not supported, please use other browser.</p>
+      <p class="ie-show ie-text-center">Internet Explorer n'est pas pris en charge, veuillez utiliser un autre navigateur.</p>
+    </div>
   </body>
 </html>
