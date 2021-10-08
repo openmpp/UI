@@ -65,12 +65,12 @@ export default {
     isEmptyRunTemplateList () { return !Mdf.isLength(this.runTemplateLst) },
     // return true if current can be used for model run: if workset in read-only state
     isReadonlyWorksetCurrent () {
-      return this.worksetNameSelected ? this.worksetCurrent.IsReadonly : false
+      return this.worksetNameSelected && this.worksetCurrent?.IsReadonly
     },
     // retrun true if current run is completed: success, error or exit
     // if run not successfully completed then it we don't know is it possible to use as base run
     isCompletedRunCurrent () {
-      return this.runDigestSelected ? Mdf.isRunCompleted(this.runCurrent) : false
+      return this.runDigestSelected && Mdf.isRunCompleted(this.runCurrent)
     },
 
     ...mapState('model', {
@@ -79,6 +79,7 @@ export default {
     }),
     ...mapGetters('model', {
       runTextByDigest: 'runTextByDigest',
+      isExistInRunTextList: 'isExistInRunTextList',
       worksetTextByName: 'worksetTextByName',
       modelLanguage: 'modelLanguage'
     }),
@@ -110,7 +111,7 @@ export default {
       this.runOpts.worksetName = ''
       this.runOpts.baseRunDigest = ''
       this.useWorkset = this.isReadonlyWorksetCurrent
-      this.useBaseRun = !this.isReadonlyWorksetCurrent && this.isCompletedRunCurrent
+      this.useBaseRun = this.isUseCurrentAsBaseRun()
       this.runOpts.sparseOutput = false
       this.mpiNpCount = 0
       this.runOpts.mpiOnRoot = false
@@ -158,6 +159,25 @@ export default {
       // get profile list from server
       this.runOpts.profile = ''
       this.doProfileListRefresh()
+    },
+    // use current run as base base run if:
+    //   current run is compeleted
+    //   current workset not readonly
+    //   or current workset not is full and current workset not based on run
+    isUseCurrentAsBaseRun () {
+      return this.isCompletedRunCurrent &&
+        (
+          !this.isReadonlyWorksetCurrent ||
+          (
+            (Mdf.worksetParamCount(this.worksetCurrent) !== Mdf.paramCount(this.theModel)) && // not a full workset
+            (!this.worksetCurrent?.BaseRunDigest || !this.isExistInRunTextList({ ModelDigest: this.digest, RunDigest: this.worksetCurrent?.BaseRunDigest }))
+          ))
+    },
+    // if use base run un-checked then user must supply full set of input parameters
+    onUseBaseRunClick () {
+      if (!this.useBaseRun && !this.runOpts.csvDir && this.isUseCurrentAsBaseRun()) {
+        this.$q.notify({ type: 'warning', message: this.$t('Model Input should include all parameters otherwise model run may fail') })
+      }
     },
 
     // show current run info dialog

@@ -171,7 +171,11 @@
             :disabled="!isCompletedRunCurrent"
             class="q-pr-xs"
             >
-            <q-checkbox v-model="useBaseRun" :disable="!isCompletedRunCurrent" :label="$t('Use Base Run') + ':'"/>
+            <q-checkbox
+              v-model="useBaseRun"
+              @click.native="onUseBaseRunClick"
+              :disable="!isCompletedRunCurrent"
+              :label="$t('Use Base Run') + ':'"/>
           </td>
           <td>
             <run-bar

@@ -110,6 +110,7 @@ export default {
   'Log Model Version': 'Version du modèle de journal',
   'Log Progress Percent': 'Pourcentage de progression du journal',
   'Log Progress Step': 'Étape de progression du journal',
+  'Model Input should include all parameters otherwise model run may fail': "L'entrée du modèle doit inclure tous les paramètres, sinon l'exécution du modèle peut échouer",
   'Models list': 'Liste des modèles',
   'Model list is empty or invalid': 'La liste de modèles est vide ou non valide',
   'initial': 'initial',
