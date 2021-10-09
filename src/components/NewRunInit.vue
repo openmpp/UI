@@ -35,7 +35,7 @@ export default {
     }
   },
 
-  render () { return {} },
+  render () { return {} }, // no html
 
   data () {
     return {

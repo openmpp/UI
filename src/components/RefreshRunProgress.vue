@@ -12,7 +12,7 @@ export default {
     refreshTickle: { type: Boolean, default: false }
   },
 
-  render () { return {} },
+  render () { return {} }, // no html
 
   data () {
     return {

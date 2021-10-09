@@ -92,16 +92,16 @@ Expected array of tree items as:
             :title="$t('About') + ' ' + prop.node.label"
             />
           <q-btn
-            v-if="isCopyGroup"
-            @click.stop="onCopyGroupClick(prop.node.label)"
-            :disable="isCopyDisabled"
+            v-if="isAddGroup"
+            @click.stop="onAddGroupClick(prop.node.label)"
+            :disable="isAddDisabled"
             flat
             round
             dense
             color="primary"
             class="col-auto"
-            :icon="copyIcon"
-            :title="$t('Copy') + ' ' + prop.node.label"
+            :icon="addIcon"
+            :title="$t('Add') + ' ' + prop.node.label"
             />
           <div
             class="col"
@@ -129,16 +129,16 @@ Expected array of tree items as:
             :title="$t('About') + ' ' + prop.node.label"
             />
           <q-btn
-            v-if="isCopy"
-            @click.stop="onCopyLeafClick(prop.node.label)"
-            :disable="isCopyDisabled"
+            v-if="isAdd"
+            @click.stop="onAddLeafClick(prop.node.label)"
+            :disable="isAddDisabled"
             flat
             round
             dense
             color="primary"
             class="col-auto"
-            :icon="copyIcon"
-            :title="$t('Copy') + ' ' + prop.node.label"
+            :icon="addIcon"
+            :title="$t('Add') + ' ' + prop.node.label"
             />
           <div class="col q-ml-xs">
             <span>{{ prop.node.label }}<br />
@@ -167,10 +167,10 @@ export default {
     isAnyGroup: { type: Boolean, default: false },
     isAnyHidden: { type: Boolean, default: false },
     isShowHidden: { type: Boolean, default: false },
-    isCopy: { type: Boolean, default: false },
-    isCopyGroup: { type: Boolean, default: false },
-    isCopyDisabled: { type: Boolean, default: false },
-    copyIcon: { type: String, default: 'mdi-content-copy' },
+    isAdd: { type: Boolean, default: false },
+    isAddGroup: { type: Boolean, default: false },
+    isAddDisabled: { type: Boolean, default: false },
+    addIcon: { type: String, default: 'mdi-content-copy' },
     filterPlaceholder: { type: String, default: '' },
     noResultsLabel: { type: String, default: '' },
     noNodesLabel: { type: String, default: '' }
@@ -256,13 +256,13 @@ export default {
     onLeafClick (key, name) {
       this.$emit('om-table-tree-leaf-select', key, name)
     },
-    // click on leaf copy button
-    onCopyLeafClick (key) {
-      this.$emit('om-table-tree-leaf-copy', key)
+    // click on leaf add button
+    onAddLeafClick (key) {
+      this.$emit('om-table-tree-leaf-add', key)
     },
-    // click on group copy button
-    onCopyGroupClick (key) {
-      this.$emit('om-table-tree-group-copy', key)
+    // click on group add button
+    onAddGroupClick (key) {
+      this.$emit('om-table-tree-group-add', key)
     },
     // click on show leaf notes dialog button
     onShowLeafNote (key, name) {

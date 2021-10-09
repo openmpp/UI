@@ -78,13 +78,13 @@
 
       <workset-parameter-list
         :refresh-tickle="refreshTickle"
-        :is-copy="isNewWorksetShow"
-        :is-copy-group="isNewWorksetShow"
-        :is-copy-disabled="!isReadonlyWorksetCurrent"
-        :copy-icon="'mdi-plus-circle-outline'"
+        :is-add="isNewWorksetShow"
+        :is-add-group="isNewWorksetShow"
+        :is-add-disabled="!isReadonlyWorksetCurrent"
+        :add-icon="'mdi-plus-circle-outline'"
         @set-parameter-select="onParamLeafClick"
-        @set-parameter-copy="onParamWorksetCopy"
-        @set-parameter-group-copy="onParamGroupWorksetCopy"
+        @set-parameter-add="onParamWorksetCopy"
+        @set-parameter-group-add="onParamGroupWorksetCopy"
         @set-parameter-info-show="doShowParamNote"
         @set-parameter-group-info-show="doShowGroupNote"
         >
@@ -103,7 +103,7 @@
           <td>
             <q-btn
               @click="onSaveNewWorkset"
-              :disable="isEmptyNameOfNewWorkset"
+              :disable="isEmptyNameOfNewWorkset || loadWorksetCreate"
               flat
               dense
               class="bg-primary text-white rounded-borders q-mr-xs"
@@ -252,11 +252,11 @@
 
         <run-parameter-list
           :refresh-tickle="refreshTickle"
-          :is-copy="isNewWorksetShow"
-          :is-copy-group="isNewWorksetShow"
-          :copy-icon="'mdi-plus-circle-outline'"
-          @run-parameter-copy="onParamRunCopy"
-          @run-parameter-group-copy="onParamGroupRunCopy"
+          :is-add="isNewWorksetShow"
+          :is-add-group="isNewWorksetShow"
+          :add-icon="'mdi-plus-circle-outline'"
+          @run-parameter-add="onParamRunCopy"
+          @run-parameter-group-add="onParamGroupRunCopy"
           @run-parameter-info-show="doShowParamRunNote"
           @run-parameter-group-info-show="doShowGroupNote"
           >
@@ -406,6 +406,28 @@
   <parameter-info-dialog :show-tickle="paramRunInfoTickle" :param-name="paramInfoName" :run-digest="runDigestSelected"></parameter-info-dialog>
   <parameter-info-dialog :show-tickle="paramInfoTickle" :param-name="paramInfoName" :workset-name="worksetNameSelected"></parameter-info-dialog>
   <group-info-dialog :show-tickle="groupInfoTickle" :group-name="groupInfoName"></group-info-dialog>
+  <delete-workset
+    :delete-now="deleteWorksetNow"
+    :model-digest="digest"
+    :workset-name="worksetDeleteName"
+    @done="doneWorksetDelete"
+    @wait="loadWorksetDelete = true"
+    >
+  </delete-workset>
+  <create-workset
+    :create-now="createWorksetNow"
+    :model-digest="digest"
+    :new-name="nameOfNewWorkset"
+    :current-workset-name="worksetNameSelected"
+    :current-run-digest="runDigestSelected"
+    :is-based-on-run="useBaseRun || false"
+    :descr-notes="newDescrNotes"
+    :copy-from-run="paramRunCopyLst"
+    :copy-from-workset="paramWsCopyLst"
+    @done="doneWorksetCreate"
+    @wait="loadWorksetCreate = true"
+    >
+  </create-workset>
   <edit-discard-dialog
     @discard-changes-yes="onYesDiscardNewWorkset"
     :show-tickle="showEditDiscardTickle"
@@ -420,7 +442,7 @@
     >
   </delete-confirm-dialog>
 
-  <q-inner-loading :showing="loadWait">
+  <q-inner-loading :showing="loadWait || loadWorksetDelete || loadWorksetCreate">
     <q-spinner-gears size="md" color="primary" />
   </q-inner-loading>
 

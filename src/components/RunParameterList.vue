@@ -8,17 +8,17 @@
     :is-any-group="isAnyParamGroup"
     :is-any-hidden="isAnyParamHidden"
     :is-show-hidden="isShowParamHidden"
-    :is-copy="isCopy"
-    :is-copy-group="isCopyGroup"
-    :is-copy-disabled="isCopyDisabled"
-    :copy-icon="copyIcon"
+    :is-add="isAdd"
+    :is-add-group="isAddGroup"
+    :is-add-disabled="isAddDisabled"
+    :add-icon="addIcon"
     :filter-placeholder="$t('Find parameter...')"
     :no-results-label="$t('No model parameters found')"
     :no-nodes-label="$t('Server offline or no model parameters found')"
     @om-table-tree-show-hidden="onToogleHiddenParamTree"
     @om-table-tree-leaf-select="onParamLeafClick"
-    @om-table-tree-leaf-copy="onCopyClick"
-    @om-table-tree-group-copy="onGroupCopyClick"
+    @om-table-tree-leaf-add="onAddClick"
+    @om-table-tree-group-add="onGroupAddClick"
     @om-table-tree-leaf-note="onShowParamNote"
     @om-table-tree-group-note="onShowGroupNote"
     >
@@ -38,10 +38,10 @@ export default {
 
   props: {
     refreshTickle: { type: Boolean, default: false },
-    isCopy: { type: Boolean, default: false },
-    isCopyGroup: { type: Boolean, default: false },
-    isCopyDisabled: { type: Boolean, default: false },
-    copyIcon: { type: String, default: 'mdi-content-copy' }
+    isAdd: { type: Boolean, default: false },
+    isAddGroup: { type: Boolean, default: false },
+    isAddDisabled: { type: Boolean, default: false },
+    addIcon: { type: String, default: 'mdi-content-copy' }
   },
 
   data () {
@@ -83,13 +83,13 @@ export default {
     onParamLeafClick (key, name) {
       this.$emit('run-parameter-select', key, name)
     },
-    // click on copy parameter: copy parameter from current run
-    onCopyClick (key) {
-      this.$emit('run-parameter-copy', key)
+    // click on add parameter: add parameter from current run
+    onAddClick (key) {
+      this.$emit('run-parameter-add', key)
     },
-    // click on copy group: copy group from current run
-    onGroupCopyClick (key) {
-      this.$emit('run-parameter-group-copy', key)
+    // click on add group: add group from current run
+    onGroupAddClick (key) {
+      this.$emit('run-parameter-group-add', key)
     },
     // click on show parameter notes dialog button
     onShowParamNote (key, name) {

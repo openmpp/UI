@@ -7,6 +7,8 @@ import RunInfoDialog from 'components/RunInfoDialog.vue'
 import WorksetInfoDialog from 'components/WorksetInfoDialog.vue'
 import ParameterInfoDialog from 'components/ParameterInfoDialog.vue'
 import GroupInfoDialog from 'components/GroupInfoDialog.vue'
+import DeleteWorkset from 'components/DeleteWorkset.vue'
+import CreateWorkset from 'components/CreateWorkset.vue'
 import EditDiscardDialog from 'components/EditDiscardDialog.vue'
 import DeleteConfirmDialog from 'components/DeleteConfirmDialog.vue'
 import MarkdownEditor from 'components/MarkdownEditor.vue'
@@ -21,6 +23,8 @@ export default {
     WorksetInfoDialog,
     ParameterInfoDialog,
     GroupInfoDialog,
+    DeleteWorkset,
+    CreateWorkset,
     EditDiscardDialog,
     DeleteConfirmDialog,
     MarkdownEditor
@@ -52,16 +56,22 @@ export default {
       showEditDiscardTickle: false,
       runCurrent: Mdf.emptyRunText(), // currently selected run
       paramRunInfoTickle: false,
+      worksetDeleteName: '',
+      deleteWorksetNow: false,
+      loadWorksetDelete: false,
       //
       // create new or edit existing workset
       //
       isNewWorksetShow: false,
+      createWorksetNow: false,
+      loadWorksetCreate: false,
       nameOfNewWorkset: '',
       paramWsCopyLst: [],
       paramRunCopyLst: [],
       useBaseRun: false,
       runInfoTickle: false,
       txtNewWorkset: [], // workset description and notes
+      newDescrNotes: [], // new workset description and notes
       noteEditorNewWorksetTickle: false
     }
   },
@@ -96,7 +106,6 @@ export default {
     ...mapGetters('model', {
       runTextByDigest: 'runTextByDigest',
       worksetTextByName: 'worksetTextByName',
-      isExistInWorksetTextList: 'isExistInWorksetTextList',
       modelLanguage: 'modelLanguage'
     }),
     ...mapState('uiState', {
@@ -197,7 +206,19 @@ export default {
     },
     // user answer yes to confirm delete model workset
     onYesWorksetDelete (name) {
-      this.doWorksetDelete(name)
+      this.worksetDeleteName = name
+      this.deleteWorksetNow = true
+    },
+    // workset delete request completed
+    doneWorksetDelete (isSuccess, dgst, name) {
+      this.worksetDeleteName = ''
+      this.deleteWorksetNow = false
+      this.loadWorksetDelete = false
+      //
+      // if success and if the same model then refresh workset list from the server
+      if (isSuccess && dgst && name && dgst === this.digest) {
+        this.$emit('set-list-refresh')
+      }
     },
 
     // click on  workset download: start workset download and show download list page
@@ -295,6 +316,7 @@ export default {
         t.Descr = ''
         t.Note = ''
       }
+      this.newDescrNotes = []
     },
     // create new workset
     onNewWorkset () {
@@ -424,33 +446,20 @@ export default {
     onSaveNewWorkset () {
       const name = Mdf.cleanFileNameInput(this.nameOfNewWorkset)
       if (name === '') {
-        this.$q.notify({ type: 'negative', message: this.$t('Invalid (or empty) input scenario name') + ((name || '') !== '' ? ': ' + (name || '') : '') })
+        this.$q.notify({ type: 'negative', message: this.$t('Invalid (empty) delta input name') + ((name || '') !== '' ? ': ' + (name || '') : '') })
         return
-      }
-      // check if the workset with the same name already exist in the model
-      if (this.isExistInWorksetTextList({ ModelDigest: this.digest, Name: name })) {
-        this.$q.notify({ type: 'negative', message: this.$t('Error: input scenario name must be unique') + ': ' + (name || '') })
-        return
-      }
-
-      // create new workset header
-      const ws = {
-        ModelDigest: this.digest,
-        Name: name,
-        IsReadonly: false,
-        BaseRunDigest: ((this.useBaseRun || false) && (this.runDigestSelected || '') !== '') ? this.runDigestSelected : '',
-        Txt: [],
-        Param: []
       }
 
       // collect description and notes for each language
+      this.newDescrNotes = []
+
       for (const t of this.txtNewWorkset) {
         const refKey = 'new-ws-note-editor-' + t.LangCode
         if (!Mdf.isLength(this.$refs[refKey]) || !this.$refs[refKey][0]) continue
 
         const udn = this.$refs[refKey][0].getDescrNote()
         if ((udn.descr || udn.note || '') !== '') {
-          ws.Txt.push({
+          this.newDescrNotes.push({
             LangCode: t.LangCode,
             Descr: udn.descr,
             Note: udn.note
@@ -458,168 +467,22 @@ export default {
         }
       }
 
-      // return true if parameter exist in current workset
-      const isInCurrentWs = (name) => {
-        if (this.worksetCurrent.BaseRunDigest !== '') return true // workset based on the run: all parameters included
-        return this.worksetCurrent.Param.findIndex((p) => p.Name === name) >= 0
-      }
-
-      // expand all parameter groups
-      const pUse = {}
-      const gUse = {}
-      const gs = []
-
-      // starting point: append all groups from copy lists
-      for (const pn of this.paramRunCopyLst) {
-        if (pUse[pn.name]) continue
-
-        if (pn.isGroup) {
-          gs.push({
-            name: pn.name,
-            isFromRun: true
-          })
-        } else {
-          ws.Param.push({
-            Name: pn.name,
-            Kind: 'run',
-            From: this.runDigestSelected
-          })
-          pUse[pn.name] = true
-        }
-      }
-      for (const pn of this.paramWsCopyLst) {
-        if (pUse[pn.name]) continue
-
-        if (pn.isGroup) {
-          gs.push({
-            name: pn.name,
-            isFromRun: false
-          })
-        } else {
-          if (isInCurrentWs(pn.name)) {
-            ws.Param.push({
-              Name: pn.name,
-              Kind: 'set',
-              From: this.worksetNameSelected
-            })
-            pUse[pn.name] = true
-          }
-        }
-      }
-
-      // expand each group
-      while (gs.length > 0) {
-        const g = gs.pop()
-
-        if (gUse[g.name]) continue // group already processed
-        gUse[g.name] = true
-
-        const gt = Mdf.groupTextByName(this.theModel, g.name)
-        if (!gt.Group.IsParam) continue // not a parameter group
-
-        for (const pc of gt.Group.GroupPc) {
-          // if this is a child group
-          if (pc.ChildGroupId >= 0) {
-            const cg = Mdf.groupTextById(this.theModel, pc.ChildGroupId)
-            if (cg.Group.Name && !gUse[cg.Group.Name]) {
-              gs.push({
-                name: cg.Group.Name,
-                isFromRun: g.isFromRun
-              })
-            }
-          }
-
-          // if this is a child leaf parameter
-          if (pc.ChildLeafId >= 0) {
-            const cp = Mdf.paramTextById(this.theModel, pc.ChildLeafId)
-            if (cp.Param.Name && !pUse[cp.Param.Name] && (g.isFromRun || isInCurrentWs(cp.Param.Name))) {
-              ws.Param.push({
-                Name: cp.Param.Name,
-                Kind: g.isFromRun ? 'run' : 'set',
-                From: g.isFromRun ? this.runDigestSelected : this.worksetNameSelected
-              })
-              pUse[cp.Param.Name] = true
-            }
-          }
-        }
-      }
-
       // send request to create new workset
-      this.doCreateNewWorkset(ws)
-
-      this.resetNewWorkset()
+      this.createWorksetNow = true
       this.isNewWorksetShow = false
     },
+    // request to create workset completed
+    doneWorksetCreate  (isSuccess, dgst, name) {
+      this.createWorksetNow = false
+      this.loadWorksetCreate = false
+      this.nameOfNewWorkset = ''
 
-    // create new workset
-    async doCreateNewWorkset (ws) {
-      // workset name must be valid and cannot be longer than db column
-      if (!ws || (ws.Name || '') === '' || typeof ws.Name !== typeof 'string' || Mdf.cleanFileNameInput(ws.Name) !== ws.Name || ws.Namelength > 255) {
-        console.warn('Invalid (empty) workset name:', ws.Name)
-        this.$q.notify({ type: 'negative', message: this.$t('Invalid (or empty) input scenario name') + ((ws.Name || '') !== '' ? ': ' + (ws.Name || '') : '') })
-        return
-      }
-      this.$q.notify({ type: 'info', message: this.$t('Creating') + ': ' + ws.Name })
-      this.loadWait = true
+      this.resetNewWorkset()
 
-      let isOk = false
-      let nm = ''
-      let em = ''
-      const u = this.omsUrl + '/api/workset-create'
-      try {
-        const response = await this.$axios.put(u, ws)
-        nm = response.data?.Name
-        isOk = true
-      } catch (e) {
-        try {
-          if (e.response) em = e.response.data || ''
-        } finally {}
-        console.warn('Error at create workset', ws.Name, em)
+      // if success and if the same model then refresh workset list from the server
+      if (isSuccess && dgst && name && dgst === this.digest) {
+        this.$emit('set-list-refresh')
       }
-      this.loadWait = false
-      if (!isOk) {
-        this.$q.notify({ type: 'negative', message: this.$t('Unable to create input scenario') + ': ' + ws.Name })
-        if (em && typeof em === typeof 'string') {
-          this.$q.notify({ type: 'negative', message: em })
-        }
-        return
-      }
-
-      // refresh workset list from the server
-      this.$emit('set-list-refresh')
-      this.$q.notify({ type: 'info', message: this.$t('Created') + ': ' + nm })
-    },
-
-    // delete workset
-    async doWorksetDelete (name) {
-      if (!name) {
-        console.warn('Unable to delete: invalid (empty) workset name')
-        return
-      }
-      this.$q.notify({ type: 'info', message: this.$t('Deleting') + ': ' + name })
-      this.loadWait = true
-
-      let isOk = false
-      const u = this.omsUrl + '/api/model/' + this.digest + '/workset/' + (name || '')
-      try {
-        await this.$axios.delete(u) // response expected to be empty on success
-        isOk = true
-      } catch (e) {
-        let em = ''
-        try {
-          if (e.response) em = e.response.data || ''
-        } finally {}
-        console.warn('Error at delete workset', name, em)
-      }
-      this.loadWait = false
-      if (!isOk) {
-        this.$q.notify({ type: 'negative', message: this.$t('Unable to delete') + ': ' + name })
-        return
-      }
-
-      // refresh workset list from the server
-      this.$emit('set-list-refresh')
-      this.$q.notify({ type: 'info', message: this.$t('Deleted') + ': ' + name })
     },
 
     // start workset download

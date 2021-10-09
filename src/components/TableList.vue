@@ -8,17 +8,17 @@
     :is-any-group="isAnyTableGroup"
     :is-any-hidden="isAnyTableHidden"
     :is-show-hidden="isShowTableHidden"
-    :is-copy="isCopy"
-    :is-copy-group="isCopyGroup"
-    :is-copy-disabled="isCopyDisabled"
-    :copy-icon="copyIcon"
+    :is-add="isAdd"
+    :is-add-group="isAddGroup"
+    :is-add-disabled="isAddDisabled"
+    :add-icon="addIcon"
     :filter-placeholder="$t('Find output table...')"
     :no-results-label="$t('No output tables found')"
     :no-nodes-label="$t('Server offline or no output tables found')"
     @om-table-tree-show-hidden="onToogleHiddenTableTree"
     @om-table-tree-leaf-select="onTableLeafClick"
-    @om-table-tree-leaf-copy="onCopyClick"
-    @om-table-tree-group-copy="onGroupCopyClick"
+    @om-table-tree-leaf-add="onAddClick"
+    @om-table-tree-group-add="onGroupAddClick"
     @om-table-tree-leaf-note="onShowTableNote"
     @om-table-tree-group-note="onShowGroupNote"
     >
@@ -38,10 +38,10 @@ export default {
 
   props: {
     refreshTickle: { type: Boolean, default: false },
-    isCopy: { type: Boolean, default: false },
-    isCopyGroup: { type: Boolean, default: false },
-    isCopyDisabled: { type: Boolean, default: false },
-    copyIcon: { type: String, default: 'mdi-content-copy' }
+    isAdd: { type: Boolean, default: false },
+    isAddGroup: { type: Boolean, default: false },
+    isAddDisabled: { type: Boolean, default: false },
+    addIcon: { type: String, default: 'mdi-content-copy' }
   },
 
   data () {
@@ -93,13 +93,13 @@ export default {
     onTableLeafClick (key, name) {
       this.$emit('table-select', key, name)
     },
-    // click on copy output table: copy output table from current run
-    onCopyClick (key) {
-      this.$emit('table-copy', key)
+    // click on add output table: add output table from current run
+    onAddClick (key) {
+      this.$emit('table-add', key)
     },
-    // click on copy group: copy output tables group from current run
-    onGroupCopyClick (key) {
-      this.$emit('table-group-copy', key)
+    // click on add group: add output tables group from current run
+    onGroupAddClick (key) {
+      this.$emit('table-group-add', key)
     },
     // click on show output table notes dialog button
     onShowTableNote (key, name) {

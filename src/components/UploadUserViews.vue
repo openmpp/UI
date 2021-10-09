@@ -12,7 +12,7 @@ export default {
     uploadViewsTickle: { type: Boolean, default: false }
   },
 
-  render () { return {} },
+  render () { return {} }, // no html
 
   data () {
     return {

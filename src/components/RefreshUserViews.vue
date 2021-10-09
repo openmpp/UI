@@ -11,7 +11,7 @@ export default {
     modelName: { type: String, default: '' }
   },
 
-  render () { return {} },
+  render () { return {} }, // no html
 
   data () {
     return {

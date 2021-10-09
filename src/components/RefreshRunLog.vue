@@ -14,7 +14,7 @@ export default {
     count: { type: Number, default: 0 }
   },
 
-  render () { return {} },
+  render () { return {} }, // no html
 
   data () {
     return {
