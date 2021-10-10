@@ -32,6 +32,10 @@ export default {
         mpiOnRoot: false,
         mpiTmpl: ''
       })
+    },
+    runNotes: {
+      type: Object,
+      default: () => ({})
     }
   },
 
@@ -79,7 +83,8 @@ export default {
         Mpi: {
           Np: 0
         },
-        Template: ''
+        Template: '',
+        RunNotes: []
       }
       if ((this.runOpts.runName || '') !== '') rv.Opts['OpenM.RunName'] = this.runOpts.runName
       if ((this.runOpts.worksetName || '') !== '') rv.Opts['OpenM.SetName'] = this.runOpts.worksetName
@@ -108,6 +113,15 @@ export default {
 
       for (const lcd in this.runOpts.runDescr) {
         if ((lcd || '') !== '' && (this.runOpts.runDescr[lcd] || '') !== '') rv.Opts[lcd + '.RunDescription'] = this.runOpts.runDescr[lcd]
+      }
+
+      for (const lcd in this.runNotes) {
+        if ((lcd || '') !== '' && (this.runNotes[lcd] || '') !== '') {
+          rv.RunNotes.push({
+            LangCode: lcd,
+            Note: this.runNotes[lcd]
+          })
+        }
       }
 
       let rst = Mdf.emptyRunState()
