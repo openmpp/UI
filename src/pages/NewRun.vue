@@ -60,49 +60,6 @@
           </td>
         </tr>
 
-        <template v-if="isNotEmptyLanguageList">
-          <tr
-            v-for="lcn in langList"
-            :key="lcn.LangCode"
-            >
-            <td class="q-pr-xs">{{ $t('Description') }} ({{ lcn.Name }}):</td>
-            <td>
-              <q-input
-                v-model="runOpts.runDescr[lcn.LangCode]"
-                maxlength="255"
-                size="80"
-                @blur="onRunDescrBlur"
-                outlined
-                dense
-                clearable
-                hide-bottom-space
-                :placeholder="$t('Model run description') + ' (' + lcn.Name + ')'"
-                :title="'(' + lcn.Name + ') ' + $t('Model run description')"
-                >
-              </q-input>
-            </td>
-          </tr>
-        </template>
-        <template v-else-if="modelLanguage.LangCode">
-          <tr>
-            <td class="q-pr-xs">{{ $t('Description') }}:</td>
-            <td>
-              <q-input
-                v-model="runOpts.runDescr[modelLanguage.LangCode]"
-                maxlength="255"
-                size="80"
-                @blur="onRunDescrBlur"
-                outlined
-                dense
-                clearable
-                hide-bottom-space
-                :title="$t('Model run description')"
-                >
-              </q-input>
-            </td>
-        </tr>
-        </template>
-
         <tr>
           <td class="q-pr-xs">{{ $t('Sub-Values (Sub-Samples)') }}:</td>
           <td>
@@ -190,6 +147,40 @@
       </table>
 
     </q-card-section>
+
+  </q-card>
+
+  <q-card class="q-ma-sm">
+
+    <q-expansion-item
+      switch-toggle-side
+      expand-separator
+      header-class="bg-primary text-white"
+      :label="$t('Description and Notes')"
+      >
+
+      <q-card-section>
+
+        <markdown-editor
+          v-for="t in txtNewRun"
+          :key="t.LangCode"
+          class="q-px-none q-py-xs"
+          :ref="'new-run-note-editor-' + t.LangCode"
+          :show-tickle="noteEditorNewRunTickle"
+          :the-key="t.LangCode"
+          :the-descr="t.Descr"
+          :descr-prompt="$t('Model run description') + ' (' + t.LangName + ')'"
+          :the-note="t.Note"
+          :description-editable="true"
+          :notes-editable="true"
+          :is-hide-save="true"
+          :is-hide-cancel="true"
+        >
+        </markdown-editor>
+
+      </q-card-section>
+
+    </q-expansion-item>
 
   </q-card>
 
@@ -442,6 +433,7 @@
     v-if="isInitRun"
     :model-digest="digest"
     :run-opts="runOpts"
+    :run-notes="newRunNotes"
     @done="doneNewRunInit"
     @wait="()=>{}">
   </new-run-init>

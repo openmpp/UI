@@ -5,10 +5,11 @@ import RunBar from 'components/RunBar.vue'
 import WorksetBar from 'components/WorksetBar.vue'
 import RunInfoDialog from 'components/RunInfoDialog.vue'
 import WorksetInfoDialog from 'components/WorksetInfoDialog.vue'
+import MarkdownEditor from 'components/MarkdownEditor.vue'
 
 export default {
   name: 'NewRun',
-  components: { NewRunInit, RunBar, WorksetBar, RunInfoDialog, WorksetInfoDialog },
+  components: { NewRunInit, RunBar, WorksetBar, RunInfoDialog, WorksetInfoDialog, MarkdownEditor },
 
   props: {
     digest: { type: String, default: '' },
@@ -50,10 +51,16 @@ export default {
         mpiOnRoot: false,
         mpiTmpl: ''
       },
+      newRunNotes: {
+        type: Object,
+        default: () => ({})
+      },
       loadWait: false,
       isRunOptsShow: true,
       runInfoTickle: false,
-      worksetInfoTickle: false
+      worksetInfoTickle: false,
+      txtNewRun: [], // array for run description and notes
+      noteEditorNewRunTickle: false // editor view boolean
     }
   },
 
@@ -159,6 +166,31 @@ export default {
       // get profile list from server
       this.runOpts.profile = ''
       this.doProfileListRefresh()
+
+      // make list of model languages, description and notes for workset editor
+      this.newRunNotes = {}
+
+      this.txtNewRun = []
+      if (Mdf.isLangList(this.langList)) {
+        for (const lcn of this.langList) {
+          this.txtNewRun.push({
+            LangCode: lcn.LangCode,
+            LangName: lcn.Name,
+            Descr: '',
+            Note: ''
+          })
+        }
+      } else {
+        if (!this.txtNewRun.length) {
+          this.txtNewRun.push({
+            LangCode: this.modelLanguage.LangCode,
+            LangName: this.modelLanguage.Name,
+            Descr: '',
+            Note: ''
+          })
+        }
+      }
+      this.noteEditorNewRunTickle = !this.noteEditorNewRunTickle
     },
     // use current run as base base run if:
     //   current run is compeleted
@@ -286,8 +318,15 @@ export default {
       this.runOpts.worksetName = (this.useWorkset && this.isReadonlyWorksetCurrent) ? this.worksetNameSelected || '' : ''
       this.runOpts.baseRunDigest = (this.useBaseRun && this.isCompletedRunCurrent) ? this.runDigestSelected || '' : ''
 
-      for (const lcd in this.runOpts.runDescr) {
-        this.runOpts.runDescr[lcd] = Mdf.cleanTextInput(this.runOpts.runDescr[lcd])
+      // collect description and notes for each language
+      this.newRunNotes = {}
+      for (const t of this.txtNewRun) {
+        const refKey = 'new-run-note-editor-' + t.LangCode
+        if (!Mdf.isLength(this.$refs[refKey]) || !this.$refs[refKey][0]) continue
+
+        const udn = this.$refs[refKey][0].getDescrNote()
+        this.runOpts.runDescr[t.LangCode] = udn.descr
+        this.newRunNotes[t.LangCode] = udn.note
       }
 
       // start new model run: send request to the server
