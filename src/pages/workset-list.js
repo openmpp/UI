@@ -71,8 +71,7 @@ export default {
       useBaseRun: false,
       runInfoTickle: false,
       txtNewWorkset: [], // workset description and notes
-      newDescrNotes: [], // new workset description and notes
-      noteEditorNewWorksetTickle: false
+      newDescrNotes: [] // new workset description and notes
     }
   },
 
@@ -322,7 +321,6 @@ export default {
     onNewWorkset () {
       this.resetNewWorkset()
       this.isNewWorksetShow = true
-      this.noteEditorNewWorksetTickle = !this.noteEditorNewWorksetTickle
     },
     // discard new workset
     onCancelNewWorkset () {

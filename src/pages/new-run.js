@@ -59,8 +59,7 @@ export default {
       isRunOptsShow: true,
       runInfoTickle: false,
       worksetInfoTickle: false,
-      txtNewRun: [], // array for run description and notes
-      noteEditorNewRunTickle: false // editor view boolean
+      txtNewRun: [] // array for run description and notes
     }
   },
 
@@ -190,7 +189,6 @@ export default {
           })
         }
       }
-      this.noteEditorNewRunTickle = !this.noteEditorNewRunTickle
     },
     // use current run as base base run if:
     //   current run is compeleted
@@ -325,8 +323,10 @@ export default {
         if (!Mdf.isLength(this.$refs[refKey]) || !this.$refs[refKey][0]) continue
 
         const udn = this.$refs[refKey][0].getDescrNote()
-        this.runOpts.runDescr[t.LangCode] = udn.descr
-        this.newRunNotes[t.LangCode] = udn.note
+        if ((udn.descr || udn.note || '') !== '') {
+          this.runOpts.runDescr[t.LangCode] = udn.descr
+          this.newRunNotes[t.LangCode] = udn.note
+        }
       }
 
       // start new model run: send request to the server

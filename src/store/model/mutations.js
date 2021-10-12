@@ -22,9 +22,9 @@ export const wordListOnNew = (state, modelDigest) => {
   if ((modelDigest || '') !== state.wordList.ModelDigest) state.wordList = Mdf.emptyWordList()
 }
 
-// clear list of model languages
-export const langListOnNew = (state) => {
-  state.langList = Mdf.emptyLangList()
+// clear list of model languages if model changed or if it is empty
+export const langListOnNew = (state, isClear) => {
+  if (isClear) state.langList = Mdf.emptyLangList()
 }
 
 // assign new value to list of model languages

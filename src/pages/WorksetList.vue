@@ -94,7 +94,7 @@
 
   </q-card>
 
-  <q-card v-show="isNewWorksetShow" class="q-ma-sm">
+  <q-card v-if="isNewWorksetShow" class="q-ma-sm">
 
     <q-card-section class="q-pa-sm">
       <table>
@@ -278,7 +278,6 @@
         v-for="t in txtNewWorkset"
         :key="t.LangCode"
         :ref="'new-ws-note-editor-' + t.LangCode"
-        :show-tickle="noteEditorNewWorksetTickle"
         :the-key="t.LangCode"
         :the-descr="t.DescrNewWorkset"
         :descr-prompt="$t('Input scenario description') + ' (' + t.LangName + ')'"

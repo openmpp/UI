@@ -159,26 +159,22 @@
       :label="$t('Description and Notes')"
       >
 
-      <q-card-section>
-
-        <markdown-editor
-          v-for="t in txtNewRun"
-          :key="t.LangCode"
-          class="q-px-none q-py-xs"
-          :ref="'new-run-note-editor-' + t.LangCode"
-          :show-tickle="noteEditorNewRunTickle"
-          :the-key="t.LangCode"
-          :the-descr="t.Descr"
-          :descr-prompt="$t('Model run description') + ' (' + t.LangName + ')'"
-          :the-note="t.Note"
-          :description-editable="true"
-          :notes-editable="true"
-          :is-hide-save="true"
-          :is-hide-cancel="true"
-        >
-        </markdown-editor>
-
-      </q-card-section>
+      <markdown-editor
+        v-for="t in txtNewRun"
+        :key="t.LangCode"
+        class="q-px-none q-py-xs"
+        :ref="'new-run-note-editor-' + t.LangCode"
+        :the-key="t.LangCode"
+        :the-descr="t.Descr"
+        :descr-prompt="$t('Model run description') + ' (' + t.LangName + ')'"
+        :the-note="t.Note"
+        :note-prompt="$t('Model run notes') + ' (' + t.LangName + ')'"
+        :description-editable="true"
+        :notes-editable="true"
+        :is-hide-save="true"
+        :is-hide-cancel="true"
+      >
+      </markdown-editor>
 
     </q-expansion-item>
 

@@ -51,7 +51,7 @@
         />
 
       <q-btn
-        :disable="noteEditorActive"
+        :disable="noteEditorShow"
         @click="onEditRunNote(runDigestSelected)"
         flat
         dense
@@ -78,7 +78,7 @@
     </div>
 
     <markdown-editor
-      :show-tickle="noteEditorTickle"
+      v-if="noteEditorShow"
       :the-name="runCurrent.Name"
       :the-descr="runCurrentDescr()"
       :the-note="runCurrentNote()"

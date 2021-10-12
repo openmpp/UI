@@ -19,7 +19,7 @@ export const theModel = ({ dispatch, commit, state }, model) => {
 
   commit('theModel', model)
   commit('wordListOnNew', digest)
-  commit('langListOnNew')
+  commit('langListOnNew', isEmpty || (digest !== storeDigest))
   commit('runTextListOnNew', digest)
   commit('worksetTextListOnNew', digest)
 

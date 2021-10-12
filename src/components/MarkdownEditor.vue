@@ -1,5 +1,5 @@
 <template>
-  <q-card-section v-show="noteEditorActive">
+  <q-card-section>
 
     <div class="row items-center q-pb-xs">
 
@@ -76,7 +76,6 @@ export default {
   components: { EditDiscardDialog },
 
   props: {
-    showTickle: { type: Boolean, default: false, required: true },
     theKey: { type: String, default: '' },
     theName: { type: String, default: '' },
     theDescr: { type: String, default: '' },
@@ -93,57 +92,19 @@ export default {
   },
 
   watch: {
-    showTickle () { this.doShowEditor() }
   },
 
   data () {
     return {
+      theEasyMde: null,
       mdeTextId: 'easy-mde-text-' + (this.theKey || ''),
       descrEdit: '',
       noteEdit: '',
-      noteEditorActive: false,
       showEditDiscardTickle: false
     }
   },
 
   methods: {
-    // show description and notes dialog WORKING HERE
-    doShowEditor () {
-      if (this.descriptionEditable) this.descrEdit = this.theDescr
-      this.noteEditorActive = true
-
-      if (this.notesEditable) {
-        this.easyMDE = new EasyMDE({
-          element: document.getElementById(this.mdeTextId),
-          sideBySideFullscreen: false,
-          toolbar: [
-            'undo', 'redo', '|',
-            'bold', 'italic', 'heading', '|',
-            'quote', 'code', '|',
-            'unordered-list', 'ordered-list', 'table', '|',
-            'side-by-side', '|',
-            'guide'],
-          spellChecker: (this.langCode || '').toLocaleLowerCase().startsWith('en'), // EasyMDE spell checker is EN-US only
-          renderingConfig: {
-            codeSyntaxHighlighting: true,
-            sanitizerFunction: (renderedHTML) => { return sanitizeHtml(renderedHTML) },
-            markedOptions: {
-              highlight: (code, lang) => {
-                const language = hljs.getLanguage(lang) ? lang : 'plaintext'
-                return hljs.highlight(code, { language }).value
-              },
-              pedantic: false,
-              gfm: true,
-              breaks: false,
-              smartLists: true
-            }
-          }
-        })
-        this.noteEdit = this.theNote
-        this.easyMDE.value(this.noteEdit)
-      }
-    },
-
     // cleanup description input
     onDescrBlur (e) {
       this.descrEdit = Mdf.cleanTextInput(this.descrEdit)
@@ -152,8 +113,7 @@ export default {
     // send description and notes to the parent
     onSaveNote () {
       if (this.notesEditable) {
-        this.noteEdit = sanitizeHtml(this.easyMDE.value() || '') // remove unsafe html tags
-        this.doHideEditor()
+        this.noteEdit = sanitizeHtml(this.theEasyMde.value() || '') // remove unsafe html tags
       }
       this.$emit(
         this.saveNoteEdit,
@@ -167,13 +127,13 @@ export default {
     // return true if description or notes updated (edited)
     isUpdated () {
       return (this.descriptionEditable && this.theDescr !== this.descrEdit) ||
-        (this.notesEditable && this.theNote !== this.easyMDE.value())
+        (this.notesEditable && this.theNote !== this.theEasyMde.value())
     },
 
     // return description and notes
     getDescrNote () {
       if (this.notesEditable) {
-        this.noteEdit = sanitizeHtml(this.easyMDE.value() || '') // remove unsafe html tags
+        this.noteEdit = sanitizeHtml(this.theEasyMde.value() || '') // remove unsafe html tags
       }
       return {
         descr: this.descriptionEditable ? this.descrEdit : this.theDescr,
@@ -191,17 +151,51 @@ export default {
         this.onYesDiscardChanges()
       }
     },
-    // on user selecting "Yes" from "Cancel Editing" pop-up alert
+    // notify parent: user answer is "Yes" to "Cancel Editing" pop-up alert
     onYesDiscardChanges () {
-      this.doHideEditor()
       this.$emit(this.cancelNoteEdit)
-    },
-    // hide easyMDE
-    doHideEditor () {
-      if (!this.notesEditable) return
-      this.noteEditorActive = false
-      this.easyMDE.toTextArea()
-      this.easyMDE = null
+    }
+  },
+
+  // create description and notes editor
+  mounted () {
+    if (this.descriptionEditable) this.descrEdit = this.theDescr
+
+    if (this.notesEditable) {
+      this.theEasyMde = new EasyMDE({
+        element: document.getElementById(this.mdeTextId),
+        sideBySideFullscreen: false,
+        toolbar: [
+          'undo', 'redo', '|',
+          'bold', 'italic', 'heading', '|',
+          'quote', 'code', '|',
+          'unordered-list', 'ordered-list', 'table', '|',
+          'side-by-side', '|',
+          'guide'],
+        spellChecker: (this.langCode || '').toLocaleLowerCase().startsWith('en'), // EasyMDE spell checker is EN-US only
+        renderingConfig: {
+          codeSyntaxHighlighting: true,
+          sanitizerFunction: (renderedHTML) => { return sanitizeHtml(renderedHTML) },
+          markedOptions: {
+            highlight: (code, lang) => {
+              const language = hljs.getLanguage(lang) ? lang : 'plaintext'
+              return hljs.highlight(code, { language }).value
+            },
+            pedantic: false,
+            gfm: true,
+            breaks: false,
+            smartLists: true
+          }
+        }
+      })
+      this.noteEdit = this.theNote
+      this.theEasyMde.value(this.noteEdit)
+    }
+  },
+  destroyed () {
+    if (this.theEasyMde) {
+      this.theEasyMde.toTextArea()
+      this.theEasyMde = null
     }
   }
 }

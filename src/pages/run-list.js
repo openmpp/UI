@@ -42,8 +42,7 @@ export default {
       runNameToDelete: '',
       runDigestToDelete: '',
       showDeleteDialogTickle: false,
-      noteEditorActive: false,
-      noteEditorTickle: false
+      noteEditorShow: false
     }
   },
 
@@ -136,16 +135,15 @@ export default {
 
     // show run description and notes dialog WORKING HERE
     onEditRunNote (dgst) {
-      this.noteEditorTickle = !this.noteEditorTickle
-      this.noteEditorActive = true
+      this.noteEditorShow = true
     },
     // save run notes editor content
     onSaveRunNote (descr, note) {
       this.doSaveRunNote(this.runDigestSelected, descr, note)
-      this.noteEditorActive = false
+      this.noteEditorShow = false
     },
     onCancelRunNote (dgst) {
-      this.noteEditorActive = false
+      this.noteEditorShow = false
     },
 
     // show yes/no dialog to confirm run delete
