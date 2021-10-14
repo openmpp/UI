@@ -5,9 +5,9 @@
     :refresh-tree-tickle="refreshTableTreeTickle"
     :tree-data="tableTreeData"
     :is-all-expand="false"
-    :is-any-group="isAnyTableGroup"
-    :is-any-hidden="isAnyTableHidden"
-    :is-show-hidden="isShowTableHidden"
+    :is-any-group="isAnyGroup"
+    :is-any-hidden="isAnyHidden"
+    :is-show-hidden="isShowHidden"
     :is-add="isAdd"
     :is-add-group="isAddGroup"
     :is-add-disabled="isAddDisabled"
@@ -47,9 +47,9 @@ export default {
   data () {
     return {
       refreshTableTreeTickle: false,
-      isAnyTableGroup: false,
-      isAnyTableHidden: false,
-      isShowTableHidden: false,
+      isAnyGroup: false,
+      isAnyHidden: false,
+      isShowHidden: false,
       runCurrent: Mdf.emptyRunText(), // currently selected run
       tableTreeData: [],
       nextId: 100
@@ -72,21 +72,23 @@ export default {
 
   watch: {
     refreshTickle  () { this.doRefresh() },
-    runTextListUpdated () { this.doRefresh() },
-    theModelUpdated () { this.doRefresh() }
+    theModelUpdated () { this.doRefresh() },
+    runTextListUpdated () { this.doRefresh() }
   },
 
   methods: {
     // update output tables tree data and refresh tree view
     doRefresh () {
       this.runCurrent = this.runTextByDigest({ ModelDigest: Mdf.modelDigest(this.theModel), RunDigest: this.runDigestSelected })
-      this.tableTreeData = this.makeTableTreeData()
+      const td = this.makeTableTreeData()
+      this.tableTreeData = td.tree
       this.refreshTableTreeTickle = !this.refreshTableTreeTickle
+      this.$emit('table-tree-updated', td.leafCount)
     },
 
     // show or hide hidden output tables and groups
     onToogleHiddenTableTree (isShow) {
-      this.isShowTableHidden = isShow
+      this.isShowHidden = isShow
       this.doRefresh()
     },
     // click on output table: open current run output table values tab
@@ -112,13 +114,15 @@ export default {
 
     // return tree of output tables
     makeTableTreeData () {
-      this.isAnyTableGroup = false
-      this.isAnyTableHidden = false
+      this.isAnyGroup = false
+      this.isAnyHidden = false
 
-      if (!Mdf.tableCount(this.theModel)) return [] // empty list of output tables
+      if (!Mdf.tableCount(this.theModel)) {
+        return { tree: [], leafCount: 0 } // empty list of output tables
+      }
       if (!Mdf.isTableTextList(this.theModel)) {
         this.$q.notify({ type: 'negative', message: this.$t('Model output tables list is empty or invalid') })
-        return [] // invalid list of output tables
+        return { tree: [], leafCount: 0 } // invalid list of output tables
       }
 
       // map tables which are included in model run (not suppressed)
@@ -127,8 +131,10 @@ export default {
       for (const t of this.theModel.TableTxt) {
         if (!Mdf.isRunTextHasTable(this.runCurrent, t.Table.Name)) continue // skip suppressed table
 
-        this.isAnyTableHidden = this.isAnyTableHidden || t.Table.IsHidden
-        if (this.isShowTableHidden || !t.Table.IsHidden) tUse[t.Table.Name] = true // table not hidden and not suppressed
+        this.isAnyHidden = this.isAnyHidden || t.Table.IsHidden
+        if (!this.isShowHidden && t.Table.IsHidden) continue // skip hidden table if reqired
+
+        tUse[t.Table.TableId] = { isLeaf: false }
       }
 
       // make groups map: map group id to group node
@@ -140,7 +146,7 @@ export default {
 
         const gId = gLst[k].Group.GroupId
         const isNote = Mdf.noteOfDescrNote(gLst[k]) !== ''
-        this.isAnyTableHidden = this.isAnyTableHidden || gLst[k].Group.IsHidden
+        this.isAnyHidden = this.isAnyHidden || gLst[k].Group.IsHidden
 
         gUse[gId] = {
           group: gLst[k],
@@ -162,7 +168,7 @@ export default {
 
       for (let k = 0; k < gLst.length; k++) {
         if (gLst[k].Group.IsParam) continue // skip parameters group
-        if (!this.isShowTableHidden && gLst[k].Group.IsHidden) continue // skip hidden group
+        if (!this.isShowHidden && gLst[k].Group.IsHidden) continue // skip hidden group
 
         const gId = gLst[k].Group.GroupId
 
@@ -184,7 +190,7 @@ export default {
           item: g
         })
       }
-      this.isAnyTableGroup = gTree.length > 0
+      this.isAnyGroup = gTree.length > 0
 
       // build groups tree
       while (gProc.length > 0) {
@@ -197,7 +203,7 @@ export default {
           if (pc.ChildGroupId >= 0) {
             const gChildUse = gUse[pc.ChildGroupId]
             if (gChildUse) {
-              if (!this.isShowTableHidden && gChildUse.group.Group.IsHidden) continue // skip hidden group
+              if (!this.isShowHidden && gChildUse.group.Group.IsHidden) continue // skip hidden group
 
               // check for circular reference
               if (gpNow.path.indexOf(pc.ChildGroupId) >= 0) {
@@ -221,7 +227,7 @@ export default {
           if (pc.ChildLeafId >= 0) {
             const t = Mdf.tableTextById(this.theModel, pc.ChildLeafId)
             if (!Mdf.isTable(t.Table)) continue
-            if (!tUse[t.Table.Name]) continue // skip: table suppressed or hidden
+            if (!tUse[t.Table.TableId]) continue // skip: table suppressed or hidden
 
             gpNow.item.children.push({
               key: 'ttl-' + pc.ChildLeafId + '-' + this.nextId++,
@@ -232,6 +238,7 @@ export default {
               isAbout: true,
               isAboutEmpty: false
             })
+            tUse[t.Table.TableId].isLeaf = true
           }
         }
       }
@@ -241,6 +248,7 @@ export default {
 
       // add output tables which are not included in any group (not a leaf nodes)
       const leafUse = {}
+
       for (let k = 0; k < gLst.length; k++) {
         if (gLst[k].Group.IsParam) continue // skip parameters group
 
@@ -249,8 +257,9 @@ export default {
         }
       }
 
+      let leafCount = 0
       for (const t of this.theModel.TableTxt) {
-        if (!tUse[t.Table.Name]) continue // skip: table suppressed or hidden
+        if (!tUse[t.Table.TableId]) continue // skip: table suppressed or hidden
 
         if (!leafUse[t.Table.TableId]) { // if output table is not a leaf of any group
           gTree.push({
@@ -262,10 +271,12 @@ export default {
             isAbout: true,
             isAboutEmpty: false
           })
+          tUse[t.Table.TableId].isLeaf = true
         }
+        if (tUse[t.Table.TableId].isLeaf) leafCount++
       }
 
-      return gTree
+      return { tree: gTree, leafCount: leafCount }
     }
   },
 

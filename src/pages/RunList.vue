@@ -20,7 +20,7 @@
           >
           <q-icon :name="isParamTreeShow ? 'keyboard_arrow_up' : 'keyboard_arrow_down'" />
           <span>{{ $t('Parameters') }}</span>
-          <q-badge outline class="q-ml-sm q-mr-xs">{{ modelParamCount }}</q-badge>
+          <q-badge outline class="q-ml-sm q-mr-xs">{{ paramTreeCount }}</q-badge>
         </q-btn>
       </span>
 
@@ -36,7 +36,7 @@
           >
           <q-icon :name="isTableTreeShow ? 'keyboard_arrow_up' : 'keyboard_arrow_down'" />
           <span>{{ $t('Output Tables') }}</span>
-          <q-badge outline class="q-ml-sm q-mr-xs">{{ modelTableCount }}</q-badge>
+          <q-badge outline class="q-ml-sm q-mr-xs">{{ tableTreeCount }}</q-badge>
         </q-btn>
       </span>
 
@@ -57,7 +57,7 @@
         dense
         class="col-auto text-white rounded-borders q-mr-xs"
         :class="(isSuccess(runCurrent.Status) || isInProgress(runCurrent.Status)) ? 'bg-primary' : 'bg-warning'"
-        :icon="isSuccess(runCurrent.Status) ? 'mdi-file-document-edit-outline' : (isInProgress(runCurrent.Status) ? 'mdi-run' : 'mdi-alert-circle-outline')"
+        icon="mdi-file-document-edit-outline"
         :title="$t('Edit notes for') + ' ' + runCurrent.Name"
         />
 
@@ -79,6 +79,7 @@
 
     <markdown-editor
       v-if="noteEditorShow"
+      :the-key="noteEditorLangCode"
       :the-name="runCurrent.Name"
       :the-descr="runCurrentDescr()"
       :the-note="runCurrentNote()"
@@ -86,7 +87,7 @@
       :notes-editable="true"
       :save-note-edit="'save-run-note'"
       :cancel-note-edit="'cancel-run-note'"
-      :lang-code="uiLang || $q.lang.getLocale() || ''"
+      :lang-code="noteEditorLangCode"
       @cancel-run-note="onCancelRunNote"
       @save-run-note="onSaveRunNote"
       class="q-px-sm q-pt-none"
@@ -100,6 +101,7 @@
         @run-parameter-select="onParamLeafClick"
         @run-parameter-info-show="doShowParamNote"
         @run-parameter-group-info-show="doShowGroupNote"
+        @run-parameter-tree-updated="onParamTreeUpdated"
         >
       </run-parameter-list>
 
@@ -112,6 +114,7 @@
         @table-select="onTableLeafClick"
         @table-info-show="doShowTableNote"
         @table-group-info-show="doShowGroupNote"
+        @table-tree-updated="onTableTreeUpdated"
         >
       </table-list>
 
@@ -204,13 +207,14 @@
               flat
               round
               dense
-              color="primary"
+              :color="(prop.node.digest && !isInProgress(prop.node.status)) ? 'primary' : 'secondary'"
               class="col-auto"
               icon="mdi-delete-outline"
               :title="$t('Delete') + ': ' + prop.node.label"
               />
             <q-btn
-              :disable="!serverConfig.AllowDownload || !isSuccess(prop.node.status)"
+              v-if="serverConfig.AllowDownload"
+              :disable="!isSuccess(prop.node.status)"
               @click.stop="doDownloadRun(prop.node.digest)"
               flat
               round

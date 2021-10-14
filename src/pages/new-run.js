@@ -191,7 +191,7 @@ export default {
       }
     },
     // use current run as base base run if:
-    //   current run is compeleted
+    //   current run is compeleted and
     //   current workset not readonly
     //   or current workset not is full and current workset not based on run
     isUseCurrentAsBaseRun () {
@@ -201,7 +201,8 @@ export default {
           (
             (Mdf.worksetParamCount(this.worksetCurrent) !== Mdf.paramCount(this.theModel)) && // not a full workset
             (!this.worksetCurrent?.BaseRunDigest || !this.isExistInRunTextList({ ModelDigest: this.digest, RunDigest: this.worksetCurrent?.BaseRunDigest }))
-          ))
+          )
+        )
     },
     // if use base run un-checked then user must supply full set of input parameters
     onUseBaseRunClick () {

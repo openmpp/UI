@@ -8,7 +8,7 @@
       >
 
       <q-btn
-        @click="doNewWorksetOrCancel"
+        @click="onCreateNewOrCancel"
         flat
         dense
         class="col-auto bg-primary text-white rounded-borders q-ml-sm"
@@ -29,7 +29,7 @@
           >
           <q-icon :name="isParamTreeShow ? 'keyboard_arrow_up' : 'keyboard_arrow_down'" />
           <span>{{ $t('Parameters') }}</span>
-          <q-badge outline class="q-ml-sm q-mr-xs">{{ paramCountWorksetCurrent }}</q-badge>
+          <q-badge outline class="q-ml-sm q-mr-xs">{{ paramTreeCount }}</q-badge>
         </q-btn>
       </span>
 
@@ -87,6 +87,7 @@
         @set-parameter-group-add="onParamGroupWorksetCopy"
         @set-parameter-info-show="doShowParamNote"
         @set-parameter-group-info-show="doShowGroupNote"
+        @set-parameter-tree-updated="onParamTreeUpdated"
         >
       </workset-parameter-list>
 
@@ -146,7 +147,7 @@
               />
           </td>
           <td class="q-pr-xs">
-            {{$t('Use Base Run') + ':'}}
+            <span class="q-pr-sm">{{ $t('Use Base Run') }} :</span>
           </td>
           <td>
             <run-bar
@@ -370,13 +371,14 @@
               flat
               round
               dense
-              color="primary"
+              :color="(prop.node.label && !prop.node.isReadonly) ? 'primary' : 'secondary'"
               class="col-auto"
               icon="mdi-delete-outline"
               :title="$t('Delete') + ': ' + prop.node.label"
               />
             <q-btn
-              :disable="!serverConfig.AllowDownload || !prop.node.isReadonly"
+              v-if="serverConfig.AllowDownload"
+              :disable="!prop.node.isReadonly"
               @click.stop="doDownloadWorkset(prop.node.label)"
               flat
               round

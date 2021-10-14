@@ -29,7 +29,9 @@ export default {
       runTreeData: [],
       runFilter: '',
       isParamTreeShow: false,
+      paramTreeCount: 0,
       isTableTreeShow: false,
+      tableTreeCount: 0,
       runInfoTickle: false,
       runInfoDigest: '',
       groupInfoTickle: false,
@@ -42,16 +44,14 @@ export default {
       runNameToDelete: '',
       runDigestToDelete: '',
       showDeleteDialogTickle: false,
-      noteEditorShow: false
+      noteEditorShow: false,
+      noteEditorLangCode: ''
     }
   },
 
   computed: {
     isNotEmptyRunCurrent () { return Mdf.isNotEmptyRunText(this.runCurrent) },
     descrRunCurrent () { return Mdf.descrOfTxt(this.runCurrent) },
-
-    modelParamCount () { return Mdf.paramCount(this.theModel) },
-    modelTableCount () { return Mdf.tableCount(this.theModel) },
 
     ...mapState('model', {
       theModel: state => state.theModel,
@@ -91,8 +91,14 @@ export default {
     doRefresh () {
       this.runTreeData = this.makeRunTreeData(this.runTextList)
       this.runCurrent = this.runTextByDigest({ ModelDigest: this.digest, RunDigest: this.runDigestSelected })
+      this.paramTreeCount = Mdf.paramCount(this.theModel)
+      this.tableTreeCount = Mdf.tableCount(this.theModel)
     },
 
+    // click on run: select this run as current run
+    onRunLeafClick (dgst) {
+      if (this.runDigestSelected !== dgst) this.$emit('run-select', dgst)
+    },
     // expand or collapse all run tree nodes
     doToogleExpandRunTree () {
       if (this.isRunTreeCollapsed) {
@@ -114,10 +120,6 @@ export default {
       this.runFilter = ''
       this.$refs.runFilterInput.focus()
     },
-    // click on run: select this run as current run
-    onRunLeafClick (dgst) {
-      this.$emit('run-select', dgst)
-    },
     // show run notes dialog
     doShowRunNote (dgst) {
       this.runInfoDigest = dgst
@@ -133,13 +135,19 @@ export default {
       this.$emit('run-log-select', stamp)
     },
 
+    // parameters tree updated and leafs counted
+    // tables tree updated and leafs counted
+    onParamTreeUpdated  (cnt) { this.paramTreeCount = cnt || 0 },
+    onTableTreeUpdated (cnt) { this.tableTreeCount = cnt || 0 },
+
     // show run description and notes dialog WORKING HERE
     onEditRunNote (dgst) {
       this.noteEditorShow = true
+      this.noteEditorLangCode = this.uiLang || this.$q.lang.getLocale() || ''
     },
     // save run notes editor content
-    onSaveRunNote (descr, note) {
-      this.doSaveRunNote(this.runDigestSelected, descr, note)
+    onSaveRunNote (descr, note, isUpd, lc) {
+      this.doSaveRunNote(this.runDigestSelected, lc, descr, note)
       this.noteEditorShow = false
     },
     onCancelRunNote (dgst) {
@@ -293,24 +301,27 @@ export default {
     },
 
     // save run notes
-    async doSaveRunNote (dgst, descr, note) {
+    async doSaveRunNote (dgst, langCode, descr, note) {
       let isOk = false
       let msg = ''
 
       // validate current run is not empty and has a language
-      if (!Mdf.isNotEmptyRunText(this.runCurrent) || this.runCurrent.Txt.length <= 0 || !this.runCurrent.Txt[0].LangCode) {
+      if (!Mdf.isNotEmptyRunText(this.runCurrent)) {
         this.$q.notify({ type: 'negative', message: this.$t('Unable to save model run description and notes, current model run is undefined') })
+        return
+      }
+      if (!langCode) {
+        this.$q.notify({ type: 'negative', message: this.$t('Unable to save model run description and notes, language is unknown') })
         return
       }
       this.loadWait = true
 
       const u = this.omsUrl + '/api/run/text'
-      const lang = this.runCurrent.Txt[0].LangCode
       const rt = {
         ModelDigest: this.digest,
         RunDigest: dgst,
         Txt: [{
-          LangCode: lang,
+          LangCode: langCode,
           Descr: descr || '',
           Note: note || ''
         }]
@@ -332,7 +343,7 @@ export default {
       }
 
       this.$emit('run-select', dgst)
-      this.$q.notify({ type: 'info', message: this.$t('Model run description and notes saved, language: ' + lang) })
+      this.$q.notify({ type: 'info', message: this.$t('Model run description and notes saved, language: ' + langCode) })
     }
   },
 

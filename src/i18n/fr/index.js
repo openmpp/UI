@@ -299,6 +299,7 @@ export default {
   'Unable to save input scenario because you have {count} unsaved parameter(s)': "Impossible d'enregistrer le scénario d'entrée car vous avez {count} paramètre(s) non enregistré(s)",
   'Unable to save model run description and notes': "Impossible d'enregistrer la description et les notes d'exécution du modèle",
   'Unable to save model run description and notes, current model run is undefined': "Impossible d'enregistrer les notes d'exécution du modèle, l'exécution du modèle actuel n'est pas définie",
+  'Unable to save model run description and notes, language is unknown': "Impossible d'enregistrer la description et les notes de l'exécution du modèle, la langue est inconnue",
   'Unable to save views': "Impossible d'enregistrer les vues",
   'Unable to update scenario: model digest or name is empty': 'Impossible de mettre à jour le scénario: le digest du modèle ou le nom est vide',
   'Undo': 'Annuler',

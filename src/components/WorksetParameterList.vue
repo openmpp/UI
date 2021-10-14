@@ -5,9 +5,9 @@
     :refresh-tree-tickle="refreshParamTreeTickle"
     :tree-data="paramTreeData"
     :is-all-expand="false"
-    :is-any-group="isAnyParamGroup"
-    :is-any-hidden="isAnyParamHidden"
-    :is-show-hidden="isShowParamHidden"
+    :is-any-group="isAnyGroup"
+    :is-any-hidden="isAnyHidden"
+    :is-show-hidden="isShowHidden"
     :is-add="isAdd"
     :is-add-group="isAddGroup"
     :is-add-disabled="isAddDisabled"
@@ -48,9 +48,9 @@ export default {
     return {
       worksetCurrent: Mdf.emptyWorksetText(), // currently selected workset
       refreshParamTreeTickle: false,
-      isAnyParamGroup: false,
-      isAnyParamHidden: false,
-      isShowParamHidden: false,
+      isAnyGroup: false,
+      isAnyHidden: false,
+      isShowHidden: false,
       paramTreeData: [],
       nextId: 100
     }
@@ -81,13 +81,15 @@ export default {
   methods: {
     // update parameters tree data and refresh tree view
     doRefresh () {
-      this.paramTreeData = this.makeParamTreeData()
+      const td = this.makeParamTreeData()
+      this.paramTreeData = td.tree
       this.refreshParamTreeTickle = !this.refreshParamTreeTickle
+      this.$emit('set-parameter-tree-updated', td.leafCount)
     },
 
     // show or hide hidden parameters and groups
     onToogleHiddenParamTree (isShow) {
-      this.isShowParamHidden = isShow
+      this.isShowHidden = isShow
       this.doRefresh()
     },
     // click on parameter: open current workset parameter values tab
@@ -113,13 +115,15 @@ export default {
 
     // return tree of model parameters
     makeParamTreeData () {
-      this.isAnyParamGroup = false
-      this.isAnyParamHidden = false
+      this.isAnyGroup = false
+      this.isAnyHidden = false
 
-      if (!Mdf.paramCount(this.theModel) || !Mdf.isLength(this.worksetCurrent.Param)) return [] // empty list of parameters
+      if (!Mdf.paramCount(this.theModel) || !Mdf.isLength(this.worksetCurrent.Param)) {
+        return { tree: [], leafCount: 0 } // empty list of parameters
+      }
       if (!Mdf.isParamTextList(this.theModel)) {
         this.$q.notify({ type: 'negative', message: this.$t('Model parameters list is empty or invalid') })
-        return [] // invalid list of parameters
+        return { tree: [], leafCount: 0 } // invalid list of parameters
       }
 
       // make parameters map: map parameter id to parameter node
@@ -131,11 +135,12 @@ export default {
         if (wpLst.findIndex((pw) => { return pw.Name === p.Param.Name }) < 0) continue
 
         // skip hidden parameter, if required
-        this.isAnyParamHidden = this.isAnyParamHidden || p.Param.IsHidden
-        if (!this.isShowParamHidden && p.Param.IsHidden) continue
+        this.isAnyHidden = this.isAnyHidden || p.Param.IsHidden
+        if (!this.isShowHidden && p.Param.IsHidden) continue
 
         pUse[p.Param.ParamId] = {
           param: p,
+          isLeaf: false,
           item: {
             key: 'ptl-' + p.Param.ParamId + '-' + this.nextId++,
             label: p.Param.Name,
@@ -166,9 +171,9 @@ export default {
           if (!isOk) isOk = g.Group.GroupPc.findIndex((pc) => { return !!gUse[pc.ChildGroupId] }) >= 0
 
           // hide group if required
-          if (isOk && !this.isShowParamHidden) {
-            isOk = !g.Group.IsHidden
-            this.isAnyParamHidden = this.isAnyParamHidden || g.Group.IsHidden
+          if (isOk) {
+            isOk = this.isShowHidden || !g.Group.IsHidden
+            this.isAnyHidden = this.isAnyHidden || g.Group.IsHidden
           }
           if (!isOk) continue // skip this group
 
@@ -218,7 +223,7 @@ export default {
           item: cg
         })
       }
-      this.isAnyParamGroup = gTree.length > 0
+      this.isAnyGroup = gTree.length > 0
 
       // build groups tree
       while (gProc.length > 0) {
@@ -233,7 +238,7 @@ export default {
           if (pc.ChildGroupId >= 0) {
             const gChildUse = gUse[pc.ChildGroupId]
             if (gChildUse) {
-              if (!this.isShowParamHidden && gChildUse.group.Group.IsHidden) continue // skip hidden group
+              if (!this.isShowHidden && gChildUse.group.Group.IsHidden) continue // skip hidden group
 
               // check for circular reference
               if (gpNow.path.indexOf(pc.ChildGroupId) >= 0) {
@@ -260,6 +265,7 @@ export default {
               const pn = Mdf._cloneDeep(p.item)
               pn.key = 'ptl-' + pc.ChildLeafId + '-' + this.nextId++
               gpNow.item.children.push(pn)
+              p.isLeaf = true
             }
           }
         }
@@ -278,16 +284,20 @@ export default {
         }
       }
 
+      let leafCount = 0
       for (const p of this.theModel.ParamTxt) {
         const pId = p.Param.ParamId
         const pw = pUse[pId]
         if (!pw) continue // skip: this is not a workset parameter
-        if (leafUse[pId]) continue // if parameter is a leaf memeber of some group
 
-        gTree.push(pw.item)
+        if (!leafUse[pId]) { // if parameter is not a leaf
+          gTree.push(pw.item)
+          pw.isLeaf = true
+        }
+        if (pw.isLeaf) leafCount++
       }
 
-      return gTree
+      return { tree: gTree, leafCount: leafCount }
     }
   },
 

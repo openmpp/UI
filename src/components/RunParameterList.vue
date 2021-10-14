@@ -5,9 +5,9 @@
     :refresh-tree-tickle="refreshParamTreeTickle"
     :tree-data="paramTreeData"
     :is-all-expand="false"
-    :is-any-group="isAnyParamGroup"
-    :is-any-hidden="isAnyParamHidden"
-    :is-show-hidden="isShowParamHidden"
+    :is-any-group="isAnyGroup"
+    :is-any-hidden="isAnyHidden"
+    :is-show-hidden="isShowHidden"
     :is-add="isAdd"
     :is-add-group="isAddGroup"
     :is-add-disabled="isAddDisabled"
@@ -47,9 +47,9 @@ export default {
   data () {
     return {
       refreshParamTreeTickle: false,
-      isAnyParamGroup: false,
-      isAnyParamHidden: false,
-      isShowParamHidden: false,
+      isAnyGroup: false,
+      isAnyHidden: false,
+      isShowHidden: false,
       paramTreeData: [],
       nextId: 100
     }
@@ -59,24 +59,30 @@ export default {
     ...mapState('model', {
       theModel: state => state.theModel,
       theModelUpdated: state => state.theModelUpdated
+    }),
+    ...mapState('uiState', {
+      runDigestSelected: state => state.runDigestSelected
     })
   },
 
   watch: {
     refreshTickle  () { this.doRefresh() },
-    theModelUpdated () { this.doRefresh() }
+    theModelUpdated () { this.doRefresh() },
+    runDigestSelected () { this.doRefresh() }
   },
 
   methods: {
     // update parameters tree data and refresh tree view
     doRefresh () {
-      this.paramTreeData = this.makeParamTreeData()
+      const td = this.makeParamTreeData()
+      this.paramTreeData = td.tree
       this.refreshParamTreeTickle = !this.refreshParamTreeTickle
+      this.$emit('run-parameter-tree-updated', td.leafCount)
     },
 
     // show or hide hidden parameters and groups
     onToogleHiddenParamTree (isShow) {
-      this.isShowParamHidden = isShow
+      this.isShowHidden = isShow
       this.doRefresh()
     },
     // click on parameter: open current run parameter values tab
@@ -102,13 +108,15 @@ export default {
 
     // return tree of model parameters
     makeParamTreeData () {
-      this.isAnyParamGroup = false
-      this.isAnyParamHidden = false
+      this.isAnyGroup = false
+      this.isAnyHidden = false
 
-      if (!Mdf.paramCount(this.theModel)) return [] // empty list of parameters
+      if (!Mdf.paramCount(this.theModel)) {
+        return { tree: [], leafCount: 0 } // empty list of parameters
+      }
       if (!Mdf.isParamTextList(this.theModel)) {
         this.$q.notify({ type: 'negative', message: this.$t('Model parameters list is empty or invalid') })
-        return [] // invalid list of parameters
+        return { tree: [], leafCount: 0 } // invalid list of parameters
       }
 
       // make groups map: map group id to group node
@@ -120,7 +128,7 @@ export default {
 
         const gId = gLst[k].Group.GroupId
         const isNote = Mdf.noteOfDescrNote(gLst[k]) !== ''
-        this.isAnyParamHidden = this.isAnyParamHidden || gLst[k].Group.IsHidden
+        this.isAnyHidden = this.isAnyHidden || gLst[k].Group.IsHidden
 
         gUse[gId] = {
           group: gLst[k],
@@ -142,7 +150,7 @@ export default {
 
       for (let k = 0; k < gLst.length; k++) {
         if (!gLst[k].Group.IsParam) continue // skip output tables group
-        if (!this.isShowParamHidden && gLst[k].Group.IsHidden) continue // skip hidden group
+        if (!this.isShowHidden && gLst[k].Group.IsHidden) continue // skip hidden group
 
         const gId = gLst[k].Group.GroupId
 
@@ -162,9 +170,11 @@ export default {
           item: g
         })
       }
-      this.isAnyParamGroup = gTree.length > 0
+      this.isAnyGroup = gTree.length > 0
 
       // build groups tree
+      const pUse = {}
+
       while (gProc.length > 0) {
         const gpNow = gProc.pop()
         const gTxt = gUse[gpNow.gId].group
@@ -175,7 +185,7 @@ export default {
           if (pc.ChildGroupId >= 0) {
             const gChildUse = gUse[pc.ChildGroupId]
             if (gChildUse) {
-              if (!this.isShowParamHidden && gChildUse.group.Group.IsHidden) continue // skip hidden group
+              if (!this.isShowHidden && gChildUse.group.Group.IsHidden) continue // skip hidden group
 
               // check for circular reference
               if (gpNow.path.indexOf(pc.ChildGroupId) >= 0) {
@@ -199,7 +209,7 @@ export default {
           if (pc.ChildLeafId >= 0) {
             const p = Mdf.paramTextById(this.theModel, pc.ChildLeafId)
             if (Mdf.isParam(p.Param)) {
-              if (!this.isShowParamHidden && p.Param.IsHidden) continue // skip hidden parameter
+              if (!this.isShowHidden && p.Param.IsHidden) continue // skip hidden parameter
 
               gpNow.item.children.push({
                 key: 'ptl-' + pc.ChildLeafId + '-' + this.nextId++,
@@ -210,6 +220,7 @@ export default {
                 isAbout: true,
                 isAboutEmpty: false
               })
+              pUse[p.Param.ParamId] = true
             }
           }
         }
@@ -220,6 +231,7 @@ export default {
 
       // add parameters which are not included in any group
       const leafUse = {}
+
       for (let k = 0; k < gLst.length; k++) {
         if (!gLst[k].Group.IsParam) continue // skip output tables group
 
@@ -228,11 +240,12 @@ export default {
         }
       }
 
+      let leafCount = 0
       for (const p of this.theModel.ParamTxt) {
-        this.isAnyParamHidden = this.isAnyParamHidden || p.Param.IsHidden
-        if (!this.isShowParamHidden && p.Param.IsHidden) continue // skip hidden parameter
+        this.isAnyHidden = this.isAnyHidden || p.Param.IsHidden
+        if (!this.isShowHidden && p.Param.IsHidden) continue // skip hidden parameter
 
-        if (!leafUse[p.Param.ParamId]) { // if parameter is not a leaf
+        if (!leafUse[p.Param.ParamId]) { // if parameter is not a leaf of any group
           gTree.push({
             key: 'ptl-' + p.Param.ParamId + '-' + this.nextId++,
             label: p.Param.Name,
@@ -242,10 +255,12 @@ export default {
             isAbout: true,
             isAboutEmpty: false
           })
+          pUse[p.Param.ParamId] = true
         }
+        if (pUse[p.Param.ParamId]) leafCount++
       }
 
-      return gTree
+      return { tree: gTree, leafCount: leafCount }
     }
   },
 

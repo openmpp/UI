@@ -44,6 +44,7 @@ export default {
       treeData: [],
       treeFilter: '',
       isParamTreeShow: false,
+      paramTreeCount: 0,
       worksetInfoTickle: false,
       worksetInfoName: '',
       groupInfoTickle: false,
@@ -78,7 +79,6 @@ export default {
   computed: {
     isNotEmptyWorksetCurrent () { return Mdf.isNotEmptyWorksetText(this.worksetCurrent) },
     descrWorksetCurrent () { return Mdf.descrOfTxt(this.worksetCurrent) },
-    paramCountWorksetCurrent () { return Mdf.worksetParamCount(this.worksetCurrent) },
     isNotEmptyLanguageList () { return Mdf.isLangList(this.langList) },
 
     // if true then selected workset in edit mode else read-only and model run enabled
@@ -135,6 +135,7 @@ export default {
       this.treeData = this.makeWorksetTreeData(this.worksetTextList)
       this.worksetCurrent = this.worksetTextByName({ ModelDigest: this.digest, Name: this.worksetNameSelected })
       this.runCurrent = this.runTextByDigest({ ModelDigest: this.digest, RunDigest: this.runDigestSelected })
+      this.paramTreeCount = Mdf.worksetParamCount(this.worksetCurrent)
 
       // make list of model languages, description and notes for workset editor
       this.txtNewWorkset = []
@@ -159,6 +160,10 @@ export default {
       }
     },
 
+    // click on workset: select this workset as current workset
+    onWorksetLeafClick (name) {
+      if (this.worksetNameSelected !== name) this.$emit('set-select', name)
+    },
     // expand or collapse all workset tree nodes
     doToogleExpandTree () {
       if (this.isTreeCollapsed) {
@@ -180,10 +185,6 @@ export default {
       this.treeFilter = ''
       this.$refs.filterInput.focus()
     },
-    // click on workset: select this workset as current workset
-    onWorksetLeafClick (name) {
-      this.$emit('set-select', name)
-    },
     // show workset notes dialog
     doShowWorksetNote (name) {
       this.worksetInfoName = name
@@ -196,6 +197,11 @@ export default {
         return
       }
       this.runInfoTickle = !this.runInfoTickle
+    },
+
+    // parameters tree updated and leafs counted
+    onParamTreeUpdated (cnt) {
+      this.paramTreeCount = cnt || 0
     },
 
     // show yes/no dialog to confirm workset delete
@@ -298,7 +304,7 @@ export default {
     },
 
     // toggle: create new workset or cancel new workset editing
-    doNewWorksetOrCancel () {
+    onCreateNewOrCancel () {
       if (!this.isNewWorksetShow) {
         this.onNewWorkset()
       } else {
@@ -340,7 +346,7 @@ export default {
     // set default name of new workset
     onNewNameFocus (e) {
       if (typeof this.nameOfNewWorkset !== typeof 'string' || (this.nameOfNewWorkset || '') === '') {
-        this.nameOfNewWorkset = 'New_' + this.worksetNameSelected + '_' + Mdf.dtToUnderscoreTimeStamp(new Date())
+        this.nameOfNewWorkset = 'New_' + Mdf.dtToUnderscoreTimeStamp(new Date())
       }
     },
     // check if new workset name entered and cleanup input to be compatible with file name rules

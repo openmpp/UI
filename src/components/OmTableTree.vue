@@ -98,7 +98,7 @@ Expected array of tree items as:
             flat
             round
             dense
-            color="primary"
+            :color="!isAddDisabled ? 'primary' : 'secondary'"
             class="col-auto"
             :icon="addIcon"
             :title="$t('Add') + ' ' + prop.node.label"
@@ -135,7 +135,7 @@ Expected array of tree items as:
             flat
             round
             dense
-            color="primary"
+            :color="!isAddDisabled ? 'primary' : 'secondary'"
             class="col-auto"
             :icon="addIcon"
             :title="$t('Add') + ' ' + prop.node.label"
