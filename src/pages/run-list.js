@@ -140,7 +140,7 @@ export default {
     onParamTreeUpdated  (cnt) { this.paramTreeCount = cnt || 0 },
     onTableTreeUpdated (cnt) { this.tableTreeCount = cnt || 0 },
 
-    // show run description and notes dialog WORKING HERE
+    // show run description and notes dialog
     onEditRunNote (dgst) {
       this.noteEditorShow = true
       this.noteEditorLangCode = this.uiLang || this.$q.lang.getLocale() || ''
