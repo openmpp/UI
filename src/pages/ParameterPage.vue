@@ -81,6 +81,43 @@
         />
     </template>
 
+    <!-- WOJTEK working here -->
+
+    <q-separator vertical inset spaced="sm" color="secondary" />
+
+    <q-btn
+      v-if="!noteEditorShow"
+      @click="onEditParamNote()"
+      flat
+      dense
+      class="col-auto bg-primary text-white rounded-borders q-mr-xs"
+      icon="mdi-file-document-edit-outline"
+      :title="$t('Edit notes for parameter') + ' ' + parameterName"
+      />
+
+    <q-btn
+      v-if="noteEditorShow"
+      @click="onEditCancelParamNote()"
+      flat
+      dense
+      class="col-auto bg-primary text-white rounded-borders q-mr-xs"
+      icon="cancel"
+      :title="$t('Discard changes to notes for parameter') + ' ' + parameterName"
+      />
+    <q-btn
+      @click="onEditSaveParamNote()"
+      :disable="!noteEditorShow"
+      flat
+      dense
+      class="col-auto bg-primary text-white rounded-borders q-mr-xs"
+      icon="mdi-content-save-edit"
+      :title="$t('Save notes for parameter') + ' ' + parameterName"
+      />
+
+    <q-separator vertical inset spaced="sm" color="secondary" />
+
+    <!-- WOJTEK stopped working here -->
+
     <q-btn
       @click="onCopyToClipboard"
       flat
@@ -184,6 +221,27 @@
     </q-toolbar>
   </div>
   <!-- end of parameter header -->
+
+  <!-- WOJTEK working here -->
+
+  <div class="q-mx-sm q-mb-sm">
+
+  <markdown-editor
+    v-if="noteEditorShow"
+    ref="param-note-editor"
+    class="q-px-none q-py-xs"
+    :the-note="noteEditorNotes"
+    :lang-code="noteEditorLangCode"
+    :description-editable="false"
+    :notes-editable="true"
+    :is-hide-save="true"
+    :is-hide-cancel="true"
+    >
+  </markdown-editor>
+
+  </div>
+
+  <!-- WOJTEK stopped working here -->
 
   <!-- pivot table controls and view -->
   <div class="q-mx-sm">

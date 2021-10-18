@@ -11,12 +11,14 @@ import draggable from 'vuedraggable'
 import * as Pcvt from 'components/pivot-cvt'
 import * as Puih from './pivot-ui-helper'
 import PvTable from 'components/PvTable'
+// WOJTEK adding things here
+import MarkdownEditor from 'components/MarkdownEditor.vue'
 
 const SUB_ID_DIM = 'SubId' // sub-value id dminesion name
 
 export default {
   name: 'ParameterPage',
-  components: { draggable, PvTable, RunBar, WorksetBar, RunInfoDialog, WorksetInfoDialog, ParameterInfoDialog, EditDiscardDialog },
+  components: { draggable, PvTable, RunBar, WorksetBar, RunInfoDialog, WorksetInfoDialog, ParameterInfoDialog, EditDiscardDialog, MarkdownEditor },
 
   props: {
     digest: { type: String, default: '' },
@@ -65,7 +67,12 @@ export default {
       showEditDiscardTickle: false,
       runInfoTickle: false,
       worksetInfoTickle: false,
-      paramInfoTickle: false
+      paramInfoTickle: false,
+
+      // WOJTEK adding stuff here
+      noteEditorShow: false,
+      noteEditorNotes: '',
+      noteEditorLangCode: ''
     }
   },
   /* eslint-enable no-multi-spaces */
@@ -866,6 +873,29 @@ export default {
         this.$q.notify({ type: 'negative', message: this.$t('Server offline or parameter save failed') + ': ' + this.parameterName })
       }
       this.saveWait = false
+    },
+
+    // WOJTEK adding stuff here
+
+    onEditParamNote () {
+      this.noteEditorNotes = Mdf.noteOfTxt(this.paramRunSet)
+      this.noteEditorLangCode = this.uiLang || this.$q.lang.getLocale() || ''
+      this.noteEditorShow = true
+    },
+    // TODO: ask user to confirm cancel if notes changed
+    onEditCancelParamNote () {
+      this.noteEditorShow = false
+    },
+
+    onEditSaveParamNote () {
+      const udn = this.$refs['param-note-editor'].getDescrNote()
+      this.doSaveParamNote(this.paramRunSet, this.noteEditorLangCode, udn.note)
+      this.noteEditorShow = false
+    },
+
+    // save parameter value notes for model run or workset parameter
+    async doSaveParamNote (prs, langCode, note) {
+      // TODO: send to oms using axios.PATCH
     },
 
     ...mapActions('uiState', {
