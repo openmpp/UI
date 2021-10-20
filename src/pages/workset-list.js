@@ -303,13 +303,10 @@ export default {
       return td
     },
 
-    // toggle: create new workset or cancel new workset editing
-    onCreateNewOrCancel () {
-      if (!this.isNewWorksetShow) {
-        this.onNewWorkset()
-      } else {
-        this.onCancelNewWorkset()
-      }
+    // create new workset
+    onCreateNewWorkset () {
+      this.resetNewWorkset()
+      this.isNewWorksetShow = true
     },
     // clean new workset info
     resetNewWorkset () {
@@ -322,11 +319,6 @@ export default {
         t.Note = ''
       }
       this.newDescrNotes = []
-    },
-    // create new workset
-    onNewWorkset () {
-      this.resetNewWorkset()
-      this.isNewWorksetShow = true
     },
     // discard new workset
     onCancelNewWorkset () {

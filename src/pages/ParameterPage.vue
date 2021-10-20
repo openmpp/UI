@@ -81,42 +81,38 @@
         />
     </template>
 
-    <!-- WOJTEK working here -->
-
     <q-separator vertical inset spaced="sm" color="secondary" />
 
     <q-btn
       v-if="!noteEditorShow"
       @click="onEditParamNote()"
+      :disable="!isFromRun && !edt.isEnabled"
       flat
       dense
       class="col-auto bg-primary text-white rounded-borders q-mr-xs"
       icon="mdi-file-document-edit-outline"
-      :title="$t('Edit notes for parameter') + ' ' + parameterName"
+      :title="$t('Edit notes for') + ' ' + parameterName"
       />
-
     <q-btn
       v-if="noteEditorShow"
-      @click="onEditCancelParamNote()"
+      @click="onCancelParamNote()"
       flat
       dense
       class="col-auto bg-primary text-white rounded-borders q-mr-xs"
       icon="cancel"
-      :title="$t('Discard changes to notes for parameter') + ' ' + parameterName"
+      :title="$t('Discard changes to notes for') + ' ' + parameterName"
       />
     <q-btn
-      @click="onEditSaveParamNote()"
-      :disable="!noteEditorShow"
+      @click="onSaveParamNote()"
+      :disable="!noteEditorShow || (!isFromRun && !edt.isEnabled)"
       flat
       dense
       class="col-auto bg-primary text-white rounded-borders q-mr-xs"
       icon="mdi-content-save-edit"
-      :title="$t('Save notes for parameter') + ' ' + parameterName"
+      :title="$t('Save notes for') + ' ' + parameterName"
       />
 
     <q-separator vertical inset spaced="sm" color="secondary" />
-
-    <!-- WOJTEK stopped working here -->
 
     <q-btn
       @click="onCopyToClipboard"
@@ -222,8 +218,6 @@
   </div>
   <!-- end of parameter header -->
 
-  <!-- WOJTEK working here -->
-
   <div class="q-mx-sm q-mb-sm">
 
   <markdown-editor
@@ -240,8 +234,6 @@
   </markdown-editor>
 
   </div>
-
-  <!-- WOJTEK stopped working here -->
 
   <!-- pivot table controls and view -->
   <div class="q-mx-sm">
@@ -456,6 +448,25 @@
   </div>
   <!-- end of pivot table controls and view -->
 
+  <refresh-run v-if="(digest || '') !== '' && (runDigest || '') !== ''"
+    :model-digest="digest"
+    :run-digest="runDigest"
+    :refresh-tickle="refreshTickle"
+    :refresh-run-tickle="refreshRunTickle"
+    @done="loadRunWait = false"
+    @wait="loadRunWait = true"
+    >
+  </refresh-run>
+  <refresh-workset v-if="(digest || '') !== '' && (worksetName || '') !== ''"
+    :model-digest="digest"
+    :workset-name="worksetName"
+    :refresh-tickle="refreshTickle"
+    :refresh-workset-tickle="refreshWsTickle"
+    @done="loadWsWait = false"
+    @wait="loadWsWait = true"
+    >
+  </refresh-workset>
+
   <run-info-dialog v-if="isFromRun" :show-tickle="runInfoTickle" :model-digest="digest" :run-digest="runDigest"></run-info-dialog>
   <workset-info-dialog v-if="!isFromRun" :show-tickle="worksetInfoTickle" :model-digest="digest" :workset-name="worksetName"></workset-info-dialog>
   <parameter-info-dialog v-if="isFromRun" :show-tickle="paramInfoTickle" :param-name="parameterName" :run-digest="runDigest"></parameter-info-dialog>
@@ -466,8 +477,14 @@
     :dialog-title="$t('Discard all changes') + '?'"
     >
   </edit-discard-dialog>
+  <edit-discard-dialog
+    @discard-changes-yes="onYesDiscardParamNote"
+    :show-tickle="showDiscardParamNoteTickle"
+    :dialog-title="$t('Discard changes to notes for') + ' ' + parameterName + '?'"
+    >
+  </edit-discard-dialog>
 
-  <q-inner-loading :showing="loadWait">
+  <q-inner-loading :showing="loadWait || loadRunWait || loadWsWait">
     <q-spinner-gears size="md" color="primary" />
   </q-inner-loading>
 

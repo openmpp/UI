@@ -327,7 +327,7 @@ export default {
         }]
       }
       try {
-        // send download request to the server, response expected to be empty on success
+        // send run description and notes, response expected to be empty on success
         await this.$axios.patch(u, rt)
         isOk = true
       } catch (e) {
@@ -343,7 +343,7 @@ export default {
       }
 
       this.$emit('run-select', dgst)
-      this.$q.notify({ type: 'info', message: this.$t('Model run description and notes saved, language: ' + langCode) })
+      this.$q.notify({ type: 'info', message: this.$t('Model run description and notes saved') + '. ' + this.$t('Language') + ': ' + langCode })
     }
   },
 

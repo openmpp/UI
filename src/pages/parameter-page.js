@@ -3,6 +3,8 @@ import * as Mdf from 'src/model-common'
 import * as Idb from 'src/idb/idb'
 import RunBar from 'components/RunBar.vue'
 import WorksetBar from 'components/WorksetBar.vue'
+import RefreshRun from 'components/RefreshRun.vue'
+import RefreshWorkset from 'components/RefreshWorkset.vue'
 import RunInfoDialog from 'components/RunInfoDialog.vue'
 import WorksetInfoDialog from 'components/WorksetInfoDialog.vue'
 import ParameterInfoDialog from 'components/ParameterInfoDialog.vue'
@@ -11,14 +13,25 @@ import draggable from 'vuedraggable'
 import * as Pcvt from 'components/pivot-cvt'
 import * as Puih from './pivot-ui-helper'
 import PvTable from 'components/PvTable'
-// WOJTEK adding things here
 import MarkdownEditor from 'components/MarkdownEditor.vue'
 
 const SUB_ID_DIM = 'SubId' // sub-value id dminesion name
 
 export default {
   name: 'ParameterPage',
-  components: { draggable, PvTable, RunBar, WorksetBar, RunInfoDialog, WorksetInfoDialog, ParameterInfoDialog, EditDiscardDialog, MarkdownEditor },
+  components: {
+    draggable,
+    PvTable,
+    RunBar,
+    WorksetBar,
+    RefreshRun,
+    RefreshWorkset,
+    RunInfoDialog,
+    WorksetInfoDialog,
+    ParameterInfoDialog,
+    EditDiscardDialog,
+    MarkdownEditor
+  },
 
   props: {
     digest: { type: String, default: '' },
@@ -64,15 +77,18 @@ export default {
       pvKeyPos: [],           // position of each dimension item in cell key
       edt: Pcvt.emptyEdit(),  // editor options and state shared with child
       isDragging: false,      // if true then user is dragging dimension select control
+      loadRunWait: false,
+      refreshRunTickle: false,
+      loadWsWait: false,
+      refreshWsTickle: false,
       showEditDiscardTickle: false,
       runInfoTickle: false,
       worksetInfoTickle: false,
       paramInfoTickle: false,
-
-      // WOJTEK adding stuff here
       noteEditorShow: false,
       noteEditorNotes: '',
-      noteEditorLangCode: ''
+      noteEditorLangCode: '',
+      showDiscardParamNoteTickle: false
     }
   },
   /* eslint-enable no-multi-spaces */
@@ -777,6 +793,37 @@ export default {
       return { isFound: true, src: wsSrc }
     },
 
+    // edit parameter value notes
+    onEditParamNote () {
+      this.noteEditorNotes = Mdf.noteOfTxt(this.paramRunSet)
+      this.noteEditorLangCode = this.uiLang || this.$q.lang.getLocale() || ''
+      this.noteEditorShow = true
+    },
+    // TODO: ask user to confirm cancel if notes changed
+    onCancelParamNote () {
+      const udn = this.$refs['param-note-editor'].getDescrNote()
+      if (udn.isUpdated) { // redirect to dialog to confirm "discard changes?"
+        this.showDiscardParamNoteTickle = !this.showDiscardParamNoteTickle
+        return
+      }
+      // else: close notes editor (no changes in data)
+      this.noteEditorShow = false
+    },
+    // on user selecting "Yes" from "discard changes?" pop-up alert
+    onYesDiscardParamNote () {
+      this.noteEditorShow = false
+    },
+    // save parameter value notes
+    onSaveParamNote () {
+      const udn = this.$refs['param-note-editor'].getDescrNote()
+      if (this.isFromRun) {
+        this.doSaveRunParameterNote(this.noteEditorLangCode, udn.note)
+      } else {
+        this.doSaveSetParameterNote(this.noteEditorLangCode, udn.note)
+      }
+      this.noteEditorShow = false
+    },
+
     // get page of parameter data from current model run or workset
     async doRefreshDataPage () {
       const r = this.initParamRunSet()
@@ -875,27 +922,86 @@ export default {
       this.saveWait = false
     },
 
-    // WOJTEK adding stuff here
+    // save run parameter value notes
+    async doSaveRunParameterNote (langCode, note) {
+      let isOk = false
+      let msg = ''
+      const dgst = this.runDigest
 
-    onEditParamNote () {
-      this.noteEditorNotes = Mdf.noteOfTxt(this.paramRunSet)
-      this.noteEditorLangCode = this.uiLang || this.$q.lang.getLocale() || ''
-      this.noteEditorShow = true
-    },
-    // TODO: ask user to confirm cancel if notes changed
-    onEditCancelParamNote () {
-      this.noteEditorShow = false
+      // validate language code: it cannot be empty
+      if (!langCode) {
+        this.$q.notify({ type: 'negative', message: this.$t('Unable to save parameter value notes, language is unknown') })
+        return
+      }
+      this.loadWait = true
+
+      const u = this.omsUrl + '/api/model/' + this.digest + '/run/' + dgst + '/parameter-text'
+      const pt = [{
+        Name: this.parameterName,
+        Txt: [{
+          LangCode: langCode,
+          Note: note || ''
+        }]
+      }]
+      try {
+        // send parameter value notes to the server, ignore response on success
+        await this.$axios.patch(u, pt)
+        isOk = true
+      } catch (e) {
+        try {
+          if (e.response) msg = e.response.data || ''
+        } finally {}
+        console.warn('Unable to save run parameter value notes', msg)
+      }
+      this.loadWait = false
+      if (!isOk) {
+        this.$q.notify({ type: 'negative', message: this.$t('Unable to save parameter value notes') + (msg ? (': ' + msg) : '') })
+        return
+      }
+
+      this.$q.notify({ type: 'info', message: this.$t('Parameter value notes saved') + ': ' + this.parameterName })
+      this.refreshRunTickle = !this.refreshRunTickle
     },
 
-    onEditSaveParamNote () {
-      const udn = this.$refs['param-note-editor'].getDescrNote()
-      this.doSaveParamNote(this.paramRunSet, this.noteEditorLangCode, udn.note)
-      this.noteEditorShow = false
-    },
+    // save workset parameter value notes
+    async doSaveSetParameterNote (langCode, note) {
+      let isOk = false
+      let msg = ''
+      const wsName = this.worksetName
 
-    // save parameter value notes for model run or workset parameter
-    async doSaveParamNote (prs, langCode, note) {
-      // TODO: send to oms using axios.PATCH
+      // validate language code: it cannot be empty
+      if (!langCode) {
+        this.$q.notify({ type: 'negative', message: this.$t('Unable to save parameter value notes, language is unknown') })
+        return
+      }
+      this.loadWait = true
+
+      const u = this.omsUrl + '/api/model/' + this.digest + '/workset/' + wsName + '/parameter-text'
+      const pt = [{
+        Name: this.parameterName,
+        Txt: [{
+          LangCode: langCode,
+          Note: note || ''
+        }]
+      }]
+      try {
+        // send parameter value notes to the server, ignore response on success
+        await this.$axios.patch(u, pt)
+        isOk = true
+      } catch (e) {
+        try {
+          if (e.response) msg = e.response.data || ''
+        } finally {}
+        console.warn('Unable to save workset parameter value notes', msg)
+      }
+      this.loadWait = false
+      if (!isOk) {
+        this.$q.notify({ type: 'negative', message: this.$t('Unable to save parameter value notes') + (msg ? (': ' + msg) : '') })
+        return
+      }
+
+      this.$q.notify({ type: 'info', message: this.$t('Parameter value notes saved') + ': ' + this.parameterName })
+      this.refreshWsTickle = !this.refreshWsTickle
     },
 
     ...mapActions('uiState', {

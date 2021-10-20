@@ -8,12 +8,22 @@
       >
 
       <q-btn
-        @click="onCreateNewOrCancel"
+        v-if="!isNewWorksetShow"
+        @click="onCreateNewWorkset"
         flat
         dense
         class="col-auto bg-primary text-white rounded-borders q-ml-sm"
-        :icon="!isNewWorksetShow ? 'mdi-folder-plus' : 'cancel'"
-        :title="!isNewWorksetShow ? $t('New input scenario') : (nameOfNewWorkset ? $t('Discard changes of') + ' ' + (nameOfNewWorkset || '') : $t('Discard changes and stop editing'))"
+        icon="mdi-folder-plus"
+        :title="$t('Create new input scenario')"
+       />
+      <q-btn
+        v-else
+        @click="onCancelNewWorkset"
+        flat
+        dense
+        class="col-auto bg-primary text-white rounded-borders q-ml-sm"
+        icon="cancel"
+        :title="nameOfNewWorkset ? $t('Discard changes of') + ' ' + (nameOfNewWorkset || '') : $t('Discard changes and stop editing')"
        />
       <q-separator vertical inset spaced="sm" color="secondary" />
 
