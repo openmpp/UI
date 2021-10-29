@@ -51,12 +51,17 @@ export const modelList = (state, ml) => {
 // update run text
 export const runText = (state, rt) => {
   if (!Mdf.isRunText(rt)) return
-  if (!Mdf.isNotEmptyRunText(rt) || !Mdf.isLength(state.runTextList)) return
+  if (!Mdf.isNotEmptyRunText(rt)) return
 
   const k = state.runTextList.findIndex((r) => rt.ModelDigest === r.ModelDigest && rt.RunDigest === r.RunDigest)
   if (k >= 0) {
     state.runTextList[k] = Mdf._cloneDeep(rt)
     state.runTextListUpdated++
+  } else {
+    if (state.theModel.Model.Digest === rt.ModelDigest) {
+      state.runTextList.unshift(Mdf._cloneDeep(rt)) // run text stored in reverse chronological order
+      state.runTextListUpdated++
+    }
   }
 }
 
@@ -133,6 +138,11 @@ export const worksetText = (state, wt) => {
   if (k >= 0) {
     state.worksetTextList[k] = Mdf._cloneDeep(wt)
     state.worksetTextListUpdated++
+  } else {
+    if (state.theModel.Model.Digest === wt.ModelDigest) {
+      state.worksetTextList.push(Mdf._cloneDeep(wt))
+      state.worksetTextListUpdated++
+    }
   }
 }
 

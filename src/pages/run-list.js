@@ -155,7 +155,7 @@ export default {
     },
 
     // show yes/no dialog to confirm run delete
-    onShowRunDelete (runName, dgst) {
+    onRunDelete (runName, dgst) {
       this.runNameToDelete = runName
       this.runDigestToDelete = dgst
       this.showDeleteDialogTickle = !this.showDeleteDialogTickle
@@ -166,7 +166,7 @@ export default {
     },
 
     // click on run download: start run download and show download list page
-    doDownloadRun (dgst) {
+    onDownloadRun (dgst) {
       // if run digest is empty or run not completed successfully then do not show download page
       if (!dgst || !Mdf.isRunSuccess(
         this.runTextByDigest({ ModelDigest: this.digest, RunDigest: dgst })
@@ -184,16 +184,16 @@ export default {
       this.isTableTreeShow = false
     },
     // click on parameter: open current run parameter values tab
-    onParamLeafClick (key, name) {
+    onRunParamClick (name) {
       this.$emit('run-parameter-select', name)
     },
     // show run parameter notes dialog
-    doShowParamNote (key, name) {
+    doShowParamNote (name) {
       this.paramInfoName = name
       this.paramInfoTickle = !this.paramInfoTickle
     },
     // show group notes dialog
-    doShowGroupNote (key, name) {
+    doShowGroupNote (name) {
       this.groupInfoName = name
       this.groupInfoTickle = !this.groupInfoTickle
     },
@@ -204,11 +204,11 @@ export default {
       this.isParamTreeShow = false
     },
     // click on output table: open current run output table values tab
-    onTableLeafClick (key, name) {
+    onTableLeafClick (name) {
       this.$emit('table-select', name)
     },
     // show run output table notes dialog
-    doShowTableNote (key, name) {
+    doShowTableNote (name) {
       this.tableInfoName = name
       this.tableInfoTickle = !this.tableInfoTickle
     },

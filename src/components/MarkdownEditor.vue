@@ -84,8 +84,6 @@ export default {
     theNote: { type: String, default: '' },
     notePrompt: { type: String, default: '' },
     notesEditable: { type: Boolean, default: false },
-    saveNoteEdit: { type: String, default: 'save-note-edit' },
-    cancelNoteEdit: { type: String, default: 'cancel-note-edit' },
     isHideSave: { type: Boolean, default: false },
     isHideCancel: { type: Boolean, default: false },
     langCode: { type: String, default: 'EN' } // MDE default spellchecker support only English US
@@ -107,7 +105,7 @@ export default {
   methods: {
     // cleanup description input
     onDescrBlur (e) {
-      this.descrEdit = Mdf.cleanTextInput(this.descrEdit)
+      this.descrEdit = Mdf.cleanTextInput(this.descrEdit || '')
     },
 
     // send description and notes to the parent
@@ -116,7 +114,7 @@ export default {
         this.noteEdit = sanitizeHtml(this.theEasyMde.value() || '') // remove unsafe html tags
       }
       this.$emit(
-        this.saveNoteEdit,
+        'save-note',
         this.descriptionEditable ? this.descrEdit : this.theDescr,
         this.notesEditable ? this.noteEdit : this.theNote,
         this.isUpdated(),
@@ -153,7 +151,7 @@ export default {
     },
     // notify parent: user answer is "Yes" to "Cancel Editing" pop-up alert
     onYesDiscardChanges () {
-      this.$emit(this.cancelNoteEdit)
+      this.$emit('cancel-note')
     }
   },
 

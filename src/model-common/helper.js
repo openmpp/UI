@@ -114,7 +114,7 @@ export const fileSizeParts = (size) => {
 
 // clean string input: replace special characters "'`$}{@\ with space and trim
 export const cleanTextInput = (sValue) => {
-  if (sValue === '' || sValue === void 0) return ''
+  if (typeof sValue !== typeof 'string' || sValue === '' || sValue === void 0) return ''
   const s = sValue.replace(/["'`$}{@\\]/g, '\xa0').trim()
   return s || ''
 }

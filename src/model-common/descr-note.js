@@ -26,13 +26,13 @@ export const isNoteOfDescrNote = (tdn) => {
 // description if object has Txt[0] description-notes
 export const descrOfTxt = (tdn) => {
   if (!tdn) return ''
-  return Hlpr.isLength(tdn.Txt) ? (tdn.Txt[0].Descr || '') : ''
+  return Hlpr.isLength(tdn?.Txt) ? (tdn.Txt[0].Descr || '') : ''
 }
 
 // notes if object has Txt[0] description-notes
 export const noteOfTxt = (tdn) => {
   if (!tdn) return ''
-  return Hlpr.isLength(tdn.Txt) ? (tdn.Txt[0].Note || '') : ''
+  return Hlpr.isLength(tdn?.Txt) ? (tdn.Txt[0].Note || '') : ''
 }
 
 // return true if notes of Txt[0] not empty

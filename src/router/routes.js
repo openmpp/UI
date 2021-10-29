@@ -5,7 +5,7 @@ const routes = [
     children: [
       { path: '', component: () => import('pages/ModelList') },
       {
-        path: '/model/:digest',
+        path: 'model/:digest',
         component: () => import('pages/ModelPage'),
         props: true,
         children: [
@@ -17,6 +17,16 @@ const routes = [
           {
             path: 'set-list',
             component: () => import('pages/WorksetList'),
+            props: true
+          },
+          {
+            path: 'set-edit/:worksetName',
+            component: () => import('pages/WorksetEdit'),
+            props: true
+          },
+          {
+            path: 'set-create',
+            component: () => import('pages/WorksetNew'),
             props: true
           },
           {
@@ -52,12 +62,12 @@ const routes = [
         ]
       },
       {
-        path: '/download-list/model/:digest',
+        path: 'download-list/model/:digest',
         component: () => import('pages/DownloadList'),
         props: true
       },
-      { path: '/settings', component: () => import('pages/SessionSettings') },
-      { path: '/license', component: () => import('pages/LicensePage') }
+      { path: 'settings', component: () => import('pages/SessionSettings') },
+      { path: 'license', component: () => import('pages/LicensePage') }
     ]
   },
   // Always leave this as last one, but you can also remove it

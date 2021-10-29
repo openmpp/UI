@@ -34,9 +34,9 @@ export default {
     // delete workset by model digest and workset name
     async doDelete () {
       if (!this.modelDigest || !this.worksetName) {
-        console.warn('Unable to delete model input: model digest or input name is empty')
+        console.warn('Unable to delete input scenario: model digest or scenario name is empty')
         this.$emit('done', false, this.modelDigest, this.worksetName)
-        this.$q.notify({ type: 'negative', message: this.$t('Unable to delete model input: model digest or input name is empty') })
+        this.$q.notify({ type: 'negative', message: this.$t('Unable to delete input scenario: model digest or scenario name is empty') })
         return
       }
 

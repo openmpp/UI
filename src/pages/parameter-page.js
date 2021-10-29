@@ -148,8 +148,8 @@ export default {
       this.$emit('new-run-select')
     },
     // on button click "toggle workset readonly status": pass event from child up to the next level
-    onWorksetEditToggle (isReadonly) {
-      this.$emit('set-update-readonly', isReadonly)
+    onWorksetReadonlyToggle (dgst, name, isReadonly) {
+      this.$emit('set-update-readonly', dgst, name, isReadonly)
     },
 
     // workset updated: check read-only status and adjust controls

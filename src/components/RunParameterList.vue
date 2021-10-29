@@ -11,7 +11,9 @@
     :is-add="isAdd"
     :is-add-group="isAddGroup"
     :is-add-disabled="isAddDisabled"
-    :add-icon="addIcon"
+    :is-remove="isRemove"
+    :is-remove-group="isRemoveGroup"
+    :is-remove-disabled="isRemoveDisabled"
     :filter-placeholder="$t('Find parameter...')"
     :no-results-label="$t('No model parameters found')"
     :no-nodes-label="$t('Server offline or no model parameters found')"
@@ -19,6 +21,8 @@
     @om-table-tree-leaf-select="onParamLeafClick"
     @om-table-tree-leaf-add="onAddClick"
     @om-table-tree-group-add="onGroupAddClick"
+    @om-table-tree-leaf-remove="onRemoveClick"
+    @om-table-tree-group-remove="onGroupRemoveClick"
     @om-table-tree-leaf-note="onShowParamNote"
     @om-table-tree-group-note="onShowGroupNote"
     >
@@ -37,11 +41,14 @@ export default {
   components: { OmTableTree },
 
   props: {
+    runDigest: { type: String, required: true },
     refreshTickle: { type: Boolean, default: false },
     isAdd: { type: Boolean, default: false },
     isAddGroup: { type: Boolean, default: false },
     isAddDisabled: { type: Boolean, default: false },
-    addIcon: { type: String, default: 'mdi-content-copy' }
+    isRemove: { type: Boolean, default: false },
+    isRemoveGroup: { type: Boolean, default: false },
+    isRemoveDisabled: { type: Boolean, default: false }
   },
 
   data () {
@@ -59,16 +66,13 @@ export default {
     ...mapState('model', {
       theModel: state => state.theModel,
       theModelUpdated: state => state.theModelUpdated
-    }),
-    ...mapState('uiState', {
-      runDigestSelected: state => state.runDigestSelected
     })
   },
 
   watch: {
-    refreshTickle  () { this.doRefresh() },
-    theModelUpdated () { this.doRefresh() },
-    runDigestSelected () { this.doRefresh() }
+    runDigest () { this.doRefresh() },
+    refreshTickle () { this.doRefresh() },
+    theModelUpdated () { this.doRefresh() }
   },
 
   methods: {
@@ -86,24 +90,32 @@ export default {
       this.doRefresh()
     },
     // click on parameter: open current run parameter values tab
-    onParamLeafClick (key, name) {
-      this.$emit('run-parameter-select', key, name)
+    onParamLeafClick (name) {
+      this.$emit('run-parameter-select', name)
     },
     // click on add parameter: add parameter from current run
-    onAddClick (key) {
-      this.$emit('run-parameter-add', key)
+    onAddClick (name) {
+      this.$emit('run-parameter-add', name)
     },
     // click on add group: add group from current run
-    onGroupAddClick (key) {
-      this.$emit('run-parameter-group-add', key)
+    onGroupAddClick (name) {
+      this.$emit('run-parameter-group-add', name)
+    },
+    // click on remove parameter: remove parameter from current run
+    onRemoveClick (name) {
+      this.$emit('run-parameter-remove', name)
+    },
+    // click on remove group: remove group from current run
+    onGroupRemoveClick (name) {
+      this.$emit('run-parameter-group-remove', name)
     },
     // click on show parameter notes dialog button
-    onShowParamNote (key, name) {
-      this.$emit('run-parameter-info-show', key, name)
+    onShowParamNote (name) {
+      this.$emit('run-parameter-info-show', name)
     },
     // click on show group notes dialog button
-    onShowGroupNote (key, name) {
-      this.$emit('run-parameter-group-info-show', key, name)
+    onShowGroupNote (name) {
+      this.$emit('run-parameter-group-info-show', name)
     },
 
     // return tree of model parameters

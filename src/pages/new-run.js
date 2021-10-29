@@ -207,7 +207,7 @@ export default {
     // if use base run un-checked then user must supply full set of input parameters
     onUseBaseRunClick () {
       if (!this.useBaseRun && !this.runOpts.csvDir && this.isUseCurrentAsBaseRun()) {
-        this.$q.notify({ type: 'warning', message: this.$t('Model Input should include all parameters otherwise model run may fail') })
+        this.$q.notify({ type: 'warning', message: this.$t('Input scenario should include all parameters otherwise model run may fail') })
       }
     },
 

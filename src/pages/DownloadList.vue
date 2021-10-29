@@ -69,7 +69,7 @@
           />
         <q-btn
           v-if="!isDeleteKind(dl.Kind) && !isProgress(dl.Status)"
-          @click="onShowDeleteClick(dl.Folder)"
+          @click="onDeleteClick(dl.Folder)"
           flat
           dense
           class="col-auto bg-primary text-white rounded-borders q-mr-xs"

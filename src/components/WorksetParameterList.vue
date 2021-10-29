@@ -11,7 +11,9 @@
     :is-add="isAdd"
     :is-add-group="isAddGroup"
     :is-add-disabled="isAddDisabled"
-    :add-icon="addIcon"
+    :is-remove="isRemove"
+    :is-remove-group="isRemoveGroup"
+    :is-remove-disabled="isRemoveDisabled"
     :filter-placeholder="$t('Find parameter...')"
     :no-results-label="$t('No model parameters found')"
     :no-nodes-label="$t('Server offline or no model parameters found')"
@@ -19,6 +21,8 @@
     @om-table-tree-leaf-select="onParamLeafClick"
     @om-table-tree-leaf-add="onAddClick"
     @om-table-tree-group-add="onGroupAddClick"
+    @om-table-tree-leaf-remove="onRemoveClick"
+    @om-table-tree-group-remove="onGroupRemoveClick"
     @om-table-tree-leaf-note="onShowParamNote"
     @om-table-tree-group-note="onShowGroupNote"
     >
@@ -37,11 +41,14 @@ export default {
   components: { OmTableTree },
 
   props: {
+    worksetName: { type: String, required: true },
     refreshTickle: { type: Boolean, default: false },
     isAdd: { type: Boolean, default: false },
     isAddGroup: { type: Boolean, default: false },
     isAddDisabled: { type: Boolean, default: false },
-    addIcon: { type: String, default: 'mdi-content-copy' }
+    isRemove: { type: Boolean, default: false },
+    isRemoveGroup: { type: Boolean, default: false },
+    isRemoveDisabled: { type: Boolean, default: false }
   },
 
   data () {
@@ -63,17 +70,11 @@ export default {
     }),
     ...mapGetters('model', {
       worksetTextByName: 'worksetTextByName'
-    }),
-    ...mapState('uiState', {
-      worksetNameSelected: state => state.worksetNameSelected
     })
   },
 
   watch: {
-    worksetNameSelected () {
-      this.worksetCurrent = this.worksetTextByName({ ModelDigest: Mdf.modelDigest(this.theModel), Name: this.worksetNameSelected })
-      this.doRefresh()
-    },
+    worksetName () { this.doRefresh() },
     refreshTickle  () { this.doRefresh() },
     theModelUpdated () { this.doRefresh() }
   },
@@ -81,6 +82,7 @@ export default {
   methods: {
     // update parameters tree data and refresh tree view
     doRefresh () {
+      this.worksetCurrent = this.worksetTextByName({ ModelDigest: Mdf.modelDigest(this.theModel), Name: this.worksetName })
       const td = this.makeParamTreeData()
       this.paramTreeData = td.tree
       this.refreshParamTreeTickle = !this.refreshParamTreeTickle
@@ -93,24 +95,32 @@ export default {
       this.doRefresh()
     },
     // click on parameter: open current workset parameter values tab
-    onParamLeafClick (key, name) {
-      this.$emit('set-parameter-select', key, name)
+    onParamLeafClick (name) {
+      this.$emit('set-parameter-select', name)
     },
     // click on add parameter: add current workset parameter
-    onAddClick (key) {
-      this.$emit('set-parameter-add', key)
+    onAddClick (name) {
+      this.$emit('set-parameter-add', name)
     },
     // click on add group: add group from current workset
-    onGroupAddClick (key) {
-      this.$emit('set-parameter-group-add', key)
+    onGroupAddClick (name) {
+      this.$emit('set-parameter-group-add', name)
+    },
+    // click on remove parameter: remove current workset parameter
+    onRemoveClick (name) {
+      this.$emit('set-parameter-remove', name)
+    },
+    // click on remove group: remove group from current workset
+    onGroupRemoveClick (name) {
+      this.$emit('set-parameter-group-remove', name)
     },
     // click on show parameter notes dialog button
-    onShowParamNote (key, name) {
-      this.$emit('set-parameter-info-show', key, name)
+    onShowParamNote (name) {
+      this.$emit('set-parameter-info-show', name)
     },
     // click on show group notes dialog button
-    onShowGroupNote (key, name) {
-      this.$emit('set-parameter-group-info-show', key, name)
+    onShowGroupNote (name) {
+      this.$emit('set-parameter-group-info-show', name)
     },
 
     // return tree of model parameters
@@ -302,7 +312,7 @@ export default {
   },
 
   mounted () {
-    this.worksetCurrent = this.worksetTextByName({ ModelDigest: Mdf.modelDigest(this.theModel), Name: this.worksetNameSelected })
+    this.worksetCurrent = this.worksetTextByName({ ModelDigest: Mdf.modelDigest(this.theModel), Name: this.worksetName })
     this.doRefresh()
   }
 }

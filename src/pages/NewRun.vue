@@ -162,7 +162,6 @@
       <markdown-editor
         v-for="t in txtNewRun"
         :key="t.LangCode"
-        class="q-px-none q-py-xs"
         :ref="'new-run-note-editor-' + t.LangCode"
         :the-key="t.LangCode"
         :the-descr="t.Descr"
@@ -173,6 +172,7 @@
         :notes-editable="true"
         :is-hide-save="true"
         :is-hide-cancel="true"
+        class="q-px-sm q-py-xs"
       >
       </markdown-editor>
 

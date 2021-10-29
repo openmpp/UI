@@ -8,22 +8,12 @@
       >
 
       <q-btn
-        v-if="!isNewWorksetShow"
         @click="onCreateNewWorkset"
         flat
         dense
         class="col-auto bg-primary text-white rounded-borders q-ml-sm"
-        icon="mdi-folder-plus"
+        icon="mdi-notebook-plus"
         :title="$t('Create new input scenario')"
-       />
-      <q-btn
-        v-else
-        @click="onCancelNewWorkset"
-        flat
-        dense
-        class="col-auto bg-primary text-white rounded-borders q-ml-sm"
-        icon="cancel"
-        :title="nameOfNewWorkset ? $t('Discard changes of') + ' ' + (nameOfNewWorkset || '') : $t('Discard changes and stop editing')"
        />
       <q-separator vertical inset spaced="sm" color="secondary" />
 
@@ -61,12 +51,13 @@
         :title="$t('Run the Model')"
         />
       <q-btn
-        @click="onWorksetEditToggle"
+        @click="onWorksetReadonlyToggle"
+        :disable="!isNotEmptyWorksetCurrent"
         flat
         dense
         class="col-auto bg-primary text-white rounded-borders q-mr-xs"
-        :icon="!isReadonlyWorksetCurrent ? 'mdi-content-save-edit' : 'mdi-folder-edit'"
-        :title="(!isReadonlyWorksetCurrent ? $t('Save') : $t('Edit')) + ' ' + worksetNameSelected"
+        :icon="(!isNotEmptyWorksetCurrent || isReadonlyWorksetCurrent) ? 'mdi-lock' : 'mdi-lock-open-variant'"
+        :title="((!isNotEmptyWorksetCurrent || isReadonlyWorksetCurrent) ? $t('Open for read and write') : $t('Close and only read')) + ' ' + worksetCurrent.Name"
         />
 
       <transition
@@ -87,14 +78,9 @@
     <q-card-section v-show="isParamTreeShow" class="q-px-sm q-pt-none">
 
       <workset-parameter-list
+        :workset-name="worksetNameSelected"
         :refresh-tickle="refreshTickle"
-        :is-add="isNewWorksetShow"
-        :is-add-group="isNewWorksetShow"
-        :is-add-disabled="!isReadonlyWorksetCurrent"
-        :add-icon="'mdi-plus-circle-outline'"
-        @set-parameter-select="onParamLeafClick"
-        @set-parameter-add="onParamWorksetCopy"
-        @set-parameter-group-add="onParamGroupWorksetCopy"
+        @set-parameter-select="onWorksetParamClick"
         @set-parameter-info-show="doShowParamNote"
         @set-parameter-group-info-show="doShowGroupNote"
         @set-parameter-tree-updated="onParamTreeUpdated"
@@ -102,208 +88,6 @@
       </workset-parameter-list>
 
     </q-card-section>
-
-  </q-card>
-
-  <q-card v-if="isNewWorksetShow" class="q-ma-sm">
-
-    <q-card-section class="q-pa-sm">
-      <table>
-
-        <tr>
-          <td>
-            <q-btn
-              @click="onSaveNewWorkset"
-              :disable="isEmptyNameOfNewWorkset || loadWorksetCreate"
-              flat
-              dense
-              class="bg-primary text-white rounded-borders q-mr-xs"
-              icon="mdi-content-save-edit"
-              :title="$t('Save') + ' ' + (nameOfNewWorkset || '')"
-              />
-          </td>
-          <td class="q-pr-xs">
-            <span class="text-negative text-weight-bold">* </span><span class="q-pr-sm">{{ $t('Name') }} :</span>
-          </td>
-          <td>
-            <q-input
-              debounce="500"
-              v-model="nameOfNewWorkset"
-              maxlength="255"
-              size="80"
-              required
-              @focus="onNewNameFocus"
-              @blur="onNewNameBlur"
-              :rules="[ val => (val || '') !== '' ]"
-              outlined
-              dense
-              clearable
-              hide-bottom-space
-              :placeholder="$t('Name of the new input scenario') + ' (* ' + $t('Required') + ')'"
-              :title="$t('Name of the new input scenario')"
-              >
-            </q-input>
-          </td>
-        </tr>
-
-        <tr>
-          <td
-            :disabled="!isCompletedRunCurrent"
-            >
-            <q-checkbox
-              v-model="useBaseRun"
-              :disable="!isCompletedRunCurrent"
-              :title="$t('If checked then use Base Run to get input parameters')"
-              />
-          </td>
-          <td class="q-pr-xs">
-            <span class="q-pr-sm">{{ $t('Use Base Run') }} :</span>
-          </td>
-          <td>
-            <run-bar
-              :model-digest="digest"
-              :run-digest="runDigestSelected"
-              @run-info-click="doShowRunNote"
-              >
-            </run-bar>
-          </td>
-        </tr>
-
-      </table>
-    </q-card-section>
-
-    <q-expansion-item
-      v-if="isNotEmptyWorksetCurrent"
-      switch-toggle-side
-      header-class="bg-primary text-white q-py-none"
-      class="q-pa-sm"
-      >
-
-      <template v-slot:header>
-        <transition
-          enter-active-class="animated fadeIn"
-          leave-active-class="animated fadeOut"
-          mode="out-in"
-          >
-          <q-item :key="currentWsCopyChangeKey" class="q-pa-none">
-            <q-item-section class="col"><q-badge transparent outline class="q-py-sm">{{ paramWsCopyLst.length }}</q-badge></q-item-section>
-            <q-item-section class="col-grow">{{ $t('Copy parameter(s) from input scenario') + ': ' + worksetNameSelected }}</q-item-section>
-          </q-item>
-        </transition>
-      </template>
-
-      <q-list>
-        <q-item
-          v-for="pc of paramWsCopyLst" :key="pc.name"
-          >
-          <q-item-section avatar>
-           <q-btn
-              @click="onRemoveWsFromNewWorkset(pc.name)"
-              flat
-              round
-              dense
-              color="primary"
-              class="col-auto"
-              icon="mdi-minus-circle-outline"
-              :title="$t('Do not copy') + ': ' + pc.name"
-              />
-          </q-item-section>
-          <q-item-section>
-            <q-item-label>{{ pc.name }}</q-item-label>
-            <q-item-label class="om-text-descr">{{ pc.descr }}</q-item-label>
-          </q-item-section>
-        </q-item>
-      </q-list>
-
-    </q-expansion-item>
-
-    <q-expansion-item
-      v-if="isCompletedRunCurrent"
-      switch-toggle-side
-      header-class="bg-primary text-white q-py-none"
-      class="q-pa-sm"
-      >
-      <template v-slot:header>
-        <transition
-          enter-active-class="animated fadeIn"
-          leave-active-class="animated fadeOut"
-          mode="out-in"
-          >
-          <q-item :key="currentRunCopyChangeKey" class="q-pa-none">
-            <q-item-section class="col"><q-badge transparent outline class="q-py-sm">{{ paramRunCopyLst.length }}</q-badge></q-item-section>
-            <q-item-section class="col-grow">{{ $t('Copy parameter(s) from model run') + ': ' + runCurrent.Name }}</q-item-section>
-          </q-item>
-        </transition>
-      </template>
-
-      <q-list>
-        <q-item
-          v-for="pc of paramRunCopyLst" :key="pc.name"
-          >
-          <q-item-section avatar>
-           <q-btn
-              @click="onRemoveRunFromNewWorkset(pc.name)"
-              flat
-              round
-              dense
-              color="primary"
-              class="col-auto"
-              icon="mdi-minus-circle-outline"
-              :title="$t('Do not copy') + ': ' + pc.name"
-              />
-          </q-item-section>
-          <q-item-section>
-            <q-item-label>{{ pc.name }}</q-item-label>
-            <q-item-label class="om-text-descr">{{ pc.descr }}</q-item-label>
-          </q-item-section>
-        </q-item>
-      </q-list>
-
-      <q-card-section class="q-px-none q-pt-sm">
-
-        <run-parameter-list
-          :refresh-tickle="refreshTickle"
-          :is-add="isNewWorksetShow"
-          :is-add-group="isNewWorksetShow"
-          :add-icon="'mdi-plus-circle-outline'"
-          @run-parameter-add="onParamRunCopy"
-          @run-parameter-group-add="onParamGroupRunCopy"
-          @run-parameter-info-show="doShowParamRunNote"
-          @run-parameter-group-info-show="doShowGroupNote"
-          >
-        </run-parameter-list>
-
-      </q-card-section>
-
-    </q-expansion-item>
-
-    <q-expansion-item
-      switch-toggle-side
-      expand-separator
-      header-class="bg-primary text-white"
-      class="q-pa-sm"
-      :label="$t('Description and Notes')"
-      >
-
-      <markdown-editor
-        v-for="t in txtNewWorkset"
-        :key="t.LangCode"
-        :ref="'new-ws-note-editor-' + t.LangCode"
-        :the-key="t.LangCode"
-        :the-descr="t.DescrNewWorkset"
-        :descr-prompt="$t('Input scenario description') + ' (' + t.LangName + ')'"
-        :the-note="t.Note"
-        :note-prompt="$t('Input scenario notes') + ' (' + t.LangName + ')'"
-        :description-editable="true"
-        :notes-editable="true"
-        :is-hide-save="true"
-        :is-hide-cancel="true"
-        :lang-code="t.LangCode"
-        class="q-px-none q-py-xs"
-      >
-      </markdown-editor>
-
-    </q-expansion-item>
 
   </q-card>
 
@@ -377,7 +161,18 @@
               />
             <q-btn
               :disable="!prop.node.label || prop.node.isReadonly"
-              @click.stop="onShowWorksetDelete(prop.node.label)"
+              @click.stop="onEditWorkset(prop.node.label)"
+              flat
+              round
+              dense
+              :color="(prop.node.label && !prop.node.isReadonly) ? 'primary' : 'secondary'"
+              class="col-auto"
+              icon="mdi-notebook-edit-outline"
+              :title="$t('Edit') + ': ' + prop.node.label"
+              />
+            <q-btn
+              :disable="!prop.node.label || prop.node.isReadonly"
+              @click.stop="onDeleteWorkset(prop.node.label)"
               flat
               round
               dense
@@ -389,7 +184,7 @@
             <q-btn
               v-if="serverConfig.AllowDownload"
               :disable="!prop.node.isReadonly"
-              @click.stop="doDownloadWorkset(prop.node.label)"
+              @click.stop="onDownloadWorkset(prop.node.label)"
               flat
               round
               dense
@@ -412,48 +207,26 @@
     </div>
   </q-card>
 
-  <run-info-dialog :show-tickle="runInfoTickle" :model-digest="digest" :run-digest="runDigestSelected"></run-info-dialog>
   <workset-info-dialog :show-tickle="worksetInfoTickle" :model-digest="digest" :workset-name="worksetInfoName"></workset-info-dialog>
-  <parameter-info-dialog :show-tickle="paramRunInfoTickle" :param-name="paramInfoName" :run-digest="runDigestSelected"></parameter-info-dialog>
   <parameter-info-dialog :show-tickle="paramInfoTickle" :param-name="paramInfoName" :workset-name="worksetNameSelected"></parameter-info-dialog>
   <group-info-dialog :show-tickle="groupInfoTickle" :group-name="groupInfoName"></group-info-dialog>
   <delete-workset
     :delete-now="deleteWorksetNow"
     :model-digest="digest"
     :workset-name="worksetDeleteName"
-    @done="doneWorksetDelete"
+    @done="doneDeleteWorkset"
     @wait="loadWorksetDelete = true"
     >
   </delete-workset>
-  <create-workset
-    :create-now="createWorksetNow"
-    :model-digest="digest"
-    :new-name="nameOfNewWorkset"
-    :current-workset-name="worksetNameSelected"
-    :current-run-digest="runDigestSelected"
-    :is-based-on-run="useBaseRun || false"
-    :descr-notes="newDescrNotes"
-    :copy-from-run="paramRunCopyLst"
-    :copy-from-workset="paramWsCopyLst"
-    @done="doneWorksetCreate"
-    @wait="loadWorksetCreate = true"
-    >
-  </create-workset>
-  <edit-discard-dialog
-    @discard-changes-yes="onYesDiscardNewWorkset"
-    :show-tickle="showEditDiscardTickle"
-    :dialog-title="nameOfNewWorkset || ($t('Discard all changes') + '?')"
-    >
-  </edit-discard-dialog>
   <delete-confirm-dialog
-    @delete-yes="onYesWorksetDelete"
+    @delete-yes="onYesDeleteWorkset"
     :show-tickle="showDeleteDialogTickle"
     :item-name="worksetNameToDelete"
     :dialog-title="$t('Delete input scenario') + '?'"
     >
   </delete-confirm-dialog>
 
-  <q-inner-loading :showing="loadWait || loadWorksetDelete || loadWorksetCreate">
+  <q-inner-loading :showing="loadWait || loadWorksetDelete">
     <q-spinner-gears size="md" color="primary" />
   </q-inner-loading>
 

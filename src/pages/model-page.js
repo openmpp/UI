@@ -15,7 +15,8 @@ import UploadUserViews from 'components/UploadUserViews.vue'
 const RUN_LST_TAB_POS = 1       // model runs list tab position
 const WS_LST_TAB_POS = 4        // worksets list tab position
 const NEW_RUN_TAB_POS = 8       // new model run tab position
-const DOWNLOADS_TAB_POS = 10    // downloads list tab position
+const NEW_WS_TAB_POS = 10       // new workset tab position
+const DOWNLOADS_TAB_POS = 12    // downloads list tab position
 const FREE_TAB_POS = 20         // first unassigned tab position
 /* eslint-enable no-multi-spaces */
 
@@ -58,7 +59,8 @@ export default {
       activeTabKey: '',       // active tab path
       tabItems: [],           // tab list
       updatingWsStatus: false,
-      isWsNowReadonly: false,
+      isReadonlyWsStatus: false,
+      nameWsStatus: '',
       updateWsStatusTickle: false,
       paramEditCount: 0,      // number of edited and unsaved parameters
       pathToRouteLeave: '',   // router component leave guard: path-to leave if user confirm changes discard
@@ -298,7 +300,9 @@ export default {
       if (p) this.$router.push(p)
     },
     // update workset readonly status
-    onWorksetReadonlyUpdate (isReadonly) {
+    onWorksetReadonlyUpdate (dgst, name, isReadonly) {
+      if (dgst !== this.digest || !name) return
+
       if (isReadonly) {
         // if there are any edited and unsaved parameters for current model
         const n = this.paramViewUpdatedCount(this.digest)
@@ -312,7 +316,8 @@ export default {
         }
       }
       // else: update workset status
-      this.isWsNowReadonly = isReadonly
+      this.isReadonlyWsStatus = isReadonly
+      this.nameWsStatus = name
       this.updateWsStatusTickle = !this.updateWsStatusTickle
     },
     // on parameter updated (data dirty flag) change
@@ -329,9 +334,19 @@ export default {
       const p = this.doTabAdd('run-log', { digest: this.digest, runStamp: stamp })
       if (p) this.$router.push(p)
     },
-    // new model run using current workset name: add tab with to run the model
+    // new model run using current workset name: add tab to run the model
     onNewRunSelect () {
       const p = this.doTabAdd('new-run', { digest: this.digest })
+      if (p) this.$router.push(p)
+    },
+    // create new workset: add tab to create workset
+    onNewWorksetSelect () {
+      const p = this.doTabAdd('new-set', { digest: this.digest })
+      if (p) this.$router.push(p)
+    },
+    // edit workset: add tab to edit workset
+    onEditWorksetSelect (name) {
+      const p = this.doTabAdd('set-edit', { digest: this.digest, worksetName: name })
       if (p) this.$router.push(p)
     },
     // view download list: add tab with open download page
@@ -378,6 +393,11 @@ export default {
     onTabMounted (kind, routeParts) {
       const p = this.doTabAdd(kind, routeParts)
       if (p === this.$route.path) this.activeTabKey = p
+    },
+    // tab select: add to the tab list and make this tab active
+    onTabSelect (kind, routeParts) {
+      const p = this.doTabAdd(kind, routeParts)
+      if (p) this.$router.push(p)
     },
 
     // if tab not exist then add new tab
@@ -523,6 +543,31 @@ export default {
             path: '/model/' + this.digest + '/run-log/' + routeParts.runStamp,
             routeParts: routeParts,
             title: rn,
+            pos: FREE_TAB_POS,
+            updated: false
+          }
+        }
+
+        case 'new-set':
+          return {
+            kind: kind,
+            path: '/model/' + this.digest + '/set-create',
+            routeParts: routeParts,
+            title: this.$t('New Input Scenario'),
+            pos: NEW_WS_TAB_POS,
+            updated: false
+          }
+
+        case 'set-edit': {
+          if ((routeParts.worksetName || '') === '') {
+            console.warn('Invalid (empty) workset name:', routeParts.worksetName)
+            return emptyTabInfo()
+          }
+          return {
+            kind: kind,
+            path: '/model/' + this.digest + '/set-edit/' + routeParts.worksetName,
+            routeParts: routeParts,
+            title: routeParts.worksetName,
             pos: FREE_TAB_POS,
             updated: false
           }

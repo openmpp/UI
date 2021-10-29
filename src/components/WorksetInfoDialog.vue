@@ -16,11 +16,11 @@
         <div v-if="worksetText.BaseRunDigest" class="om-note-row">
           <span class="om-note-cell q-pr-sm">{{ $t('Based on run') }}:</span><span class="om-note-cell">{{ worksetText.BaseRunDigest }}</span>
         </div>
-        <div v-if="worksetText.IsReadonly" class="om-note-row">
-          <span class="om-note-cell q-pr-sm">{{ $t('Read only') }}</span><span class="om-note-cell"></span>
-        </div>
-        <div v-if="!worksetText.BaseRunDigest && paramCount > 0" class="om-note-row">
+        <div v-if="paramCount > 0" class="om-note-row">
           <span class="om-note-cell q-pr-sm">{{ $t('Parameters') }}:</span><span class="om-note-cell">{{ paramCount }}</span>
+        </div>
+        <div class="om-note-row">
+          <span class="om-note-cell q-pr-sm">{{ worksetText.IsReadonly ? $t('Read only') : $t('Read and write') }}</span><span class="om-note-cell"></span>
         </div>
       </div>
 

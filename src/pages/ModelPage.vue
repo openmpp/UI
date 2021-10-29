@@ -35,6 +35,8 @@
             <q-icon v-if="t.updated && t.kind === 'set-parameter'" name="mdi-content-save-edit" size="sm" class="self-center q-pr-xs"/>
             <q-icon v-if="t.kind === 'table'" name="mdi-application-export" size="sm" class="self-center q-pr-xs"/>
             <q-icon v-if="t.kind === 'run-log'" name="mdi-text-subject" size="sm" class="self-center q-pr-xs"/>
+            <q-icon v-if="t.kind === 'new-set'" name="mdi-notebook-plus" size="sm" class="self-center q-pr-xs"/>
+            <q-icon v-if="t.kind === 'set-edit'" name="mdi-notebook-edit" size="sm" class="self-center q-pr-xs"/>
             <q-icon v-if="t.kind === 'download-list'" name="mdi-file-download-outline" size="sm" class="self-center q-pr-xs"/>
             <span class="col-shrink om-tab-title" :title="$t(t.title)">{{ $t(t.title) }}</span>
             <q-badge v-if="t.kind === 'run-list'" transparent outline class="q-ml-xs">{{ runTextCount }}</q-badge>
@@ -83,6 +85,8 @@
               <q-icon v-if="t.updated && t.kind === 'set-parameter'" name="mdi-content-save-edit" />
               <q-icon v-if="t.kind === 'table'" name="mdi-application-export" />
               <q-icon v-if="t.kind === 'run-log'" name="mdi-text-subject" />
+              <q-icon v-if="t.kind === 'new-set'" name="mdi-notebook-plus-outline" />
+              <q-icon v-if="t.kind === 'set-edit'" name="mdi-notebook-edit-outline" />
               <q-icon v-if="t.kind === 'download-list'" name="mdi-file-download-outline" />
             </q-item-section>
             <q-item-section>
@@ -100,6 +104,7 @@
     ref="theTab"
     :refresh-tickle="refreshTickle"
     @tab-mounted="onTabMounted"
+    @tab-select="onTabSelect"
     @run-select="onRunSelect"
     @set-select="onWorksetSelect"
     @run-parameter-select="onRunParamSelect"
@@ -108,11 +113,13 @@
     @set-update-readonly="onWorksetReadonlyUpdate"
     @edit-updated="onEditUpdated"
     @run-log-select="onRunLogSelect"
-    @download-select="onDownloadSelect"
     @new-run-select="onNewRunSelect"
-    @run-list-refresh="onRunListRefresh"
+    @new-set-select="onNewWorksetSelect"
+    @set-edit-select="onEditWorksetSelect"
+    @download-select="onDownloadSelect"
     @run-completed-list="onRunCompletedList"
     @parameter-view-saved="onParameterViewSaved"
+    @run-list-refresh="onRunListRefresh"
     @set-list-refresh="onWorksetListRefresh"
     >
   </router-view>
@@ -165,10 +172,10 @@
     @done="doneWsLoad"
     @wait="loadWsDone = false">
   </refresh-workset>
-  <update-workset-status v-if="(wsNameCurrent || '') !== ''"
+  <update-workset-status v-if="(nameWsStatus || '') !== ''"
     :model-digest="digest"
-    :workset-name="wsNameCurrent"
-    :is-readonly="isWsNowReadonly"
+    :workset-name="nameWsStatus"
+    :is-readonly="isReadonlyWsStatus"
     :update-status-tickle="updateWsStatusTickle"
     @done="doneUpdateWsStatus"
     @wait="updatingWsStatus = true">

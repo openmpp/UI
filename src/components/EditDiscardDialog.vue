@@ -1,16 +1,28 @@
 <template>
   <q-dialog v-model="showDlg">
-    <q-card>
+    <q-card class=" text-body1">
 
       <q-card-section class="text-h6 bg-primary text-white">{{ dialogTitle }}</q-card-section>
 
-      <q-card-section class="q-pt-none text-body1">
+      <q-card-section class="q-pt-none">
         <div>{{ $t('Discard all changes?') }}</div>
       </q-card-section>
 
       <q-card-actions align="right">
-        <q-btn flat v-close-popup autofocus :label="$t('No')" color="primary"/>
-        <q-btn flat v-close-popup :label="$t('Yes')" color="primary" @click="onYesDiscardChanges" />
+        <q-btn
+          :label="$t('No')"
+          autofocus
+          flat
+          v-close-popup
+          color="primary"
+          />
+        <q-btn
+          :label="$t('Yes')"
+          @click="onYesDiscardChanges"
+          flat
+          v-close-popup
+          color="primary"
+          />
       </q-card-actions>
 
     </q-card>
@@ -23,7 +35,7 @@ export default {
 
   props: {
     showTickle: { type: Boolean, default: false, required: true },
-    dialogTitle: { type: String, default: '' }
+    dialogTitle: { type: String, required: true }
   },
 
   watch: {

@@ -36,7 +36,7 @@ export default {
     async doUpdate () {
       if (!this.modelDigest || !this.worksetName) {
         console.warn('Unable to update input scenario: model digest or name is empty')
-        this.$q.notify({ type: 'negative', message: this.$t('Unable to update scenario: model digest or name is empty') })
+        this.$q.notify({ type: 'negative', message: this.$t('Unable to update input scenario: model digest or name is empty') })
         return
       }
 

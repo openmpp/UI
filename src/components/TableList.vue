@@ -11,7 +11,9 @@
     :is-add="isAdd"
     :is-add-group="isAddGroup"
     :is-add-disabled="isAddDisabled"
-    :add-icon="addIcon"
+    :is-remove="isRemove"
+    :is-remove-group="isRemoveGroup"
+    :is-remove-disabled="isRemoveDisabled"
     :filter-placeholder="$t('Find output table...')"
     :no-results-label="$t('No output tables found')"
     :no-nodes-label="$t('Server offline or no output tables found')"
@@ -19,6 +21,8 @@
     @om-table-tree-leaf-select="onTableLeafClick"
     @om-table-tree-leaf-add="onAddClick"
     @om-table-tree-group-add="onGroupAddClick"
+    @om-table-tree-leaf-remove="onRemoveClick"
+    @om-table-tree-group-remove="onGroupRemoveClick"
     @om-table-tree-leaf-note="onShowTableNote"
     @om-table-tree-group-note="onShowGroupNote"
     >
@@ -37,11 +41,14 @@ export default {
   components: { OmTableTree },
 
   props: {
+    runDigest: { type: String, required: true },
     refreshTickle: { type: Boolean, default: false },
     isAdd: { type: Boolean, default: false },
     isAddGroup: { type: Boolean, default: false },
     isAddDisabled: { type: Boolean, default: false },
-    addIcon: { type: String, default: 'mdi-content-copy' }
+    isRemove: { type: Boolean, default: false },
+    isRemoveGroup: { type: Boolean, default: false },
+    isRemoveDisabled: { type: Boolean, default: false }
   },
 
   data () {
@@ -64,14 +71,12 @@ export default {
     }),
     ...mapGetters('model', {
       runTextByDigest: 'runTextByDigest'
-    }),
-    ...mapState('uiState', {
-      runDigestSelected: state => state.runDigestSelected
     })
   },
 
   watch: {
-    refreshTickle  () { this.doRefresh() },
+    runDigest () { this.doRefresh() },
+    refreshTickle () { this.doRefresh() },
     theModelUpdated () { this.doRefresh() },
     runTextListUpdated () { this.doRefresh() }
   },
@@ -79,7 +84,7 @@ export default {
   methods: {
     // update output tables tree data and refresh tree view
     doRefresh () {
-      this.runCurrent = this.runTextByDigest({ ModelDigest: Mdf.modelDigest(this.theModel), RunDigest: this.runDigestSelected })
+      this.runCurrent = this.runTextByDigest({ ModelDigest: Mdf.modelDigest(this.theModel), RunDigest: this.runDigest })
       const td = this.makeTableTreeData()
       this.tableTreeData = td.tree
       this.refreshTableTreeTickle = !this.refreshTableTreeTickle
@@ -92,24 +97,32 @@ export default {
       this.doRefresh()
     },
     // click on output table: open current run output table values tab
-    onTableLeafClick (key, name) {
-      this.$emit('table-select', key, name)
+    onTableLeafClick (name) {
+      this.$emit('table-select', name)
     },
     // click on add output table: add output table from current run
-    onAddClick (key) {
-      this.$emit('table-add', key)
+    onAddClick (name) {
+      this.$emit('table-add', name)
     },
     // click on add group: add output tables group from current run
-    onGroupAddClick (key) {
-      this.$emit('table-group-add', key)
+    onGroupAddClick (name) {
+      this.$emit('table-group-add', name)
+    },
+    // click on remove output table: remove output table from current run
+    onRemoveClick (name) {
+      this.$emit('table-remove', name)
+    },
+    // click on remove group: remove output tables group from current run
+    onGroupRemoveClick (name) {
+      this.$emit('table-group-remove', name)
     },
     // click on show output table notes dialog button
-    onShowTableNote (key, name) {
-      this.$emit('table-info-show', key, name)
+    onShowTableNote (name) {
+      this.$emit('table-info-show', name)
     },
     // click on show group notes dialog button
-    onShowGroupNote (key, name) {
-      this.$emit('table-group-info-show', key, name)
+    onShowGroupNote (name) {
+      this.$emit('table-group-info-show', name)
     },
 
     // return tree of output tables

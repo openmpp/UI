@@ -5,9 +5,9 @@ It can be "folder" node with children or "leaf" node (no children).
 If you want to have "folder" without children then set item.isGroup = true.
 Each node must have v-for key and at least 'label' to display
 It is also can have 'descr' text to display as second line (description).
-If isAbout is true then about icon button added to node.
+If isAbout is true then show about icon button node.
 If isAboutEmpty is true then about icon button is disabled and non-clickable.
-About click event: @click('om-table-tree-about', item.key, item.label).
+About click event: @click('om-table-tree-about', item.label).
 
 Expected array of tree items as:
 {
@@ -16,8 +16,8 @@ Expected array of tree items as:
   descr:         'item description',
   children:      [array of child items],  // folder children
   isGroup:       false,                   // if true then item is a folder even there are no children
-  isAbout:       false,                   // if true then add about button to item
-  isAboutEmpty:  false,                   // if true then add disabled about button to item
+  isAbout:       false,                   // if true then show about button to item
+  isAboutEmpty:  false,                   // if true then disable about button
   isFilterHide:  false                    // if true then hide item as result of filter
 }
 -->
@@ -38,12 +38,12 @@ Expected array of tree items as:
       />
     <q-btn
       v-if="isAnyHidden"
+      @click="$emit('om-table-tree-show-hidden', !isShowHidden)"
       flat
       dense
       class="col-auto bg-primary text-white rounded-borders q-mr-xs om-tree-control-button"
       :icon="isShowHidden ? 'mdi-eye-off-outline' : 'mdi-eye-outline'"
       :title="isShowHidden ? $t('Do not show hidden items') : $t('Show hidden items')"
-      @click="onToogleHidden"
       />
     <span class="col-grow">
       <q-input
@@ -81,7 +81,7 @@ Expected array of tree items as:
           >
           <q-btn
             v-if="prop.node.isAbout"
-            @click.stop="onShowGroupNote(prop.node.key, prop.node.label)"
+            @click.stop="$emit('om-table-tree-group-note', prop.node.label)"
             flat
             round
             dense
@@ -93,15 +93,27 @@ Expected array of tree items as:
             />
           <q-btn
             v-if="isAddGroup"
-            @click.stop="onAddGroupClick(prop.node.label)"
+            @click.stop="$emit('om-table-tree-group-add', prop.node.label)"
             :disable="isAddDisabled"
             flat
             round
             dense
             :color="!isAddDisabled ? 'primary' : 'secondary'"
             class="col-auto"
-            :icon="addIcon"
+            icon="mdi-plus-circle-outline"
             :title="$t('Add') + ' ' + prop.node.label"
+            />
+          <q-btn
+            v-if="isRemoveGroup"
+            @click.stop="$emit('om-table-tree-group-remove', prop.node.label)"
+            :disable="isRemoveDisabled"
+            flat
+            round
+            dense
+            :color="!isRemoveDisabled ? 'primary' : 'secondary'"
+            class="col-auto"
+            icon="mdi-minus-circle-outline"
+            :title="$t('Remove') + ' ' + prop.node.label"
             />
           <div
             class="col"
@@ -112,13 +124,13 @@ Expected array of tree items as:
         </div>
 
         <div v-else
-          @click="onLeafClick(prop.node.key, prop.node.label)"
+          @click="$emit('om-table-tree-leaf-select', prop.node.label)"
           :class="{'om-tree-found-node': treeWalk.keysFound[prop.node.key]}"
           class="row no-wrap items-center full-width cursor-pointer om-tree-leaf"
           >
           <q-btn
             v-if="prop.node.isAbout"
-            @click.stop="onShowLeafNote(prop.node.key, prop.node.label)"
+            @click.stop="$emit('om-table-tree-leaf-note', prop.node.label)"
             flat
             round
             dense
@@ -130,15 +142,27 @@ Expected array of tree items as:
             />
           <q-btn
             v-if="isAdd"
-            @click.stop="onAddLeafClick(prop.node.label)"
+            @click.stop="$emit('om-table-tree-leaf-add', prop.node.label)"
             :disable="isAddDisabled"
             flat
             round
             dense
             :color="!isAddDisabled ? 'primary' : 'secondary'"
             class="col-auto"
-            :icon="addIcon"
+            icon="mdi-plus-circle-outline"
             :title="$t('Add') + ' ' + prop.node.label"
+            />
+          <q-btn
+            v-if="isRemove"
+            @click.stop="$emit('om-table-tree-leaf-remove', prop.node.label)"
+            :disable="isRemoveDisabled"
+            flat
+            round
+            dense
+            :color="!isRemoveDisabled ? 'primary' : 'secondary'"
+            class="col-auto"
+            icon="mdi-minus-circle-outline"
+            :title="$t('Remove') + ' ' + prop.node.label"
             />
           <div class="col q-ml-xs">
             <span>{{ prop.node.label }}<br />
@@ -170,7 +194,9 @@ export default {
     isAdd: { type: Boolean, default: false },
     isAddGroup: { type: Boolean, default: false },
     isAddDisabled: { type: Boolean, default: false },
-    addIcon: { type: String, default: 'mdi-content-copy' },
+    isRemove: { type: Boolean, default: false },
+    isRemoveGroup: { type: Boolean, default: false },
+    isRemoveDisabled: { type: Boolean, default: false },
     filterPlaceholder: { type: String, default: '' },
     noResultsLabel: { type: String, default: '' },
     noNodesLabel: { type: String, default: '' }
@@ -246,31 +272,6 @@ export default {
         this.$refs.tableTree.expandAll()
       }
       this.isTreeExpanded = !this.isTreeExpanded
-    },
-
-    // show or hide hidden leafs and groups
-    onToogleHidden () {
-      this.$emit('om-table-tree-show-hidden', !this.isShowHidden)
-    },
-    // click on leaf node
-    onLeafClick (key, name) {
-      this.$emit('om-table-tree-leaf-select', key, name)
-    },
-    // click on leaf add button
-    onAddLeafClick (key) {
-      this.$emit('om-table-tree-leaf-add', key)
-    },
-    // click on group add button
-    onAddGroupClick (key) {
-      this.$emit('om-table-tree-group-add', key)
-    },
-    // click on show leaf notes dialog button
-    onShowLeafNote (key, name) {
-      this.$emit('om-table-tree-leaf-note', key, name)
-    },
-    // click on show group notes dialog button
-    onShowGroupNote (key, name) {
-      this.$emit('om-table-tree-group-note', key, name)
     },
 
     // filter tree nodes by name (label) or description

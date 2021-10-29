@@ -175,7 +175,7 @@ export default {
     },
 
     // delete download results by folder name
-    onShowDeleteClick (folder) {
+    onDeleteClick (folder) {
       this.folderToDelete = folder
       this.showDeleteDialogTickle = !this.showDeleteDialogTickle
     },

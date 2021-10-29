@@ -16,7 +16,7 @@
     <q-btn
       v-if="isNewRunButton"
       @click="onNewRunClick"
-      :disable="isEditWorkset"
+      :disable="!isNotEmptyWorkset || !isReadonlyWorkset"
       flat
       dense
       class="col-auto bg-primary text-white rounded-borders q-mr-xs"
@@ -24,13 +24,14 @@
       :title="$t('Run the Model')"
       />
     <q-btn
-      v-if="isEditButton"
-      @click="onWorksetEditToggle"
+      v-if="isReadonlyButton"
+      :disable="!isNotEmptyWorkset || isReadonlyDisabled"
+      @click="onWorksetReadonlyToggle"
       flat
       dense
       class="col-auto bg-primary text-white rounded-borders q-mr-xs"
-      :icon="isEditWorkset ? 'mdi-content-save-edit' : 'mdi-folder-edit'"
-      :title="(isEditWorkset ? $t('Save') : $t('Edit')) + ' ' + worksetText.Name"
+      :icon="(!isNotEmptyWorkset || isReadonlyWorkset) ? 'mdi-lock' : 'mdi-lock-open-variant'"
+      :title="((!isNotEmptyWorkset || isReadonlyWorkset) ? $t('Open for read and write') : $t('Close and only read')) + ' ' + worksetText.Name"
       />
 
     <div
@@ -54,7 +55,8 @@ export default {
     modelDigest: { type: String, default: '' },
     worksetName: { type: String, default: '' },
     isNewRunButton: { type: Boolean, default: false },
-    isEditButton: { type: Boolean, default: false }
+    isReadonlyButton: { type: Boolean, default: false },
+    isReadonlyDisabled: { type: Boolean, default: false }
   },
 
   data () {
@@ -68,9 +70,9 @@ export default {
     lastDateTimeStr () { return Mdf.dtStr(this.worksetText.UpdateDateTime) },
     descrOfWorkset () { return Mdf.descrOfTxt(this.worksetText) },
 
-    // if true then selected workset in edit mode else read-only and model run enabled
-    isEditWorkset () {
-      return Mdf.isNotEmptyWorksetText(this.worksetText) && !this.worksetText.IsReadonly
+    // if true then workset is read-only and model run enabled
+    isReadonlyWorkset () {
+      return Mdf.isNotEmptyWorksetText(this.worksetText) && this.worksetText.IsReadonly
     },
 
     ...mapState('model', {
@@ -99,8 +101,8 @@ export default {
       this.$emit('new-run-select')
     },
     // toggle current workset readonly status: pass event from child up to the next level
-    onWorksetEditToggle () {
-      this.$emit('set-update-readonly', !this.worksetText.IsReadonly)
+    onWorksetReadonlyToggle () {
+      this.$emit('set-update-readonly', this.modelDigest, this.worksetName, !this.worksetText.IsReadonly)
     }
   },
 

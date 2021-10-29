@@ -56,18 +56,18 @@ export default {
       if (!this.newName || (this.newName || '') === '' || typeof this.newName !== typeof 'string') {
         console.warn('Invalid (empty) workset name')
         this.$emit('done', false, this.modelDigest, this.newName)
-        this.$q.notify({ type: 'negative', message: this.$t('Invalid (empty) delta input name') })
+        this.$q.notify({ type: 'negative', message: this.$t('Invalid (empty) input scenario name') })
         return
       }
       if (Mdf.cleanFileNameInput(this.newName) !== this.newName || this.newName.length > 255) {
         console.warn('Invalid workset name:', this.newName)
         this.$emit('done', false, this.modelDigest, this.newName)
-        this.$q.notify({ type: 'negative', message: this.$t('Invalid delta input name') + ': ' + (this.newName || '') })
+        this.$q.notify({ type: 'negative', message: this.$t('Invalid input scenario name') + ': ' + (this.newName || '') })
         return
       }
       // check if the workset with the same name already exist in the model
       if (this.isExistInWorksetTextList({ ModelDigest: this.modelDigest, Name: this.newName })) {
-        this.$q.notify({ type: 'negative', message: this.$t('Error: delta input name must be unique') + ': ' + (this.newName || '') })
+        this.$q.notify({ type: 'negative', message: this.$t('Error: input scenario name must be unique') + ': ' + (this.newName || '') })
         this.$emit('done', false, this.modelDigest, this.newName)
         return
       }
@@ -179,7 +179,7 @@ export default {
       if (!ws.ModelDigest || !ws.Name) {
         console.warn('Unable to create workset: model digest or workset name is empty')
         this.$emit('done', false, ws.ModelDigest, ws.Name)
-        this.$q.notify({ type: 'negative', message: this.$t('Unable to create new delta input: model digest or input name is empty') })
+        this.$q.notify({ type: 'negative', message: this.$t('Unable to create new input scenario: model digest or scenario name is empty') })
         return
       }
 
@@ -206,7 +206,7 @@ export default {
       if (this.loadDone) {
         this.$q.notify({ type: 'info', message: this.$t('Created') + ': ' + nm })
       } else {
-        this.$q.notify({ type: 'negative', message: this.$t('Unable to create new delta input') + ': ' + ws.Name })
+        this.$q.notify({ type: 'negative', message: this.$t('Unable to create new input scenario') + ': ' + ws.Name })
         if (em && typeof em === typeof 'string') {
           this.$q.notify({ type: 'negative', message: em })
         }

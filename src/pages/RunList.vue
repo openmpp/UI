@@ -85,11 +85,9 @@
       :the-note="runCurrentNote()"
       :description-editable="true"
       :notes-editable="true"
-      :save-note-edit="'save-run-note'"
-      :cancel-note-edit="'cancel-run-note'"
       :lang-code="noteEditorLangCode"
-      @cancel-run-note="onCancelRunNote"
-      @save-run-note="onSaveRunNote"
+      @cancel-note="onCancelRunNote"
+      @save-note="onSaveRunNote"
       class="q-px-sm q-pt-none"
     >
     </markdown-editor>
@@ -97,8 +95,9 @@
     <q-card-section v-show="isParamTreeShow" class="q-px-sm q-pt-none">
 
       <run-parameter-list
+        :run-digest="runDigestSelected"
         :refresh-tickle="refreshTickle"
-        @run-parameter-select="onParamLeafClick"
+        @run-parameter-select="onRunParamClick"
         @run-parameter-info-show="doShowParamNote"
         @run-parameter-group-info-show="doShowGroupNote"
         @run-parameter-tree-updated="onParamTreeUpdated"
@@ -110,6 +109,7 @@
     <q-card-section v-show="isTableTreeShow" class="q-px-sm q-pt-none">
 
       <table-list
+        :run-digest="runDigestSelected"
         :refresh-tickle="refreshTickle"
         @table-select="onTableLeafClick"
         @table-info-show="doShowTableNote"
@@ -203,7 +203,7 @@
               />
             <q-btn
               :disable="!prop.node.digest || isInProgress(prop.node.status)"
-              @click.stop="onShowRunDelete(prop.node.label, prop.node.digest)"
+              @click.stop="onRunDelete(prop.node.label, prop.node.digest)"
               flat
               round
               dense
@@ -215,7 +215,7 @@
             <q-btn
               v-if="serverConfig.AllowDownload"
               :disable="!isSuccess(prop.node.status)"
-              @click.stop="doDownloadRun(prop.node.digest)"
+              @click.stop="onDownloadRun(prop.node.digest)"
               flat
               round
               dense

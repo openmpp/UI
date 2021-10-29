@@ -222,6 +222,20 @@
 
       <q-item
         clickable
+        :disable="!isModel"
+        :to="'/model/' + modelDigest + '/set-create'"
+        >
+        <q-item-section avatar>
+          <q-icon name="mdi-notebook-edit-outline" />
+        </q-item-section>
+        <q-item-section>
+          <q-item-label>{{ $t('New Scenario') }}</q-item-label>
+          <q-item-label caption>{{ $t('Create new input scenario') }}</q-item-label>
+        </q-item-section>
+      </q-item>
+
+      <q-item
+        clickable
         :disable="!runDigestSelected && !worksetNameSelected && !taskNameSelected"
         :to="'/model/' + modelDigest + '/new-run'"
         >

@@ -5,8 +5,8 @@
     <q-card-section v-if="dialogTitle" class="text-h6 bg-primary text-white">{{ dialogTitle }}</q-card-section>
 
     <q-card-section class="row items-center">
-      <q-avatar icon="mdi-delete" color="primary" text-color="white" />
-      <span class="q-ml-sm">{{ bodyText ? bodyText : itemName }}</span>
+      <q-avatar v-if="iconName" :icon="iconName" color="primary" text-color="white" />
+      <span class="q-ml-sm">{{ bodyText }} {{ itemName }}?</span>
     </q-card-section>
 
     <q-card-actions align="right">
@@ -19,7 +19,7 @@
         />
       <q-btn
         :label="$t('Yes')"
-        @click="onYesDeleteClick"
+        @click="onYesClick"
         flat
         v-close-popup
         color="primary"
@@ -32,15 +32,16 @@
 
 <script>
 export default {
-  name: 'DeleteConfirmDialog',
+  name: 'ConfirmDialog',
 
   props: {
     showTickle: { type: Boolean, default: false, required: true },
     itemName: { type: String, default: '', required: true },
     itemId: { type: String, default: '' },
     kind: { type: String, default: '' },
+    dialogTitle: { type: String, default: '' },
     bodyText: { type: String, default: '' },
-    dialogTitle: { type: String, default: '' }
+    iconName: { type: String, default: '' }
   },
 
   watch: {
@@ -54,8 +55,8 @@ export default {
   },
 
   methods: {
-    onYesDeleteClick () {
-      this.$emit('delete-yes', this.itemName, this.itemId, this.kind)
+    onYesClick () {
+      this.$emit('confirm-yes', this.itemName, this.itemId, this.kind)
     }
   }
 }
