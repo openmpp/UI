@@ -17,11 +17,9 @@
         <workset-bar
           :model-digest="digest"
           :workset-name="worksetName"
-          :is-new-run-button="true"
           :is-readonly-button="true"
           @set-info-click="doShowWorksetNote"
           @set-update-readonly="onWorksetReadonlyToggle"
-          @new-run-select="onNewRunClick"
           >
         </workset-bar>
       </template>

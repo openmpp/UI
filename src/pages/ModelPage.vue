@@ -172,7 +172,7 @@
     @done="doneWsLoad"
     @wait="loadWsDone = false">
   </refresh-workset>
-  <update-workset-status v-if="(nameWsStatus || '') !== ''"
+  <update-workset-status
     :model-digest="digest"
     :workset-name="nameWsStatus"
     :is-readonly="isReadonlyWsStatus"

@@ -143,10 +143,6 @@ export default {
     doShowWorksetNote (modelDgst, name) {
       this.worksetInfoTickle = !this.worksetInfoTickle
     },
-    // on button click "new model run": pass event from child up to the next level
-    onNewRunClick () {
-      this.$emit('new-run-select')
-    },
     // on button click "toggle workset readonly status": pass event from child up to the next level
     onWorksetReadonlyToggle (dgst, name, isReadonly) {
       this.$emit('set-update-readonly', dgst, name, isReadonly)

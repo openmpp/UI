@@ -195,7 +195,7 @@ export default {
         return
       }
       // else copy parameter from workset
-      this.doCopyFromWorkset(this.worksetName, name, this.worksetNameSelected)
+      this.doCopyFromWorkset(false, this.worksetName, name, this.worksetNameSelected)
     },
     // copy parameter from selected run
     onParamRunCopy (name) {
@@ -213,14 +213,14 @@ export default {
         return
       }
       // else copy parameter from run
-      this.doCopyFromRun(this.worksetName, name, this.runDigestSelected)
+      this.doCopyFromRun(false, this.worksetName, name, this.runDigestSelected)
     },
     // user answer yes to replace exsiting parameter: do copy from run or selected workset
     onYesReplace (name, from, kind) {
       if (kind === 'run') {
-        this.doCopyFromRun(this.worksetName, name, from)
+        this.doCopyFromRun(true, this.worksetName, name, from)
       } else {
-        this.doCopyFromWorkset(this.worksetName, name, from)
+        this.doCopyFromWorkset(true, this.worksetName, name, from)
       }
     },
 
@@ -252,7 +252,7 @@ export default {
     },
 
     // copy parameter from selected run
-    async doCopyFromRun (wsName, paramName, runDgst) {
+    async doCopyFromRun (isReplace, wsName, paramName, runDgst) {
       let isOk = false
       let msg = ''
 
@@ -264,10 +264,16 @@ export default {
       this.$q.notify({ type: 'info', message: this.$t('Copy') + ': ' + paramName })
       this.loadWait = true
 
-      const u = this.omsUrl + '/api/model/' + this.digest + '/workset/' + wsName + '/copy/parameter/' + paramName + '/from-run/' + runDgst
+      const u = isReplace
+        ? this.omsUrl + '/api/model/' + this.digest + '/workset/' + wsName + '/merge/parameter/' + paramName + '/from-run/' + runDgst
+        : this.omsUrl + '/api/model/' + this.digest + '/workset/' + wsName + '/copy/parameter/' + paramName + '/from-run/' + runDgst
       try {
         // copy parameter from model run, response is empty on success
-        await this.$axios.put(u)
+        if (isReplace) {
+          await this.$axios.patch(u)
+        } else {
+          await this.$axios.put(u)
+        }
         isOk = true
       } catch (e) {
         try {
@@ -286,7 +292,7 @@ export default {
     },
 
     // copy parameter from selected workset
-    async doCopyFromWorkset (wsName, paramName, srcWsName) {
+    async doCopyFromWorkset (isReplace, wsName, paramName, srcWsName) {
       let isOk = false
       let msg = ''
 
@@ -298,10 +304,16 @@ export default {
       this.$q.notify({ type: 'info', message: this.$t('Copy') + ': ' + paramName })
       this.loadWait = true
 
-      const u = this.omsUrl + '/api/model/' + this.digest + '/workset/' + wsName + '/copy/parameter/' + paramName + '/from-workset/' + srcWsName
+      const u = isReplace
+        ? this.omsUrl + '/api/model/' + this.digest + '/workset/' + wsName + '/merge/parameter/' + paramName + '/from-workset/' + srcWsName
+        : this.omsUrl + '/api/model/' + this.digest + '/workset/' + wsName + '/copy/parameter/' + paramName + '/from-workset/' + srcWsName
       try {
         // copy parameter from other workset, response is empty on success
-        await this.$axios.put(u)
+        if (isReplace) {
+          await this.$axios.patch(u)
+        } else {
+          await this.$axios.put(u)
+        }
         isOk = true
       } catch (e) {
         try {
