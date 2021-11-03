@@ -131,8 +131,8 @@ export default {
       this.$emit('set-edit-select', name)
     },
     // new model run using current workset name: open model run tab
-    onNewRunClick () {
-      this.$emit('new-run-select')
+    onNewRunClick (name) {
+      this.$emit('new-run-select', (this.worksetNameSelected !== name ? name : ''))
     },
     // toggle current workset readonly status: pass event from child up to the next level
     onWorksetReadonlyToggle () {

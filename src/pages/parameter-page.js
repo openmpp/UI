@@ -147,6 +147,10 @@ export default {
     onWorksetReadonlyToggle (dgst, name, isReadonly) {
       this.$emit('set-update-readonly', dgst, name, isReadonly)
     },
+    // on button click "new model run": pass event from child up to the next level
+    onNewRunClick () {
+      this.$emit('new-run-select', this.worksetName)
+    },
 
     // workset updated: check read-only status and adjust controls
     onWorksetUpdated () {

@@ -169,6 +169,7 @@
     :workset-name="wsNameCurrent"
     :refresh-tickle="refreshTickle"
     :refresh-workset-tickle="refreshWsTickle"
+    :is-new-run="refreshWsToRun"
     @done="doneWsLoad"
     @wait="loadWsDone = false">
   </refresh-workset>
