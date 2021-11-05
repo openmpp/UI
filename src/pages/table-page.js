@@ -329,8 +329,7 @@ export default {
       }
       this.pvtState.sortDefs = vs
 
-      // make empty data: column headers and empty row of values
-      this.pvtState.data = Object.freeze([this.colLabels.slice(), Array(colCount).fill('')])
+      this.pvtState.data = Object.freeze(this.makeEmptyData())
 
       // store pivot view
       // this.dispatchTableView({
@@ -342,6 +341,11 @@ export default {
       //     filter: this.pvtState.valueFilter
       //   }
       // })
+    },
+
+    // make empty data: column headers and empty row of values
+    makeEmptyData () {
+      return [this.colLabels.slice(), Array(this.colLabels.length).fill('')]
     },
 
     // setup make colunm labels (attributes in react-pivottable terms)
@@ -469,7 +473,7 @@ export default {
     // update table data from response data page
     setData (d) {
       // if response is empty or invalid: clean table
-      this.pvtState.data = []
+      this.pvtState.data = this.makeEmptyData()
       this.pvtState.isToggleUI = false        // prevent UI controls hide / show toggle
       this.pvtState.isDecimalsUpdate = false  // prevent decimals update in pivot table
 
