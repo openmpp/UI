@@ -163,9 +163,10 @@ export default {
       this.theEasyMde = new EasyMDE({
         element: document.getElementById(this.mdeTextId),
         sideBySideFullscreen: false,
+        autoDownloadFontAwesome: false,
         toolbar: [
           'undo', 'redo', '|',
-          'bold', 'italic', 'heading', '|',
+          'bold', 'italic', 'heading-3', 'heading-bigger', 'heading-smaller', '|',
           'quote', 'code', '|',
           'unordered-list', 'ordered-list', 'table', '|',
           'side-by-side', '|',
