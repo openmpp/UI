@@ -266,7 +266,7 @@
             >
             <template v-slot:before>
               <q-icon
-                name="mdi-hand-left"
+                name="mdi-hand-back-left"
                 size="xs"
                 class="bg-primary text-white rounded-borders select-handle-move"
                 />
@@ -325,7 +325,7 @@
             >
             <template v-slot:before>
               <q-icon
-                name="mdi-hand-left"
+                name="mdi-hand-back-left"
                 size="xs"
                 class="bg-primary text-white rounded-borders select-handle-move"
                 />
@@ -393,7 +393,7 @@
             >
             <template v-slot:before>
               <q-icon
-                name="mdi-hand-left"
+                name="mdi-hand-back-left"
                 size="xs"
                 class="bg-primary text-white rounded-borders select-handle-move"
                 />

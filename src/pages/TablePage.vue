@@ -49,7 +49,7 @@
       flat
       dense
       class="col-auto bg-primary text-white rounded-borders"
-      icon="mdi-iframe-variable-outline"
+      icon="mdi-application-variable-outline"
       :title="$t('View all accumulators and sub-values (sub-samples)')"
       />
     <q-separator vertical inset spaced="sm" color="secondary" />
