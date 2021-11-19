@@ -2,7 +2,7 @@
 
   <om-table-tree
     :refresh-tickle="refreshTickle"
-    :refresh-tree-tickle="refreshTableTreeTickle"
+    :refresh-tree-tickle="refreshTreeTickle"
     :tree-data="tableTreeData"
     :is-all-expand="false"
     :is-any-group="isAnyGroup"
@@ -17,7 +17,14 @@
     :filter-placeholder="$t('Find output table...')"
     :no-results-label="$t('No output tables found')"
     :no-nodes-label="$t('Server offline or no output tables found')"
-    @om-table-tree-show-hidden="onToogleHiddenTableTree"
+    :is-any-outside="isAnyFiltered"
+    :is-show-outside="isShowFiltered"
+    :outside-on-label="outsideOnLabel"
+    :outside-off-label="outsideOffLabel"
+    :outside-on-icon="outsideOnIcon"
+    :outside-off-icon="outsideOffIcon"
+    @om-table-tree-show-hidden="onToogleHiddenNodes"
+    @om-table-tree-show-outside="onToogleFilteredNodes"
     @om-table-tree-leaf-select="onTableLeafClick"
     @om-table-tree-leaf-add="onAddClick"
     @om-table-tree-group-add="onGroupAddClick"
@@ -43,20 +50,29 @@ export default {
   props: {
     runDigest: { type: String, required: true },
     refreshTickle: { type: Boolean, default: false },
+    refreshTableTreeTickle: { type: Boolean, default: false },
+    isNoHidden: { type: Boolean, default: false },
     isAdd: { type: Boolean, default: false },
     isAddGroup: { type: Boolean, default: false },
     isAddDisabled: { type: Boolean, default: false },
     isRemove: { type: Boolean, default: false },
     isRemoveGroup: { type: Boolean, default: false },
-    isRemoveDisabled: { type: Boolean, default: false }
+    isRemoveDisabled: { type: Boolean, default: false },
+    nameFilter: { type: Array, default: () => [] }, // if not empty then use only tables and groups included in the name list
+    outsideOnLabel: { type: String, default: '' },
+    outsideOffLabel: { type: String, default: '' },
+    outsideOnIcon: { type: String, default: '' },
+    outsideOffIcon: { type: String, default: '' }
   },
 
   data () {
     return {
-      refreshTableTreeTickle: false,
+      refreshTreeTickle: false,
       isAnyGroup: false,
       isAnyHidden: false,
       isShowHidden: false,
+      isAnyFiltered: false,
+      isShowFiltered: false,
       runCurrent: Mdf.emptyRunText(), // currently selected run
       tableTreeData: [],
       nextId: 100
@@ -77,6 +93,7 @@ export default {
   watch: {
     runDigest () { this.doRefresh() },
     refreshTickle () { this.doRefresh() },
+    refreshTableTreeTickle () { this.doRefresh() },
     theModelUpdated () { this.doRefresh() },
     runTextListUpdated () { this.doRefresh() }
   },
@@ -87,13 +104,18 @@ export default {
       this.runCurrent = this.runTextByDigest({ ModelDigest: Mdf.modelDigest(this.theModel), RunDigest: this.runDigest })
       const td = this.makeTableTreeData()
       this.tableTreeData = td.tree
-      this.refreshTableTreeTickle = !this.refreshTableTreeTickle
+      this.refreshTreeTickle = !this.refreshTreeTickle
       this.$emit('table-tree-updated', td.leafCount)
     },
 
     // show or hide hidden output tables and groups
-    onToogleHiddenTableTree (isShow) {
-      this.isShowHidden = isShow
+    onToogleHiddenNodes (isShow) {
+      this.isShowHidden = isShow || this.isNoHidden
+      this.doRefresh()
+    },
+    // show or hide filtered out parameters and groups
+    onToogleFilteredNodes (isShow) {
+      this.isShowFiltered = isShow
       this.doRefresh()
     },
     // click on output table: open current run output table values tab
@@ -129,6 +151,7 @@ export default {
     makeTableTreeData () {
       this.isAnyGroup = false
       this.isAnyHidden = false
+      this.isAnyFiltered = false
 
       if (!Mdf.tableCount(this.theModel)) {
         return { tree: [], leafCount: 0 } // empty list of output tables
@@ -138,20 +161,49 @@ export default {
         return { tree: [], leafCount: 0 } // invalid list of output tables
       }
 
+      // if filter names not empty then display only groups and tables from that name list
+      // build groups name list and tables names list to include into the tree
+      const gLst = this.theModel.GroupTxt
+
+      let isTflt = false
+      let isGflt = false
+      const ftLst = {}
+      const fgLst = {}
+
+      if (this.nameFilter && this.nameFilter.length > 0) {
+        for (let k = 0; k < gLst.length; k++) {
+          if (gLst[k].Group.IsParam) continue // skip parameters group
+
+          if (this.nameFilter.findIndex((name) => { return name === gLst[k].Group.Name }) >= 0) {
+            isGflt = true
+            fgLst[gLst[k].Group.Name] = true // found group name in the filter include names list
+          }
+        }
+
+        for (const t of this.theModel.TableTxt) {
+          if (!Mdf.isRunTextHasTable(this.runCurrent, t.Table.Name)) continue // skip suppressed table
+
+          if (this.nameFilter.findIndex((name) => { return name === t.Table.Name }) >= 0) {
+            isTflt = true
+            ftLst[t.Table.Name] = true // found table name in the filter include names list
+          }
+        }
+      }
+
       // map tables which are included in model run (not suppressed)
       // skip hidden tables if show hidden tables disabled
       const tUse = {}
       for (const t of this.theModel.TableTxt) {
         if (!Mdf.isRunTextHasTable(this.runCurrent, t.Table.Name)) continue // skip suppressed table
 
-        this.isAnyHidden = this.isAnyHidden || t.Table.IsHidden
-        if (!this.isShowHidden && t.Table.IsHidden) continue // skip hidden table if reqired
+        this.isAnyFiltered = this.isAnyFiltered || (isTflt && !ftLst[t.Table.Name])
+        this.isAnyHidden = !this.isNoHidden && (this.isAnyHidden || t.Table.IsHidden)
+        if (!this.isNoHidden && !this.isShowHidden && t.Table.IsHidden) continue // skip hidden table if reqired
 
         tUse[t.Table.TableId] = { isLeaf: false }
       }
 
       // make groups map: map group id to group node
-      const gLst = this.theModel.GroupTxt
       const gUse = {}
 
       for (let k = 0; k < gLst.length; k++) {
@@ -159,7 +211,8 @@ export default {
 
         const gId = gLst[k].Group.GroupId
         const isNote = Mdf.noteOfDescrNote(gLst[k]) !== ''
-        this.isAnyHidden = this.isAnyHidden || gLst[k].Group.IsHidden
+        this.isAnyHidden = !this.isNoHidden && (this.isAnyHidden || gLst[k].Group.IsHidden)
+        this.isAnyFiltered = this.isAnyFiltered || (isGflt && !fgLst[gLst[k].Group.Name])
 
         gUse[gId] = {
           group: gLst[k],
@@ -181,7 +234,8 @@ export default {
 
       for (let k = 0; k < gLst.length; k++) {
         if (gLst[k].Group.IsParam) continue // skip parameters group
-        if (!this.isShowHidden && gLst[k].Group.IsHidden) continue // skip hidden group
+        if (!this.isNoHidden && !this.isShowHidden && gLst[k].Group.IsHidden) continue // skip hidden group
+        if (isGflt && !this.isShowFiltered && !fgLst[gLst.Group.Name]) continue // skip filtered out group
 
         const gId = gLst[k].Group.GroupId
 
@@ -216,7 +270,8 @@ export default {
           if (pc.ChildGroupId >= 0) {
             const gChildUse = gUse[pc.ChildGroupId]
             if (gChildUse) {
-              if (!this.isShowHidden && gChildUse.group.Group.IsHidden) continue // skip hidden group
+              if (!this.isNoHidden && !this.isShowHidden && gChildUse.group.Group.IsHidden) continue // skip hidden group
+              if (isGflt && !this.isShowFiltered && !fgLst[gLst.Group.Name]) continue // skip filtered out group
 
               // check for circular reference
               if (gpNow.path.indexOf(pc.ChildGroupId) >= 0) {
@@ -241,6 +296,7 @@ export default {
             const t = Mdf.tableTextById(this.theModel, pc.ChildLeafId)
             if (!Mdf.isTable(t.Table)) continue
             if (!tUse[t.Table.TableId]) continue // skip: table suppressed or hidden
+            if (isTflt && !this.isShowFiltered && !ftLst[t.Table.Name]) continue // skip filtered out table
 
             gpNow.item.children.push({
               key: 'ttl-' + pc.ChildLeafId + '-' + this.nextId++,
@@ -273,6 +329,7 @@ export default {
       let leafCount = 0
       for (const t of this.theModel.TableTxt) {
         if (!tUse[t.Table.TableId]) continue // skip: table suppressed or hidden
+        if (isTflt && !this.isShowFiltered && !ftLst[t.Table.Name]) continue // skip filtered out table
 
         if (!leafUse[t.Table.TableId]) { // if output table is not a leaf of any group
           gTree.push({

@@ -45,6 +45,15 @@ Expected array of tree items as:
       :icon="isShowHidden ? 'mdi-eye-off-outline' : 'mdi-eye-outline'"
       :title="isShowHidden ? $t('Do not show hidden items') : $t('Show hidden items')"
       />
+    <q-btn
+      v-if="isAnyOutside"
+      @click="$emit('om-table-tree-show-outside', !isShowOutside)"
+      flat
+      dense
+      class="col-auto bg-primary text-white rounded-borders q-mr-xs om-tree-control-button"
+      :icon="isShowOutside ? (outsideOffIcon || 'mdi-filter-outline') : (outsideOnIcon || 'mdi-filter-remove-outline')"
+      :title="isShowOutside ? $t((outsideOffLabel || 'Do not show filtered out items')) : $t((outsideOnLabel || 'Show filtered out items'))"
+      />
     <span class="col-grow">
       <q-input
         ref="filterInput"
@@ -199,7 +208,13 @@ export default {
     isRemoveDisabled: { type: Boolean, default: false },
     filterPlaceholder: { type: String, default: '' },
     noResultsLabel: { type: String, default: '' },
-    noNodesLabel: { type: String, default: '' }
+    noNodesLabel: { type: String, default: '' },
+    isAnyOutside: { type: Boolean, default: false },
+    isShowOutside: { type: Boolean, default: false },
+    outsideOnLabel: { type: String, default: '' },
+    outsideOffLabel: { type: String, default: '' },
+    outsideOnIcon: { type: String, default: '' },
+    outsideOffIcon: { type: String, default: '' }
   },
 
   data () {

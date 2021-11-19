@@ -41,6 +41,8 @@ export default {
       runCompare: Mdf.emptyRunText(), // run to compare
       paramDiff: [], // name list of different parameters
       tableDiff: [], // name list of different tables
+      refreshParamTreeTickle: false,
+      refreshTableTreeTickle: false,
       runDigestRefresh: '',
       refreshRunTickle: false,
       isParamTreeShow: false,
@@ -69,7 +71,7 @@ export default {
   computed: {
     isNotEmptyRunCurrent () { return Mdf.isNotEmptyRunText(this.runCurrent) },
     descrRunCurrent () { return Mdf.descrOfTxt(this.runCurrent) },
-    isCompare () { return !!this.runCompare && this.runCompare?.RunDigest },
+    isCompare () { return !!this.runCompare && (this.runCompare?.RunDigest || '') !== '' },
 
     ...mapState('model', {
       theModel: state => state.theModel,
@@ -121,9 +123,7 @@ export default {
 
     // click on run: select this run as current run
     onRunLeafClick (dgst) {
-      if (dgst === this.runCompare.RunDigest) {
-        this.clearRunCompare()
-      }
+      this.clearRunCompare()
       if (this.runDigestSelected !== dgst) this.$emit('run-select', dgst)
     },
     // expand or collapse all run tree nodes
@@ -232,7 +232,7 @@ export default {
 
         for (let k = 0; k < tm.length; k++) {
           const j = ts.findIndex((t) => { return t.Name === tm[k].Name })
-          if (j >= 0 && tm[j].ValueDigest !== tm[k].ValueDigest) tn.push(tm[k].Name)
+          if (j >= 0 && ts[j].ValueDigest !== tm[k].ValueDigest) tn.push(tm[k].Name)
         }
       }
 
@@ -249,8 +249,11 @@ export default {
       } else {
         this.$q.notify({ type: 'info', message: this.$t('All output tables  values identical') })
       }
+
       this.paramDiff = Object.freeze(pn)
       this.tableDiff = Object.freeze(tn)
+      this.refreshParamTreeTickle = !this.refreshParamTreeTickle
+      this.refreshTableTreeTickle = !this.refreshTableTreeTickle
     },
     // clear run comparison
     clearRunCompare () {
@@ -260,6 +263,8 @@ export default {
       this.tableDiff = []
       this.paramVisibleCount = this.paramTreeCount
       this.tableVisibleCount = this.tableTreeCount
+      this.refreshParamTreeTickle = !this.refreshParamTreeTickle
+      this.refreshTableTreeTickle = !this.refreshTableTreeTickle
     },
 
     // show yes/no dialog to confirm run delete

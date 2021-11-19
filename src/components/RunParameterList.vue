@@ -2,7 +2,7 @@
 
   <om-table-tree
     :refresh-tickle="refreshTickle"
-    :refresh-tree-tickle="refreshParamTreeTickle"
+    :refresh-tree-tickle="refreshTreeTickle"
     :tree-data="paramTreeData"
     :is-all-expand="false"
     :is-any-group="isAnyGroup"
@@ -17,7 +17,14 @@
     :filter-placeholder="$t('Find parameter...')"
     :no-results-label="$t('No model parameters found')"
     :no-nodes-label="$t('Server offline or no model parameters found')"
-    @om-table-tree-show-hidden="onToogleHiddenParamTree"
+    :is-any-outside="isAnyFiltered"
+    :is-show-outside="isShowFiltered"
+    :outside-on-label="outsideOnLabel"
+    :outside-off-label="outsideOffLabel"
+    :outside-on-icon="outsideOnIcon"
+    :outside-off-icon="outsideOffIcon"
+    @om-table-tree-show-hidden="onToogleHiddenNodes"
+    @om-table-tree-show-outside="onToogleFilteredNodes"
     @om-table-tree-leaf-select="onParamLeafClick"
     @om-table-tree-leaf-add="onAddClick"
     @om-table-tree-group-add="onGroupAddClick"
@@ -43,20 +50,29 @@ export default {
   props: {
     runDigest: { type: String, required: true },
     refreshTickle: { type: Boolean, default: false },
+    refreshParamTreeTickle: { type: Boolean, default: false },
+    isNoHidden: { type: Boolean, default: false },
     isAdd: { type: Boolean, default: false },
     isAddGroup: { type: Boolean, default: false },
     isAddDisabled: { type: Boolean, default: false },
     isRemove: { type: Boolean, default: false },
     isRemoveGroup: { type: Boolean, default: false },
-    isRemoveDisabled: { type: Boolean, default: false }
+    isRemoveDisabled: { type: Boolean, default: false },
+    nameFilter: { type: Array, default: () => [] }, // if not empty then use only parameters and groups included in the name list
+    outsideOnLabel: { type: String, default: '' },
+    outsideOffLabel: { type: String, default: '' },
+    outsideOnIcon: { type: String, default: '' },
+    outsideOffIcon: { type: String, default: '' }
   },
 
   data () {
     return {
-      refreshParamTreeTickle: false,
+      refreshTreeTickle: false,
       isAnyGroup: false,
       isAnyHidden: false,
       isShowHidden: false,
+      isAnyFiltered: false,
+      isShowFiltered: false,
       paramTreeData: [],
       nextId: 100
     }
@@ -72,6 +88,7 @@ export default {
   watch: {
     runDigest () { this.doRefresh() },
     refreshTickle () { this.doRefresh() },
+    refreshParamTreeTickle () { this.doRefresh() },
     theModelUpdated () { this.doRefresh() }
   },
 
@@ -80,13 +97,18 @@ export default {
     doRefresh () {
       const td = this.makeParamTreeData()
       this.paramTreeData = td.tree
-      this.refreshParamTreeTickle = !this.refreshParamTreeTickle
+      this.refreshTreeTickle = !this.refreshTreeTickle
       this.$emit('run-parameter-tree-updated', td.leafCount)
     },
 
     // show or hide hidden parameters and groups
-    onToogleHiddenParamTree (isShow) {
-      this.isShowHidden = isShow
+    onToogleHiddenNodes (isShow) {
+      this.isShowHidden = isShow || this.isNoHidden
+      this.doRefresh()
+    },
+    // show or hide filtered out parameters and groups
+    onToogleFilteredNodes (isShow) {
+      this.isShowFiltered = isShow
       this.doRefresh()
     },
     // click on parameter: open current run parameter values tab
@@ -122,6 +144,7 @@ export default {
     makeParamTreeData () {
       this.isAnyGroup = false
       this.isAnyHidden = false
+      this.isAnyFiltered = false
 
       if (!Mdf.paramCount(this.theModel)) {
         return { tree: [], leafCount: 0 } // empty list of parameters
@@ -131,8 +154,34 @@ export default {
         return { tree: [], leafCount: 0 } // invalid list of parameters
       }
 
-      // make groups map: map group id to group node
+      // if filter names not empty then display only groups and parameters from that name list
+      // build groups name list and parameter names list to include into the tree
       const gLst = this.theModel.GroupTxt
+
+      let isPflt = false
+      let isGflt = false
+      const fpLst = {}
+      const fgLst = {}
+
+      if (this.nameFilter && this.nameFilter.length > 0) {
+        for (let k = 0; k < gLst.length; k++) {
+          if (!gLst[k].Group.IsParam) continue // skip output tables group
+
+          if (this.nameFilter.findIndex((name) => { return name === gLst[k].Group.Name }) >= 0) {
+            isGflt = true
+            fgLst[gLst[k].Group.Name] = true // found group name in the filter include names list
+          }
+        }
+
+        for (const p of this.theModel.ParamTxt) {
+          if (this.nameFilter.findIndex((name) => { return name === p.Param.Name }) >= 0) {
+            isPflt = true
+            fpLst[p.Param.Name] = true // found parameter name in the filter include names list
+          }
+        }
+      }
+
+      // make groups map: map group id to group node
       const gUse = {}
 
       for (let k = 0; k < gLst.length; k++) {
@@ -140,7 +189,8 @@ export default {
 
         const gId = gLst[k].Group.GroupId
         const isNote = Mdf.noteOfDescrNote(gLst[k]) !== ''
-        this.isAnyHidden = this.isAnyHidden || gLst[k].Group.IsHidden
+        this.isAnyHidden = !this.isNoHidden && (this.isAnyHidden || gLst[k].Group.IsHidden)
+        this.isAnyFiltered = this.isAnyFiltered || (isGflt && !fgLst[gLst[k].Group.Name])
 
         gUse[gId] = {
           group: gLst[k],
@@ -162,7 +212,8 @@ export default {
 
       for (let k = 0; k < gLst.length; k++) {
         if (!gLst[k].Group.IsParam) continue // skip output tables group
-        if (!this.isShowHidden && gLst[k].Group.IsHidden) continue // skip hidden group
+        if (!this.isNoHidden && !this.isShowHidden && gLst[k].Group.IsHidden) continue // skip hidden group
+        if (isGflt && !this.isShowFiltered && !fgLst[gLst.Group.Name]) continue // skip filtered out group
 
         const gId = gLst[k].Group.GroupId
 
@@ -197,7 +248,8 @@ export default {
           if (pc.ChildGroupId >= 0) {
             const gChildUse = gUse[pc.ChildGroupId]
             if (gChildUse) {
-              if (!this.isShowHidden && gChildUse.group.Group.IsHidden) continue // skip hidden group
+              if (!this.isNoHidden && !this.isShowHidden && gChildUse.group.Group.IsHidden) continue // skip hidden group
+              if (isGflt && !this.isShowFiltered && !fgLst[gLst.Group.Name]) continue // skip filtered out group
 
               // check for circular reference
               if (gpNow.path.indexOf(pc.ChildGroupId) >= 0) {
@@ -221,7 +273,14 @@ export default {
           if (pc.ChildLeafId >= 0) {
             const p = Mdf.paramTextById(this.theModel, pc.ChildLeafId)
             if (Mdf.isParam(p.Param)) {
-              if (!this.isShowHidden && p.Param.IsHidden) continue // skip hidden parameter
+              if (!this.isNoHidden) {
+                this.isAnyHidden = this.isAnyHidden || p.Param.IsHidden
+                if (!this.isShowHidden && p.Param.IsHidden) continue // skip hidden parameter
+              }
+              if (isPflt) {
+                this.isAnyFiltered = this.isAnyFiltered || !fpLst[p.Param.Name]
+                if (!this.isShowFiltered && !fpLst[p.Param.Name]) continue // skip filtered out parameter
+              }
 
               gpNow.item.children.push({
                 key: 'ptl-' + pc.ChildLeafId + '-' + this.nextId++,
@@ -254,8 +313,14 @@ export default {
 
       let leafCount = 0
       for (const p of this.theModel.ParamTxt) {
-        this.isAnyHidden = this.isAnyHidden || p.Param.IsHidden
-        if (!this.isShowHidden && p.Param.IsHidden) continue // skip hidden parameter
+        if (!this.isNoHidden) {
+          this.isAnyHidden = this.isAnyHidden || p.Param.IsHidden
+          if (!this.isShowHidden && p.Param.IsHidden) continue // skip hidden parameter
+        }
+        if (isPflt) {
+          this.isAnyFiltered = this.isAnyFiltered || !fpLst[p.Param.Name]
+          if (!this.isShowFiltered && !fpLst[p.Param.Name]) continue // skip filtered out parameter
+        }
 
         if (!leafUse[p.Param.ParamId]) { // if parameter is not a leaf of any group
           gTree.push({

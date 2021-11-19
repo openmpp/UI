@@ -2,7 +2,7 @@
 
   <om-table-tree
     :refresh-tickle="refreshTickle"
-    :refresh-tree-tickle="refreshParamTreeTickle"
+    :refresh-tree-tickle="refreshTreeTickle"
     :tree-data="paramTreeData"
     :is-all-expand="false"
     :is-any-group="isAnyGroup"
@@ -17,7 +17,7 @@
     :filter-placeholder="$t('Find parameter...')"
     :no-results-label="$t('No model parameters found')"
     :no-nodes-label="$t('Server offline or no model parameters found')"
-    @om-table-tree-show-hidden="onToogleHiddenParamTree"
+    @om-table-tree-show-hidden="onToogleHiddenNodes"
     @om-table-tree-leaf-select="onParamLeafClick"
     @om-table-tree-leaf-add="onAddClick"
     @om-table-tree-group-add="onGroupAddClick"
@@ -43,6 +43,7 @@ export default {
   props: {
     worksetName: { type: String, required: true },
     refreshTickle: { type: Boolean, default: false },
+    refreshParamTreeTickle: { type: Boolean, default: false },
     isAdd: { type: Boolean, default: false },
     isAddGroup: { type: Boolean, default: false },
     isAddDisabled: { type: Boolean, default: false },
@@ -54,7 +55,7 @@ export default {
   data () {
     return {
       worksetCurrent: Mdf.emptyWorksetText(), // currently selected workset
-      refreshParamTreeTickle: false,
+      refreshTreeTickle: false,
       isAnyGroup: false,
       isAnyHidden: false,
       isShowHidden: false,
@@ -76,6 +77,7 @@ export default {
   watch: {
     worksetName () { this.doRefresh() },
     refreshTickle  () { this.doRefresh() },
+    refreshParamTreeTickle () { this.doRefresh() },
     theModelUpdated () { this.doRefresh() }
   },
 
@@ -85,12 +87,12 @@ export default {
       this.worksetCurrent = this.worksetTextByName({ ModelDigest: Mdf.modelDigest(this.theModel), Name: this.worksetName })
       const td = this.makeParamTreeData()
       this.paramTreeData = td.tree
-      this.refreshParamTreeTickle = !this.refreshParamTreeTickle
+      this.refreshTreeTickle = !this.refreshTreeTickle
       this.$emit('set-parameter-tree-updated', td.leafCount)
     },
 
     // show or hide hidden parameters and groups
-    onToogleHiddenParamTree (isShow) {
+    onToogleHiddenNodes (isShow) {
       this.isShowHidden = isShow
       this.doRefresh()
     },
