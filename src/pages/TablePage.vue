@@ -55,6 +55,16 @@
     <q-separator vertical inset spaced="sm" color="secondary" />
 
     <q-btn
+      @click="onDownload"
+      flat
+      dense
+      class="col-auto bg-primary text-white rounded-borders"
+      icon="mdi-download"
+      :title="$t('Download ') + ' '  + tableName + ' as CSV'"
+      />
+    <q-separator vertical inset spaced="sm" color="secondary" />
+
+    <q-btn
       @click="togglePivotControls"
       flat
       dense

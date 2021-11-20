@@ -4,6 +4,7 @@ export default {
   'Add': 'Ajouter',
   'Accumulators': 'Accumulateurs',
   'Advanced Run Options': "Options d'exécution avancées",
+  'as CSV': 'au format CSV',
   'Based on run': "Basé sur l'exécution",
   'Cancel Editing': 'Annuler la modification',
   'characters': 'caractères',

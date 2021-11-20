@@ -148,6 +148,19 @@ export default {
       this.pvtState.isToggleUI = true
     },
 
+    onDownload () {
+      if (this.tv.kind === kind.EXPR) {
+        const u = this.omsUrl + '/api/model/' + this.digest + '/run/' + this.runDigest + '/table/' + this.tableName + '/expr/csv'
+        window.open(u)
+      } else if (this.tv.kind === kind.ACC) {
+        const u = this.omsUrl + '/api/model/' + this.digest + '/run/' + this.runDigest + '/table/' + this.tableName + '/acc/csv'
+        window.open(u)
+      } else {
+        const u = this.omsUrl + '/api/model/' + this.digest + '/run/' + this.runDigest + '/table/' + this.tableName + '/all-acc/csv'
+        window.open(u)
+      }
+    },
+
     // refresh current page view on mounted or tab switch
     doRefresh () {
       this.runText = this.runTextByDigest({ ModelDigest: this.digest, RunDigest: this.runDigest })

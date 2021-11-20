@@ -178,6 +178,16 @@ export default {
       this.$refs.omPivotTable.onCopyTsv()
     },
 
+    onDownload () {
+      const u = this.isFromRun
+        ? this.omsUrl +
+          '/api/model/' + this.digest + '/run/' + this.runDigest + '/parameter/' + this.parameterName + '/csv'
+        : this.omsUrl +
+          '/api/model/' + this.digest + '/workset/' + this.worksetName + '/parameter/' + this.parameterName + '/csv'
+
+      window.open(u)
+    },
+
     // reload parameter data and reset pivot view to default
     async onReloadDefaultView () {
       if (this.pvc.formatter) {
