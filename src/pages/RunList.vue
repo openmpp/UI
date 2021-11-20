@@ -21,10 +21,13 @@
           <q-icon :name="isParamTreeShow ? 'keyboard_arrow_up' : 'keyboard_arrow_down'" />
           <span>{{ $t('Parameters') }}</span>
           <q-badge outline class="q-ml-sm q-mr-xs">{{ paramVisibleCount }}</q-badge>
+          <q-separator
+            vertical dark v-if="isCompare && paramDiff.length > 0"
+            />
           <span
             v-if="isCompare && paramDiff.length > 0"
             >
-            <q-icon name="mdi-compare"/><q-badge outline class="q-mx-xs">{{ paramDiff.length }}</q-badge>
+            <q-icon name="mdi-not-equal-variant"/><q-badge outline class="q-mx-xs">{{ paramDiff.length }}</q-badge>
           </span>
         </q-btn>
       </span>
@@ -43,10 +46,13 @@
           <q-icon :name="isTableTreeShow ? 'keyboard_arrow_up' : 'keyboard_arrow_down'" />
           <span>{{ $t('Output Tables') }}</span>
           <q-badge outline class="q-ml-sm q-mr-xs">{{ tableVisibleCount }}</q-badge>
+          <q-separator
+            vertical dark v-if="isCompare && tableDiff.length > 0"
+            />
           <span
             v-if="isCompare && tableDiff.length > 0"
             >
-            <q-icon name="mdi-compare"/><q-badge outline class="q-mx-xs">{{ tableDiff.length }}</q-badge>
+            <q-icon name="mdi-not-equal-variant"/><q-badge outline class="q-mx-xs">{{ tableDiff.length }}</q-badge>
           </span>
         </q-btn>
       </span>
@@ -109,12 +115,10 @@
         :run-digest="runDigestSelected"
         :refresh-tickle="refreshTickle"
         :refresh-param-tree-tickle="refreshParamTreeTickle"
-        :is-no-hidden="isCompare"
         :name-filter="paramDiff"
-        outside-on-icon="mdi-compare-remove"
-        outside-off-icon="mdi-compare"
-        outside-on-label="Show all parameters"
-        outside-off-label="Show only different parameters"
+        in-list-icon="mdi-not-equal-variant"
+        in-list-on-label="Show only different parameters"
+        in-list-off-label="Show all parameters"
         @run-parameter-select="onRunParamClick"
         @run-parameter-info-show="doShowParamNote"
         @run-parameter-group-info-show="doShowGroupNote"
@@ -130,12 +134,10 @@
         :run-digest="runDigestSelected"
         :refresh-tickle="refreshTickle"
         :refresh-table-tree-tickle="refreshTableTreeTickle"
-        :is-no-hidden="isCompare"
         :name-filter="tableDiff"
-        outside-on-icon="mdi-compare-remove"
-        outside-off-icon="mdi-compare"
-        outside-on-label="Show all output tables"
-        outside-off-label="Show only different output tables"
+        in-list-icon="mdi-not-equal-variant"
+        in-list-on-label="Show only different output tables"
+        in-list-off-label="Show all output tables"
         @table-select="onTableLeafClick"
         @table-info-show="doShowTableNote"
         @table-group-info-show="doShowGroupNote"
@@ -234,7 +236,7 @@
               dense
               class="col-auto"
               :class="(!isSuccess(prop.node.status) || prop.node.digest === runDigestSelected) ? 'text-secondary' : (prop.node.digest !== runCompare.RunDigest ? 'text-primary' : 'text-white bg-primary')"
-              :icon="prop.node.digest !== runCompare.RunDigest ? 'mdi-compare' : 'mdi-compare-remove'"
+              icon="mdi-not-equal-variant"
               :title="(prop.node.digest !== runCompare.RunDigest ? $t('Compare this model run with') : $t('Clear run comparison with')) + ' ' + runCurrent.Name"
               />
             <q-btn

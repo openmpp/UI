@@ -17,14 +17,13 @@
     :filter-placeholder="$t('Find parameter...')"
     :no-results-label="$t('No model parameters found')"
     :no-nodes-label="$t('Server offline or no model parameters found')"
-    :is-any-outside="isAnyFiltered"
-    :is-show-outside="isShowFiltered"
-    :outside-on-label="outsideOnLabel"
-    :outside-off-label="outsideOffLabel"
-    :outside-on-icon="outsideOnIcon"
-    :outside-off-icon="outsideOffIcon"
+    :is-any-in-list="isAnyFiltered"
+    :is-show-in-list="isShowFiltered"
+    :in-list-on-label="inListOnLabel"
+    :in-list-off-label="inListOffLabel"
+    :in-list-icon="inListIcon"
     @om-table-tree-show-hidden="onToogleHiddenNodes"
-    @om-table-tree-show-outside="onToogleFilteredNodes"
+    @om-table-tree-show-in-list="onToogleFilteredNodes"
     @om-table-tree-leaf-select="onParamLeafClick"
     @om-table-tree-leaf-add="onAddClick"
     @om-table-tree-group-add="onGroupAddClick"
@@ -59,10 +58,9 @@ export default {
     isRemoveGroup: { type: Boolean, default: false },
     isRemoveDisabled: { type: Boolean, default: false },
     nameFilter: { type: Array, default: () => [] }, // if not empty then use only parameters and groups included in the name list
-    outsideOnLabel: { type: String, default: '' },
-    outsideOffLabel: { type: String, default: '' },
-    outsideOnIcon: { type: String, default: '' },
-    outsideOffIcon: { type: String, default: '' }
+    inListOnLabel: { type: String, default: '' },
+    inListOffLabel: { type: String, default: '' },
+    inListIcon: { type: String, default: '' }
   },
 
   data () {
