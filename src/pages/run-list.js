@@ -2,6 +2,7 @@ import { mapState, mapGetters } from 'vuex'
 import * as Mdf from 'src/model-common'
 import RunParameterList from 'components/RunParameterList.vue'
 import TableList from 'components/TableList.vue'
+import RefreshRun from 'components/RefreshRun.vue'
 import RunInfoDialog from 'components/RunInfoDialog.vue'
 import ParameterInfoDialog from 'components/ParameterInfoDialog.vue'
 import TableInfoDialog from 'components/TableInfoDialog.vue'
@@ -12,7 +13,15 @@ import MarkdownEditor from 'components/MarkdownEditor.vue'
 export default {
   name: 'RunList',
   components: {
-    RunParameterList, TableList, RunInfoDialog, ParameterInfoDialog, TableInfoDialog, GroupInfoDialog, DeleteConfirmDialog, MarkdownEditor
+    RunParameterList,
+    TableList,
+    RefreshRun,
+    RunInfoDialog,
+    ParameterInfoDialog,
+    TableInfoDialog,
+    GroupInfoDialog,
+    DeleteConfirmDialog,
+    MarkdownEditor
   },
 
   props: {
@@ -23,15 +32,25 @@ export default {
   data () {
     return {
       loadWait: false,
+      loadRunWait: false,
       runCurrent: Mdf.emptyRunText(), // currently selected run
       isRunTreeCollapsed: false,
       isAnyRunGroup: false,
       runTreeData: [],
       runFilter: '',
+      runCompare: Mdf.emptyRunText(), // run to compare
+      paramDiff: [], // name list of different parameters
+      tableDiff: [], // name list of different tables
+      refreshParamTreeTickle: false,
+      refreshTableTreeTickle: false,
+      runDigestRefresh: '',
+      refreshRunTickle: false,
       isParamTreeShow: false,
       paramTreeCount: 0,
+      paramVisibleCount: 0,
       isTableTreeShow: false,
       tableTreeCount: 0,
+      tableVisibleCount: 0,
       runInfoTickle: false,
       runInfoDigest: '',
       groupInfoTickle: false,
@@ -52,6 +71,7 @@ export default {
   computed: {
     isNotEmptyRunCurrent () { return Mdf.isNotEmptyRunText(this.runCurrent) },
     descrRunCurrent () { return Mdf.descrOfTxt(this.runCurrent) },
+    isCompare () { return !!this.runCompare && (this.runCompare?.RunDigest || '') !== '' },
 
     ...mapState('model', {
       theModel: state => state.theModel,
@@ -74,7 +94,7 @@ export default {
   watch: {
     digest () { this.doRefresh() },
     refreshTickle () { this.doRefresh() },
-    runTextListUpdated () { this.doRefresh() },
+    runTextListUpdated () { this.onRunTextListUpdated() },
     runDigestSelected () {
       this.runCurrent = this.runTextByDigest({ ModelDigest: this.digest, RunDigest: this.runDigestSelected })
     }
@@ -89,14 +109,21 @@ export default {
 
     // update page view
     doRefresh () {
+      this.onRunTextListUpdated()
+      this.paramTreeCount = Mdf.paramCount(this.theModel)
+      this.paramVisibleCount = this.paramTreeCount
+      this.tableTreeCount = Mdf.tableCount(this.theModel)
+      this.tableVisibleCount = this.tableTreeCount
+    },
+    // run list updated: update run list tree and current run
+    onRunTextListUpdated () {
       this.runTreeData = this.makeRunTreeData(this.runTextList)
       this.runCurrent = this.runTextByDigest({ ModelDigest: this.digest, RunDigest: this.runDigestSelected })
-      this.paramTreeCount = Mdf.paramCount(this.theModel)
-      this.tableTreeCount = Mdf.tableCount(this.theModel)
     },
 
     // click on run: select this run as current run
     onRunLeafClick (dgst) {
+      this.clearRunCompare()
       if (this.runDigestSelected !== dgst) this.$emit('run-select', dgst)
     },
     // expand or collapse all run tree nodes
@@ -137,8 +164,14 @@ export default {
 
     // parameters tree updated and leafs counted
     // tables tree updated and leafs counted
-    onParamTreeUpdated  (cnt) { this.paramTreeCount = cnt || 0 },
-    onTableTreeUpdated (cnt) { this.tableTreeCount = cnt || 0 },
+    onParamTreeUpdated  (cnt) {
+      this.paramTreeCount = cnt || 0
+      this.paramVisibleCount = !this.isCompare ? this.paramTreeCount : Mdf.paramCount(this.theModel)
+    },
+    onTableTreeUpdated (cnt) {
+      this.tableTreeCount = cnt || 0
+      this.tableVisibleCount = !this.isCompare ? this.tableTreeCount : Mdf.tableCount(this.theModel)
+    },
 
     // show run description and notes dialog
     onEditRunNote (dgst) {
@@ -154,6 +187,86 @@ export default {
       this.noteEditorShow = false
     },
 
+    // run comparison click: set or clear run comparison
+    onCompareClick (dgst) {
+      // if clear run comparison filter
+      if (dgst === this.runDigestRefresh || dgst === this.runCompare.RunDigest) {
+        this.clearRunCompare()
+        return
+      }
+      // esle: start run comparison by refresh run
+      this.runDigestRefresh = dgst
+    },
+    // run to compare loaded from the server
+    doneRunLoad (isSuccess, dgst) {
+      this.loadRunWait = false
+      if (!isSuccess) return
+
+      this.runCompare = this.runTextByDigest({ ModelDigest: this.digest, RunDigest: dgst })
+      if (!Mdf.isNotEmptyRunText(this.runCompare)) {
+        console.warn('Unable to compare run:', dgst, this.runDigestRefresh)
+        this.$q.notify({ type: 'negative', message: this.$t('Unable to compare model run') + ' ' + this.runDigestRefresh })
+        return
+      }
+
+      // compare parameters by value digest: both Param[] arrays must contain all parameters
+      const pn = []
+      for (let k = 0; k < this.runCurrent.Param.length; k++) {
+        if (this.runCurrent.Param[k].ValueDigest !== this.runCompare.Param[k].ValueDigest) pn.push(this.runCurrent.Param[k].Name)
+      }
+
+      // compare output tables by value digest:
+      // Table[] arrays can contain diffrent tables or both can have full table list
+      const tn = []
+      const nCur = this.runCurrent.Table.length
+      const nCmp = this.runCompare.Table.length
+
+      if (nCur === nCmp && nCur === Mdf.tableCount(this.theModel)) { // both runs contain all output tables
+        for (let k = 0; k < this.runCurrent.Table.length; k++) {
+          if (this.runCurrent.Table[k].ValueDigest !== this.runCompare.Table[k].ValueDigest) tn.push(this.runCurrent.Table[k].Name)
+        }
+      } else {
+        // at least one table of the Table[] arrays does not contain all model tables
+        const tm = nCur > nCmp ? this.runCurrent.Table : this.runCompare.Table
+        const ts = nCur > nCmp ? this.runCompare.Table : this.runCurrent.Table
+
+        for (let k = 0; k < tm.length; k++) {
+          const j = ts.findIndex((t) => { return t.Name === tm[k].Name })
+          if (j >= 0 && ts[j].ValueDigest !== tm[k].ValueDigest) tn.push(tm[k].Name)
+        }
+      }
+
+      // notify user about results
+      if (pn.length) {
+        this.paramVisibleCount = Mdf.paramCount(this.theModel)
+        this.$q.notify({ type: 'info', message: this.$t('Number of different parameters') + ': ' + pn.length })
+      } else {
+        this.$q.notify({ type: 'info', message: this.$t('All parameters values identical') })
+      }
+      if (tn.length) {
+        this.tableVisibleCount = Mdf.tableCount(this.theModel)
+        this.$q.notify({ type: 'info', message: this.$t('Number of different output tables') + ': ' + tn.length })
+      } else {
+        this.$q.notify({ type: 'info', message: this.$t('All output tables  values identical') })
+      }
+
+      this.paramDiff = Object.freeze(pn)
+      this.tableDiff = Object.freeze(tn)
+      this.refreshParamTreeTickle = !this.refreshParamTreeTickle
+      this.refreshTableTreeTickle = !this.refreshTableTreeTickle
+    },
+    // clear run comparison
+    clearRunCompare () {
+      this.runDigestRefresh = ''
+      this.runCompare = Mdf.emptyRunText()
+      this.paramDiff = []
+      this.tableDiff = []
+      this.paramVisibleCount = this.paramTreeCount
+      this.tableVisibleCount = this.tableTreeCount
+      this.refreshParamTreeTickle = !this.refreshParamTreeTickle
+      this.refreshTableTreeTickle = !this.refreshTableTreeTickle
+    },
+
     // show yes/no dialog to confirm run delete
     onRunDelete (runName, dgst) {
       this.runNameToDelete = runName
@@ -162,6 +275,9 @@ export default {
     },
     // user answer yes to confirm delete model run
     onYesRunDelete (runName, dgst) {
+      if (dgst === this.runCompare.RunDigest) {
+        this.clearRunCompare()
+      }
       this.doRunDelete(dgst, runName)
     },
 

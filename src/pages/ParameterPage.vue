@@ -18,8 +18,10 @@
           :model-digest="digest"
           :workset-name="worksetName"
           :is-readonly-button="true"
+          :is-new-run-button="true"
           @set-info-click="doShowWorksetNote"
           @set-update-readonly="onWorksetReadonlyToggle"
+          @new-run-select="onNewRunClick"
           >
         </workset-bar>
       </template>
@@ -277,7 +279,7 @@
             >
             <template v-slot:before>
               <q-icon
-                name="mdi-hand-left"
+                name="mdi-hand-back-left"
                 size="xs"
                 class="bg-primary text-white rounded-borders select-handle-move"
                 />
@@ -336,7 +338,7 @@
             >
             <template v-slot:before>
               <q-icon
-                name="mdi-hand-left"
+                name="mdi-hand-back-left"
                 size="xs"
                 class="bg-primary text-white rounded-borders select-handle-move"
                 />
@@ -404,7 +406,7 @@
             >
             <template v-slot:before>
               <q-icon
-                name="mdi-hand-left"
+                name="mdi-hand-back-left"
                 size="xs"
                 class="bg-primary text-white rounded-borders select-handle-move"
                 />

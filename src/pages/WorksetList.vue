@@ -42,7 +42,7 @@
         :title="$t('About') + ' ' + worksetNameSelected"
         />
       <q-btn
-        @click="onNewRunClick"
+        @click="onNewRunClick(worksetNameSelected)"
         :disable="!isReadonlyWorksetCurrent"
         flat
         dense
@@ -160,23 +160,37 @@
               :title="$t('About') + ' ' + prop.node.label"
               />
             <q-btn
-              :disable="!prop.node.label || prop.node.isReadonly"
+              v-if="prop.node.label"
+              :disable="prop.node.isReadonly"
               @click.stop="onEditWorkset(prop.node.label)"
               flat
               round
               dense
-              :color="(prop.node.label && !prop.node.isReadonly) ? 'primary' : 'secondary'"
+              :color="!prop.node.isReadonly ? 'primary' : 'secondary'"
               class="col-auto"
               icon="mdi-notebook-edit-outline"
               :title="$t('Edit') + ': ' + prop.node.label"
               />
             <q-btn
-              :disable="!prop.node.label || prop.node.isReadonly"
+              v-if="prop.node.label"
+              :disable="!prop.node.isReadonly"
+              @click.stop="onNewRunClick(prop.node.label)"
+              flat
+              round
+              dense
+              :color="prop.node.isReadonly ? 'primary' : 'secondary'"
+              class="col-auto"
+              icon="mdi-run"
+              :title="$t('Run the Model')"
+              />
+            <q-btn
+              v-if="prop.node.label"
+              :disable="prop.node.isReadonly"
               @click.stop="onDeleteWorkset(prop.node.label)"
               flat
               round
               dense
-              :color="(prop.node.label && !prop.node.isReadonly) ? 'primary' : 'secondary'"
+              :color="!prop.node.isReadonly ? 'primary' : 'secondary'"
               class="col-auto"
               icon="mdi-delete-outline"
               :title="$t('Delete') + ': ' + prop.node.label"

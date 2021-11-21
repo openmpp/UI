@@ -11,7 +11,7 @@
       dense
       class="col-auto bg-primary text-white rounded-borders q-mr-xs"
       icon="mdi-information"
-      :title="$t('About') + ' ' + worksetText.Name"
+      :title="$t('About') + ' ' + worksetName"
       />
     <q-btn
       v-if="isNewRunButton"
@@ -31,13 +31,13 @@
       dense
       class="col-auto bg-primary text-white rounded-borders q-mr-xs"
       :icon="(!isNotEmptyWorkset || isReadonlyWorkset) ? 'mdi-lock' : 'mdi-lock-open-variant'"
-      :title="((!isNotEmptyWorkset || isReadonlyWorkset) ? $t('Open for read and write') : $t('Close and only read')) + ' ' + worksetText.Name"
+      :title="((!isNotEmptyWorkset || isReadonlyWorkset) ? $t('Open for read and write') : $t('Close and only read')) + ' ' + worksetName"
       />
 
     <div
       class="col-auto"
       >
-      <span>{{ worksetText.Name }}<br />
+      <span>{{ worksetName }}<br />
       <span class="om-text-descr"><span class="mono">{{ lastDateTimeStr }} </span>{{ descrOfWorkset }}</span></span>
     </div>
 
@@ -98,7 +98,7 @@ export default {
     },
     // new model run using current workset name: open model run tab
     onNewRunClick () {
-      this.$emit('new-run-select')
+      this.$emit('new-run-select', this.worksetName)
     },
     // toggle current workset readonly status: pass event from child up to the next level
     onWorksetReadonlyToggle () {

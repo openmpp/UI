@@ -18,7 +18,7 @@
     "test": "echo \"No test specified\" && exit 0"
   },
   "dependencies": {
-    "@fontsource/roboto-mono": "4.4.5",
+    "@fontsource/roboto-mono": "^4.4.0",
     "@quasar/extras": "^1.0.0",
     "axios": "^0.21.1",
     "core-js": "^3.6.5",

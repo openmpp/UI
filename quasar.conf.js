@@ -38,7 +38,8 @@ module.exports = function (ctx) {
       // 'themify',
       // 'line-awesome',
       // 'roboto-font-latin-ext', // this or either 'roboto-font', NEVER both!
-      'mdi-v5',
+      'mdi-v6',
+      'fontawesome-v5', // for easyMDE only
 
       'roboto-font', // optional, you are not bound to it
       'material-icons' // optional, you are not bound to it

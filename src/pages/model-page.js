@@ -46,6 +46,7 @@ export default {
       refreshRunTickle: false,
       refreshWsListTickle: false,
       refreshWsTickle: false,
+      refreshWsToRun: false,
       refreshRunViewsTickle: false,
       refreshWsViewsTickle: false,
       uploadViewsTickle: false,
@@ -220,10 +221,14 @@ export default {
         this.dispatchWorksetNameSelected('')
       }
     },
-    doneWsLoad (isSuccess, name) {
+    doneWsLoad (isSuccess, name, isNewRun) {
       this.loadWsDone = true
+      this.refreshWsToRun = false
       //
-      if (isSuccess && (name || '') !== '') this.dispatchWorksetNameSelected(name)
+      if (isSuccess && (name || '') !== '') {
+        this.dispatchWorksetNameSelected(name)
+        if (isNewRun) this.doNewRunSelect()
+      }
     },
     doneUpdateWsStatus (isSuccess, name, isReadonly) {
       this.updatingWsStatus = false
@@ -334,11 +339,6 @@ export default {
       const p = this.doTabAdd('run-log', { digest: this.digest, runStamp: stamp })
       if (p) this.$router.push(p)
     },
-    // new model run using current workset name: add tab to run the model
-    onNewRunSelect () {
-      const p = this.doTabAdd('new-run', { digest: this.digest })
-      if (p) this.$router.push(p)
-    },
     // create new workset: add tab to create workset
     onNewWorksetSelect () {
       const p = this.doTabAdd('new-set', { digest: this.digest })
@@ -352,6 +352,24 @@ export default {
     // view download list: add tab with open download page
     onDownloadSelect () {
       const p = this.doTabAdd('download-list', { digest: this.digest })
+      if (p) this.$router.push(p)
+    },
+    // new model run selected by user:
+    // if workset name supplied then select workset first and open run tab after
+    // if no workset name then open new run tab with currently selected workset
+    onNewRunSelect (name) {
+      if ((name || '') !== '') {
+        if (this.wsNameCurrent === name) this.refreshWsTickle = !this.refreshWsTickle
+        this.wsNameCurrent = name
+        this.refreshWsToRun = true // wait until workset select completed
+        return
+      }
+      // else: workset already selected, add new run tab
+      this.doNewRunSelect()
+    },
+    // add tab to run the model
+    doNewRunSelect () {
+      const p = this.doTabAdd('new-run', { digest: this.digest })
       if (p) this.$router.push(p)
     },
 

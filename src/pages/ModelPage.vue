@@ -34,7 +34,7 @@
             <q-icon v-if="!t.updated && t.kind === 'set-parameter'" name="mdi-table-edit" size="sm" class="self-center q-pr-xs"/>
             <q-icon v-if="t.updated && t.kind === 'set-parameter'" name="mdi-content-save-edit" size="sm" class="self-center q-pr-xs"/>
             <q-icon v-if="t.kind === 'table'" name="mdi-application-export" size="sm" class="self-center q-pr-xs"/>
-            <q-icon v-if="t.kind === 'run-log'" name="mdi-text-subject" size="sm" class="self-center q-pr-xs"/>
+            <q-icon v-if="t.kind === 'run-log'" name="mdi-text-long" size="sm" class="self-center q-pr-xs"/>
             <q-icon v-if="t.kind === 'new-set'" name="mdi-notebook-plus" size="sm" class="self-center q-pr-xs"/>
             <q-icon v-if="t.kind === 'set-edit'" name="mdi-notebook-edit" size="sm" class="self-center q-pr-xs"/>
             <q-icon v-if="t.kind === 'download-list'" name="mdi-file-download-outline" size="sm" class="self-center q-pr-xs"/>
@@ -84,7 +84,7 @@
               <q-icon v-if="!t.updated && t.kind === 'set-parameter'" name="mdi-table-edit" />
               <q-icon v-if="t.updated && t.kind === 'set-parameter'" name="mdi-content-save-edit" />
               <q-icon v-if="t.kind === 'table'" name="mdi-application-export" />
-              <q-icon v-if="t.kind === 'run-log'" name="mdi-text-subject" />
+              <q-icon v-if="t.kind === 'run-log'" name="mdi-text-long" />
               <q-icon v-if="t.kind === 'new-set'" name="mdi-notebook-plus-outline" />
               <q-icon v-if="t.kind === 'set-edit'" name="mdi-notebook-edit-outline" />
               <q-icon v-if="t.kind === 'download-list'" name="mdi-file-download-outline" />
@@ -169,6 +169,7 @@
     :workset-name="wsNameCurrent"
     :refresh-tickle="refreshTickle"
     :refresh-workset-tickle="refreshWsTickle"
+    :is-new-run="refreshWsToRun"
     @done="doneWsLoad"
     @wait="loadWsDone = false">
   </refresh-workset>

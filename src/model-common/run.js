@@ -1,5 +1,7 @@
 // db structures common functions: model run and run list
 
+import * as Hlpr from './helper'
+
 // run count: number of run text entries in the run text list
 export const runTextCount = (rtl) => {
   return isRunTextList(rtl) ? rtl.length : 0
@@ -53,6 +55,14 @@ export const emptyRunText = () => {
   }
 }
 
+// return true if this is not the same run text or it is updated: different run status or update time.
+export const isRunTextUpdated = (rt, rtOther) => {
+  if (!isNotEmptyRunText(rt) || !isNotEmptyRunText(rtOther)) return false
+
+  return rt.ModelDigest !== rtOther.ModelDigest || rt.RunDigest !== rtOther.RunDigest ||
+    rt.Status !== rtOther.Status || rt.UpdateDateTime !== rtOther.UpdateDateTime
+}
+
 // retrun true if table included in run text: find table name in run tables array
 export const isRunTextHasTable = (rt, name) => {
   if (!name || !isNotEmptyRunText(rt)) return false
@@ -63,12 +73,30 @@ export const isRunTextHasTable = (rt, name) => {
   return false
 }
 
-// return true if this is not the same run text or it is updated: different run status or update time.
-export const isRunTextUpdated = (rt, rtOther) => {
-  if (!isNotEmptyRunText(rt) || !isNotEmptyRunText(rtOther)) return false
+// return empty run table
+export const emptyRunTable = () => {
+  return {
+    Name: '',
+    ValueDigest: ''
+  }
+}
 
-  return rt.ModelDigest !== rtOther.ModelDigest || rt.RunDigest !== rtOther.RunDigest ||
-    rt.Status !== rtOther.Status || rt.UpdateDateTime !== rtOther.UpdateDateTime
+// if this is not empty run table: table Name is not empty and ValueDigest is a string
+export const isNotEmptyRunTable = (rtbl) => {
+  return rtbl &&
+    rtbl?.Name && typeof rtbl.Name === typeof 'string' && rtbl.Name &&
+    rtbl.hasOwnProperty('ValueDigest') && typeof rtbl.ValueDigest === typeof 'string'
+}
+
+// find run Table by table name in Table[] array of run text
+// return empty value if not found
+export const runTableByName = (rt, name) => {
+  if (!name || !isNotEmptyRunText(rt)) return emptyRunTable()
+
+  for (let k = 0; k < rt.Table.length; k++) {
+    if ((rt.Table[k]?.Name || '') === name) return Hlpr._cloneDeep(rt.Table[k])
+  }
+  return emptyRunTable() // not found
 }
 
 /* eslint-disable no-multi-spaces */

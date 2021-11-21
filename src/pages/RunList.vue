@@ -20,12 +20,21 @@
           >
           <q-icon :name="isParamTreeShow ? 'keyboard_arrow_up' : 'keyboard_arrow_down'" />
           <span>{{ $t('Parameters') }}</span>
-          <q-badge outline class="q-ml-sm q-mr-xs">{{ paramTreeCount }}</q-badge>
+          <q-badge outline class="q-ml-sm q-mr-xs">{{ paramVisibleCount }}</q-badge>
+          <q-separator
+            vertical dark v-if="isCompare && paramDiff.length > 0"
+            />
+          <span
+            v-if="isCompare && paramDiff.length > 0"
+            >
+            <q-icon name="mdi-not-equal-variant"/><q-badge outline class="q-mx-xs">{{ paramDiff.length }}</q-badge>
+          </span>
         </q-btn>
       </span>
 
       <span class="col-auto no-wrap q-mr-xs">
         <q-btn
+          :disable="!isSuccess(runCurrent.Status)"
           @click="onToogleShowTableTree"
           no-caps
           unelevated
@@ -36,7 +45,15 @@
           >
           <q-icon :name="isTableTreeShow ? 'keyboard_arrow_up' : 'keyboard_arrow_down'" />
           <span>{{ $t('Output Tables') }}</span>
-          <q-badge outline class="q-ml-sm q-mr-xs">{{ tableTreeCount }}</q-badge>
+          <q-badge outline class="q-ml-sm q-mr-xs">{{ tableVisibleCount }}</q-badge>
+          <q-separator
+            vertical dark v-if="isCompare && tableDiff.length > 0"
+            />
+          <span
+            v-if="isCompare && tableDiff.length > 0"
+            >
+            <q-icon name="mdi-not-equal-variant"/><q-badge outline class="q-mx-xs">{{ tableDiff.length }}</q-badge>
+          </span>
         </q-btn>
       </span>
 
@@ -97,6 +114,11 @@
       <run-parameter-list
         :run-digest="runDigestSelected"
         :refresh-tickle="refreshTickle"
+        :refresh-param-tree-tickle="refreshParamTreeTickle"
+        :name-filter="paramDiff"
+        in-list-icon="mdi-not-equal-variant"
+        in-list-on-label="Show only different parameters"
+        in-list-off-label="Show all parameters"
         @run-parameter-select="onRunParamClick"
         @run-parameter-info-show="doShowParamNote"
         @run-parameter-group-info-show="doShowGroupNote"
@@ -111,6 +133,11 @@
       <table-list
         :run-digest="runDigestSelected"
         :refresh-tickle="refreshTickle"
+        :refresh-table-tree-tickle="refreshTableTreeTickle"
+        :name-filter="tableDiff"
+        in-list-icon="mdi-not-equal-variant"
+        in-list-on-label="Show only different output tables"
+        in-list-off-label="Show all output tables"
         @table-select="onTableLeafClick"
         @table-info-show="doShowTableNote"
         @table-group-info-show="doShowGroupNote"
@@ -198,8 +225,19 @@
               dense
               :color="!!prop.node.stamp ? 'primary' : 'secondary'"
               class="col-auto"
-              icon="mdi-text-subject"
+              icon="mdi-text-long"
               :title="$t('Run Log') + ': ' + prop.node.label"
+              />
+            <q-btn
+              :disable="!isSuccess(prop.node.status) || prop.node.digest === runDigestSelected"
+              @click.stop="onCompareClick(prop.node.digest)"
+              flat
+              round
+              dense
+              class="col-auto"
+              :class="(!isSuccess(prop.node.status) || prop.node.digest === runDigestSelected) ? 'text-secondary' : (prop.node.digest !== runCompare.RunDigest ? 'text-primary' : 'text-white bg-primary')"
+              icon="mdi-not-equal-variant"
+              :title="(prop.node.digest !== runCompare.RunDigest ? $t('Compare this model run with') : $t('Clear run comparison with')) + ' ' + runCurrent.Name"
               />
             <q-btn
               :disable="!prop.node.digest || isInProgress(prop.node.status)"
@@ -242,6 +280,15 @@
   <parameter-info-dialog :show-tickle="paramInfoTickle" :param-name="paramInfoName" :run-digest="runDigestSelected"></parameter-info-dialog>
   <table-info-dialog :show-tickle="tableInfoTickle" :table-name="tableInfoName" :run-digest="runDigestSelected"></table-info-dialog>
   <group-info-dialog :show-tickle="groupInfoTickle" :group-name="groupInfoName"></group-info-dialog>
+  <refresh-run v-if="(digest || '') !== '' && (runDigestRefresh || '') !== ''"
+    :model-digest="digest"
+    :run-digest="this.runDigestRefresh"
+    :refresh-tickle="refreshTickle"
+    :refresh-run-tickle="refreshRunTickle"
+    @done="doneRunLoad"
+    @wait="loadRunWait = true"
+    >
+  </refresh-run>
   <delete-confirm-dialog
     @delete-yes="onYesRunDelete"
     :show-tickle="showDeleteDialogTickle"
@@ -251,7 +298,7 @@
     >
   </delete-confirm-dialog>
 
-  <q-inner-loading :showing="loadWait">
+  <q-inner-loading :showing="loadWait || loadRunWait">
     <q-spinner-gears size="md" color="primary" />
   </q-inner-loading>
 
@@ -266,5 +313,10 @@
   }
   .tab-switch-button {
     border-top-right-radius: 1rem;
+  }
+  .tab-compare-boder {
+    border-width: 1px;
+    border-style: solid;
+    border-color: currentColor;
   }
 </style>

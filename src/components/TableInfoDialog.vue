@@ -35,6 +35,9 @@
           <div class="om-note-row">
             <span class="om-note-cell q-pr-sm">{{ $t('Import Digest') }}:</span><span class="om-note-cell">{{ tableText.Table.ImportDigest }}</span>
           </div>
+          <div class="om-note-row">
+            <span class="om-note-cell q-pr-sm">{{ $t('Value Digest') }}:</span><span class="om-note-cell">{{ valueDigest }}</span>
+          </div>
         </template>
       </div>
 
@@ -78,6 +81,7 @@ export default {
       exprNotes: '',
       tableSize: Mdf.emptyTableSize(),
       isRunHasTable: false,
+      valueDigest: '',
       runText: Mdf.emptyRunText()
     }
   },
@@ -126,7 +130,11 @@ export default {
 
       // find table size info and check is this table included into the run
       this.tableSize = Mdf.tableSizeByName(this.theModel, this.tableName)
-      this.isRunHasTable = Mdf.isRunTextHasTable(this.runText, this.tableName)
+      const rTbl = Mdf.runTableByName(this.runText, this.tableName)
+      this.isRunHasTable = Mdf.isNotEmptyRunTable(rTbl)
+      if (this.isRunHasTable) {
+        this.valueDigest = rTbl?.ValueDigest || this.$t('Empty')
+      }
 
       this.showDlg = true
     }

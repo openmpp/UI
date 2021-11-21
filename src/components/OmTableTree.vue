@@ -39,11 +39,24 @@ Expected array of tree items as:
     <q-btn
       v-if="isAnyHidden"
       @click="$emit('om-table-tree-show-hidden', !isShowHidden)"
-      flat
       dense
-      class="col-auto bg-primary text-white rounded-borders q-mr-xs om-tree-control-button"
-      :icon="isShowHidden ? 'mdi-eye-off-outline' : 'mdi-eye-outline'"
-      :title="isShowHidden ? $t('Do not show hidden items') : $t('Show hidden items')"
+      :unelevated="!isShowHidden"
+      :outline="isShowHidden"
+      color="primary"
+      class="col-auto q-mr-xs om-tree-control-button"
+      icon="mdi-eye-off-outline"
+      :title="!isShowHidden ? $t('Do not show hidden items') : $t('Show all hidden items')"
+      />
+    <q-btn
+      v-if="isAnyInList"
+      @click="$emit('om-table-tree-show-in-list', !isShowInList)"
+      dense
+      :unelevated="!isShowInList"
+      :outline="isShowInList"
+      color="primary"
+      class="col-auto q-mr-xs om-tree-control-button"
+      :icon="inListIcon || 'mdi-filter-outline'"
+      :title="isShowInList ? $t((inListOffLabel || 'Show filtered out items')) : $t((inListOnLabel || 'Do not show filtered out items'))"
       />
     <span class="col-grow">
       <q-input
@@ -199,7 +212,12 @@ export default {
     isRemoveDisabled: { type: Boolean, default: false },
     filterPlaceholder: { type: String, default: '' },
     noResultsLabel: { type: String, default: '' },
-    noNodesLabel: { type: String, default: '' }
+    noNodesLabel: { type: String, default: '' },
+    isAnyInList: { type: Boolean, default: false },
+    isShowInList: { type: Boolean, default: false },
+    inListOnLabel: { type: String, default: '' },
+    inListOffLabel: { type: String, default: '' },
+    inListIcon: { type: String, default: '' }
   },
 
   data () {

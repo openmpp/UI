@@ -111,10 +111,12 @@ export const paramSizeByName = (md, name) => {
   return ret
 }
 
-// return true if this is non empty ParamRunSet
+// return true if this is non empty ParamRunSet with Txt[]
 export const isNotEmptyParamRunSet = (prs) => {
   if (!prs) return false
-  return (prs?.Name || '') !== '' && (prs?.SubCount || -1) >= 0 && Array.isArray(prs?.Txt)
+  return (prs?.Name || '') !== '' &&
+    (prs?.SubCount || -1) >= 0 && Array.isArray(prs?.Txt) &&
+    prs.hasOwnProperty('ValueDigest') && typeof prs.ValueDigest === typeof 'string'
 }
 
 // return empty ParamRunSetPub, which is Param[i] of run text or workset text
@@ -123,6 +125,7 @@ export const emptyParamRunSet = () => {
     Name: '',
     SubCount: 0,
     DefaultSubId: 0, // exist only in workset
+    ValueDigest: '', // not empty only for run parameters
     Txt: []
   }
 }

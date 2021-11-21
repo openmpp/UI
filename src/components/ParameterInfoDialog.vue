@@ -35,6 +35,9 @@
         <div class="om-note-row">
           <span class="om-note-cell q-pr-sm">{{ $t('Import Digest') }}:</span><span class="om-note-cell">{{ paramText.Param.ImportDigest }}</span>
         </div>
+        <div v-if="(runDigest || '') !== ''" class="om-note-row">
+          <span class="om-note-cell q-pr-sm">{{ $t('Value Digest') }}:</span><span class="om-note-cell">{{ paramRunSet.ValueDigest || $t('Empty') }}</span>
+        </div>
       </div>
 
       <div v-if="valueNotes" v-html="valueNotes" />

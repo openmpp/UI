@@ -9,7 +9,8 @@ export default {
     modelDigest: { type: String, default: '' },
     worksetName: { type: String, default: '' },
     refreshTickle: { type: Boolean, default: false },
-    refreshWorksetTickle: { type: Boolean, default: false }
+    refreshWorksetTickle: { type: Boolean, default: false },
+    isNewRun: { type: Boolean, default: false }
   },
 
   render () { return {} }, // no html
@@ -48,6 +49,7 @@ export default {
 
       this.loadDone = false
       this.loadWait = true
+      const isRun = this.isNewRun
       this.$emit('wait')
 
       const u = this.omsUrl + '/api/model/' + this.modelDigest + '/workset/' + this.worksetName + '/text' + (this.uiLang !== '' ? '/lang/' + this.uiLang : '')
@@ -64,7 +66,7 @@ export default {
         this.$q.notify({ type: 'negative', message: this.$t('Server offline or input scenario not found') + ': ' + this.worksetName })
       }
 
-      this.$emit('done', this.loadDone, this.worksetName)
+      this.$emit('done', this.loadDone, this.worksetName, isRun)
       this.loadWait = false
     },
 
