@@ -4,6 +4,7 @@ export default {
   'Add': 'Ajouter',
   'Accumulators': 'Accumulateurs',
   'Advanced Run Options': "Options d'exécution avancées",
+  'as CSV': 'au format CSV',
   'All output tables  values identical': 'Toutes les valeurs des tables de résultats sont identiques',
   'All parameters values identical': 'Toutes les valeurs des paramètres sont identiques',
   'Based on run': "Basé sur l'exécution",
