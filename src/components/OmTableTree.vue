@@ -44,7 +44,7 @@ Expected array of tree items as:
       :outline="isShowHidden"
       color="primary"
       class="col-auto q-mr-xs om-tree-control-button"
-      icon="mdi-eye-off-outline"
+      :icon="!isShowHidden ? 'mdi-eye-off-outline' : 'mdi-eye-outline'"
       :title="!isShowHidden ? $t('Do not show hidden items') : $t('Show all hidden items')"
       />
     <q-btn
