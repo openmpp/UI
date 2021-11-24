@@ -32,18 +32,30 @@
     </q-card-actions>
 
   </q-card>
+
+  <refresh-workset v-if="(modelDigest || '') !== '' && (wsName || '') !== ''"
+    :model-digest="modelDigest"
+    :workset-name="wsName"
+    :refresh-workset-tickle="refreshWsTickle"
+    @done="doneWsLoad"
+    @wait="loadWsWait = true"
+    >
+  </refresh-workset>
+
 </q-dialog>
 </template>
 
 <script>
 import { mapGetters } from 'vuex'
 import * as Mdf from 'src/model-common'
+import RefreshWorkset from 'components/RefreshWorkset.vue'
 import marked from 'marked'
 import hljs from 'highlight.js'
 import sanitizeHtml from 'sanitize-html'
 
 export default {
   name: 'WorksetInfoDialog',
+  components: { RefreshWorkset },
 
   props: {
     showTickle: { type: Boolean, default: false },
@@ -58,7 +70,10 @@ export default {
       title: '',
       notes: '',
       lastDateTime: '',
-      paramCount: 0
+      paramCount: 0,
+      refreshWsTickle: false,
+      loadWsWait: false,
+      wsName: ''
     }
   },
 
@@ -76,11 +91,14 @@ export default {
         this.$q.notify({ type: 'negative', message: this.$t('Input scenario not found') })
         return
       }
+      this.wsName = '' // clear refresh workset
 
       // set basic workset info
       this.title = Mdf.descrOfTxt(this.worksetText) || this.worksetText.Name
       this.lastDateTime = Mdf.dtStr(this.worksetText.UpdateDateTime)
+
       this.paramCount = Mdf.lengthOf(this.worksetText.Param)
+      if (this.paramCount <= 0) this.wsName = this.worksetName // start refresh workset
 
       // workset notes: convert from markdown to html
       marked.setOptions({
@@ -99,6 +117,24 @@ export default {
       this.notes = marked(sanitizeHtml(Mdf.noteOfTxt(this.worksetText)))
 
       this.showDlg = true
+    }
+  },
+
+  methods: {
+    // update workset info on refresh workset completed
+    doneWsLoad (isSuccess, name) {
+      this.loadWsWait = false
+      this.wsName = ''
+
+      if (isSuccess && (name || '') === this.worksetName) {
+        const wsText = this.worksetTextByName({ ModelDigest: this.modelDigest, Name: this.worksetName })
+
+        if (Mdf.isNotEmptyWorksetText(wsText)) {
+          this.paramCount = Mdf.lengthOf(wsText.Param)
+        } else {
+          console.warn('workset not found by name:', name)
+        }
+      }
     }
   }
 }
