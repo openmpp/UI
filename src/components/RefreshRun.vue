@@ -76,13 +76,14 @@ export default {
   },
 
   mounted () {
-    // if current run already loaded then exit
-    if (!!this.modelDigest && !!this.runDigest && this.runDigestSelected === this.runDigest) {
-      this.loadDone = true
-      this.$emit('done', this.loadDone, this.runDigest)
-      return
+    if (!!this.modelDigest && !!this.runDigest) {
+      if (this.runDigestSelected === this.runDigest) { // if current run already loaded then exit
+        this.loadDone = true
+        this.$emit('done', this.loadDone, this.runDigest)
+        return
+      }
+      this.doRefresh() // else load run
     }
-    this.doRefresh() // else load run
   }
 }
 </script>

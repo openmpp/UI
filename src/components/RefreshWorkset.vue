@@ -24,7 +24,6 @@ export default {
 
   computed: {
     ...mapState('uiState', {
-      worksetNameSelected: state => state.worksetNameSelected,
       uiLang: state => state.uiLang
     }),
     ...mapState('serverState', {
@@ -76,13 +75,7 @@ export default {
   },
 
   mounted () {
-    // if current workset already loaded then exit
-    if (!!this.modelDigest && !!this.worksetName && this.worksetNameSelected === this.worksetName) {
-      this.loadDone = true
-      this.$emit('done', this.loadDone, this.worksetName)
-      return
-    }
-    this.doRefresh() // load workset
+    if (!!this.modelDigest && !!this.worksetName) this.doRefresh()
   }
 }
 </script>

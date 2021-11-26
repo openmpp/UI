@@ -1,15 +1,24 @@
 // UI session state
 import * as Mdf from 'src/model-common'
 
+// return selection part of model view by model digest
+export const modelViewSelected = (state) => (modelDigest) => {
+  return (typeof modelDigest !== typeof 'string' || !state.modelView[modelDigest] || !state.modelView[modelDigest]?.digest !== modelDigest)
+    ? Mdf.emptyModelView()
+    : {
+      digest: state.modelView[modelDigest]?.digest || '',
+      runDigest: state.modelView[modelDigest]?.runDigest || '',
+      runCompare: state.modelView[modelDigest]?.runCompare || '',
+      worksetName: state.modelView[modelDigest]?.worksetName || '',
+      taskName: state.modelView[modelDigest]?.taskName || ''
+    }
+}
+
 // return copy tab items by model digest
 export const tabsView = (state) => (modelDigest) => {
-  if (typeof modelDigest !== typeof 'string' || !Array.isArray(state?.tabsView)) return []
-
-  const tv = []
-  for (const t of state.tabsView) {
-    if (t?.routeParts?.digest === modelDigest) tv.push(Mdf._cloneDeep(t))
-  }
-  return tv
+  return (typeof modelDigest !== typeof 'string' || !state.modelView[modelDigest] || !Array.isArray(state?.modelView[modelDigest]?.tabs))
+    ? []
+    : Mdf._cloneDeep(state.modelView[modelDigest].tabs)
 }
 
 // return copy of parameter view by key

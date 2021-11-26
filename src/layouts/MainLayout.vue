@@ -361,6 +361,7 @@ export default {
       serverConfig: state => state.config
     }),
     ...mapState('uiState', {
+      uiLang: state => state.uiLang,
       runDigestSelected: state => state.runDigestSelected,
       worksetNameSelected: state => state.worksetNameSelected,
       taskNameSelected: state => state.taskNameSelected
@@ -368,6 +369,17 @@ export default {
   },
 
   watch: {
+    // language updated outside of main menu
+    uiLang () {
+      if (!this.uiLang) {
+        let lc = this.$q.lang.getLocale()
+        if (this.appLanguages.findIndex((ln) => ln.isoName === lc) < 0) { // language not included in translation pack, use default en-us
+          lc = 'en-us'
+        }
+        this.langCode = lc
+        this.$i18n.locale = lc
+      }
+    },
     // switch app language: Quasar and vue i18n language
     langCode (lc) {
       // dynamic import, so loading on demand only

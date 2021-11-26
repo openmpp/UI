@@ -76,7 +76,17 @@
         </tr>
 
         <tr>
-          <td class="settings-cell q-pa-sm">&nbsp;</td>
+          <td class="settings-cell q-pa-sm">
+            <q-btn
+              @click="onUiLanguageClear"
+              :disable="!uiLang"
+              flat
+              dense
+              class="bg-primary text-white rounded-borders"
+              icon="cancel"
+              :title="$t('Reset language to default value')"
+              />
+          </td>
           <td class="settings-cell q-pa-sm om-text-secondary">{{ $t('Language') }}:</td>
           <td class="settings-cell q-pa-sm">{{ uiLangTitle }}</td>
         </tr>
@@ -237,6 +247,7 @@ export default {
       this.paramIdx = []
       this.uploadFile = null
     },
+    onUiLanguageClear () { this.dispatchUiLang('') },
 
     // retrun parameter description by name
     parameterDescr (pName) { return Mdf.descrOfDescrNote(Mdf.paramTextByName(this.theModel, pName)) },
@@ -402,6 +413,7 @@ export default {
       dispatchWorksetTextList: 'worksetTextList'
     }),
     ...mapActions('uiState', {
+      dispatchUiLang: 'uiLang',
       dispatchViewDeleteByModel: 'viewDeleteByModel'
     })
   },

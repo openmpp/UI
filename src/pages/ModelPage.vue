@@ -139,7 +139,7 @@
     @wait="loadRunListDone = false"
     >
   </refresh-run-list>
-  <refresh-run v-if="(digest || '') !== ''"
+  <refresh-run v-if="(digest || '') !== '' && (runDnsCurrent || '') !== ''"
     :model-digest="digest"
     :run-digest="runDnsCurrent"
     :refresh-tickle="refreshTickle"
@@ -164,7 +164,7 @@
     @done="doneWsListLoad"
     @wait="loadWsListDone = false">
   </refresh-workset-list>
-  <refresh-workset v-if="(wsNameCurrent || '') !== ''"
+  <refresh-workset v-if="(digest || '') !== '' && (wsNameCurrent || '') !== ''"
     :model-digest="digest"
     :workset-name="wsNameCurrent"
     :refresh-tickle="refreshTickle"

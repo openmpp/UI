@@ -98,23 +98,28 @@ export default {
     }),
     ...mapGetters('uiState', {
       paramViewUpdatedCount: 'paramViewUpdatedCount',
+      modelViewSelected: 'modelViewSelected',
       tabsView: 'tabsView'
     })
   },
 
   watch: {
-    digest () { this.doRefresh() },
-    refreshTickle () { this.doRefresh() }
+    digest () { this.initalView() },
+    refreshTickle () { this.initalView() }
   },
 
   methods: {
     // update page view
-    doRefresh () {
-      const tv = this.tabsView(this.digest) // list of additional tabs: parameters or tables tabs
-
+    initalView () {
       this.doTabAdd('run-list', { digest: this.digest })
       this.doTabAdd('set-list', { digest: this.digest })
       this.doTabAdd('new-run', { digest: this.digest })
+    },
+    doRefresh () {
+      if (!this.tabItems || !this.tabItems.length) this.initalView() // add standard tabs
+
+      this.dispatchViewSelectedRestore(this.digest) // restore selected run digest and workset name
+      const tv = this.tabsView(this.digest) // list of additional tabs: parameters or tables tabs
 
       // restore additional tabs
       this.runViewsArray = []
@@ -125,10 +130,10 @@ export default {
           this.doTabAdd(t.kind, t.routeParts)
 
           const rd = t.routeParts?.runDigest || ''
-          if (rd && rd !== this.runDigestSelected) this.runViewsArray.push(rd)
+          if (rd && !this.runViewsArray.includes(rd)) this.runViewsArray.push(rd)
 
           const wsn = t.routeParts?.worksetName || ''
-          if (wsn && wsn !== this.worksetNameSelected) this.wsViewsArray.push(wsn)
+          if (wsn && !this.wsViewsArray.includes(wsn)) this.wsViewsArray.push(wsn)
         }
       }
 
@@ -149,16 +154,12 @@ export default {
       if (!this.activeTabKey) {
         this.$router.push(this.tabItems[0].path)
       }
-
-      // check if run selected and ready to use
-      if (this.loadRunListDone && Array.isArray(this?.runTextList) && (this.runTextList?.length || 0) > 0) {
-        this.checkRunSelected()
-      }
     },
 
     doneModelLoad (isSuccess) {
       this.modelName = Mdf.modelName(this.theModel)
       this.loadModelDone = true
+      this.doRefresh()
     },
     doneRunListLoad (isSuccess) {
       this.loadRunListDone = true
@@ -166,7 +167,7 @@ export default {
       if (!isSuccess || !Mdf.isLength(this.runTextList)) { // do not refresh run: run list empty
         this.loadRunDone = true
         this.runDnsCurrent = ''
-        this.dispatchRunDigestSelected('')
+        this.dispatchRunDigestSelected({ digest: this.digest, runDigest: '' })
         return
       }
       // else: check if run selected and ready to use
@@ -176,30 +177,30 @@ export default {
     checkRunSelected () {
       // else: if run not selected then use first run
       if (!this.runDigestSelected) {
+        this.dispatchRunDigestSelected({ digest: this.digest, runDigest: '' })
         this.runDnsCurrent = this.runTextList[0].RunDigest
-        this.dispatchRunDigestSelected('')
         return
       }
       // else: if run already selected then make sure it still exist
       const rt = this.runTextByDigest({ ModelDigest: this.digest, RunDigest: this.runDigestSelected })
       if (!Mdf.isNotEmptyRunText(rt)) {
+        this.dispatchRunDigestSelected({ digest: this.digest, runDigest: '' })
         this.runDnsCurrent = this.runTextList[0].RunDigest
-        this.dispatchRunDigestSelected('')
         return
       }
       // else: if run completed and run parameters list loaded then exit
-      if (Mdf.isRunCompletedStatus(rt?.Status) && Array.isArray(rt?.Param) && (rt?.Param?.length || 0) >= 0) {
+      if (Mdf.isRunCompletedStatus(rt?.Status) && Array.isArray(rt?.Param) && (rt?.Param?.length || 0) === Mdf.paramCount(this.theModel)) {
         this.loadRunDone = true
         return
       }
       // else: refresh run parameters list and run status
       this.runDnsCurrent = this.runDigestSelected
-      this.refreshRunTickle = !this.refreshRunTickle
+      this.dispatchRunDigestSelected({ digest: this.digest, runDigest: '' })
     },
     doneRunLoad (isSuccess, dgst) {
       this.loadRunDone = true
       //
-      if (isSuccess && (dgst || '') !== '') this.dispatchRunDigestSelected(dgst)
+      if (isSuccess && (dgst || '') !== '') this.dispatchRunDigestSelected({ digest: this.digest, runDigest: dgst })
     },
     doneRunViewsLoad (isSuccess, count) {
       this.loadRunViewsDone = true
@@ -210,7 +211,7 @@ export default {
       if (!isSuccess || !Mdf.isLength(this.worksetTextList)) { // do not refresh workset: workset list empty
         this.loadWsDone = true
         this.wsNameCurrent = ''
-        this.dispatchWorksetNameSelected('')
+        this.dispatchWorksetNameSelected({ digest: this.digest, worksetName: '' })
         return
       }
       // else: if workset already selected then make sure it still exist, if not exist then use first workset
@@ -218,7 +219,7 @@ export default {
         this.wsNameCurrent = this.worksetNameSelected
       } else {
         this.wsNameCurrent = this.worksetTextList[0].Name
-        this.dispatchWorksetNameSelected('')
+        this.dispatchWorksetNameSelected({ digest: this.digest, worksetName: '' })
       }
     },
     doneWsLoad (isSuccess, name, isNewRun) {
@@ -226,7 +227,7 @@ export default {
       this.refreshWsToRun = false
       //
       if (isSuccess && (name || '') !== '') {
-        this.dispatchWorksetNameSelected(name)
+        this.dispatchWorksetNameSelected({ digest: this.digest, worksetName: name })
         if (isNewRun) this.doNewRunSelect()
       }
     },
@@ -259,8 +260,8 @@ export default {
       const idx = ((this.runDigestSelected || '') !== '') ? rcArr.indexOf(this.runDigestSelected) : 0
 
       if (idx >= 0) {
-        this.runDnsCurrent = rcArr[idx]
         this.refreshRunTickle = !this.refreshRunTickle
+        this.runDnsCurrent = rcArr[idx]
       }
     },
     // run selected from the list: update current run
@@ -617,6 +618,7 @@ export default {
       dispatchRunDigestSelected: 'runDigestSelected',
       dispatchWorksetNameSelected: 'worksetNameSelected',
       dispatchParamViewDeleteByModel: 'paramViewDeleteByModel',
+      dispatchViewSelectedRestore: 'viewSelectedRestore',
       dispatchTabsView: 'tabsView'
     })
   },
@@ -666,6 +668,6 @@ export default {
   },
 
   mounted () {
-    this.doRefresh()
+    this.initalView()
   }
 }

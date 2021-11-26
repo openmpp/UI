@@ -8,25 +8,30 @@ export const uiLang = ({ dispatch, commit }, lang) => {
 }
 
 // update or clear selected run digest
-export const runDigestSelected = ({ commit }, dg) => {
-  commit('runDigestSelected', dg)
+export const runDigestSelected = ({ commit }, modelView) => {
+  commit('runDigestSelected', modelView)
 }
 
 // update or clear selected workset name
-export const worksetNameSelected = ({ commit }, name) => {
-  commit('worksetNameSelected', name)
+export const worksetNameSelected = ({ commit }, modelView) => {
+  commit('worksetNameSelected', modelView)
 }
 
 // replace tab items with new value
-export const tabsView = ({ commit }, modelTabs) => {
-  commit('tabsView', modelTabs)
+export const tabsView = ({ commit }, modelView) => {
+  commit('tabsView', modelView)
 }
 
 // delete parameter views, table views and model tab list by model digest
 export const viewDeleteByModel = ({ dispatch, commit }, modelDigest) => {
   dispatch('paramViewDeleteByModel', modelDigest)
   dispatch('tableViewDeleteByModel', modelDigest)
-  commit('tabsViewDeleteByModel', modelDigest)
+  commit('modelViewDelete', modelDigest)
+}
+
+// restore restore model view selection: run digest, workset name and task name by model digest
+export const viewSelectedRestore = ({ dispatch, commit }, modelDigest) => {
+  commit('viewSelectedRestore', modelDigest)
 }
 
 // insert or update parameter view by route key

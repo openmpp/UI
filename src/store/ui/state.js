@@ -7,6 +7,6 @@ export default function () {
     taskNameSelected: '',
     paramViews: {},
     tableViews: {},
-    tabsView: []
+    modelView: {}
   }
 }

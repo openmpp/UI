@@ -215,6 +215,7 @@ export default {
   'Relative path to working directory to run the model': 'Chemin relatif du répertoire de travail pour exécuter le modèle',
   'Remove': 'Supprimer',
   'Replace': 'Remplacer',
+  'Reset language to default value': 'Réinitialiser la langue à la valeur par défaut',
   'Reset table view to default': 'Réinitialiser la vue du tableau par défaut',
   'Reset table view to default and reload': 'Réinitialiser la vue de la table par défaut et recharger',
   'Required': 'Obligatoire',

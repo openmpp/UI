@@ -5,32 +5,69 @@ import * as Mdf from 'src/model-common'
 export const uiLang = (state, lang) => { state.uiLang = (lang || '') }
 
 // assign new value selected run digest
-export const runDigestSelected = (state, dg) => {
-  if (typeof dg === typeof 'string') state.runDigestSelected = dg
-}
+export const runDigestSelected = (state, modelView) => {
+  const mDgst = (typeof modelView?.digest === typeof 'string') ? modelView.digest : ''
+  if (!mDgst) return
 
-// assign new value selected workset name
-export const worksetNameSelected = (state, name) => {
-  if (typeof name === typeof 'string') state.worksetNameSelected = name
-}
-
-// replace tab items with new list by model digest
-export const tabsView = (state, modelTabs) => {
-  const m = (typeof modelTabs?.digest === typeof 'string') ? modelTabs.digest : ''
-  if (!m || !Array.isArray(modelTabs?.tabs)) return
-
-  tabsViewDeleteByModel(state, m) // remove existing tabs for the model
-
-  for (const t of modelTabs.tabs) {
-    if (typeof t?.kind === typeof 'string' && t?.routeParts?.digest === m) {
-      state.tabsView.push({ kind: t.kind, routeParts: t.routeParts })
-    }
+  if (typeof modelView?.runDigest === typeof 'string') {
+    state.runDigestSelected = modelView.runDigest
+    if (!state.modelView[mDgst]) state.modelView[mDgst] = Mdf.emptyModelView()
+    state.modelView[mDgst].runDigest = modelView.runDigest
   }
 }
 
-// remove all tab items (for example on model switch)
-export const tabsViewDeleteByModel = (state, modelDigest) => {
-  state.tabsView = state.tabsView.filter(t => t?.routeParts?.digest !== modelDigest)
+// assign new value selected workset name
+export const worksetNameSelected = (state, modelView) => {
+  const mDgst = (typeof modelView?.digest === typeof 'string') ? modelView.digest : ''
+  if (!mDgst) return
+
+  if (typeof modelView?.worksetName === typeof 'string') {
+    state.worksetNameSelected = modelView.worksetName
+    if (!state.modelView[mDgst]) state.modelView[mDgst] = Mdf.emptyModelView()
+    state.modelView[mDgst].worksetName = modelView.worksetName
+  }
+}
+
+// clear model view by digest
+export const modelViewDelete = (state, modelDigest) => {
+  const mDgst = (typeof modelDigest === typeof 'string') ? modelDigest : ''
+  if (!mDgst) return
+
+  if (state.modelView[mDgst]) {
+    if ((state.runDigestSelected || '') !== '' && (state.modelView[mDgst]?.runDigest || '') === state.runDigestSelected) {
+      state.runDigestSelected = ''
+      state.modelView[mDgst].runCompare = ''
+    }
+    if ((state.worksetNameSelected || '') !== '' && (state.modelView[mDgst]?.worksetName || '') === state.worksetNameSelected) {
+      state.worksetNameSelected = ''
+    }
+    state.modelView[mDgst] = Mdf.emptyModelView()
+  }
+}
+
+// restore restore model view selection: run digest, workset name and task name by model digest
+export const viewSelectedRestore = (state, modelDigest) => {
+  const mDgst = (typeof modelDigest === typeof 'string') ? modelDigest : ''
+  if (!mDgst || !state.modelView[mDgst]) return
+
+  state.runDigestSelected = state.modelView[mDgst]?.runDigest || ''
+  state.worksetNameSelected = state.modelView[mDgst]?.worksetName || ''
+  state.taskNameSelected = state.modelView[mDgst]?.taskName || ''
+}
+
+// replace tab items with new list by model digest
+export const tabsView = (state, modelView) => {
+  const mDgst = (typeof modelView?.digest === typeof 'string') ? modelView.digest : ''
+  if (!mDgst || !Array.isArray(modelView?.tabs)) return
+
+  if (!state.modelView[mDgst]) state.modelView[mDgst] = Mdf.emptyModelView()
+
+  state.modelView[mDgst].tabs = []
+  for (const t of modelView.tabs) {
+    if (typeof t?.kind === typeof 'string' && t?.routeParts?.digest === mDgst) {
+      state.modelView[mDgst].tabs.push({ kind: t.kind, routeParts: t.routeParts })
+    }
+  }
 }
 
 // insert, replace or update parameter view by route key (key must be non-empty string)
