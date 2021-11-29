@@ -88,7 +88,9 @@ export default {
       noteEditorShow: false,
       noteEditorNotes: '',
       noteEditorLangCode: '',
-      showDiscardParamNoteTickle: false
+      showDiscardParamNoteTickle: false,
+      uploadFileSelect: false,
+      uploadFile: null
     }
   },
   /* eslint-enable no-multi-spaces */
@@ -101,6 +103,8 @@ export default {
         : Mdf.parameterWorksetPath(this.digest, this.worksetName, this.parameterName)
     },
     paramDescr () { return Mdf.descrOfDescrNote(this.paramText) },
+
+    fileSelected () { return !(this.uploadFile === null) },
 
     isEditUpdated () { return this.edt.isUpdated },
 
@@ -180,6 +184,48 @@ export default {
     // copy tab separated values to clipboard: forward actions to pivot table component
     onCopyToClipboard () {
       this.$refs.omPivotTable.onCopyTsv()
+    },
+
+    // show input scenario upload dialog
+
+    doShowFileSelect () {
+      this.uploadFileSelect = true
+    },
+
+    // hides input scenario upload dialog
+
+    doCancelFileSelect () {
+      this.uploadFileSelect = false
+      this.uploadFile = null
+    },
+
+    async onUploadParameter () {
+      const u = this.omsUrl + '/api/workset-merge'
+      const wt = {
+        ModelDigest: this.digest,
+        Name: this.worksetName,
+        Param: [{
+          Name: this.parameterName,
+          SubCount: 1
+        }]
+      }
+
+      console.log('this.uploadFile:', this.uploadFile)
+
+      const fd = new FormData()
+      fd.append('workset', JSON.stringify(wt))
+      fd.append(this.parameterName, this.uploadFile, this.uploadFile.name)
+      try {
+        // update parameter value, drop response on success
+        await this.$axios.patch(u, fd)
+      } catch (e) {
+        let msg = ''
+        try {
+          if (e.response) msg = e.response.data || ''
+        } finally {}
+        console.warn('Unable to update input scenario', msg)
+        this.$q.notify({ type: 'negative', message: this.$t('Unable to update input scenario') })
+      }
     },
 
     onDownload () {

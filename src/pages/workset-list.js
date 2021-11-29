@@ -44,7 +44,9 @@ export default {
       showDeleteDialogTickle: false,
       worksetDeleteName: '',
       deleteWorksetNow: false,
-      loadWorksetDelete: false
+      loadWorksetDelete: false,
+      uploadFileSelect: false,
+      uploadFile: null
     }
   },
 
@@ -52,6 +54,8 @@ export default {
     isNotEmptyWorksetCurrent () { return Mdf.isNotEmptyWorksetText(this.worksetCurrent) },
     descrWorksetCurrent () { return Mdf.descrOfTxt(this.worksetCurrent) },
     isReadonlyWorksetCurrent () { return Mdf.isNotEmptyWorksetText(this.worksetCurrent) && this.worksetCurrent.IsReadonly },
+
+    fileSelected () { return !(this.uploadFile === null) },
 
     ...mapState('model', {
       theModel: state => state.theModel,
@@ -200,6 +204,23 @@ export default {
       this.groupInfoName = name
       this.groupInfoTickle = !this.groupInfoTickle
     },
+
+    // show input scenario upload dialog
+
+    doShowFileSelect () {
+      this.uploadFileSelect = true
+    },
+
+    // hides input scenario upload dialog
+
+    doCancelFileSelect () {
+      this.uploadFileSelect = false
+      this.uploadFile = null
+    },
+
+    onUploadInputScenario () {},
+
+    onUploadReplaceInputScenario () {},
 
     // return tree of model worksets
     makeWorksetTreeData (wLst) {
