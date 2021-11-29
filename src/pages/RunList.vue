@@ -8,7 +8,27 @@
       class="row reverse-wrap items-center"
       >
 
-      <span class="col-auto no-wrap tab-switch-container q-ml-sm">
+      <q-btn
+        @click="doShowFileSelect()"
+        v-show="!uploadFileSelect"
+        flat
+        dense
+        class="col-auto text-white rounded-borders q-ml-sm bg-primary text-white rounded-borders"
+        icon='mdi-file-upload-outline'
+        title='Upload model run'
+        />
+
+      <q-btn
+        @click="doCancelFileSelect()"
+        v-show="uploadFileSelect"
+        flat
+        dense
+        class="col-auto text-white rounded-borders q-ml-sm bg-primary text-white rounded-borders"
+        icon='mdi-close-circle'
+        title='Cancel upload'
+        />
+
+      <span class="col-auto no-wrap tab-switch-container q-ml-xs">
         <q-btn
           @click="onToogleShowParamTree"
           no-caps
@@ -93,6 +113,33 @@
       </transition>
 
     </div>
+
+    <span class="row q-pl-sm q-pb-sm">
+      <q-btn
+        @click="onUploadModelRun"
+        v-if="(uploadFileSelect)"
+        :disable="!fileSelected"
+        flat
+        dense
+        class="bg-primary text-white rounded-borders"
+        icon="mdi-file-upload-outline"
+        title='Upload selected file'
+        />
+
+      <q-file
+        v-model="uploadFile"
+        v-if="uploadFileSelect"
+        accept=".zip"
+        outlined
+        dense
+        clearable
+        hide-bottom-space
+        class="q-pl-xs"
+        color="primary"
+        label='Select model run for upload'
+        >
+      </q-file>
+    </span>
 
     <markdown-editor
       v-if="noteEditorShow"

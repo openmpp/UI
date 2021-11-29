@@ -135,6 +135,26 @@
       :title="$t('Download ') + ' '  + parameterName + ' as CSV'"
       />
 
+    <q-btn
+      @click="doShowFileSelect()"
+      v-show="!uploadFileSelect"
+      flat
+      dense
+      class="col-auto text-white rounded-borders q-ml-xs bg-primary text-white rounded-borders"
+      icon='mdi-file-upload-outline'
+      title='Upload parameter'
+      />
+
+    <q-btn
+      @click="doCancelFileSelect()"
+      v-show="uploadFileSelect"
+      flat
+      dense
+      class="col-auto text-white rounded-borders q-ml-xs bg-primary text-white rounded-borders"
+      icon='mdi-close-circle'
+      title='Cancel upload'
+      />
+
     <q-separator vertical inset spaced="sm" color="secondary" />
 
     <q-btn
@@ -228,6 +248,37 @@
     </div>
 
     </q-toolbar>
+
+    <q-card v-if="uploadFileSelect">
+
+      <span class="row q-mt-xs q-pa-sm">
+        <q-btn
+          @click="onUploadParameter"
+          v-if="uploadFileSelect"
+          :disable="!fileSelected"
+          flat
+          dense
+          class="bg-primary text-white rounded-borders"
+          icon="mdi-file-upload-outline"
+          title='Upload selected file'
+          />
+
+        <q-file
+          v-model="uploadFile"
+          v-if="uploadFileSelect"
+          accept='.csv'
+          outlined
+          dense
+          clearable
+          hide-bottom-space
+          class="q-pl-xs"
+          color="primary"
+          label='Select parameter for upload'
+          >
+        </q-file>
+      </span>
+
+    </q-card>
   </div>
   <!-- end of parameter header -->
 
