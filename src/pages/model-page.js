@@ -98,7 +98,6 @@ export default {
     }),
     ...mapGetters('uiState', {
       paramViewUpdatedCount: 'paramViewUpdatedCount',
-      modelViewSelected: 'modelViewSelected',
       tabsView: 'tabsView'
     })
   },

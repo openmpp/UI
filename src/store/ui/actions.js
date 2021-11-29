@@ -12,6 +12,11 @@ export const runDigestSelected = ({ commit }, modelView) => {
   commit('runDigestSelected', modelView)
 }
 
+// update or clear run digest to compare
+export const runDigestCompare = ({ commit }, modelView) => {
+  commit('runDigestCompare', modelView)
+}
+
 // update or clear selected workset name
 export const worksetNameSelected = ({ commit }, modelView) => {
   commit('worksetNameSelected', modelView)

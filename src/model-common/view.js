@@ -4,7 +4,6 @@
 /* eslint-disable no-multi-spaces */
 export const emptyModelView = () => {
   return {
-    digest: '',       // model digest
     runDigest: '',    // digest of selected run
     runCompare: '',   // run digest to compare
     worksetName: '',  // name of selected workset

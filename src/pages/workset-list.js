@@ -54,7 +54,6 @@ export default {
     isNotEmptyWorksetCurrent () { return Mdf.isNotEmptyWorksetText(this.worksetCurrent) },
     descrWorksetCurrent () { return Mdf.descrOfTxt(this.worksetCurrent) },
     isReadonlyWorksetCurrent () { return Mdf.isNotEmptyWorksetText(this.worksetCurrent) && this.worksetCurrent.IsReadonly },
-
     fileSelected () { return !(this.uploadFile === null) },
 
     ...mapState('model', {
@@ -205,22 +204,19 @@ export default {
       this.groupInfoTickle = !this.groupInfoTickle
     },
 
+    /*
     // show input scenario upload dialog
-
     doShowFileSelect () {
       this.uploadFileSelect = true
     },
-
     // hides input scenario upload dialog
-
     doCancelFileSelect () {
       this.uploadFileSelect = false
       this.uploadFile = null
     },
-
     onUploadInputScenario () {},
-
     onUploadReplaceInputScenario () {},
+    */
 
     // return tree of model worksets
     makeWorksetTreeData (wLst) {

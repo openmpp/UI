@@ -186,19 +186,17 @@ export default {
       this.$refs.omPivotTable.onCopyTsv()
     },
 
+    /*
     // show input scenario upload dialog
-
     doShowFileSelect () {
       this.uploadFileSelect = true
     },
-
     // hides input scenario upload dialog
-
     doCancelFileSelect () {
       this.uploadFileSelect = false
       this.uploadFile = null
     },
-
+    // upload csv file to replace workset parameter value
     async onUploadParameter () {
       const u = this.omsUrl + '/api/workset-merge'
       const wt = {
@@ -209,8 +207,6 @@ export default {
           SubCount: 1
         }]
       }
-
-      console.log('this.uploadFile:', this.uploadFile)
 
       const fd = new FormData()
       fd.append('workset', JSON.stringify(wt))
@@ -227,6 +223,7 @@ export default {
         this.$q.notify({ type: 'negative', message: this.$t('Unable to update input scenario') })
       }
     },
+    */
 
     onDownload () {
       const u = this.isFromRun

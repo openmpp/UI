@@ -13,6 +13,18 @@ export const runDigestSelected = (state, modelView) => {
     state.runDigestSelected = modelView.runDigest
     if (!state.modelView[mDgst]) state.modelView[mDgst] = Mdf.emptyModelView()
     state.modelView[mDgst].runDigest = modelView.runDigest
+    // state.modelView[mDgst].runCompare = ''
+  }
+}
+
+// assign new value to run digest to compare with base run
+export const runDigestCompare = (state, modelView) => {
+  const mDgst = (typeof modelView?.digest === typeof 'string') ? modelView.digest : ''
+  if (!mDgst) return
+
+  if (typeof modelView?.runCompare === typeof 'string') {
+    if (!state.modelView[mDgst]) state.modelView[mDgst] = Mdf.emptyModelView()
+    state.modelView[mDgst].runCompare = modelView.runCompare
   }
 }
 

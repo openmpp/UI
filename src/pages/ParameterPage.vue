@@ -134,8 +134,9 @@
       icon="mdi-download"
       :title="$t('Download ') + ' '  + parameterName + ' as CSV'"
       />
-
+    <!--
     <q-btn
+      v-if="!isFromRun"
       @click="doShowFileSelect()"
       v-show="!uploadFileSelect"
       flat
@@ -144,8 +145,8 @@
       icon='mdi-file-upload-outline'
       title='Upload parameter'
       />
-
     <q-btn
+      v-if="!isFromRun"
       @click="doCancelFileSelect()"
       v-show="uploadFileSelect"
       flat
@@ -154,6 +155,7 @@
       icon='mdi-close-circle'
       title='Cancel upload'
       />
+    -->
 
     <q-separator vertical inset spaced="sm" color="secondary" />
 

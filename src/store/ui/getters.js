@@ -3,10 +3,9 @@ import * as Mdf from 'src/model-common'
 
 // return selection part of model view by model digest
 export const modelViewSelected = (state) => (modelDigest) => {
-  return (typeof modelDigest !== typeof 'string' || !state.modelView[modelDigest] || !state.modelView[modelDigest]?.digest !== modelDigest)
+  return (typeof modelDigest !== typeof 'string' || !state.modelView[modelDigest])
     ? Mdf.emptyModelView()
     : {
-      digest: state.modelView[modelDigest]?.digest || '',
       runDigest: state.modelView[modelDigest]?.runDigest || '',
       runCompare: state.modelView[modelDigest]?.runCompare || '',
       worksetName: state.modelView[modelDigest]?.worksetName || '',

@@ -15,7 +15,7 @@
         icon="mdi-notebook-plus"
         :title="$t('Create new input scenario')"
        />
-
+      <!--
       <q-btn
         @click="doShowFileSelect()"
         v-show="!uploadFileSelect"
@@ -25,7 +25,6 @@
         icon='mdi-file-upload-outline'
         title='Upload input scenario'
         />
-
       <q-btn
         @click="doCancelFileSelect()"
         v-show="uploadFileSelect"
@@ -35,6 +34,7 @@
         icon='mdi-close-circle'
         title='Cancel upload'
         />
+      -->
       <q-separator vertical inset spaced="sm" color="secondary" />
 
       <span class="col-auto no-wrap q-mr-xs">
@@ -147,7 +147,7 @@
 
     </q-card-section>
 
-    </q-card>
+  </q-card>
 
   <q-card class="q-ma-sm">
     <div class="row items-center full-width q-pt-sm q-px-sm">

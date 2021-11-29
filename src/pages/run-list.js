@@ -1,4 +1,4 @@
-import { mapState, mapGetters } from 'vuex'
+import { mapState, mapGetters, mapActions } from 'vuex'
 import * as Mdf from 'src/model-common'
 import RunParameterList from 'components/RunParameterList.vue'
 import TableList from 'components/TableList.vue'
@@ -74,7 +74,6 @@ export default {
     isNotEmptyRunCurrent () { return Mdf.isNotEmptyRunText(this.runCurrent) },
     descrRunCurrent () { return Mdf.descrOfTxt(this.runCurrent) },
     isCompare () { return !!this.runCompare && (this.runCompare?.RunDigest || '') !== '' },
-
     fileSelected () { return !(this.uploadFile === null) },
 
     ...mapState('model', {
@@ -89,6 +88,9 @@ export default {
       runDigestSelected: state => state.runDigestSelected,
       uiLang: state => state.uiLang
     }),
+    ...mapGetters('uiState', {
+      modelViewSelected: 'modelViewSelected'
+    }),
     ...mapState('serverState', {
       omsUrl: state => state.omsUrl,
       serverConfig: state => state.config
@@ -101,6 +103,7 @@ export default {
     runTextListUpdated () { this.onRunTextListUpdated() },
     runDigestSelected () {
       this.runCurrent = this.runTextByDigest({ ModelDigest: this.digest, RunDigest: this.runDigestSelected })
+      this.refreshRunCompare()
     }
   },
 
@@ -113,16 +116,23 @@ export default {
 
     // update page view
     doRefresh () {
-      this.onRunTextListUpdated()
+      this.doRunTextListUpdated()
       this.paramTreeCount = Mdf.paramCount(this.theModel)
       this.paramVisibleCount = this.paramTreeCount
       this.tableTreeCount = Mdf.tableCount(this.theModel)
       this.tableVisibleCount = this.tableTreeCount
+      this.refreshRunCompare()
     },
     // run list updated: update run list tree and current run
-    onRunTextListUpdated () {
+    onRunTextListUpdated () { this.doRunTextListUpdated() },
+    doRunTextListUpdated () {
       this.runTreeData = this.makeRunTreeData(this.runTextList)
-      this.runCurrent = this.runTextByDigest({ ModelDigest: this.digest, RunDigest: this.runDigestSelected })
+      if (this.runDigestSelected) this.runCurrent = this.runTextByDigest({ ModelDigest: this.digest, RunDigest: this.runDigestSelected })
+    },
+    // update run comparison view
+    refreshRunCompare () {
+      const mv = this.modelViewSelected(this.digest)
+      if (!!mv && (mv?.runCompare || '') !== '') this.runDigestRefresh = mv.runCompare
     },
 
     // click on run: select this run as current run
@@ -192,9 +202,9 @@ export default {
     },
 
     // run comparison click: set or clear run comparison
-    onCompareClick (dgst) {
+    onRunCompareClick (dgst) {
       // if clear run comparison filter
-      if (dgst === this.runDigestRefresh || dgst === this.runCompare.RunDigest) {
+      if (dgst === this.runCompare.RunDigest) {
         this.clearRunCompare()
         return
       }
@@ -208,6 +218,7 @@ export default {
 
       this.runCompare = this.runTextByDigest({ ModelDigest: this.digest, RunDigest: dgst })
       if (!Mdf.isNotEmptyRunText(this.runCompare)) {
+        this.runDigestRefresh = ''
         console.warn('Unable to compare run:', dgst, this.runDigestRefresh)
         this.$q.notify({ type: 'negative', message: this.$t('Unable to compare model run') + ' ' + this.runDigestRefresh })
         return
@@ -258,6 +269,7 @@ export default {
       this.tableDiff = Object.freeze(tn)
       this.refreshParamTreeTickle = !this.refreshParamTreeTickle
       this.refreshTableTreeTickle = !this.refreshTableTreeTickle
+      this.dispatchRunDigestCompare({ digest: this.digest, runCompare: this.runDigestRefresh })
     },
     // clear run comparison
     clearRunCompare () {
@@ -269,6 +281,7 @@ export default {
       this.tableVisibleCount = this.tableTreeCount
       this.refreshParamTreeTickle = !this.refreshParamTreeTickle
       this.refreshTableTreeTickle = !this.refreshTableTreeTickle
+      this.dispatchRunDigestCompare({ digest: this.digest, runCompare: '' })
     },
 
     // show yes/no dialog to confirm run delete
@@ -297,6 +310,19 @@ export default {
 
       this.startRunDownload(dgst) // start run download and show download page on success
     },
+    /*
+    // show model run upload dialog
+    doShowFileSelect () {
+      this.uploadFileSelect = true
+    },
+    // hides model run upload dialog
+    doCancelFileSelect () {
+      this.uploadFileSelect = false
+      this.uploadFile = null
+    },
+    // uploads model run
+    onUploadModelRun () {},
+    */
 
     // show or hide parameters tree
     onToogleShowParamTree () {
@@ -332,23 +358,6 @@ export default {
       this.tableInfoName = name
       this.tableInfoTickle = !this.tableInfoTickle
     },
-
-    // show model run upload dialog
-
-    doShowFileSelect () {
-      this.uploadFileSelect = true
-    },
-
-    // hides model run upload dialog
-
-    doCancelFileSelect () {
-      this.uploadFileSelect = false
-      this.uploadFile = null
-    },
-
-    // uploads model run
-
-    onUploadModelRun () {},
 
     // return tree of model runs
     makeRunTreeData (rLst) {
@@ -481,7 +490,11 @@ export default {
 
       this.$emit('run-select', dgst)
       this.$q.notify({ type: 'info', message: this.$t('Model run description and notes saved') + '. ' + this.$t('Language') + ': ' + langCode })
-    }
+    },
+
+    ...mapActions('uiState', {
+      dispatchRunDigestCompare: 'runDigestCompare'
+    })
   },
 
   mounted () {

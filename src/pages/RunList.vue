@@ -7,7 +7,7 @@
     <div
       class="row reverse-wrap items-center"
       >
-
+      <!--
       <q-btn
         @click="doShowFileSelect()"
         v-show="!uploadFileSelect"
@@ -17,7 +17,6 @@
         icon='mdi-file-upload-outline'
         title='Upload model run'
         />
-
       <q-btn
         @click="doCancelFileSelect()"
         v-show="uploadFileSelect"
@@ -27,7 +26,7 @@
         icon='mdi-close-circle'
         title='Cancel upload'
         />
-
+      -->
       <span class="col-auto no-wrap tab-switch-container q-ml-xs">
         <q-btn
           @click="onToogleShowParamTree"
@@ -277,7 +276,7 @@
               />
             <q-btn
               :disable="!isSuccess(prop.node.status) || prop.node.digest === runDigestSelected"
-              @click.stop="onCompareClick(prop.node.digest)"
+              @click.stop="onRunCompareClick(prop.node.digest)"
               flat
               round
               dense
