@@ -91,6 +91,8 @@ export default {
   'Failed': 'Échoué',
   'failed': 'échoué',
   'Failed to copy tab separated values to clipboard': 'Échec de la copie des valeurs séparées par des tabulations dans le presse-papiers',
+  'Do full downloads, compatible with desktop model': 'Faites des téléchargements complets, compatibles avec le modèle de bureau',
+  'Do fast downloads, only to analyze output values': 'Faites des téléchargements rapides, uniquement pour analyser les valeurs de sortie',
   'Feedback on beta UI version': "Commentaires sur la version bêta de l'interface utilisateur",
   'file(s)': 'des dossiers',
   'Find files...': 'Rechercher des dossiers...',

@@ -187,7 +187,7 @@ export default {
       this.$refs.omPivotTable.onCopyTsv()
     },
 
-    // parameter as csv file
+    // download parameter as csv file
     onDownload () {
       const u = this.isFromRun
         ? this.omsUrl +

@@ -7,6 +7,11 @@ export const uiLang = ({ dispatch, commit }, lang) => {
   dispatch('model/wordList', Mdf.emptyWordList(), { root: true })
 }
 
+// set fast or full download: use accumulators or not
+export const noAccDownload = ({ commit }, noAcc) => {
+  commit('noAccDownload', noAcc)
+}
+
 // update or clear selected run digest
 export const runDigestSelected = ({ commit }, modelView) => {
   commit('runDigestSelected', modelView)

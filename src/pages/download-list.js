@@ -1,4 +1,4 @@
-import { mapState, mapGetters } from 'vuex'
+import { mapState, mapGetters, mapActions } from 'vuex'
 import * as Mdf from 'src/model-common'
 import ModelBar from 'components/ModelBar.vue'
 import RunBar from 'components/RunBar.vue'
@@ -54,7 +54,8 @@ export default {
       folderTreeData: [],
       isAnyFolderDir: false,
       folderTreeFilter: '',
-      isFolderTreeExpanded: false
+      isFolderTreeExpanded: false,
+      fastDownload: 'no'
     }
   },
 
@@ -66,6 +67,9 @@ export default {
     ...mapGetters('model', {
       runTextByDigest: 'runTextByDigest'
     }),
+    ...mapState('uiState', {
+      noAccDownload: state => state.noAccDownload
+    }),
     ...mapState('serverState', {
       omsUrl: state => state.omsUrl,
       serverConfig: state => state.config
@@ -74,7 +78,10 @@ export default {
 
   watch: {
     refreshTickle () { this.initView() },
-    digest () { this.initView() }
+    digest () { this.initView() },
+    fastDownload (val) {
+      this.dispatchNoAccDownload(val === 'yes')
+    }
   },
 
   methods: {
@@ -198,6 +205,7 @@ export default {
       this.folderTreeData = []
       this.isAnyFolderDir = false
       this.folderTreeFilter = ''
+      this.fastDownload = this.noAccDownload ? 'yes' : 'no'
       this.stopLogRefresh()
       this.startLogRefresh()
     },
@@ -483,7 +491,11 @@ export default {
       }
 
       this.$q.notify({ type: 'info', message: this.$t('Deleted') + ': ' + folder })
-    }
+    },
+
+    ...mapActions('uiState', {
+      dispatchNoAccDownload: 'noAccDownload'
+    })
   },
 
   mounted () {

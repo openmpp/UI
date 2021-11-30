@@ -103,7 +103,7 @@
               align="left"
               class="bg-primary text-white rounded-borders col-grow"
               icon="mdi-content-save-cog"
-              :label="isModel ? $t('Download views of') +' ' + modelTitle : $t('Download model views')"
+              :label="isModel ? $t('Download views of') + ' ' + modelTitle : $t('Download model views')"
               />
             </span>
           </td>
@@ -131,7 +131,7 @@
               clearable
               hide-bottom-space
               color="primary"
-              :label="isModel ? $t('Upload views of') +' ' + modelTitle : $t('Upload model views')"
+              :label="isModel ? $t('Upload views of') + ' ' + modelTitle : $t('Upload model views')"
               >
             </q-file>
           </td>

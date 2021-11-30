@@ -4,6 +4,9 @@ import * as Mdf from 'src/model-common'
 // assign new value to current UI language
 export const uiLang = (state, lang) => { state.uiLang = (lang || '') }
 
+// set fast or full download: use accumulators or not
+export const noAccDownload = (state, noAcc) => { state.noAccDownload = !!noAcc }
+
 // assign new value selected run digest
 export const runDigestSelected = (state, modelView) => {
   const mDgst = (typeof modelView?.digest === typeof 'string') ? modelView.digest : ''
