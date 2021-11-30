@@ -118,13 +118,10 @@
       @click="onCopyToClipboard"
       flat
       dense
-      class="col-auto bg-primary text-white rounded-borders"
+      class="col-auto bg-primary text-white rounded-borders q-mr-xs"
       icon="mdi-content-copy"
       :title="$t('Copy tab separated values to clipboard') + ': Ctrl+C'"
       />
-
-    <q-separator vertical inset spaced="sm" color="secondary" />
-
     <q-btn
       @click="onDownload"
       :disable="!isFromRun && edt.isEdit"
