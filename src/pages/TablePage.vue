@@ -60,7 +60,7 @@
       dense
       class="col-auto bg-primary text-white rounded-borders"
       icon="mdi-download"
-      :title="$t('Download ') + ' '  + tableName + ' as CSV'"
+      :title="$t('Download') + ' '  + tableName + ' ' + $t('as CSV')"
       />
     <q-separator vertical inset spaced="sm" color="secondary" />
 

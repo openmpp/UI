@@ -14,6 +14,7 @@ import * as Pcvt from 'components/pivot-cvt'
 import * as Puih from './pivot-ui-helper'
 import PvTable from 'components/PvTable'
 import MarkdownEditor from 'components/MarkdownEditor.vue'
+import { openURL } from 'quasar'
 
 const SUB_ID_DIM = 'SubId' // sub-value id dminesion name
 
@@ -186,6 +187,16 @@ export default {
       this.$refs.omPivotTable.onCopyTsv()
     },
 
+    // parameter as csv file
+    onDownload () {
+      const u = this.isFromRun
+        ? this.omsUrl +
+          '/api/model/' + this.digest + '/run/' + this.runDigest + '/parameter/' + this.parameterName + '/csv'
+        : this.omsUrl +
+          '/api/model/' + this.digest + '/workset/' + this.worksetName + '/parameter/' + this.parameterName + '/csv'
+
+      openURL(u)
+    },
     /*
     // show input scenario upload dialog
     doShowFileSelect () {
@@ -224,16 +235,6 @@ export default {
       }
     },
     */
-
-    onDownload () {
-      const u = this.isFromRun
-        ? this.omsUrl +
-          '/api/model/' + this.digest + '/run/' + this.runDigest + '/parameter/' + this.parameterName + '/csv'
-        : this.omsUrl +
-          '/api/model/' + this.digest + '/workset/' + this.worksetName + '/parameter/' + this.parameterName + '/csv'
-
-      window.open(u)
-    },
 
     // reload parameter data and reset pivot view to default
     async onReloadDefaultView () {

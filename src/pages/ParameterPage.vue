@@ -132,7 +132,7 @@
       dense
       class="col-auto bg-primary text-white rounded-borders"
       icon="mdi-download"
-      :title="$t('Download ') + ' '  + parameterName + ' as CSV'"
+      :title="$t('Download') + ' '  + parameterName + ' ' + $t('as CSV')"
       />
     <!--
     <q-btn

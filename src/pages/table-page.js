@@ -6,6 +6,7 @@ import PivotReact from 'src/rv/PivotReact.react.jsx'
 import RunBar from 'components/RunBar.vue'
 import RunInfoDialog from 'components/RunInfoDialog.vue'
 import TableInfoDialog from 'components/TableInfoDialog.vue'
+import { openURL } from 'quasar'
 
 const kind = {
   EXPR: 0,  // output table expression(s)
@@ -148,17 +149,25 @@ export default {
       this.pvtState.isToggleUI = true
     },
 
+    // download output table as csv file
     onDownload () {
-      if (this.tv.kind === kind.EXPR) {
-        const u = this.omsUrl + '/api/model/' + this.digest + '/run/' + this.runDigest + '/table/' + this.tableName + '/expr/csv'
-        window.open(u)
-      } else if (this.tv.kind === kind.ACC) {
-        const u = this.omsUrl + '/api/model/' + this.digest + '/run/' + this.runDigest + '/table/' + this.tableName + '/acc/csv'
-        window.open(u)
-      } else {
-        const u = this.omsUrl + '/api/model/' + this.digest + '/run/' + this.runDigest + '/table/' + this.tableName + '/all-acc/csv'
-        window.open(u)
+      let u = this.omsUrl + '/api/model/' + this.digest + '/run/' + this.runDigest + '/table/' + this.tableName
+      switch (this.tv.kind) {
+        case kind.EXPR:
+          u += '/expr/csv'
+          break
+        case kind.ACC:
+          u += '/acc/csv'
+          break
+        case kind.ALL:
+          u += '/all-acc/csv'
+          break
+        default:
+          console.warn('Unable to download output table, t.kind:', this.tv.kind)
+          this.$q.notify({ type: 'negative', message: this.$t('Unable to download output table') + ': ' + this.tableName })
+          return
       }
+      openURL(u)
     },
 
     // refresh current page view on mounted or tab switch
