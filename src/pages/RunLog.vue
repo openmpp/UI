@@ -17,7 +17,7 @@
           dense
           class="col-auto bg-primary text-white rounded-borders q-mr-xs"
           :icon="!isRefreshPaused ? (((refreshCount % 2) === 1) ? 'mdi-autorenew' : 'mdi-sync') : 'mdi-play-circle-outline'"
-          :title="!isRefreshPaused ? $t('Pause') : $t('Refresh')"
+          :title="!isRefreshPaused ? $t('Pause auto refresh') : $t('Auto refresh model run log')"
           />
         <q-btn
           v-else
