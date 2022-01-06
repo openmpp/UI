@@ -126,12 +126,12 @@
               clickable
               tag="a"
               target="_blank"
-              href="//openmpp.org/"
+              href="//github.com/openmpp/openmpp.github.io/wiki/Ompp-UI-User-Interface"
               >
               <q-item-section avatar>
                 <q-icon name="link" />
               </q-item-section>
-              <q-item-section>OpenM++ {{ $t('website') }}</q-item-section>
+              <q-item-section>{{ $t('UI Help') }}</q-item-section>
             </q-item>
             <q-item
               clickable
@@ -143,6 +143,17 @@
                 <q-icon name="link" />
               </q-item-section>
               <q-item-section>OpenM++ {{ $t('wiki') }}</q-item-section>
+            </q-item>
+            <q-item
+              clickable
+              tag="a"
+              target="_blank"
+              href="//openmpp.org/"
+              >
+              <q-item-section avatar>
+                <q-icon name="link" />
+              </q-item-section>
+              <q-item-section>OpenM++ {{ $t('website') }}</q-item-section>
             </q-item>
 
           </q-list>
@@ -226,7 +237,7 @@
         :to="'/model/' + modelDigest + '/set-create'"
         >
         <q-item-section avatar>
-          <q-icon name="mdi-notebook-edit-outline" />
+          <q-icon name="mdi-notebook-plus-outline" />
         </q-item-section>
         <q-item-section>
           <q-item-label>{{ $t('New Scenario') }}</q-item-label>

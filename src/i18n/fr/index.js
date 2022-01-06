@@ -299,6 +299,7 @@ export default {
   'Too many columns pasted': 'Trop de colonnes collées',
   'Too many rows pasted': 'Trop de lignes collées',
   'Total': 'Le total',
+  'UI Help': 'UI Help',
   'Unable to copy parameter': 'Impossible de copier le paramètre',
   'Unable to copy parameter into input scenario, it is read-only (or undefined)': "Impossible de copier le paramètre dans le scénario d'entrée, il est en lecture seule (ou non défini)",
   'Unable to create new input scenario': "Impossible de créer un nouveau scénario d'entrée",
