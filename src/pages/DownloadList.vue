@@ -43,7 +43,6 @@
             <td class="pt-cell-right mono">{{ errorLogCount }}</td>
             <td class="pt-cell-right mono">{{ totalLogCount }}</td>
           </tr>
-          <!--
           <tr>
             <td colspan="5" class="pt-cell">
               <q-radio v-model="fastDownload" val="no"  :label="$t('Do full downloads, compatible with desktop model')" />
@@ -51,7 +50,6 @@
               <q-radio v-model="fastDownload" val="yes" :label="$t('Do fast downloads, only to analyze output values')" />
             </td>
           </tr>
-          -->
         </tbody>
       </table>
 

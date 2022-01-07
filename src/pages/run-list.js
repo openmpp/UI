@@ -86,7 +86,8 @@ export default {
     }),
     ...mapState('uiState', {
       runDigestSelected: state => state.runDigestSelected,
-      uiLang: state => state.uiLang
+      uiLang: state => state.uiLang,
+      noAccDownload: state => state.noAccDownload
     }),
     ...mapGetters('uiState', {
       modelViewSelected: 'modelViewSelected'
@@ -426,7 +427,7 @@ export default {
       let isOk = false
       let msg = ''
 
-      const u = this.omsUrl + '/api/download/model/' + this.digest + '/run/' + (dgst || '')
+      const u = this.omsUrl + '/api/download/model/' + this.digest + '/run/' + (dgst || '') + (this.noAccDownload ? '/no-acc' : '')
       try {
         // send download request to the server, response expected to be empty on success
         await this.$axios.post(u)

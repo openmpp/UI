@@ -55,7 +55,7 @@ export default {
       isAnyFolderDir: false,
       folderTreeFilter: '',
       isFolderTreeExpanded: false,
-      fastDownload: 'no'
+      fastDownload: 'yes'
     }
   },
 

@@ -2,7 +2,7 @@
 export default function () {
   return {
     uiLang: '',
-    noAccDownload: false,
+    noAccDownload: true,
     runDigestSelected: '',
     worksetNameSelected: '',
     taskNameSelected: '',

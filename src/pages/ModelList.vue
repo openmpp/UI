@@ -136,7 +136,8 @@ export default {
       modelCount: 'modelListCount'
     }),
     ...mapState('uiState', {
-      uiLang: state => state.uiLang
+      uiLang: state => state.uiLang,
+      noAccDownload: state => state.noAccDownload
     }),
     ...mapState('serverState', {
       omsUrl: state => state.omsUrl,
@@ -238,7 +239,7 @@ export default {
       let isOk = false
       let msg = ''
 
-      const u = this.omsUrl + '/api/download/model/' + (dgst || '')
+      const u = this.omsUrl + '/api/download/model/' + (dgst || '') + (this.noAccDownload ? '/no-acc' : '')
       try {
         // send download request to the server, response expected to be empty on success
         await this.$axios.post(u)

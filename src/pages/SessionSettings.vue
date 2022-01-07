@@ -92,6 +92,15 @@
         </tr>
 
         <tr>
+          <td colspan="2" class="settings-cell q-pa-sm om-text-secondary">{{ $t('Model Downloads') }}:</td>
+          <td class="settings-cell q-pa-sm">
+            <q-radio v-model="fastDownload" val="no"  :label="$t('Full, compatible with desktop model')" />
+            <br />
+            <q-radio v-model="fastDownload" val="yes" :label="$t('Fast, only to analyze output values')" />
+          </td>
+        </tr>
+
+        <tr>
           <td colspan="3" class="settings-cell q-pa-sm">
             <span class="row">
             <q-btn
@@ -199,7 +208,8 @@ export default {
       paramIdx: [], // parameter names and index in dbRows, if db row exist
       uploadFile: null,
       uploadUserViewsTickle: false,
-      uploadUserViewsDone: false
+      uploadUserViewsDone: false,
+      fastDownload: 'yes'
     }
   },
 
@@ -223,11 +233,26 @@ export default {
       modelCount: 'modelListCount'
     }),
     ...mapState('uiState', {
-      uiLang: state => state.uiLang
+      uiLang: state => state.uiLang,
+      noAccDownload: state => state.noAccDownload
     })
   },
 
+  watch: {
+    fastDownload (val) {
+      this.dispatchNoAccDownload(val === 'yes')
+    }
+  },
+
   methods: {
+    // refresh model settings: select from indexed db
+    doRefresh () {
+      this.clearState()
+      this.fastDownload = this.noAccDownload ? 'yes' : 'no'
+
+      if (this.modelName) this.doReadParameterViews()
+    },
+
     onModelClear () {
       const digest = Mdf.modelDigest(this.theModel)
       this.clearState()
@@ -240,23 +265,17 @@ export default {
       this.dispatchViewDeleteByModel(digest)
       this.dispatchModelList([])
     },
-    onRunTextListClear () { this.dispatchRunTextList([]) },
-    onWorksetTextListClear () { this.dispatchWorksetTextList([]) },
     clearState () {
       this.dbRows = []
       this.paramIdx = []
       this.uploadFile = null
     },
+    onRunTextListClear () { this.dispatchRunTextList([]) },
+    onWorksetTextListClear () { this.dispatchWorksetTextList([]) },
     onUiLanguageClear () { this.dispatchUiLang('') },
 
     // retrun parameter description by name
     parameterDescr (pName) { return Mdf.descrOfDescrNote(Mdf.paramTextByName(this.theModel, pName)) },
-
-    // refresh model settings: select from indexed db
-    doRefresh () {
-      this.clearState()
-      if (this.modelName) this.doReadParameterViews()
-    },
 
     // download parameters views
     onDownloadViews () {
@@ -414,6 +433,7 @@ export default {
     }),
     ...mapActions('uiState', {
       dispatchUiLang: 'uiLang',
+      dispatchNoAccDownload: 'noAccDownload',
       dispatchViewDeleteByModel: 'viewDeleteByModel'
     })
   },
