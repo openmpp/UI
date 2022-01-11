@@ -107,8 +107,9 @@ export default {
         if (this.runOpts.runTmpl) rv.Template = this.runOpts.runTmpl
       } else {
         rv.Mpi.Np = this.runOpts.mpiNpCount
-        if (this.runOpts.mpiTmpl) rv.Template = this.runOpts.mpiTmpl
         if (!this.runOpts.mpiOnRoot) rv.Opts['OpenM.NotOnRoot'] = 'true'
+        if (this.runOpts.mpiTmpl) rv.Template = this.runOpts.mpiTmpl
+        rv.Opts['OpenM.LogRank'] = 'true'
       }
 
       for (const lcd in this.runOpts.runDescr) {
