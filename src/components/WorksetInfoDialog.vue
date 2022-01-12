@@ -2,7 +2,9 @@
 <q-dialog full-width v-model="showDlg">
   <q-card>
 
-    <q-card-section class="text-h6 bg-primary text-white">{{ title }}</q-card-section>
+    <q-card-section class="row text-h6 bg-primary text-white">
+      <div>{{ title }}</div><q-space /><q-btn icon="mdi-close" flat dense round v-close-popup />
+    </q-card-section>
 
     <q-card-section class="q-pt-none text-body1">
 
