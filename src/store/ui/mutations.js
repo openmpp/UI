@@ -7,6 +7,11 @@ export const uiLang = (state, lang) => { state.uiLang = (lang || '') }
 // set fast or full download: use accumulators or not
 export const noAccDownload = (state, noAcc) => { state.noAccDownload = !!noAcc }
 
+// set tree label kind (parameter and table tree): name only, description only or both by default
+export const treeLabelKind = (state, labelKind) => {
+  state.treeLabelKind = (labelKind === 'name-only' || labelKind === 'descr-only') ? labelKind : ''
+}
+
 // assign new value selected run digest
 export const runDigestSelected = (state, modelView) => {
   const mDgst = (typeof modelView?.digest === typeof 'string') ? modelView.digest : ''

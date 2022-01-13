@@ -99,6 +99,16 @@
             <q-radio v-model="fastDownload" val="yes" :label="$t('Fast, only to analyze output values')" />
           </td>
         </tr>
+        <tr>
+          <td colspan="2" class="settings-cell q-pa-sm om-text-secondary">{{ $t('Tree Labels') }}:</td>
+          <td class="settings-cell q-pa-sm">
+            <q-radio v-model="labelKind" val="name-only"  :label="$t('Show only name')" />
+            <br />
+            <q-radio v-model="labelKind" val="descr-only" :label="$t('Show only description')" />
+            <br />
+            <q-radio v-model="labelKind" val="default" :label="$t('Name and description')" />
+          </td>
+        </tr>
 
         <tr>
           <td colspan="3" class="settings-cell q-pa-sm">
@@ -209,7 +219,8 @@ export default {
       uploadFile: null,
       uploadUserViewsTickle: false,
       uploadUserViewsDone: false,
-      fastDownload: 'yes'
+      fastDownload: 'yes',
+      labelKind: 'default'
     }
   },
 
@@ -234,6 +245,7 @@ export default {
     }),
     ...mapState('uiState', {
       uiLang: state => state.uiLang,
+      treeLabelKind: state => state.treeLabelKind,
       noAccDownload: state => state.noAccDownload
     })
   },
@@ -241,6 +253,9 @@ export default {
   watch: {
     fastDownload (val) {
       this.dispatchNoAccDownload(val === 'yes')
+    },
+    labelKind (val) {
+      this.dispatchTreeLabelKind((val === 'name-only' || val === 'descr-only') ? val : '')
     }
   },
 
@@ -249,6 +264,7 @@ export default {
     doRefresh () {
       this.clearState()
       this.fastDownload = this.noAccDownload ? 'yes' : 'no'
+      this.labelKind = (this.treeLabelKind === 'name-only' || this.treeLabelKind === 'descr-only') ? this.treeLabelKind : 'default'
 
       if (this.modelName) this.doReadParameterViews()
     },
@@ -434,6 +450,7 @@ export default {
     ...mapActions('uiState', {
       dispatchUiLang: 'uiLang',
       dispatchNoAccDownload: 'noAccDownload',
+      dispatchTreeLabelKind: 'treeLabelKind',
       dispatchViewDeleteByModel: 'viewDeleteByModel'
     })
   },

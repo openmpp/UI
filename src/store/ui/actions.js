@@ -12,6 +12,11 @@ export const noAccDownload = ({ commit }, noAcc) => {
   commit('noAccDownload', noAcc)
 }
 
+// set tree label kind (parameter and table tree): name only, description only or both by default
+export const treeLabelKind = ({ commit }, labelKind) => {
+  commit('treeLabelKind', labelKind)
+}
+
 // update or clear selected run digest
 export const runDigestSelected = ({ commit }, modelView) => {
   commit('runDigestSelected', modelView)

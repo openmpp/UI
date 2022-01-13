@@ -131,8 +131,12 @@ Expected array of tree items as:
           <div
             class="col"
             >
-            <span>{{ prop.node.label }}<br />
-            <span class="om-text-descr">{{ prop.node.descr }}</span></span>
+            <template v-if="labelKind === 'name-only'">{{ prop.node.label }}</template>
+            <template v-if="labelKind === 'descr-only'">{{ prop.node.descr }}</template>
+            <template v-if="labelKind !== 'name-only' && labelKind !== 'descr-only'">
+              <span>{{ prop.node.label }}<br />
+              <span class="om-text-descr">{{ prop.node.descr }}</span></span>
+            </template>
           </div>
         </div>
 
@@ -178,8 +182,12 @@ Expected array of tree items as:
             :title="$t('Remove') + ' ' + prop.node.label"
             />
           <div class="col q-ml-xs">
-            <span>{{ prop.node.label }}<br />
-            <span class="om-text-descr">{{ prop.node.descr }}</span></span>
+            <template v-if="labelKind === 'name-only'">{{ prop.node.label }}</template>
+            <template v-if="labelKind === 'descr-only'">{{ prop.node.descr }}</template>
+            <template v-if="labelKind !== 'name-only' && labelKind !== 'descr-only'">
+              <span>{{ prop.node.label }}<br />
+              <span class="om-text-descr">{{ prop.node.descr }}</span></span>
+            </template>
           </div>
         </div>
 
@@ -200,6 +208,7 @@ export default {
     refreshTickle: { type: Boolean, default: false },
     refreshTreeTickle: { type: Boolean, default: false },
     treeData: { type: Array, default: () => [] },
+    labelKind: { type: String, default: '' },
     isAllExpand: { type: Boolean, default: false },
     isAnyGroup: { type: Boolean, default: false },
     isAnyHidden: { type: Boolean, default: false },

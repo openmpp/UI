@@ -4,6 +4,7 @@
     :refresh-tickle="refreshTickle"
     :refresh-tree-tickle="refreshTreeTickle"
     :tree-data="paramTreeData"
+    :label-kind="treeLabelKind"
     :is-all-expand="false"
     :is-any-group="isAnyGroup"
     :is-any-hidden="isAnyHidden"
@@ -80,6 +81,9 @@ export default {
     ...mapState('model', {
       theModel: state => state.theModel,
       theModelUpdated: state => state.theModelUpdated
+    }),
+    ...mapState('uiState', {
+      treeLabelKind: state => state.treeLabelKind
     })
   },
 

@@ -2,10 +2,11 @@
 export default function () {
   return {
     uiLang: '',
-    noAccDownload: true,
     runDigestSelected: '',
     worksetNameSelected: '',
     taskNameSelected: '',
+    noAccDownload: true,
+    treeLabelKind: '',
     paramViews: {},
     tableViews: {},
     modelView: {}
