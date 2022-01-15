@@ -57,7 +57,7 @@
 <script>
 import { mapState, mapGetters } from 'vuex'
 import * as Mdf from 'src/model-common'
-import marked from 'marked'
+import { marked } from 'marked'
 import hljs from 'highlight.js'
 import sanitizeHtml from 'sanitize-html'
 
@@ -135,8 +135,8 @@ export default {
         // smartypants: true
       })
 
-      this.notes = marked(sanitizeHtml(Mdf.noteOfDescrNote(this.paramText)))
-      this.valueNotes = marked(sanitizeHtml(Mdf.noteOfTxt(this.paramRunSet)))
+      this.notes = marked.parse(sanitizeHtml(Mdf.noteOfDescrNote(this.paramText)))
+      this.valueNotes = marked.parse(sanitizeHtml(Mdf.noteOfTxt(this.paramRunSet)))
 
       // find parameter type
       const t = Mdf.typeTextById(this.theModel, (this.paramText.Param.TypeId || 0))

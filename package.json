@@ -24,7 +24,7 @@
     "core-js": "^3.6.5",
     "easymde": "^2.15.0",
     "highlight.js": "^11.0.1",
-    "marked": "^2.1.2",
+    "marked": "^4.0.10",
     "plotly.js-basic-dist": "^1.51.2",
     "quasar": "^1.0.0",
     "react": "^16.5.2",

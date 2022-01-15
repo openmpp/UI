@@ -61,7 +61,7 @@
 <script>
 import { mapState, mapGetters } from 'vuex'
 import * as Mdf from 'src/model-common'
-import marked from 'marked'
+import { marked } from 'marked'
 import hljs from 'highlight.js'
 import sanitizeHtml from 'sanitize-html'
 
@@ -127,8 +127,8 @@ export default {
         // smartypants: true
       })
 
-      this.notes = marked(sanitizeHtml(this.tableText.TableNote))
-      this.exprNotes = marked(sanitizeHtml(this.tableText.ExprNote))
+      this.notes = marked.parse(sanitizeHtml(this.tableText.TableNote))
+      this.exprNotes = marked.parse(sanitizeHtml(this.tableText.ExprNote))
 
       // find table size info and check is this table included into the run
       this.tableSize = Mdf.tableSizeByName(this.theModel, this.tableName)

@@ -37,7 +37,7 @@
 <script>
 import { mapGetters } from 'vuex'
 import * as Mdf from 'src/model-common'
-import marked from 'marked'
+import { marked } from 'marked'
 import hljs from 'highlight.js'
 import sanitizeHtml from 'sanitize-html'
 
@@ -96,7 +96,7 @@ export default {
         // smartypants: true
       })
 
-      this.notes = marked(sanitizeHtml(Mdf.noteOfDescrNote(m)))
+      this.notes = marked.parse(sanitizeHtml(Mdf.noteOfDescrNote(m)))
 
       this.showDlg = true
     }

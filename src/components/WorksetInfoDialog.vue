@@ -51,7 +51,7 @@
 import { mapGetters } from 'vuex'
 import * as Mdf from 'src/model-common'
 import RefreshWorkset from 'components/RefreshWorkset.vue'
-import marked from 'marked'
+import { marked } from 'marked'
 import hljs from 'highlight.js'
 import sanitizeHtml from 'sanitize-html'
 
@@ -116,7 +116,7 @@ export default {
         // smartypants: true
       })
 
-      this.notes = marked(sanitizeHtml(Mdf.noteOfTxt(this.worksetText)))
+      this.notes = marked.parse(sanitizeHtml(Mdf.noteOfTxt(this.worksetText)))
 
       this.showDlg = true
     }
