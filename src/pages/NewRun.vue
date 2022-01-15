@@ -60,6 +60,25 @@
           </td>
         </tr>
 
+        <tr
+          v-for="(p, idx) in presetLst" :key="p.name"
+          >
+          <td class="q-pr-xs">
+            <q-btn
+              @click="onPresetSelected(idx)"
+              no-caps
+              unelevated
+              color="primary"
+              align="between"
+              class="rounded-borders full-width"
+              >
+              <span>{{ p.name }}</span>
+              <q-icon name="mdi-menu-right" />
+            </q-btn>
+          </td>
+          <td>{{ p.descr }}</td>
+        </tr>
+
         <tr>
           <td class="q-pr-xs">{{ $t('Sub-Values (Sub-Samples)') }}:</td>
           <td>

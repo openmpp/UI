@@ -25,6 +25,7 @@ export default {
       useBaseRun: false,
       runTemplateLst: [],
       mpiTemplateLst: [],
+      presetLst: [],
       profileLst: [],
       enableIni: false,
       enableIniAnyKey: false,
@@ -189,7 +190,11 @@ export default {
           })
         }
       }
+
+      // get run options presets as array of { name, descr, opts{....} }
+      this.presetLst = Mdf.configRunOptsPresets(this.serverConfig, this.theModel.Model.Name, this.modelLanguage.LangCode)
     },
+
     // use current run as base base run if:
     //   current run is compeleted and
     //   current workset not readonly
@@ -290,6 +295,36 @@ export default {
       // remove leading /
       s = s.replace(/^\//, '')
       return s || ''
+    },
+
+    // apply preset to run options
+    onPresetSelected (idx) {
+      if (!Array.isArray(this.presetLst) || idx < 0 || idx >= this.presetLst.length) {
+        this.$q.notify({ type: 'warning', message: this.$t('Invalid run options') })
+        console.warn('Invalid run options', idx)
+        return
+      }
+      // merge preset with run options
+      const ps = this.presetLst[idx].opts
+
+      this.runOpts.threadCount = ps.threadCount ?? this.runOpts.threadCount
+      this.runOpts.workDir = ps.workDir ?? this.runOpts.workDir
+      this.runOpts.csvDir = ps.csvDir ?? this.runOpts.csvDir
+      this.csvCodeId = ps.csvCodeId ?? this.csvCodeId
+      if (this.enableIni) {
+        this.runOpts.useIni = ps.useIni ?? this.runOpts.useIni
+        if (this.enableIniAnyKey && this.runOpts.useIni) this.runOpts.iniAnyKey = ps.iniAnyKey ?? this.runOpts.iniAnyKey
+      }
+      this.runOpts.profile = ps.profile ?? this.runOpts.profile
+      this.runOpts.sparseOutput = ps.sparseOutput ?? this.runOpts.sparseOutput
+      this.runOpts.runTmpl = ps.runTmpl ?? this.runOpts.runTmpl
+      this.runOpts.mpiNpCount = ps.mpiNpCount ?? this.runOpts.mpiNpCount
+      this.runOpts.mpiOnRoot = ps.mpiOnRoot ?? this.runOpts.mpiOnRoot
+      this.runOpts.mpiTmpl = ps.mpiTmpl ?? this.runOpts.mpiTmpl
+      this.runOpts.progressPercent = ps.progressPercent ?? this.runOpts.progressPercent
+      this.runOpts.progressStep = ps.progressStep ?? this.runOpts.progressStep
+
+      this.$q.notify({ type: 'info', message: this.$t('Using Run Options') + ': ' + (this.presetLst[idx].descr || this.presetLst[idx].name || '') })
     },
 
     // run the model

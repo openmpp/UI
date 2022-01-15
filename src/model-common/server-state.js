@@ -17,7 +17,8 @@ export const emptyConfig = () => {
     RunCatalog: {
       RunTemplates: [],
       DefaultMpiTemplate: 'mpi.ModelRun.template.txt',
-      MpiTemplates: []
+      MpiTemplates: [],
+      Presets: []
     }
   }
 }
@@ -30,9 +31,10 @@ export const isConfig = (c) => {
     return false
   }
   if (!c.ModelCatalog.hasOwnProperty('ModelDir') || !c.ModelCatalog.hasOwnProperty('ModelLogDir') || !c.ModelCatalog.hasOwnProperty('IsLogDirEnabled')) return false
-  if (!c.RunCatalog.hasOwnProperty('RunTemplates') || !c.RunCatalog.hasOwnProperty('DefaultMpiTemplate') || !c.RunCatalog.hasOwnProperty('MpiTemplates')) return false
+  if (!c.RunCatalog.hasOwnProperty('RunTemplates') || !c.RunCatalog.hasOwnProperty('DefaultMpiTemplate') ||
+    !c.RunCatalog.hasOwnProperty('MpiTemplates') || !c.RunCatalog.hasOwnProperty('Presets')) return false
 
-  return Array.isArray(c.RunCatalog.RunTemplates) && Array.isArray(c.RunCatalog.MpiTemplates)
+  return Array.isArray(c.RunCatalog.RunTemplates) && Array.isArray(c.RunCatalog.MpiTemplates) && Array.isArray(c.RunCatalog.Presets)
 }
 
 // return value of server environemnt variable by key, if no such variable then return empty '' string
@@ -40,6 +42,67 @@ export const configEnvValue = (c, key) => {
   if (!isConfig(c)) return ''
   if (!c.Env.hasOwnProperty(key)) return ''
   return c.Env[key] || ''
+}
+
+// return run options presets as array of objects: [{ name, descr, opts{....} }, ....]
+// name is either starts from 'modelName.' or 'any_model.'
+// result sorted by name and 'modelName.' is before 'any_model.'
+export const configRunOptsPresets = (c, modelName, langCode) => {
+  if (!modelName || typeof modelName !== typeof 'string' || !isConfig(c)) return []
+
+  const pLst = []
+  const mnDot = modelName + '.'
+  const amDot = 'any_model.'
+
+  for (let k = 0; k < c.RunCatalog.Presets.length; k++) {
+    const p = c.RunCatalog.Presets[k]
+
+    // skip if preset does not have name or options string
+    if (!p?.Name || typeof p.Name !== typeof 'string') continue
+    if (!p?.Options || typeof p.Options !== typeof 'string') continue
+
+    if (!p.Name.startsWith(mnDot) && !p.Name.startsWith(amDot)) continue // must start from model name or 'any_model.'
+
+    // parse options json string
+    let opts = {}
+    try {
+      opts = JSON.parse(p.Options)
+    } catch {
+      continue // skip incorrect options
+    }
+    if (!opts || !(opts instanceof Object) || Array.isArray(opts)) continue // must be an object with properties
+
+    // find preset description in current model language or use first description or preset name
+    let descr = ''
+
+    if (Array.isArray(opts?.Text)) {
+      for (let j = 0; j < opts.Text.length; j++) {
+        const td = opts.Text[j]?.Descr || ''
+        const lc = opts.Text[j]?.LangCode || ''
+
+        if (j === 0 || lc === langCode) {
+          descr = td || descr
+        }
+        if (lc === langCode) break // current model language found
+      }
+    }
+
+    pLst.push({ name: p.Name, descr: (descr || p.Name), opts: opts })
+  }
+
+  // sort result by name and put model name before 'any_model.'
+  pLst.sort((left, right) => {
+    const ln = left.name
+    const rn = right.name
+
+    if (ln === rn) return 0
+    if (ln.startsWith(mnDot) && rn.startsWith(amDot)) return -1
+    if (ln.startsWith(amDot) && rn.startsWith(mnDot)) return 1
+
+    return ln > rn ? 1 : -1
+  })
+
+  return pLst
 }
 
 /* eslint-disable no-multi-spaces */
