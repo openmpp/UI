@@ -72,11 +72,11 @@
               align="between"
               class="rounded-borders full-width"
               >
-              <span>{{ p.name }}</span>
+              <span>{{ p.label }}</span>
               <q-icon name="mdi-menu-right" />
             </q-btn>
           </td>
-          <td>{{ p.descr }}</td>
+          <td class="om-text-descr-title">{{ p.descr }}</td>
         </tr>
 
         <tr>

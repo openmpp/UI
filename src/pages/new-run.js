@@ -324,7 +324,7 @@ export default {
       this.runOpts.progressPercent = ps.progressPercent ?? this.runOpts.progressPercent
       this.runOpts.progressStep = ps.progressStep ?? this.runOpts.progressStep
 
-      this.$q.notify({ type: 'info', message: this.$t('Using Run Options') + ': ' + (this.presetLst[idx].descr || this.presetLst[idx].name || '') })
+      this.$q.notify({ type: 'info', message: this.presetLst[idx].descr || this.presetLst[idx].label || (this.$t('Using Run Options') + ': ' + this.presetLst[idx].name || '') })
     },
 
     // run the model

@@ -44,7 +44,7 @@ export const configEnvValue = (c, key) => {
   return c.Env[key] || ''
 }
 
-// return run options presets as array of objects: [{ name, descr, opts{....} }, ....]
+// return run options presets as array of objects: [{ name, label, descr, opts{....} }, ....]
 // name is either starts from 'modelName.' or 'any_model.'
 // result sorted by name and 'modelName.' is before 'any_model.'
 export const configRunOptsPresets = (c, modelName, langCode) => {
@@ -74,20 +74,23 @@ export const configRunOptsPresets = (c, modelName, langCode) => {
 
     // find preset description in current model language or use first description or preset name
     let descr = ''
+    let label
 
     if (Array.isArray(opts?.Text)) {
       for (let j = 0; j < opts.Text.length; j++) {
-        const td = opts.Text[j]?.Descr || ''
         const lc = opts.Text[j]?.LangCode || ''
+        const lb = opts.Text[j]?.ShortLabel || ''
+        const td = opts.Text[j]?.Descr || ''
 
         if (j === 0 || lc === langCode) {
+          label = label || lb
           descr = td || descr
         }
         if (lc === langCode) break // current model language found
       }
     }
 
-    pLst.push({ name: p.Name, descr: (descr || p.Name), opts: opts })
+    pLst.push({ name: p.Name, label: (label || p.Name), descr: (descr || label || p.Name), opts: opts })
   }
 
   // sort result by name and put model name before 'any_model.'
