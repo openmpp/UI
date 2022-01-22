@@ -67,3 +67,12 @@ export const isWorksetTextList = (wtl) => {
   }
   return true
 }
+
+// return true if parameter name found in workset
+export const isWorksetParamByName = (ws, name) => {
+  if (!worksetParamCount(ws) || !name) return false
+  for (let k = 0; k < ws.Param.length; k++) {
+    if ((ws.Param[k]?.Name || '') === name) return true
+  }
+  return false // not found
+}

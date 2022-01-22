@@ -30,13 +30,11 @@
             <q-icon v-if="t.kind === 'run-list'" name="mdi-folder-table" size="sm" class="self-center q-pr-xs"/>
             <q-icon v-if="t.kind === 'set-list'" name="mdi-folder-edit" size="sm" class="self-center q-pr-xs"/>
             <q-icon v-if="t.kind === 'new-run'" name="mdi-run" size="sm" class="self-center q-pr-xs"/>
-            <q-icon v-if="t.kind === 'run-parameter'" name="mdi-application-import" size="sm" class="self-center q-pr-xs"/>
+            <q-icon v-if="t.kind === 'run-parameter'" name="mdi-table-arrow-left" size="sm" class="self-center q-pr-xs"/>
             <q-icon v-if="!t.updated && t.kind === 'set-parameter'" name="mdi-table-edit" size="sm" class="self-center q-pr-xs"/>
             <q-icon v-if="t.updated && t.kind === 'set-parameter'" name="mdi-content-save-edit" size="sm" class="self-center q-pr-xs"/>
-            <q-icon v-if="t.kind === 'table'" name="mdi-application-export" size="sm" class="self-center q-pr-xs"/>
+            <q-icon v-if="t.kind === 'table'" name="mdi-table-large" size="sm" class="self-center q-pr-xs"/>
             <q-icon v-if="t.kind === 'run-log'" name="mdi-text-long" size="sm" class="self-center q-pr-xs"/>
-            <q-icon v-if="t.kind === 'new-set'" name="mdi-notebook-plus" size="sm" class="self-center q-pr-xs"/>
-            <q-icon v-if="t.kind === 'set-edit'" name="mdi-notebook-edit" size="sm" class="self-center q-pr-xs"/>
             <q-icon v-if="t.kind === 'download-list'" name="mdi-file-download-outline" size="sm" class="self-center q-pr-xs"/>
             <span class="col-shrink om-tab-title" :title="$t(t.title)">{{ $t(t.title) }}</span>
             <q-badge v-if="t.kind === 'run-list'" transparent outline class="q-ml-xs">{{ runTextCount }}</q-badge>
@@ -80,13 +78,11 @@
               <q-icon v-if="t.kind === 'run-list'" name="mdi-folder-table-outline" />
               <q-icon v-if="t.kind === 'set-list'" name="mdi-folder-edit-outline" />
               <q-icon v-if="t.kind === 'new-run'" name="mdi-run" />
-              <q-icon v-if="t.kind === 'run-parameter'" name="mdi-application-import" />
+              <q-icon v-if="t.kind === 'run-parameter'" name="mdi-table-arrow-left" />
               <q-icon v-if="!t.updated && t.kind === 'set-parameter'" name="mdi-table-edit" />
               <q-icon v-if="t.updated && t.kind === 'set-parameter'" name="mdi-content-save-edit" />
-              <q-icon v-if="t.kind === 'table'" name="mdi-application-export" />
+              <q-icon v-if="t.kind === 'table'" name="mdi-table-large" />
               <q-icon v-if="t.kind === 'run-log'" name="mdi-text-long" />
-              <q-icon v-if="t.kind === 'new-set'" name="mdi-notebook-plus-outline" />
-              <q-icon v-if="t.kind === 'set-edit'" name="mdi-notebook-edit-outline" />
               <q-icon v-if="t.kind === 'download-list'" name="mdi-file-download-outline" />
             </q-item-section>
             <q-item-section>
@@ -114,8 +110,6 @@
     @edit-updated="onEditUpdated"
     @run-log-select="onRunLogSelect"
     @new-run-select="onNewRunSelect"
-    @new-set-select="onNewWorksetSelect"
-    @set-edit-select="onEditWorksetSelect"
     @download-select="onDownloadSelect"
     @run-completed-list="onRunCompletedList"
     @parameter-view-saved="onParameterViewSaved"

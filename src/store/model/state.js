@@ -7,6 +7,8 @@ export default function () {
     modelListUpdated: 0,
     theModel: Mdf.emptyModel(),
     theModelUpdated: 0,
+    groupParameterLeafs: {},
+    groupTableLeafs: {},
     runTextList: [],
     runTextListUpdated: 0,
     worksetTextList: [],

@@ -1,21 +1,33 @@
 import { mapState, mapGetters } from 'vuex'
 import * as Mdf from 'src/model-common'
 import WorksetParameterList from 'components/WorksetParameterList.vue'
+import RunParameterList from 'components/RunParameterList.vue'
+import RefreshWorkset from 'components/RefreshWorkset.vue'
 import WorksetInfoDialog from 'components/WorksetInfoDialog.vue'
 import ParameterInfoDialog from 'components/ParameterInfoDialog.vue'
 import GroupInfoDialog from 'components/GroupInfoDialog.vue'
+import NewWorkset from 'components/NewWorkset.vue'
+import CreateWorkset from 'components/CreateWorkset.vue'
 import DeleteWorkset from 'components/DeleteWorkset.vue'
+import ConfirmDialog from 'components/ConfirmDialog.vue'
 import DeleteConfirmDialog from 'components/DeleteConfirmDialog.vue'
+import MarkdownEditor from 'components/MarkdownEditor.vue'
 
 export default {
   name: 'WorksetList',
   components: {
     WorksetParameterList,
+    RunParameterList,
+    RefreshWorkset,
     WorksetInfoDialog,
     ParameterInfoDialog,
     GroupInfoDialog,
+    NewWorkset,
+    CreateWorkset,
     DeleteWorkset,
-    DeleteConfirmDialog
+    ConfirmDialog,
+    DeleteConfirmDialog,
+    MarkdownEditor
   },
 
   props: {
@@ -26,25 +38,55 @@ export default {
   data () {
     return {
       loadWait: false,
+      loadWsWait: false,
+      refreshWsTickle: false,
+      refreshWsFromTickle: false,
+      refreshParamTreeTickle: false,
+      refreshParamTreeFromTickle: false,
       worksetCurrent: Mdf.emptyWorksetText(), // currently selected workset
       isTreeCollapsed: false,
       isAnyGroup: false,
       treeData: [],
       treeFilter: '',
+      isFromRunShow: false,
       isParamTreeShow: false,
       paramTreeCount: 0,
+      runCurrent: Mdf.emptyRunText(), // selected run
+      isRunSuccess: false,
+      isFromWorksetShow: false,
+      worksetNameFrom: '',
+      worksetFrom: Mdf.emptyWorksetText(), // workset to sopy from
+      isNotEmptyFrom: false,
+      isReadonlyFrom: false,
       worksetInfoTickle: false,
       worksetInfoName: '',
+      runInfoDigest: '',
       groupInfoTickle: false,
       groupInfoName: '',
       paramInfoTickle: false,
       paramInfoName: '',
       nextId: 100,
       worksetNameToDelete: ',',
-      showDeleteDialogTickle: false,
-      worksetDeleteName: '',
-      deleteWorksetNow: false,
+      showDeleteWorksetTickle: false,
+      isDeleteWorksetNow: false,
       loadWorksetDelete: false,
+      isNewWorksetShow: false,
+      isCreateWorksetNow: false,
+      loadWorksetCreate: false,
+      nameOfNewWorkset: '',
+      newDescrNotes: [], // new workset description and notes
+      showParamFromWorksetTickle: false,
+      showParamFromRunTickle: false,
+      showGroupFromRunTickle: false,
+      showGroupFromWorkTickle: false,
+      bodyMsg: '',
+      sourceParams: [],
+      replaceParams: [],
+      isShowNoteEditor: false,
+      showDeleteParameterTickle: false,
+      showDeleteGroupTickle: false,
+      noteEditorLangCode: '',
+      noteCurrent: '',
       uploadFileSelect: false,
       uploadFile: null
     }
@@ -52,20 +94,24 @@ export default {
 
   computed: {
     isNotEmptyWorksetCurrent () { return Mdf.isNotEmptyWorksetText(this.worksetCurrent) },
-    descrWorksetCurrent () { return Mdf.descrOfTxt(this.worksetCurrent) },
     isReadonlyWorksetCurrent () { return Mdf.isNotEmptyWorksetText(this.worksetCurrent) && this.worksetCurrent.IsReadonly },
+    descrWorksetCurrent () { return Mdf.descrOfTxt(this.worksetCurrent) },
     fileSelected () { return !(this.uploadFile === null) },
 
     ...mapState('model', {
       theModel: state => state.theModel,
+      groupParameterLeafs: state => state.groupParameterLeafs,
       worksetTextList: state => state.worksetTextList,
       worksetTextListUpdated: state => state.worksetTextListUpdated
     }),
     ...mapGetters('model', {
+      runTextByDigest: 'runTextByDigest',
       worksetTextByName: 'worksetTextByName'
     }),
     ...mapState('uiState', {
-      worksetNameSelected: state => state.worksetNameSelected
+      runDigestSelected: state => state.runDigestSelected,
+      worksetNameSelected: state => state.worksetNameSelected,
+      uiLang: state => state.uiLang
     }),
     ...mapState('serverState', {
       omsUrl: state => state.omsUrl,
@@ -77,21 +123,60 @@ export default {
     digest () { this.doRefresh() },
     refreshTickle () { this.doRefresh() },
     worksetTextListUpdated () { this.doRefresh() },
-    worksetNameSelected () { this.worksetCurrent = this.worksetTextByName({ ModelDigest: this.digest, Name: this.worksetNameSelected }) }
+    worksetNameSelected () {
+      this.worksetCurrent = this.worksetTextByName({ ModelDigest: this.digest, Name: this.worksetNameSelected })
+      if (!Mdf.isNotEmptyWorksetText(this.worksetCurrent) || this.worksetCurrent.IsReadonly) {
+        this.isNewWorksetShow = false
+        this.isShowNoteEditor = false
+        this.isFromRunShow = false
+        this.isFromWorksetShow = false
+      }
+      if (this.worksetNameSelected === this.worksetNameFrom) this.worksetNameFrom = ''
+    }
   },
 
   methods: {
     dateTimeStr (dt) { return Mdf.dtStr(dt) },
+    isEdit () { return this.isFromRunShow || this.isFromWorksetShow || this.isNewWorksetShow || this.isShowNoteEditor },
 
     // update page view
     doRefresh () {
-      this.treeData = this.makeWorksetTreeData(this.worksetTextList)
       this.worksetCurrent = this.worksetTextByName({ ModelDigest: this.digest, Name: this.worksetNameSelected })
+      this.treeData = this.makeWorksetTreeData(this.worksetTextList)
       this.paramTreeCount = Mdf.worksetParamCount(this.worksetCurrent)
+
+      this.worksetFrom = this.worksetTextByName({ ModelDigest: this.digest, Name: this.worksetNameFrom })
+      this.isNotEmptyFrom = Mdf.isNotEmptyWorksetText(this.worksetFrom)
+      this.isReadonlyFrom = Mdf.isNotEmptyWorksetText(this.worksetFrom) && this.worksetFrom.IsReadonly
+
+      this.runCurrent = this.runTextByDigest({ ModelDigest: this.digest, RunDigest: this.runDigestSelected })
+      this.isRunSuccess = Mdf.isRunSuccess(this.runCurrent)
+    },
+    // current workset updated
+    doneWsLoad (isSuccess, name) {
+      this.loadWsWait = false
+      if (isSuccess && name) {
+        this.refreshParamTreeTickle = !this.refreshParamTreeTickle
+        this.paramTreeCount = Mdf.worksetParamCount(this.worksetCurrent)
+      }
+    },
+    // workset to select parameters from updated
+    doneWsFromLoad (isSuccess, name) {
+      this.loadWsWait = false
+      if (isSuccess && name) {
+        this.worksetFrom = this.worksetTextByName({ ModelDigest: this.digest, Name: this.worksetNameFrom })
+        this.isNotEmptyFrom = Mdf.isNotEmptyWorksetText(this.worksetFrom)
+        this.isReadonlyFrom = Mdf.isNotEmptyWorksetText(this.worksetFrom) && this.worksetFrom.IsReadonly
+
+        this.refreshParamTreeFromTickle = !this.refreshParamTreeFromTickle
+      }
     },
 
     // click on workset: select this workset as current workset
     onWorksetLeafClick (name) {
+      // disable workset change during editing
+      if (this.isNewWorksetShow || this.isShowNoteEditor || this.isFromRunShow || this.isFromWorksetShow) return
+
       if (this.worksetNameSelected !== name) this.$emit('set-select', name)
     },
     // expand or collapse all workset tree nodes
@@ -115,24 +200,40 @@ export default {
       this.treeFilter = ''
       this.$refs.filterInput.focus()
     },
-    // show workset notes dialog
-    doShowWorksetNote (name) {
-      this.worksetInfoName = name
-      this.worksetInfoTickle = !this.worksetInfoTickle
-    },
     // parameters tree updated and leafs counted
     onParamTreeUpdated (cnt) {
       this.paramTreeCount = cnt || 0
     },
 
-    // open create new workset page
-    onCreateNewWorkset () {
-      this.$emit('new-set-select')
+    // show workset notes dialog
+    doShowWorksetNote (name) {
+      this.worksetInfoName = name
+      this.worksetInfoTickle = !this.worksetInfoTickle
     },
-    // open workset edit page
-    onEditWorkset (name) {
-      this.$emit('set-edit-select', name)
+    // show parameter notes dialog for currently selected workset
+    doParamNoteWorksetCurrent (name) {
+      this.worksetInfoName = this.worksetNameSelected
+      this.paramInfoName = name
+      this.paramInfoTickle = !this.paramInfoTickle
     },
+    // show parameter notes dialog for workset copy from parameters
+    doParamNoteWorksetFrom (name) {
+      this.worksetInfoName = this.worksetNameFrom
+      this.paramInfoName = name
+      this.paramInfoTickle = !this.paramInfoTickle
+    },
+    // show run parameter notes dialog
+    doParamNoteRun (name) {
+      this.runInfoDigest = this.runDigestSelected
+      this.paramInfoName = name
+      this.paramRunInfoTickle = !this.paramRunInfoTickle
+    },
+    // show group notes dialog
+    doShowGroupNote (name) {
+      this.groupInfoName = name
+      this.groupInfoTickle = !this.groupInfoTickle
+    },
+
     // new model run using current workset name: open model run tab
     onNewRunClick (name) {
       this.$emit('new-run-select', (this.worksetNameSelected !== name ? name : ''))
@@ -142,20 +243,80 @@ export default {
       this.$emit('set-update-readonly', this.digest, this.worksetNameSelected, !this.worksetCurrent.IsReadonly)
     },
 
+    // show or hide parameters tree
+    onToogleShowParamTree () {
+      this.isParamTreeShow = !this.isParamTreeShow
+    },
+    // click on parameter: open current workset parameter values tab
+    onWorksetParamClick (name) {
+      this.$emit('set-parameter-select', name)
+    },
+
+    /*
+    // show input scenario upload dialog
+    doShowFileSelect () {
+      this.uploadFileSelect = true
+    },
+    // hides input scenario upload dialog
+    doCancelFileSelect () {
+      this.uploadFileSelect = false
+      this.uploadFile = null
+    },
+    onUploadInputScenario () {},
+    onUploadReplaceInputScenario () {},
+    */
+
+    // start create new workset
+    onNewWorksetClick () {
+      this.resetNewWorkset()
+      this.isNewWorksetShow = true
+      this.isParamTreeShow = false
+    },
+    // cancel creation of new workset
+    onNewWorksetCancel () {
+      this.resetNewWorkset()
+      this.isNewWorksetShow = false
+    },
+    // send request to create new workset
+    onNewWorksetSave (dgst, name, txt) {
+      this.nameOfNewWorkset = name || ''
+      this.newDescrNotes = txt || []
+      this.isCreateWorksetNow = true
+    },
+    // request to create workset completed
+    doneWorksetCreate  (isSuccess, dgst, name) {
+      this.loadWorksetCreate = false
+      this.resetNewWorkset()
+
+      if (!isSuccess) return // workset not created: keep user input
+
+      this.isNewWorksetShow = false // workset created: close section
+
+      if (dgst && name && dgst === this.digest) { // if the same model then refresh workset from server
+        this.$emit('set-select', name)
+      }
+    },
+    // clean new workset data
+    resetNewWorkset () {
+      this.isCreateWorksetNow = false
+      this.nameOfNewWorkset = ''
+      this.newDescrNotes = []
+    },
+
     // show yes/no dialog to confirm workset delete
     onDeleteWorkset (name) {
       this.worksetNameToDelete = name
-      this.showDeleteDialogTickle = !this.showDeleteDialogTickle
+      this.showDeleteWorksetTickle = !this.showDeleteWorksetTickle
     },
     // user answer yes to confirm delete model workset
     onYesDeleteWorkset (name) {
-      this.worksetDeleteName = name
-      this.deleteWorksetNow = true
+      this.worksetNameToDelete = name
+      this.isDeleteWorksetNow = true
     },
     // workset delete request completed
     doneDeleteWorkset (isSuccess, dgst, name) {
-      this.worksetDeleteName = ''
-      this.deleteWorksetNow = false
+      this.worksetNameToDelete = ''
+      this.isDeleteWorksetNow = false
       this.loadWorksetDelete = false
       //
       // if success and if the same model then refresh workset list from the server
@@ -180,43 +341,166 @@ export default {
       this.startWorksetDownload(name) // start workset download and show download page on success
     },
 
-    // show or hide parameters tree
-    onToogleShowParamTree () {
-      this.isParamTreeShow = !this.isParamTreeShow
+    // open description and notes editor for current workset
+    onShowNoteEditor () {
+      this.noteEditorLangCode = this.uiLang || this.$q.lang.getLocale() || ''
+      this.noteCurrent = Mdf.noteOfTxt(this.worksetCurrent)
+      this.isShowNoteEditor = true
+      this.isParamTreeShow = false
     },
-    // click on parameter: open current workset parameter values tab
-    onWorksetParamClick (name) {
-      this.$emit('set-parameter-select', name)
+    // save description and notes editor content
+    onSaveNoteEditor (descr, note, isUpd, lc) {
+      this.doSaveNote(this.worksetNameSelected, lc, descr, note)
+      this.isShowNoteEditor = false
     },
-    // show workset parameter notes dialog
-    doShowParamNote (name) {
-      this.paramInfoName = name
-      this.paramInfoTickle = !this.paramInfoTickle
-    },
-    // show run parameter notes dialog
-    doShowParamRunNote (name) {
-      this.paramInfoName = name
-      this.paramRunInfoTickle = !this.paramRunInfoTickle
-    },
-    // show group notes dialog
-    doShowGroupNote (name) {
-      this.groupInfoName = name
-      this.groupInfoTickle = !this.groupInfoTickle
+    // reset note editor to current workset values
+    onCancelNoteEditor (name) {
+      this.isShowNoteEditor = false
     },
 
-    /*
-    // show input scenario upload dialog
-    doShowFileSelect () {
-      this.uploadFileSelect = true
+    // delete parameter from current workset: ask user confirmation to delete parameter values
+    onParamDelete (name) {
+      this.paramInfoName = name
+      this.showDeleteParameterTickle = !this.showDeleteParameterTickle
     },
-    // hides input scenario upload dialog
-    doCancelFileSelect () {
-      this.uploadFileSelect = false
-      this.uploadFile = null
+    // user answer yes to delete parameter from current workset
+    onYesDeleteParameter (name) {
+      this.doDeleteFromWorkset(this.worksetNameSelected, name)
     },
-    onUploadInputScenario () {},
-    onUploadReplaceInputScenario () {},
-    */
+    // delete group from current workset: ask user confirmation to delete parameter values
+    onParamGroupDelete (name) {
+      this.groupInfoName = name
+      this.showDeleteGroupTickle = !this.showDeleteGroupTickle
+    },
+    // user answer yes to delete group from current workset
+    onYesDeleteGroup (name) {
+      this.doDeleteGroupFromWorkset(this.worksetNameSelected, name)
+    },
+
+    // show / hide copy parameter from model run section
+    onFromRunShow () { this.isFromRunShow = true },
+    onFromRunHide () { this.isFromRunShow = false },
+
+    // show / hide copy parameter from other workset section
+    onFromWorksetShow () { this.isFromWorksetShow = true },
+    onFromWorksetHide () { this.isFromWorksetShow = false },
+
+    // select workset to copy parameters from
+    onWorksetFromClick (name) {
+      this.worksetNameFrom = (this.worksetNameFrom !== name) ? name : ''
+      if (this.worksetNameFrom) {
+        this.refreshWsFromTickle = !this.refreshWsFromTickle
+      } else {
+        this.isFromWorksetShow = false
+        this.isNotEmptyFrom = false
+      }
+    },
+
+    // copy parameter from selected run
+    onParamRunCopy (name) {
+      if (!name) {
+        console.warn('Unable to copy parameter from run, parameter name is empty')
+        return
+      }
+      // if parameter already exist in workset then ask user to confirm overwrite existing parameter
+      if (Mdf.isWorksetParamByName(this.worksetCurrent, name)) {
+        this.paramInfoName = name
+        this.showParamFromRunTickle = !this.showParamFromRunTickle
+        return
+      }
+      // else copy parameter from run
+      this.doCopyFromRun(false, this.worksetNameSelected, name, this.runDigestSelected)
+    },
+    // copy parameter into selected workset from copy workset
+    onParamWorksetCopy (name) {
+      if (!name) {
+        console.warn('Unable to copy parameter from workset, parameter name is empty')
+        return
+      }
+      // if parameter already exist in workset then ask user to confirm overwrite existing parameter
+      if (Mdf.isWorksetParamByName(this.worksetCurrent, name)) {
+        this.paramInfoName = name
+        this.showParamFromWorksetTickle = !this.showParamFromWorksetTickle
+        return
+      }
+      // else copy parameter from workset
+      this.doCopyFromWorkset(false, this.worksetNameSelected, name, this.worksetNameFrom)
+    },
+    // user answer yes to replace exsiting parameter: do copy from run
+    onYesParamFromRun (name) {
+      this.doCopyFromRun(true, this.worksetNameSelected, name, this.runDigestSelected)
+    },
+    // user answer yes to replace exsiting parameter: do copy from workset
+    onYesParamFromWorkset (name) {
+      this.doCopyFromWorkset(true, this.worksetNameSelected, name, this.worksetNameFrom)
+    },
+
+    // copy group of parameters from selected run
+    onParamGroupRunCopy (groupName) {
+      if (!groupName) {
+        console.warn('Unable to copy parameters group from run, group name is empty')
+        return
+      }
+      // count run parameters from the group which are already exist in workset
+      this.sourceParams = []
+      this.replaceParams = []
+      const gp = this.groupParameterLeafs[groupName]
+      if (gp) {
+        for (const pw of this.worksetCurrent.Param) {
+          if (pw.Name && gp?.leafs[pw.Name]) this.replaceParams.push(pw.Name)
+        }
+        for (const pn in gp?.leafs) {
+          this.sourceParams.push(pn)
+        }
+      }
+      // if any of group parameters already exist in workset then ask user to confirm overwrite of existing values
+      if (this.replaceParams.length > 0) {
+        this.groupInfoName = groupName
+        this.showGroupFromRunTickle = !this.showGroupFromRunTickle
+        this.bodyMsg = this.$t('Replace {count} parameter(s) of', { count: this.replaceParams.length })
+        return
+      }
+      // else copy group of parameters from run
+      this.doCopyGroupFromRun(this.sourceParams, this.replaceParams, this.worksetNameSelected, groupName, this.runDigestSelected)
+    },
+    // copy group of parameters from other workset
+    onParamGroupWorksetCopy (groupName) {
+      if (!groupName) {
+        console.warn('Unable to copy parameters group from workset, group name is empty')
+        return
+      }
+      // count parameters from the group which are already exist in both worksets
+      this.sourceParams = []
+      this.replaceParams = []
+      const gp = this.groupParameterLeafs[groupName]
+      if (gp) {
+        for (const pw of this.worksetCurrent.Param) {
+          if (pw.Name && gp?.leafs[pw.Name]) {
+            if (Mdf.isWorksetParamByName(this.worksetFrom, pw.Name)) this.replaceParams.push(pw.Name)
+          }
+        }
+        for (const pw of this.worksetFrom.Param) {
+          if (pw.Name && gp?.leafs[pw.Name]) this.sourceParams.push(pw.Name)
+        }
+      }
+      // if any of group parameters already exist in workset then ask user to confirm overwrite of existing values
+      if (this.replaceParams.length > 0) {
+        this.groupInfoName = groupName
+        this.showGroupFromWorkTickle = !this.showGroupFromWorkTickle
+        this.bodyMsg = this.$t('Replace {count} parameter(s) of', { count: this.replaceParams.length })
+        return
+      }
+      // else copy group of parameters from other workset
+      this.doCopyGroupFromWorkset(this.sourceParams, this.replaceParams, this.worksetNameSelected, groupName, this.worksetNameFrom)
+    },
+    // user answer yes to replace exsiting parameters group: do copy group from run
+    onYesGroupFromRun (groupName) {
+      this.doCopyGroupFromRun(this.sourceParams, this.replaceParams, this.worksetNameSelected, groupName, this.runDigestSelected)
+    },
+    // user answer yes to replace exsiting parameters group: do copy group from workset
+    onYesGroupFromWorkset (groupName) {
+      this.doCopyGroupFromWorkset(this.sourceParams, this.replaceParams, this.worksetNameSelected, groupName, this.worksetNameFrom)
+    },
 
     // return tree of model worksets
     makeWorksetTreeData (wLst) {
@@ -269,6 +553,333 @@ export default {
 
       this.$emit('download-select', this.digest) // download started: show download list page
       this.$q.notify({ type: 'info', message: this.$t('Input scenario download started') })
+    },
+
+    // delete parameter from current workset
+    async doDeleteFromWorkset (wsName, paramName) {
+      let isOk = false
+      let msg = ''
+
+      // validate current current workset is not read-only
+      if (!wsName || !Mdf.isNotEmptyWorksetText(this.worksetCurrent) || this.worksetCurrent.IsReadonly) {
+        this.$q.notify({ type: 'negative', message: this.$t('Unable to delete from input scenario, it is read-only (or undefined)') })
+        return
+      }
+      this.$q.notify({ type: 'info', message: this.$t('Deleting') + ': ' + paramName })
+      this.loadWait = true
+
+      const u = this.omsUrl + '/api/model/' + this.digest + '/workset/' + wsName + '/parameter/' + paramName
+      try {
+        // delete workset parameter, response is empty on success
+        await this.$axios.delete(u)
+        isOk = true
+      } catch (e) {
+        try {
+          if (e.response) msg = e.response.data || ''
+        } finally {}
+        console.warn('Unable to delete parameter from input scenario', msg)
+      }
+      this.loadWait = false
+      if (!isOk) {
+        this.$q.notify({ type: 'negative', message: this.$t('Unable to delete parameter from input scenario') + (msg ? (': ' + msg) : '') })
+        return
+      }
+
+      this.$q.notify({ type: 'info', message: this.$t('Deleted') + ': ' + paramName })
+      this.refreshWsTickle = !this.refreshWsTickle
+    },
+
+    // delete parameters group form workset
+    async doDeleteGroupFromWorkset (wsName, groupName) {
+      let isOk = false
+      let msg = ''
+
+      // validate current current workset is not read-only
+      if (!wsName || !Mdf.isNotEmptyWorksetText(this.worksetCurrent) || this.worksetCurrent.IsReadonly) {
+        this.$q.notify({ type: 'negative', message: this.$t('Unable to delete from input scenario, it is read-only (or undefined)') })
+        return
+      }
+
+      // make list of workset parameters in that group
+      const gp = this.groupParameterLeafs[groupName]
+      if (!gp) {
+        this.$q.notify({ type: 'warning', message: this.$t('Group has no parameters') + ': ' + (groupName || '') })
+        return
+      }
+
+      const pLst = []
+      for (const pw of this.worksetCurrent.Param) {
+        if (pw.Name && gp?.leafs[pw.Name]) pLst.push(pw.Name)
+      }
+      if (pLst.length <= 0) {
+        this.$q.notify({ type: 'warning', message: this.$t('Input scenario group has no parameters') + ': ' + (groupName || '') })
+        return
+      }
+
+      // deleteing all parameters in that workset group
+      this.$q.notify({ type: 'info', message: this.$t('Deleting group') + ': ' + groupName })
+      this.loadWait = true
+
+      for (const pName of pLst) {
+        this.$q.notify({ type: 'info', message: this.$t('Deleting') + ': ' + pName })
+
+        const u = this.omsUrl + '/api/model/' + this.digest + '/workset/' + wsName + '/parameter/' + pName
+        try {
+          // delete workset parameter, response is empty on success
+          await this.$axios.delete(u)
+          isOk = true
+        } catch (e) {
+          try {
+            if (e.response) msg = e.response.data || ''
+          } finally {}
+          console.warn('Unable to delete parameter from input scenario', msg)
+        }
+        if (!isOk) {
+          this.loadWait = false
+          this.$q.notify({ type: 'negative', message: this.$t('Unable to delete parameter from input scenario') + (msg ? (': ' + msg) : '') })
+          return
+        }
+      }
+      this.loadWait = false
+
+      this.$q.notify({ type: 'info', message: this.$t('Group deleted') + ': ' + groupName })
+      this.refreshWsTickle = !this.refreshWsTickle
+    },
+
+    // copy parameter from selected run
+    async doCopyFromRun (isReplace, wsName, paramName, runDgst) {
+      let isOk = false
+      let msg = ''
+
+      // validate current current workset is not read-only
+      if (!wsName || !Mdf.isNotEmptyWorksetText(this.worksetCurrent) || this.worksetCurrent.IsReadonly) {
+        this.$q.notify({ type: 'negative', message: this.$t('Unable to copy parameter into input scenario, it is read-only (or undefined)') })
+        return
+      }
+      this.$q.notify({ type: 'info', message: this.$t('Copy') + ': ' + paramName })
+      this.loadWait = true
+
+      const u = isReplace
+        ? this.omsUrl + '/api/model/' + this.digest + '/workset/' + wsName + '/merge/parameter/' + paramName + '/from-run/' + runDgst
+        : this.omsUrl + '/api/model/' + this.digest + '/workset/' + wsName + '/copy/parameter/' + paramName + '/from-run/' + runDgst
+      try {
+        // copy parameter from model run, response is empty on success
+        if (isReplace) {
+          await this.$axios.patch(u)
+        } else {
+          await this.$axios.put(u)
+        }
+        isOk = true
+      } catch (e) {
+        try {
+          if (e.response) msg = e.response.data || ''
+        } finally {}
+        console.warn('Unable to copy parameter', msg)
+      }
+      this.loadWait = false
+      if (!isOk) {
+        this.$q.notify({ type: 'negative', message: this.$t('Unable to copy parameter') + (msg ? (': ' + msg) : '') })
+        return
+      }
+
+      this.$q.notify({ type: 'info', message: this.$t('Copy completed') + ': ' + paramName })
+      this.refreshWsTickle = !this.refreshWsTickle
+    },
+
+    // copy parameters group from selected run
+    async doCopyGroupFromRun (srcNames, replaceNames, wsName, groupName, runDgst) {
+      let isOk = false
+      let msg = ''
+
+      // validate current current workset is not read-only
+      if (!wsName || !Mdf.isNotEmptyWorksetText(this.worksetCurrent) || this.worksetCurrent.IsReadonly) {
+        this.$q.notify({ type: 'negative', message: this.$t('Unable to copy parameter into input scenario, it is read-only (or undefined)') })
+        return
+      }
+      // check if there are any pareameters source group
+      if (!srcNames || srcNames.length <= 0) {
+        this.$q.notify({ type: 'warning', message: this.$t('Group has no parameters') + ': ' + (groupName || '') })
+        return
+      }
+
+      // copy all parameters from run parameters group into current workset group
+      this.$q.notify({ type: 'info', message: this.$t('Copy group') + ': ' + groupName })
+      this.loadWait = true
+
+      for (const pName of srcNames) {
+        this.$q.notify({ type: 'info', message: this.$t('Copy') + ': ' + pName })
+
+        const isReplace = !!replaceNames && replaceNames.indexOf(pName) >= 0
+
+        const u = isReplace
+          ? this.omsUrl + '/api/model/' + this.digest + '/workset/' + wsName + '/merge/parameter/' + pName + '/from-run/' + runDgst
+          : this.omsUrl + '/api/model/' + this.digest + '/workset/' + wsName + '/copy/parameter/' + pName + '/from-run/' + runDgst
+        try {
+          // copy parameter from model run, response is empty on success
+          if (isReplace) {
+            await this.$axios.patch(u)
+          } else {
+            await this.$axios.put(u)
+          }
+          isOk = true
+        } catch (e) {
+          try {
+            if (e.response) msg = e.response.data || ''
+          } finally {}
+          console.warn('Unable to copy parameter', msg)
+        }
+        if (!isOk) {
+          this.loadWait = false
+          this.$q.notify({ type: 'negative', message: this.$t('Unable to copy parameter') + (msg ? (': ' + msg) : '') })
+          return
+        }
+      }
+      this.loadWait = false
+
+      this.$q.notify({ type: 'info', message: this.$t('Group copy completed') + ': ' + groupName })
+      this.refreshWsTickle = !this.refreshWsTickle
+    },
+
+    // copy parameter from other workset
+    async doCopyFromWorkset (isReplace, wsName, paramName, srcWsName) {
+      let isOk = false
+      let msg = ''
+
+      // validate current current workset is not read-only
+      if (!wsName || !Mdf.isNotEmptyWorksetText(this.worksetCurrent) || this.worksetCurrent.IsReadonly) {
+        this.$q.notify({ type: 'negative', message: this.$t('Unable to copy parameter into input scenario, it is read-only (or undefined)') })
+        return
+      }
+      this.$q.notify({ type: 'info', message: this.$t('Copy') + ': ' + paramName })
+      this.loadWait = true
+
+      const u = isReplace
+        ? this.omsUrl + '/api/model/' + this.digest + '/workset/' + wsName + '/merge/parameter/' + paramName + '/from-workset/' + srcWsName
+        : this.omsUrl + '/api/model/' + this.digest + '/workset/' + wsName + '/copy/parameter/' + paramName + '/from-workset/' + srcWsName
+      try {
+        // copy parameter from other workset, response is empty on success
+        if (isReplace) {
+          await this.$axios.patch(u)
+        } else {
+          await this.$axios.put(u)
+        }
+        isOk = true
+      } catch (e) {
+        try {
+          if (e.response) msg = e.response.data || ''
+        } finally {}
+        console.warn('Unable to copy parameter', msg)
+      }
+      this.loadWait = false
+      if (!isOk) {
+        this.$q.notify({ type: 'negative', message: this.$t('Unable to copy parameter') + (msg ? (': ' + msg) : '') })
+        return
+      }
+
+      this.$q.notify({ type: 'info', message: this.$t('Copy completed') + ': ' + paramName })
+      this.refreshWsTickle = !this.refreshWsTickle
+    },
+
+    // copy group of parameters into current workset from other workset
+    async doCopyGroupFromWorkset (srcNames, replaceNames, wsName, groupName, srcWsName) {
+      let isOk = false
+      let msg = ''
+
+      // validate current current workset is not read-only
+      if (!wsName || !Mdf.isNotEmptyWorksetText(this.worksetCurrent) || this.worksetCurrent.IsReadonly) {
+        this.$q.notify({ type: 'negative', message: this.$t('Unable to copy parameter into input scenario, it is read-only (or undefined)') })
+        return
+      }
+      // check if there are any pareameters source group
+      if (!srcNames || srcNames.length <= 0) {
+        this.$q.notify({ type: 'warning', message: this.$t('Group has no parameters') + ': ' + (groupName || '') })
+        return
+      }
+
+      // copy all parameters from run parameters group into current workset group
+      this.$q.notify({ type: 'info', message: this.$t('Copy group') + ': ' + groupName })
+      this.loadWait = true
+
+      for (const pName of srcNames) {
+        this.$q.notify({ type: 'info', message: this.$t('Copy') + ': ' + pName })
+
+        const isReplace = !!replaceNames && replaceNames.indexOf(pName) >= 0
+
+        const u = isReplace
+          ? this.omsUrl + '/api/model/' + this.digest + '/workset/' + wsName + '/merge/parameter/' + pName + '/from-workset/' + srcWsName
+          : this.omsUrl + '/api/model/' + this.digest + '/workset/' + wsName + '/copy/parameter/' + pName + '/from-workset/' + srcWsName
+        try {
+          // copy parameter from other workset, response is empty on success
+          if (isReplace) {
+            await this.$axios.patch(u)
+          } else {
+            await this.$axios.put(u)
+          }
+          isOk = true
+        } catch (e) {
+          try {
+            if (e.response) msg = e.response.data || ''
+          } finally {}
+          console.warn('Unable to copy parameter', msg)
+        }
+        if (!isOk) {
+          this.loadWait = false
+          this.$q.notify({ type: 'negative', message: this.$t('Unable to copy parameter') + (msg ? (': ' + msg) : '') })
+          return
+        }
+      }
+      this.loadWait = false
+
+      this.$q.notify({ type: 'info', message: this.$t('Group copy completed') + ': ' + groupName })
+      this.refreshWsTickle = !this.refreshWsTickle
+    },
+
+    // save workset description and notes
+    async doSaveNote (name, langCode, descr, note) {
+      let isOk = false
+      let msg = ''
+
+      // validate current current workset is not read-only and has a language
+      if (!Mdf.isNotEmptyWorksetText(this.worksetCurrent) || this.worksetCurrent.IsReadonly) {
+        this.$q.notify({ type: 'negative', message: this.$t('Unable to save description and notes, input scenario is read-only (or undefined)') })
+        return
+      }
+      if (!langCode) {
+        this.$q.notify({ type: 'negative', message: this.$t('Unable to save input scenario description and notes, language is unknown') })
+        return
+      }
+      this.loadWait = true
+
+      const u = this.omsUrl + '/api/workset-merge'
+      const wt = {
+        ModelDigest: this.digest,
+        Name: name,
+        Txt: [{
+          LangCode: langCode,
+          Descr: descr || '',
+          Note: note || ''
+        }]
+      }
+      const fd = new FormData()
+      fd.append('workset', JSON.stringify(wt))
+      try {
+        // send run description and notes, drop response on success
+        await this.$axios.patch(u, fd)
+        isOk = true
+      } catch (e) {
+        try {
+          if (e.response) msg = e.response.data || ''
+        } finally {}
+        console.warn('Unable to save input scenario description and notes', msg)
+      }
+      this.loadWait = false
+      if (!isOk) {
+        this.$q.notify({ type: 'negative', message: this.$t('Unable to save input scenario description and notes') + (msg ? (': ' + msg) : '') })
+        return
+      }
+
+      this.$q.notify({ type: 'info', message: this.$t('Input scenario description and notes saved') + '. ' + this.$t('Language') + ': ' + langCode })
+      this.refreshWsTickle = !this.refreshWsTickle
     }
   },
 

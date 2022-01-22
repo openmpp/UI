@@ -34,8 +34,15 @@ export const langList = (state, ml) => {
 
 // assign new value to current model
 export const theModel = (state, model) => {
+  const digest = Mdf.modelDigest(model)
+  const storeDigest = Mdf.modelDigest(state.theModel)
+
   if (Mdf.isModel(model) || Mdf.isEmptyModel(model)) {
     state.theModel = model
+    if (digest !== storeDigest) {
+      state.groupParameterLeafs = Mdf.groupLeafs(model, true)
+      state.groupTableLeafs = Mdf.groupLeafs(model, false)
+    }
     state.theModelUpdated++
   }
 }

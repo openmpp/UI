@@ -398,7 +398,7 @@ export default {
         const response = await this.$axios.get(u)
 
         // expected string array of profile names
-        // append empty '' string first to make default selection == "no profile"
+        // append empty '' string first to make default selection === "no profile"
         this.profileLst = []
         if (Mdf.isLength(response.data)) {
           this.profileLst.push('')

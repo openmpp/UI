@@ -15,7 +15,6 @@ import UploadUserViews from 'components/UploadUserViews.vue'
 const RUN_LST_TAB_POS = 1       // model runs list tab position
 const WS_LST_TAB_POS = 4        // worksets list tab position
 const NEW_RUN_TAB_POS = 8       // new model run tab position
-const NEW_WS_TAB_POS = 10       // new workset tab position
 const DOWNLOADS_TAB_POS = 12    // downloads list tab position
 const FREE_TAB_POS = 20         // first unassigned tab position
 /* eslint-enable no-multi-spaces */
@@ -339,16 +338,6 @@ export default {
       const p = this.doTabAdd('run-log', { digest: this.digest, runStamp: stamp })
       if (p) this.$router.push(p)
     },
-    // create new workset: add tab to create workset
-    onNewWorksetSelect () {
-      const p = this.doTabAdd('new-set', { digest: this.digest })
-      if (p) this.$router.push(p)
-    },
-    // edit workset: add tab to edit workset
-    onEditWorksetSelect (name) {
-      const p = this.doTabAdd('set-edit', { digest: this.digest, worksetName: name })
-      if (p) this.$router.push(p)
-    },
     // view download list: add tab with open download page
     onDownloadSelect () {
       const p = this.doTabAdd('download-list', { digest: this.digest })
@@ -561,31 +550,6 @@ export default {
             path: '/model/' + this.digest + '/run-log/' + routeParts.runStamp,
             routeParts: routeParts,
             title: rn,
-            pos: FREE_TAB_POS,
-            updated: false
-          }
-        }
-
-        case 'new-set':
-          return {
-            kind: kind,
-            path: '/model/' + this.digest + '/set-create',
-            routeParts: routeParts,
-            title: this.$t('New Input Scenario'),
-            pos: NEW_WS_TAB_POS,
-            updated: false
-          }
-
-        case 'set-edit': {
-          if ((routeParts.worksetName || '') === '') {
-            console.warn('Invalid (empty) workset name:', routeParts.worksetName)
-            return emptyTabInfo()
-          }
-          return {
-            kind: kind,
-            path: '/model/' + this.digest + '/set-edit/' + routeParts.worksetName,
-            routeParts: routeParts,
-            title: routeParts.worksetName,
             pos: FREE_TAB_POS,
             updated: false
           }

@@ -20,16 +20,6 @@ const routes = [
             props: true
           },
           {
-            path: 'set-edit/:worksetName',
-            component: () => import('pages/WorksetEdit'),
-            props: true
-          },
-          {
-            path: 'set-create',
-            component: () => import('pages/WorksetNew'),
-            props: true
-          },
-          {
             path: 'run/:runDigest/parameter/:parameterName',
             component: () => import('pages/ParameterPage'),
             props: true
