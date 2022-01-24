@@ -63,6 +63,21 @@ export const isRunTextUpdated = (rt, rtOther) => {
     rt.Status !== rtOther.Status || rt.UpdateDateTime !== rtOther.UpdateDateTime
 }
 
+// find last model run: last successful or last completed or last in the model run list
+export const lastRunDigest = (rtl) => {
+  if (!rtl) return ''
+  if (!Array.isArray(rtl)) return ''
+
+  let lastDg = ''
+  let lastCompleted = ''
+  for (let k = 0; k < rtl.length; k++) {
+    if (isRunSuccess(rtl[k])) return rtl[k].RunDigest
+    if (!lastCompleted && isRunCompleted(rtl[k])) lastCompleted = rtl[k].RunDigest
+    if (!lastDg && isRunCompleted(rtl[k])) lastDg = rtl[k].RunDigest
+  }
+  return lastCompleted || lastDg
+}
+
 // retrun true if table included in run text: find table name in run tables array
 export const isRunTextHasTable = (rt, name) => {
   if (!name || !isNotEmptyRunText(rt)) return false

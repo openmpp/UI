@@ -301,7 +301,10 @@
   <!-- pivot table controls and view -->
   <div class="q-mx-sm">
 
-    <div v-show="ctrl.isRowColControls && !edt.isEdit" class="other-panel">
+    <div v-show="ctrl.isRowColControls && !edt.isEdit"
+      :title="$t('Slicer dimensions')"
+      class="other-panel"
+      >
       <draggable
         v-model="otherFields"
         group="fields"
@@ -332,6 +335,7 @@
                 name="mdi-hand-back-left"
                 size="xs"
                 class="bg-primary text-white rounded-borders select-handle-move"
+                :title="$t('Drag and drop')"
                 />
               <div class="column">
                 <q-icon
@@ -391,6 +395,7 @@
                 name="mdi-hand-back-left"
                 size="xs"
                 class="bg-primary text-white rounded-borders select-handle-move"
+                :title="$t('Drag and drop')"
                 />
               <div class="column">
                 <q-btn
@@ -459,6 +464,7 @@
                 name="mdi-hand-back-left"
                 size="xs"
                 class="bg-primary text-white rounded-borders select-handle-move"
+                :title="$t('Drag and drop')"
                 />
               <div class="column">
                 <q-btn

@@ -168,22 +168,17 @@ export default {
         this.dispatchRunDigestSelected({ digest: this.digest, runDigest: '' })
         return
       }
-      // else: check if run selected and ready to use
-      this.checkRunSelected()
-    },
-    // check if run selected and ready to use
-    checkRunSelected () {
-      // else: if run not selected then use first run
+      // else: if run not selected then use first run: first successful or first completed or first
       if (!this.runDigestSelected) {
         this.dispatchRunDigestSelected({ digest: this.digest, runDigest: '' })
-        this.runDnsCurrent = this.runTextList[0].RunDigest
+        this.runDnsCurrent = Mdf.lastRunDigest(this.runTextList)
         return
       }
       // else: if run already selected then make sure it still exist
       const rt = this.runTextByDigest({ ModelDigest: this.digest, RunDigest: this.runDigestSelected })
       if (!Mdf.isNotEmptyRunText(rt)) {
         this.dispatchRunDigestSelected({ digest: this.digest, runDigest: '' })
-        this.runDnsCurrent = this.runTextList[0].RunDigest
+        this.runDnsCurrent = Mdf.lastRunDigest(this.runTextList)
         return
       }
       // else: if run completed and run parameters list loaded then exit
