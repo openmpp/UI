@@ -32,7 +32,6 @@ export default {
   },
 
   watch: {
-    worksetName () { this.doRefresh() },
     refreshTickle () { this.doRefresh() },
     refreshWorksetTickle () { this.doRefresh() }
   },
@@ -40,7 +39,9 @@ export default {
   methods: {
     // refersh workset-text by workset name
     async doRefresh () {
-      if (!this.modelDigest || !this.worksetName) {
+      if (!this.worksetName) return // exit on empty workset name
+
+      if (!this.modelDigest) {
         console.warn('Unable to refresh input scenario: model digest or name is empty')
         this.$q.notify({ type: 'negative', message: this.$t('Unable to refresh input scenario: model digest or name is empty') })
         return

@@ -1,7 +1,6 @@
 <!-- reload run-text by model digest and run digest -->
 <script>
 import { mapState, mapGetters, mapActions } from 'vuex'
-import * as Mdf from 'src/model-common'
 
 export default {
   name: 'RefreshRun',
@@ -39,7 +38,6 @@ export default {
   },
 
   watch: {
-    runDigest () { this.doRefresh() },
     refreshTickle () { this.doRefresh() },
     refreshRunTickle () { this.doRefresh() }
   },
@@ -83,16 +81,7 @@ export default {
   },
 
   mounted () {
-    if (!!this.modelDigest && !!this.runDigest) {
-      // if run completed and run parameters list loaded then exit
-      const rt = this.runTextByDigest({ ModelDigest: this.modelDigest, RunDigest: this.runDigest })
-      if (Mdf.isNotEmptyRunText(rt) && Mdf.isRunCompletedStatus(rt?.Status) && Array.isArray(rt?.Param) && (rt?.Param?.length || 0) === Mdf.paramCount(this.theModel)) {
-        this.loadDone = true
-        this.$emit('done', this.loadDone, this.runDigest)
-        return
-      }
-      this.doRefresh() // else load run
-    }
+    if (!!this.modelDigest && !!this.runDigest) this.doRefresh()
   }
 }
 </script>

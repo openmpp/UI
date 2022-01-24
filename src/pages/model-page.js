@@ -172,6 +172,7 @@ export default {
       if (!this.runDigestSelected) {
         this.dispatchRunDigestSelected({ digest: this.digest, runDigest: '' })
         this.runDnsCurrent = Mdf.lastRunDigest(this.runTextList)
+        this.refreshRunTickle = !this.refreshRunTickle
         return
       }
       // else: if run already selected then make sure it still exist
@@ -179,6 +180,7 @@ export default {
       if (!Mdf.isNotEmptyRunText(rt)) {
         this.dispatchRunDigestSelected({ digest: this.digest, runDigest: '' })
         this.runDnsCurrent = Mdf.lastRunDigest(this.runTextList)
+        this.refreshRunTickle = !this.refreshRunTickle
         return
       }
       // else: if run completed and run parameters list loaded then exit
@@ -214,6 +216,7 @@ export default {
         this.wsNameCurrent = this.worksetTextList[0].Name
         this.dispatchWorksetNameSelected({ digest: this.digest, worksetName: '' })
       }
+      this.refreshWsTickle = !this.refreshWsTickle
     },
     doneWsLoad (isSuccess, name, isNewRun) {
       this.loadWsDone = true
@@ -263,8 +266,8 @@ export default {
         console.warn('selected run digest is empty')
         return
       }
-      if (this.runDnsCurrent === dgst) this.refreshRunTickle = !this.refreshRunTickle
       this.runDnsCurrent = dgst
+      this.refreshRunTickle = !this.refreshRunTickle
     },
     // run started: refresh run list
     onRunListRefresh () {
@@ -276,8 +279,8 @@ export default {
         console.warn('selected workset name is empty')
         return
       }
-      if (this.wsNameCurrent === name) this.refreshWsTickle = !this.refreshWsTickle
       this.wsNameCurrent = name
+      this.refreshWsTickle = !this.refreshWsTickle
     },
     // refresh workset list, for example after delete
     onWorksetListRefresh () {
@@ -343,8 +346,8 @@ export default {
     // if no workset name then open new run tab with currently selected workset
     onNewRunSelect (name) {
       if ((name || '') !== '') {
-        if (this.wsNameCurrent === name) this.refreshWsTickle = !this.refreshWsTickle
         this.wsNameCurrent = name
+        this.refreshWsTickle = !this.refreshWsTickle
         this.refreshWsToRun = true // wait until workset select completed
         return
       }
