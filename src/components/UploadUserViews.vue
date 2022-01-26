@@ -75,7 +75,7 @@ export default {
       const uv = { model: { name: this.modelName, parameterViews: pvRows } }
 
       // upload user views to the server, response body expected to be empty
-      const u = this.omsUrl + '/api/user/view/model/' + this.modelName
+      const u = this.omsUrl + '/api/user/view/model/' + encodeURIComponent(this.modelName)
       try {
         const response = await this.$axios.put(u, uv)
         const rsp = response.data

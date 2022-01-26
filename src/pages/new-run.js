@@ -200,14 +200,12 @@ export default {
     //   current workset not readonly
     //   or current workset not is full and current workset not based on run
     isUseCurrentAsBaseRun () {
-      return this.isCompletedRunCurrent &&
-        (
-          !this.isReadonlyWorksetCurrent ||
-          (
-            (Mdf.worksetParamCount(this.worksetCurrent) !== Mdf.paramCount(this.theModel)) && // not a full workset
-            (!this.worksetCurrent?.BaseRunDigest || !this.isExistInRunTextList({ ModelDigest: this.digest, RunDigest: this.worksetCurrent?.BaseRunDigest }))
-          )
-        )
+      return this.isCompletedRunCurrent && (!this.isReadonlyWorksetCurrent || this.isPartialWorkset())
+    },
+    // current workset not is full and current workset not based on run
+    isPartialWorkset () {
+      return (Mdf.worksetParamCount(this.worksetCurrent) !== Mdf.paramCount(this.theModel)) &&
+          (!this.worksetCurrent?.BaseRunDigest || !this.isExistInRunTextList({ ModelDigest: this.digest, RunDigest: this.worksetCurrent?.BaseRunDigest }))
     },
     // if use base run un-checked then user must supply full set of input parameters
     onUseBaseRunClick () {
@@ -327,8 +325,27 @@ export default {
       this.$q.notify({ type: 'info', message: this.presetLst[idx].descr || this.presetLst[idx].label || (this.$t('Using Run Options') + ': ' + this.presetLst[idx].name || '') })
     },
 
+    // on model run click: if workset partial and no base run and no csv directory then do not run the model
+    onModelRunClick () {
+      const dgst = (this.useBaseRun && this.isCompletedRunCurrent) ? this.runDigestSelected || '' : ''
+      const wsName = (this.useWorkset && this.isReadonlyWorksetCurrent) ? this.worksetNameSelected || '' : ''
+
+      if (!dgst && !this.runOpts.csvDir) {
+        if (!wsName) {
+          this.$q.notify({ type: 'warning', message: this.$t('Please use input scenario or base model run or CSV files to specifiy input parameters') })
+          return
+        }
+        if (wsName && this.isPartialWorkset()) {
+          this.$q.notify({ type: 'warning', message: this.$t('Input scenario should include all parameters otherwise model run may fail') + ': ' + wsName })
+          return
+        }
+      }
+      // else do run the model
+      this.doModelRun()
+    },
+
     // run the model
-    onModelRun () {
+    doModelRun () {
       // set new run options
       this.runOpts.runName = Mdf.cleanFileNameInput(this.runOpts.runName)
       this.runOpts.subCount = this.cleanIntNonNegativeInput(this.runOpts.subCount, 1)
@@ -393,7 +410,7 @@ export default {
       let isOk = false
       this.loadWait = true
 
-      const u = this.omsUrl + '/api/model/' + this.digest + '/profile-list'
+      const u = this.omsUrl + '/api/model/' + encodeURIComponent(this.digest) + '/profile-list'
       try {
         const response = await this.$axios.get(u)
 

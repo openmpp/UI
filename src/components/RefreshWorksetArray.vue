@@ -57,7 +57,10 @@ export default {
           continue // skip empty name
         }
 
-        const u = this.omsUrl + '/api/model/' + this.modelDigest + '/workset/' + wsn + '/text' + (this.uiLang !== '' ? '/lang/' + this.uiLang : '')
+        const u = this.omsUrl +
+          '/api/model/' + encodeURIComponent(this.modelDigest) +
+          '/workset/' + encodeURIComponent(wsn) +
+          '/text' + (this.uiLang !== '' ? '/lang/' + encodeURIComponent(this.uiLang) : '')
         try {
           const response = await this.$axios.get(u)
           this.dispatchWorksetText(response.data) // update workset in store

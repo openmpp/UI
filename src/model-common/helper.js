@@ -15,13 +15,19 @@ export const lengthOf = (a) => { return hasLength(a) ? (a.length || 0) : 0 }
 // return route path for parameter or output table page
 // for example: /model/:digest/run/:runDigest/parameter/:parameterName
 export const parameterRunPath = (model, runDigest, paramName) => {
-  return '/model/' + (model || '-') + '/run/' + (runDigest || '-') + '/parameter/' + (paramName || '-')
+  return '/model/' + encodeURIComponent(model || '-') +
+    '/run/' + encodeURIComponent(runDigest || '-') +
+    '/parameter/' + encodeURIComponent(paramName || '-')
 }
 export const parameterWorksetPath = (model, wsName, paramName) => {
-  return '/model/' + (model || '-') + '/set/' + (wsName || '') + '/parameter/' + (paramName || '-')
+  return '/model/' + encodeURIComponent(model || '-') +
+    '/set/' + encodeURIComponent(wsName || '') +
+    '/parameter/' + encodeURIComponent(paramName || '-')
 }
 export const tablePath = (model, runDigest, tableName) => {
-  return '/model/' + (model || '-') + '/run/' + (runDigest || '-') + '/table/' + (tableName || '-')
+  return '/model/' + encodeURIComponent(model || '-') +
+    '/run/' + encodeURIComponent(runDigest || '-') +
+    '/table/' + encodeURIComponent(tableName || '-')
 }
 
 // return date-time string: truncate milliseconds from timestamp

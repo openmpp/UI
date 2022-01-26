@@ -149,7 +149,7 @@
           clickable
           tag="a"
           target="_blank"
-          :href="'/download/' + dl.ZipFileName"
+          :href="'/download/' + encodeURIComponent(dl.ZipFileName)"
           class="q-pl-none"
           :title="$t('Download') + ' ' + dl.ZipFileName"
           >
@@ -217,8 +217,8 @@
 
               <a
                 v-if="!prop.node.isGroup"
-                @click="onFolderLeafClick(prop.node.label, '/download/' + prop.node.Path)"
-                :href="'/download/' + prop.node.Path"
+                @click="onFolderLeafClick(prop.node.label, '/download/' + encodeURIComponent(prop.node.Path))"
+                :href="'/download/' + encodeURIComponent(prop.node.Path)"
                 target="_blank"
                 :download="prop.node.label"
                 :title="$t('Download') + ' ' + prop.node.label"

@@ -31,7 +31,7 @@
       dense
       class="col-auto bg-primary text-white rounded-borders q-mr-xs"
       :icon="(!isNotEmptyWorkset || isReadonlyWorkset) ? 'mdi-lock' : 'mdi-lock-open-variant'"
-      :title="((!isNotEmptyWorkset || isReadonlyWorkset) ? $t('Open for read and write') : $t('Close and only read')) + ' ' + worksetName"
+      :title="((!isNotEmptyWorkset || isReadonlyWorkset) ? $t('Open to edit scenario') : $t('Close to run scenario')) + ' ' + worksetName"
       />
 
     <div

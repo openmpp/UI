@@ -535,7 +535,9 @@ export default {
       let isOk = false
       let msg = ''
 
-      const u = this.omsUrl + '/api/download/model/' + this.digest + '/workset/' + (name || '')
+      const u = this.omsUrl +
+        '/api/download/model/' + encodeURIComponent(this.digest) +
+        '/workset/' + encodeURIComponent((name || ''))
       try {
         // send download request to the server, response expected to be empty on success
         await this.$axios.post(u)
@@ -568,7 +570,10 @@ export default {
       this.$q.notify({ type: 'info', message: this.$t('Deleting') + ': ' + paramName })
       this.loadWait = true
 
-      const u = this.omsUrl + '/api/model/' + this.digest + '/workset/' + wsName + '/parameter/' + paramName
+      const u = this.omsUrl +
+        '/api/model/' + encodeURIComponent(this.digest) +
+        '/workset/' + encodeURIComponent(wsName) +
+        '/parameter/' + encodeURIComponent(paramName)
       try {
         // delete workset parameter, response is empty on success
         await this.$axios.delete(u)
@@ -623,7 +628,10 @@ export default {
       for (const pName of pLst) {
         this.$q.notify({ type: 'info', message: this.$t('Deleting') + ': ' + pName })
 
-        const u = this.omsUrl + '/api/model/' + this.digest + '/workset/' + wsName + '/parameter/' + pName
+        const u = this.omsUrl +
+          '/api/model/' + encodeURIComponent(this.digest) +
+          '/workset/' + encodeURIComponent(wsName) +
+          '/parameter/' + encodeURIComponent(pName)
         try {
           // delete workset parameter, response is empty on success
           await this.$axios.delete(u)
@@ -659,9 +667,13 @@ export default {
       this.$q.notify({ type: 'info', message: this.$t('Copy') + ': ' + paramName })
       this.loadWait = true
 
+      const udgst = encodeURIComponent(this.digest)
+      const uws = encodeURIComponent(wsName)
+      const upn = encodeURIComponent(paramName)
+      const urun = encodeURIComponent(runDgst)
       const u = isReplace
-        ? this.omsUrl + '/api/model/' + this.digest + '/workset/' + wsName + '/merge/parameter/' + paramName + '/from-run/' + runDgst
-        : this.omsUrl + '/api/model/' + this.digest + '/workset/' + wsName + '/copy/parameter/' + paramName + '/from-run/' + runDgst
+        ? this.omsUrl + '/api/model/' + udgst + '/workset/' + uws + '/merge/parameter/' + upn + '/from-run/' + urun
+        : this.omsUrl + '/api/model/' + udgst + '/workset/' + uws + '/copy/parameter/' + upn + '/from-run/' + urun
       try {
         // copy parameter from model run, response is empty on success
         if (isReplace) {
@@ -711,9 +723,13 @@ export default {
 
         const isReplace = !!replaceNames && replaceNames.indexOf(pName) >= 0
 
+        const udgst = encodeURIComponent(this.digest)
+        const uws = encodeURIComponent(wsName)
+        const upn = encodeURIComponent(pName)
+        const urun = encodeURIComponent(runDgst)
         const u = isReplace
-          ? this.omsUrl + '/api/model/' + this.digest + '/workset/' + wsName + '/merge/parameter/' + pName + '/from-run/' + runDgst
-          : this.omsUrl + '/api/model/' + this.digest + '/workset/' + wsName + '/copy/parameter/' + pName + '/from-run/' + runDgst
+          ? this.omsUrl + '/api/model/' + udgst + '/workset/' + uws + '/merge/parameter/' + upn + '/from-run/' + urun
+          : this.omsUrl + '/api/model/' + udgst + '/workset/' + uws + '/copy/parameter/' + upn + '/from-run/' + urun
         try {
           // copy parameter from model run, response is empty on success
           if (isReplace) {
@@ -753,9 +769,13 @@ export default {
       this.$q.notify({ type: 'info', message: this.$t('Copy') + ': ' + paramName })
       this.loadWait = true
 
+      const udgst = encodeURIComponent(this.digest)
+      const uws = encodeURIComponent(wsName)
+      const upn = encodeURIComponent(paramName)
+      const usrc = encodeURIComponent(srcWsName)
       const u = isReplace
-        ? this.omsUrl + '/api/model/' + this.digest + '/workset/' + wsName + '/merge/parameter/' + paramName + '/from-workset/' + srcWsName
-        : this.omsUrl + '/api/model/' + this.digest + '/workset/' + wsName + '/copy/parameter/' + paramName + '/from-workset/' + srcWsName
+        ? this.omsUrl + '/api/model/' + udgst + '/workset/' + uws + '/merge/parameter/' + upn + '/from-workset/' + usrc
+        : this.omsUrl + '/api/model/' + udgst + '/workset/' + uws + '/copy/parameter/' + upn + '/from-workset/' + usrc
       try {
         // copy parameter from other workset, response is empty on success
         if (isReplace) {
@@ -805,9 +825,13 @@ export default {
 
         const isReplace = !!replaceNames && replaceNames.indexOf(pName) >= 0
 
+        const udgst = encodeURIComponent(this.digest)
+        const uws = encodeURIComponent(wsName)
+        const upn = encodeURIComponent(pName)
+        const usrc = encodeURIComponent(srcWsName)
         const u = isReplace
-          ? this.omsUrl + '/api/model/' + this.digest + '/workset/' + wsName + '/merge/parameter/' + pName + '/from-workset/' + srcWsName
-          : this.omsUrl + '/api/model/' + this.digest + '/workset/' + wsName + '/copy/parameter/' + pName + '/from-workset/' + srcWsName
+          ? this.omsUrl + '/api/model/' + udgst + '/workset/' + uws + '/merge/parameter/' + upn + '/from-workset/' + usrc
+          : this.omsUrl + '/api/model/' + udgst + '/workset/' + uws + '/copy/parameter/' + upn + '/from-workset/' + usrc
         try {
           // copy parameter from other workset, response is empty on success
           if (isReplace) {

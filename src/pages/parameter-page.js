@@ -189,11 +189,13 @@ export default {
 
     // download parameter as csv file
     onDownload () {
+      const udgst = encodeURIComponent(this.digest)
+      const uname = encodeURIComponent(this.parameterName)
       const u = this.isFromRun
         ? this.omsUrl +
-          '/api/model/' + this.digest + '/run/' + this.runDigest + '/parameter/' + this.parameterName + '/csv'
+          '/api/model/' + udgst + '/run/' + encodeURIComponent(this.runDigest) + '/parameter/' + uname + '/csv'
         : this.omsUrl +
-          '/api/model/' + this.digest + '/workset/' + this.worksetName + '/parameter/' + this.parameterName + '/csv'
+          '/api/model/' + udgst + '/workset/' + encodeURIComponent(this.worksetName) + '/parameter/' + uname + '/csv'
 
       openURL(u)
     },
@@ -893,9 +895,11 @@ export default {
 
       // make parameter read layout and url
       const layout = Puih.makeSelectLayout(this.parameterName, this.otherFields, SUB_ID_DIM)
+      const udgst = encodeURIComponent(this.digest)
+
       const u = this.isFromRun
-        ? this.omsUrl + '/api/model/' + this.digest + '/run/' + this.runDigest + '/parameter/value-id'
-        : this.omsUrl + '/api/model/' + this.digest + '/workset/' + this.worksetName + '/parameter/value-id'
+        ? this.omsUrl + '/api/model/' + udgst + '/run/' + encodeURIComponent(this.runDigest) + '/parameter/value-id'
+        : this.omsUrl + '/api/model/' + udgst + '/workset/' + encodeURIComponent(this.worksetName) + '/parameter/value-id'
 
       // retrieve page from server, it must be: {Layout: {...}, Page: [...]}
       try {
@@ -949,7 +953,9 @@ export default {
 
       // url to update parameter data
       const u = this.omsUrl +
-        '/api/model/' + this.digest + '/workset/' + this.worksetName + '/parameter/' + this.parameterName + '/new/value-id'
+        '/api/model/' + encodeURIComponent(this.digest) +
+        '/workset/' + encodeURIComponent(this.worksetName) +
+        '/parameter/' + encodeURIComponent(this.parameterName) + '/new/value-id'
 
       // send data page to the server, response body expected to be empty
       try {
@@ -989,7 +995,9 @@ export default {
       }
       this.loadWait = true
 
-      const u = this.omsUrl + '/api/model/' + this.digest + '/run/' + dgst + '/parameter-text'
+      const u = this.omsUrl +
+        '/api/model/' + encodeURIComponent(this.digest) +
+        '/run/' + encodeURIComponent(dgst) + '/parameter-text'
       const pt = [{
         Name: this.parameterName,
         Txt: [{
@@ -1030,7 +1038,9 @@ export default {
       }
       this.loadWait = true
 
-      const u = this.omsUrl + '/api/model/' + this.digest + '/workset/' + wsName + '/parameter-text'
+      const u = this.omsUrl +
+        '/api/model/' + encodeURIComponent(this.digest) +
+        '/workset/' + encodeURIComponent(wsName) + '/parameter-text'
       const pt = [{
         Name: this.parameterName,
         Txt: [{

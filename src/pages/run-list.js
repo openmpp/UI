@@ -400,7 +400,9 @@ export default {
       this.loadWait = true
 
       let isOk = false
-      const u = this.omsUrl + '/api/model/' + this.digest + '/run/' + (dgst || '')
+      const u = this.omsUrl +
+        '/api/model/' + encodeURIComponent(this.digest) +
+        '/run/' + encodeURIComponent((dgst || ''))
       try {
         await this.$axios.delete(u) // response expected to be empty on success
         isOk = true
@@ -427,7 +429,9 @@ export default {
       let isOk = false
       let msg = ''
 
-      const u = this.omsUrl + '/api/download/model/' + this.digest + '/run/' + (dgst || '') + (this.noAccDownload ? '/no-acc' : '')
+      const u = this.omsUrl +
+        '/api/download/model/' + encodeURIComponent(this.digest) +
+        '/run/' + encodeURIComponent((dgst || '')) + (this.noAccDownload ? '/no-acc' : '')
       try {
         // send download request to the server, response expected to be empty on success
         await this.$axios.post(u)

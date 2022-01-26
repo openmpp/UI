@@ -151,7 +151,11 @@ export default {
 
     // download output table as csv file
     onDownload () {
-      let u = this.omsUrl + '/api/model/' + this.digest + '/run/' + this.runDigest + '/table/' + this.tableName
+      let u = this.omsUrl +
+        '/api/model/' + encodeURIComponent(this.digest) +
+        '/run/' + encodeURIComponent(this.runDigest) +
+        '/table/' + encodeURIComponent(this.tableName)
+
       switch (this.tv.kind) {
         case kind.EXPR:
           u += '/expr/csv'
@@ -647,7 +651,9 @@ export default {
 
       // make output table read layout and url
       const layout = this.makeSelectLayout()
-      const u = this.omsUrl + '/api/model/' + this.digest + '/run/' + this.runDigest + '/table/value-id'
+      const u = this.omsUrl +
+        '/api/model/' + encodeURIComponent(this.digest) +
+        '/run/' + encodeURIComponent(this.runDigest) + '/table/value-id'
 
       // retrieve page from server, it must be: {Layout: {...}, Page: [...]}
       try {

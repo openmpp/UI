@@ -127,7 +127,7 @@
 </template>
 
 <script>
-import { mapState, mapGetters, mapActions } from 'vuex'
+import { mapGetters, mapActions } from 'vuex'
 import * as Mdf from 'src/model-common'
 import RefreshRunLog from 'components/RefreshRunLog.vue'
 import RefreshRunProgress from 'components/RefreshRunProgress.vue'
@@ -185,9 +185,6 @@ export default {
 
     ...mapGetters('model', {
       runTextByDigest: 'runTextByDigest'
-    }),
-    ...mapState('serverState', {
-      omsUrl: state => state.omsUrl
     })
   },
 

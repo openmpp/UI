@@ -58,7 +58,7 @@ export default {
       this.$emit('wait')
 
       let vs = {}
-      const u = this.omsUrl + '/api/user/view/model/' + this.modelName
+      const u = this.omsUrl + '/api/user/view/model/' + encodeURIComponent(this.modelName)
       try {
         const response = await this.$axios.get(u)
         vs = response.data

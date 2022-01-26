@@ -137,7 +137,7 @@
               clickable
               tag="a"
               target="_blank"
-              href="//github.com/openmpp/openmpp.github.io/wiki"
+              href="//github.com/openmpp/openmpp.github.io/wiki/Ompp-UI-Create-New-or-Edit-Scenario"
               >
               <q-item-section avatar>
                 <q-icon name="link" />

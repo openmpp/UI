@@ -48,8 +48,8 @@ export default {
       let rpl = [] // set run progress list to empty array initially
 
       const u = this.omsUrl +
-        '/api/model/' + this.modelDigest +
-        '/run/' + this.runStamp +
+        '/api/model/' + encodeURIComponent(this.modelDigest) +
+        '/run/' + encodeURIComponent(this.runStamp) +
         '/status/list'
 
       try {

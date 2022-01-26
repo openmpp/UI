@@ -44,7 +44,10 @@ export default {
       this.loadWait = true
       this.$emit('wait')
 
-      const u = this.omsUrl + '/api/model/' + this.modelDigest + '/workset/' + this.worksetName + '/readonly/' + (this.isReadonly).toString()
+      const u = this.omsUrl +
+        '/api/model/' + encodeURIComponent(this.modelDigest) +
+        '/workset/' + encodeURIComponent(this.worksetName) +
+        '/readonly/' + (this.isReadonly).toString()
       try {
         const response = await this.$axios.post(u)
         const rsp = response.data

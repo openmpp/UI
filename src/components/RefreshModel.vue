@@ -49,7 +49,10 @@ export default {
       this.loadWait = true
       this.$emit('wait')
 
-      const u = this.omsUrl + '/api/model/' + this.digest + '/text' + (this.uiLang !== '' ? '/lang/' + this.uiLang : '')
+      const udgst = encodeURIComponent(this.digest)
+      const ulc = encodeURIComponent(this.uiLang)
+
+      const u = this.omsUrl + '/api/model/' + udgst + '/text' + (this.uiLang !== '' ? '/lang/' + ulc : '')
       try {
         const response = await this.$axios.get(u)
         this.dispatchTheModel(response.data) // update current model in store
@@ -65,7 +68,7 @@ export default {
       this.$emit('done', this.loadDone)
 
       // refresh model "words" language-specific strings
-      const uw = this.omsUrl + '/api/model/' + this.digest + '/word-list' + (this.uiLang !== '' ? '/lang/' + this.uiLang : '')
+      const uw = this.omsUrl + '/api/model/' + udgst + '/word-list' + (this.uiLang !== '' ? '/lang/' + ulc : '')
       try {
         const response = await this.$axios.get(uw)
         this.dispatchWordList(response.data) // update model words list in store
@@ -81,7 +84,7 @@ export default {
       this.loadWait = false
 
       // refresh list of model languages
-      const ul = this.omsUrl + '/api/model/' + this.digest + '/lang-list'
+      const ul = this.omsUrl + '/api/model/' + udgst + '/lang-list'
       try {
         const response = await this.$axios.get(ul)
         this.dispatchLangList(response.data) // update list of maodel languages in store

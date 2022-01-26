@@ -9,7 +9,7 @@
 
         <span class="col-auto q-mr-sm">
           <q-btn
-            @click="onModelRun"
+            @click="onModelRunClick"
             :disable="isInitRun || !runOpts.runName"
             color="primary"
             class="rounded-borders q-pr-xs"

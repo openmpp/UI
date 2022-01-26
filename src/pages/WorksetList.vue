@@ -110,7 +110,7 @@
         dense
         class="col-auto bg-primary text-white rounded-borders q-mr-xs"
         :icon="(!isNotEmptyWorksetCurrent || isReadonlyWorksetCurrent) ? 'mdi-lock' : 'mdi-lock-open-variant'"
-        :title="((!isNotEmptyWorksetCurrent || isReadonlyWorksetCurrent) ? $t('Open for read and write') : $t('Close and only read')) + ' ' + worksetCurrent.Name"
+        :title="((!isNotEmptyWorksetCurrent || isReadonlyWorksetCurrent) ? $t('Open to edit scenario') : $t('Close to run scenario')) + ' ' + worksetCurrent.Name"
         />
 
       <transition
@@ -248,7 +248,7 @@
         class="col-grow section-title bg-primary text-white q-px-md"
         :class="{ 'om-bg-inactive': isReadonlyWorksetCurrent || !isNotEmptyFrom || !isReadonlyFrom || !worksetNameFrom || worksetNameFrom === worksetNameSelected }"
         >
-        <span>{{ $t('Copy parameters from input scenario') + ': ' + ((worksetNameFrom && worksetNameFrom !== worksetNameSelected) ? ': ' + worksetNameFrom : $t('Source scenario not selected')) }}</span>
+        <span>{{ $t('Copy parameters from input scenario') + ((worksetNameFrom && worksetNameFrom !== worksetNameSelected) ? ': ' + worksetNameFrom : $t('Source scenario not selected')) }}</span>
       </div>
     </div>
 

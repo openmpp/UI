@@ -53,8 +53,8 @@ export default {
       const nCount = (this.count || 0) > 0 ? (this.count || 0) : 0
 
       const u = this.omsUrl +
-        '/api/run/log/model/' + this.modelDigest +
-        '/stamp/' + this.runStamp +
+        '/api/run/log/model/' + encodeURIComponent(this.modelDigest) +
+        '/stamp/' + encodeURIComponent(this.runStamp) +
         '/start/' + nStart.toString() +
         '/count/' + nCount.toString()
       try {

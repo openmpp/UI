@@ -242,7 +242,7 @@ export default {
       let dLst = []
       const u = this.omsUrl +
         ((this.digest && this.digest !== Mdf.allModelsDownloadLog)
-          ? '/api/download/log/model/' + this.digest
+          ? '/api/download/log/model/' + encodeURIComponent(this.digest)
           : '/api/download/log/all')
       try {
         const response = await this.$axios.get(u)
@@ -333,7 +333,7 @@ export default {
       let isOk = false
       let fLst = []
 
-      const u = this.omsUrl + '/api/download/file-tree/' + (folder || '')
+      const u = this.omsUrl + '/api/download/file-tree/' + encodeURIComponent(folder || '')
       try {
         const response = await this.$axios.get(u)
         fLst = response.data
@@ -471,7 +471,7 @@ export default {
       this.loadWait = true
       let isOk = false
 
-      const u = this.omsUrl + '/api/download/delete/' + (folder || '')
+      const u = this.omsUrl + '/api/download/delete/' + encodeURIComponent(folder || '')
       try {
         // send download request to the server, response expected to be empty on success
         await this.$axios.delete(u)

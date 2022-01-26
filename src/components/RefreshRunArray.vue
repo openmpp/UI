@@ -57,7 +57,10 @@ export default {
           continue // skip empty run digest
         }
 
-        const u = this.omsUrl + '/api/model/' + this.modelDigest + '/run/' + rd + '/text' + (this.uiLang !== '' ? '/lang/' + this.uiLang : '')
+        const u = this.omsUrl +
+          '/api/model/' + encodeURIComponent(this.modelDigest) +
+          '/run/' + encodeURIComponent(rd) +
+          '/text' + (this.uiLang !== '' ? '/lang/' + encodeURIComponent(this.uiLang) : '')
         try {
           const response = await this.$axios.get(u)
           this.dispatchRunText(response.data) // update run in store

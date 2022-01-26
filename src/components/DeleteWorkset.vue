@@ -45,7 +45,9 @@ export default {
       this.$emit('wait')
       this.$q.notify({ type: 'info', message: this.$t('Deleting') + ': ' + this.worksetName })
 
-      const u = this.omsUrl + '/api/model/' + this.modelDigest + '/workset/' + (this.worksetName || '')
+      const u = this.omsUrl +
+        '/api/model/' + encodeURIComponent(this.modelDigest) +
+        '/workset/' + encodeURIComponent((this.worksetName || ''))
       try {
         await this.$axios.delete(u) // response expected to be empty on success
         this.loadDone = true

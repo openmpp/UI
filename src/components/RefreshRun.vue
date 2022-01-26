@@ -57,7 +57,10 @@ export default {
       this.loadWait = true
       this.$emit('wait')
 
-      const u = this.omsUrl + '/api/model/' + this.modelDigest + '/run/' + this.runDigest + '/text' + (this.uiLang !== '' ? '/lang/' + this.uiLang : '')
+      const u = this.omsUrl +
+        '/api/model/' + encodeURIComponent(this.modelDigest) +
+        '/run/' + encodeURIComponent(this.runDigest) +
+        '/text' + (this.uiLang !== '' ? '/lang/' + encodeURIComponent(this.uiLang) : '')
       try {
         const response = await this.$axios.get(u)
         this.dispatchRunText(response.data) // update run in store

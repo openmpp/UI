@@ -51,7 +51,9 @@ export default {
       this.loadWait = true
       this.$emit('wait')
 
-      const u = this.omsUrl + '/api/model/' + this.digest + '/run-list/text' + (this.uiLang !== '' ? '/lang/' + this.uiLang : '')
+      const u = this.omsUrl +
+        '/api/model/' + encodeURIComponent(this.digest) +
+        '/run-list/text' + (this.uiLang !== '' ? '/lang/' + encodeURIComponent(this.uiLang) : '')
       try {
         const response = await this.$axios.get(u)
         this.dispatchRunTextList(response.data) // update run list in store

@@ -191,10 +191,10 @@ export default {
       // else: refresh run parameters list and run status
       this.runDnsCurrent = this.runDigestSelected
       this.dispatchRunDigestSelected({ digest: this.digest, runDigest: '' })
+      this.refreshRunTickle = !this.refreshRunTickle
     },
     doneRunLoad (isSuccess, dgst) {
       this.loadRunDone = true
-      //
       if (isSuccess && (dgst || '') !== '') this.dispatchRunDigestSelected({ digest: this.digest, runDigest: dgst })
     },
     doneRunViewsLoad (isSuccess, count) {
@@ -448,12 +448,13 @@ export default {
       if ((kind || '') === '' || !routeParts || (routeParts.digest || '') !== this.digest) return emptyTabInfo()
 
       let rn = ''
+      const udgst = encodeURIComponent(this.digest)
 
       switch (kind) {
         case 'run-list':
           return {
             kind: kind,
-            path: '/model/' + this.digest + '/run-list',
+            path: '/model/' + udgst + '/run-list',
             routeParts: routeParts,
             title: this.$t('Model Runs'),
             pos: RUN_LST_TAB_POS,
@@ -463,7 +464,7 @@ export default {
         case 'set-list':
           return {
             kind: kind,
-            path: '/model/' + this.digest + '/set-list',
+            path: '/model/' + udgst + '/set-list',
             routeParts: routeParts,
             title: this.$t('Input Scenarios'),
             pos: WS_LST_TAB_POS,
@@ -524,7 +525,7 @@ export default {
         case 'new-run':
           return {
             kind: kind,
-            path: '/model/' + this.digest + '/new-run',
+            path: '/model/' + udgst + '/new-run',
             routeParts: routeParts,
             title: this.$t('Run the Model'),
             pos: NEW_RUN_TAB_POS,
@@ -545,7 +546,7 @@ export default {
           }
           return {
             kind: kind,
-            path: '/model/' + this.digest + '/run-log/' + routeParts.runStamp,
+            path: '/model/' + udgst + '/run-log/' + encodeURIComponent(routeParts.runStamp),
             routeParts: routeParts,
             title: rn,
             pos: FREE_TAB_POS,
@@ -556,7 +557,7 @@ export default {
         case 'download-list':
           return {
             kind: kind,
-            path: '/model/' + this.digest + '/download-list',
+            path: '/model/' + udgst + '/download-list',
             routeParts: routeParts,
             title: this.$t('Downloads'),
             pos: DOWNLOADS_TAB_POS,
@@ -598,7 +599,7 @@ export default {
     }
     // else:
     // if to.path is default model/digest and one of the tabs is from.path then cancel navigation
-    if (isFrom && to.path === '/model/' + this.digest) {
+    if (isFrom && to.path === '/model/' + encodeURIComponent(this.digest)) {
       if (this.activeTabKey !== from.path) this.activeTabKey = from.path
       next(false)
       return

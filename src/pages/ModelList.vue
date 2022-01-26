@@ -216,7 +216,7 @@ export default {
       this.loadDone = false
       this.loadWait = true
 
-      const u = this.omsUrl + '/api/model-list/text' + (this.uiLang !== '' ? '/lang/' + this.uiLang : '')
+      const u = this.omsUrl + '/api/model-list/text' + (this.uiLang !== '' ? '/lang/' + encodeURIComponent(this.uiLang) : '')
       try {
         const response = await this.$axios.get(u)
         this.dispatchModelList(response.data) // update model list in store
@@ -239,7 +239,7 @@ export default {
       let isOk = false
       let msg = ''
 
-      const u = this.omsUrl + '/api/download/model/' + (dgst || '') + (this.noAccDownload ? '/no-acc' : '')
+      const u = this.omsUrl + '/api/download/model/' + encodeURIComponent((dgst || '')) + (this.noAccDownload ? '/no-acc' : '')
       try {
         // send download request to the server, response expected to be empty on success
         await this.$axios.post(u)
