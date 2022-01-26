@@ -153,6 +153,9 @@ export default {
     // check if new workset name entered and cleanup input to be compatible with file name rules
     onNewNameBlur (e) {
       const { isEntered, name } = Mdf.doFileNameClean(this.newName)
+      if (isEntered && name !== this.newName) {
+        this.$q.notify({ type: 'warning', message: this.$t('Scenario name should not contain any of') + ': ' + Mdf.invalidFileNameChars })
+      }
       this.newName = isEntered ? name : ''
 
       if (this.isExistInWorksetTextList({ ModelDigest: this.digest, Name: this.newName })) {

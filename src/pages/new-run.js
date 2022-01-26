@@ -240,6 +240,9 @@ export default {
     // check if run name entered and cleanup input to be compatible with file name rules
     onRunNameBlur (e) {
       const { isEntered, name } = Mdf.doFileNameClean(this.runOpts.runName)
+      if (isEntered && name !== this.runOpts.runName) {
+        this.$q.notify({ type: 'warning', message: this.$t('Run name should not contain any of') + ': ' + Mdf.invalidFileNameChars })
+      }
       this.runOpts.runName = isEntered ? name : ''
     },
     // cleanup run description input
