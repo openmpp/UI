@@ -23,8 +23,11 @@
     :in-list-on-label="inListOnLabel"
     :in-list-off-label="inListOffLabel"
     :in-list-icon="inListIcon"
+    :in-list-clear-label="inListClearLabel"
+    :in-list-clear-icon="inListClearIcon"
     @om-table-tree-show-hidden="onToogleHiddenNodes"
-    @om-table-tree-show-in-list="onToogleFilteredNodes"
+    @om-table-tree-show-in-list="onToogleInListFilter"
+    @om-table-tree-clear-in-list="onClearInListFilter"
     @om-table-tree-leaf-select="onTableLeafClick"
     @om-table-tree-leaf-add="onAddClick"
     @om-table-tree-group-add="onGroupAddClick"
@@ -49,6 +52,7 @@ export default {
 
   props: {
     runDigest: { type: String, required: true },
+    isAllTables: { type: Boolean, default: false },
     refreshTickle: { type: Boolean, default: false },
     refreshTableTreeTickle: { type: Boolean, default: false },
     isNoHidden: { type: Boolean, default: false },
@@ -61,7 +65,9 @@ export default {
     nameFilter: { type: Array, default: () => [] }, // if not empty then use only tables and groups included in the name list
     inListOnLabel: { type: String, default: '' },
     inListOffLabel: { type: String, default: '' },
-    inListIcon: { type: String, default: '' }
+    inListIcon: { type: String, default: '' },
+    inListClearLabel: { type: String, default: '' },
+    inListClearIcon: { type: String, default: '' }
   },
 
   data () {
@@ -103,7 +109,9 @@ export default {
   methods: {
     // update output tables tree data and refresh tree view
     doRefresh () {
-      this.runCurrent = this.runTextByDigest({ ModelDigest: Mdf.modelDigest(this.theModel), RunDigest: this.runDigest })
+      if (!this.isAllTables) {
+        this.runCurrent = this.runTextByDigest({ ModelDigest: Mdf.modelDigest(this.theModel), RunDigest: this.runDigest })
+      }
       const td = this.makeTableTreeData()
       this.tableTreeData = td.tree
       this.refreshTreeTickle = !this.refreshTreeTickle
@@ -115,10 +123,14 @@ export default {
       this.isShowHidden = isShow || this.isNoHidden
       this.doRefresh()
     },
-    // show or hide filtered out parameters and groups
-    onToogleFilteredNodes (isShow) {
+    // show or hide filtered out tables and groups
+    onToogleInListFilter (isShow) {
       this.isShowFiltered = isShow
       this.doRefresh()
+    },
+    // click on clear filter: show all output tables and groups
+    onClearInListFilter () {
+      this.$emit('table-clear-in-list')
     },
     // click on output table: open current run output table values tab
     onTableLeafClick (name) {
@@ -183,7 +195,7 @@ export default {
         }
 
         for (const t of this.theModel.TableTxt) {
-          if (!Mdf.isRunTextHasTable(this.runCurrent, t.Table.Name)) continue // skip suppressed table
+          if (!this.isAllTables && !Mdf.isRunTextHasTable(this.runCurrent, t.Table.Name)) continue // skip suppressed table
 
           if (this.nameFilter.findIndex((name) => { return name === t.Table.Name }) >= 0) {
             isTflt = true
@@ -196,7 +208,7 @@ export default {
       // skip hidden tables if show hidden tables disabled
       const tUse = {}
       for (const t of this.theModel.TableTxt) {
-        if (!Mdf.isRunTextHasTable(this.runCurrent, t.Table.Name)) continue // skip suppressed table
+        if (!this.isAllTables && !Mdf.isRunTextHasTable(this.runCurrent, t.Table.Name)) continue // skip suppressed table
 
         this.isAnyFiltered = this.isAnyFiltered || (isTflt && !ftLst[t.Table.Name])
         this.isAnyHidden = !this.isNoHidden && (this.isAnyHidden || t.Table.IsHidden)

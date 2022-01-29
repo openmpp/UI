@@ -23,8 +23,10 @@
     :in-list-on-label="inListOnLabel"
     :in-list-off-label="inListOffLabel"
     :in-list-icon="inListIcon"
+    :in-list-clear-label="inListClearLabel"
+    :in-list-clear-icon="inListClearIcon"
     @om-table-tree-show-hidden="onToogleHiddenNodes"
-    @om-table-tree-show-in-list="onToogleFilteredNodes"
+    @om-table-tree-show-in-list="onToogleInListFilter"
     @om-table-tree-leaf-select="onParamLeafClick"
     @om-table-tree-leaf-add="onAddClick"
     @om-table-tree-group-add="onGroupAddClick"
@@ -61,7 +63,9 @@ export default {
     nameFilter: { type: Array, default: () => [] }, // if not empty then use only parameters and groups included in the name list
     inListOnLabel: { type: String, default: '' },
     inListOffLabel: { type: String, default: '' },
-    inListIcon: { type: String, default: '' }
+    inListIcon: { type: String, default: '' },
+    inListClearLabel: { type: String, default: '' },
+    inListClearIcon: { type: String, default: '' }
   },
 
   data () {
@@ -109,9 +113,13 @@ export default {
       this.doRefresh()
     },
     // show or hide filtered out parameters and groups
-    onToogleFilteredNodes (isShow) {
+    onToogleInListFilter (isShow) {
       this.isShowFiltered = isShow
       this.doRefresh()
+    },
+    // click on clear filter: show all parameters and groups
+    onClearInListFilter () {
+      this.$emit('run-parameter-clear-in-list')
     },
     // click on parameter: open current run parameter values tab
     onParamLeafClick (name) {

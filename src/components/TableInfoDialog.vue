@@ -43,7 +43,7 @@
         </template>
       </div>
 
-      <div v-if="!isRunHasTable" class="q-pb-md">{{ $t('This table is excluded from model run results') }}</div>
+      <div v-if="runDigest && !isRunHasTable" class="q-pb-md">{{ $t('This table is excluded from model run results') }}</div>
       <div v-if="tableText.ExprDescr" class="q-pb-md">{{ tableText.ExprDescr }}</div>
 
       <div v-if="exprNotes" v-html="exprNotes" />
@@ -108,7 +108,9 @@ export default {
       }
 
       // find current model run
-      this.runText = this.runTextByDigest({ ModelDigest: Mdf.modelDigest(this.theModel), RunDigest: this.runDigest })
+      if (this.runDigest) {
+        this.runText = this.runTextByDigest({ ModelDigest: Mdf.modelDigest(this.theModel), RunDigest: this.runDigest })
+      }
 
       // title: table description or name
       this.title = this.tableText.TableDescr || this.tableText.Name
@@ -132,10 +134,13 @@ export default {
 
       // find table size info and check is this table included into the run
       this.tableSize = Mdf.tableSizeByName(this.theModel, this.tableName)
-      const rTbl = Mdf.runTableByName(this.runText, this.tableName)
-      this.isRunHasTable = Mdf.isNotEmptyRunTable(rTbl)
-      if (this.isRunHasTable) {
-        this.valueDigest = rTbl?.ValueDigest || this.$t('Empty')
+
+      if (this.runDigest) {
+        const rTbl = Mdf.runTableByName(this.runText, this.tableName)
+        this.isRunHasTable = Mdf.isNotEmptyRunTable(rTbl)
+        if (this.isRunHasTable) {
+          this.valueDigest = rTbl?.ValueDigest || this.$t('Empty')
+        }
       }
 
       this.showDlg = true

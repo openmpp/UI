@@ -98,6 +98,7 @@ export const groupLeafs = (md, isParam) => {
     gm[gLst[k].Group.Name] = {
       groupId: gId,
       isHidden: gLst[k].Group.IsHidden,
+      size: 0,
       leafs: {}
     }
     gUse[gId] = {
@@ -146,10 +147,16 @@ export const groupLeafs = (md, isParam) => {
     for (const leafId of gUse[g.groupId].leafs) {
       if (isParam) {
         const pt = Prm.paramTextById(md, leafId)
-        if (pt.Param.Name) g.leafs[pt.Param.Name] = true
+        if (pt.Param.Name) {
+          g.leafs[pt.Param.Name] = true
+          g.size++
+        }
       } else {
         const tbt = Tbl.tableTextById(md, leafId)
-        if (tbt.Table.Name) g.leafs[tbt.Table.Name] = true
+        if (tbt.Table.Name) {
+          g.leafs[tbt.Table.Name] = true
+          g.size++
+        }
       }
     }
   }

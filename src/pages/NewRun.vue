@@ -200,6 +200,59 @@
   </q-card>
 
   <q-card class="q-ma-sm">
+
+    <q-expansion-item
+      switch-toggle-side
+      expand-separator
+      header-class="bg-primary text-white"
+      :label="$t('Output Tables') + ': ' + (tablesRetain.length > 0 ? (tablesRetain.length.toString() + ' / ' + tableCount.toString()) : $t('All'))"
+      >
+
+      <q-card-section
+        class="q-pa-sm"
+        >
+        <table-list
+          :run-digest="''"
+          :is-all-tables="true"
+          :refresh-tickle="refreshTickle"
+          :refresh-table-tree-tickle="refreshTableTreeTickle"
+          :name-filter="tablesRetain"
+          in-list-on-label="Show only retained output tables"
+          in-list-off-label="Show all output tables"
+          in-list-clear-label="Retain all output tables"
+          :is-remove="true"
+          :is-remove-group="true"
+          @table-remove="onTableRemove"
+          @table-group-remove="onTableGroupRemove"
+          @table-info-show="doShowTableNote"
+          @table-group-info-show="doShowGroupNote"
+          @table-clear-in-list="onRetainAllTables"
+          >
+        </table-list>
+      </q-card-section>
+
+      <q-card-section
+        class="grey-border-025 shadow-up-1 q-pa-sm"
+        >
+        <table-list
+          :run-digest="''"
+          :is-all-tables="true"
+          :refresh-tickle="refreshTickle"
+          :is-add="true"
+          :is-add-group="true"
+          @table-add="onTableAdd"
+          @table-group-add="onTableGroupAdd"
+          @table-info-show="doShowTableNote"
+          @table-group-info-show="doShowGroupNote"
+          >
+        </table-list>
+      </q-card-section>
+
+    </q-expansion-item>
+
+  </q-card>
+
+  <q-card class="q-ma-sm">
     <q-expansion-item
       switch-toggle-side
       expand-separator
@@ -448,6 +501,7 @@
     v-if="isInitRun"
     :model-digest="digest"
     :run-opts="runOpts"
+    :tables-retain="retainTablesGroups"
     :run-notes="newRunNotes"
     @done="doneNewRunInit"
     @wait="()=>{}">
@@ -455,6 +509,8 @@
 
   <run-info-dialog :show-tickle="runInfoTickle" :model-digest="digest" :run-digest="runDigestSelected"></run-info-dialog>
   <workset-info-dialog :show-tickle="worksetInfoTickle" :model-digest="digest" :workset-name="worksetNameSelected"></workset-info-dialog>
+  <table-info-dialog :show-tickle="tableInfoTickle" :table-name="tableInfoName" :run-digest="''"></table-info-dialog>
+  <group-info-dialog :show-tickle="groupInfoTickle" :group-name="groupInfoName"></group-info-dialog>
 
   <q-inner-loading :showing="loadWait">
     <q-spinner-gears size="md" color="primary" />
@@ -479,5 +535,8 @@
   }
   .tc-min-width-10 {
     min-width: 10rem;
+  }
+  .grey-border-025 {
+    border: 0.25rem solid rgba(0, 0, 0, 0.12);
   }
 </style>

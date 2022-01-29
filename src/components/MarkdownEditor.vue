@@ -26,7 +26,7 @@
       <span
         v-if="descriptionEditable"
         class="col-auto q-pr-xs"
-        > {{ $t('Description') }} :</span>
+        > {{ $t('Description') }}:</span>
       <q-input
         v-if="descriptionEditable"
         v-model="descrEdit"

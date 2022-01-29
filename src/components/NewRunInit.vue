@@ -33,6 +33,7 @@ export default {
         mpiTmpl: ''
       })
     },
+    tablesRetain: { type: Array, default: () => [] },
     runNotes: {
       type: Object,
       default: () => ({})
@@ -80,6 +81,7 @@ export default {
         ModelDigest: (this.modelDigest || ''),
         Dir: '',
         Opts: { },
+        Tables: [],
         Mpi: {
           Np: 0
         },
@@ -101,6 +103,8 @@ export default {
       if ((this.runOpts.profile || '') !== '') rv.Opts['OpenM.Profile'] = this.runOpts.profile
       if (this.runOpts.sparseOutput) rv.Opts['OpenM.SparseOutput'] = 'true'
       if (this.uiLang) rv.Opts['OpenM.MessageLanguage'] = this.uiLang
+
+      rv.Tables = Array.from(this.tablesRetain)
 
       const isMpi = (this.runOpts.mpiNpCount || 0) > 0
       if (!isMpi) {

@@ -3,13 +3,16 @@ import * as Mdf from 'src/model-common'
 import NewRunInit from 'components/NewRunInit.vue'
 import RunBar from 'components/RunBar.vue'
 import WorksetBar from 'components/WorksetBar.vue'
+import TableList from 'components/TableList.vue'
 import RunInfoDialog from 'components/RunInfoDialog.vue'
 import WorksetInfoDialog from 'components/WorksetInfoDialog.vue'
+import TableInfoDialog from 'components/TableInfoDialog.vue'
+import GroupInfoDialog from 'components/GroupInfoDialog.vue'
 import MarkdownEditor from 'components/MarkdownEditor.vue'
 
 export default {
   name: 'NewRun',
-  components: { NewRunInit, RunBar, WorksetBar, RunInfoDialog, WorksetInfoDialog, MarkdownEditor },
+  components: { NewRunInit, RunBar, WorksetBar, TableList, RunInfoDialog, WorksetInfoDialog, TableInfoDialog, GroupInfoDialog, MarkdownEditor },
 
   props: {
     digest: { type: String, default: '' },
@@ -52,6 +55,14 @@ export default {
         mpiOnRoot: false,
         mpiTmpl: ''
       },
+      retainTablesGroups: [], // if not empty then names of tables and groups to retain
+      tablesRetain: [],
+      refreshTableTreeTickle: false,
+      tableCount: 0,
+      tableInfoName: '',
+      tableInfoTickle: false,
+      groupInfoName: '',
+      groupInfoTickle: false,
       newRunNotes: {
         type: Object,
         default: () => ({})
@@ -82,6 +93,7 @@ export default {
 
     ...mapState('model', {
       theModel: state => state.theModel,
+      groupTableLeafs: state => state.groupTableLeafs,
       langList: state => state.langList
     }),
     ...mapGetters('model', {
@@ -110,6 +122,7 @@ export default {
     doRefresh () {
       this.runCurrent = this.runTextByDigest({ ModelDigest: this.digest, RunDigest: this.runDigestSelected })
       this.worksetCurrent = this.worksetTextByName({ ModelDigest: this.digest, Name: this.worksetNameSelected })
+      this.tableCount = Mdf.tableCount(this.theModel)
 
       // reset run options and state
       this.isInitRun = false
@@ -229,6 +242,142 @@ export default {
         return
       }
       this.worksetInfoTickle = !this.worksetInfoTickle
+    },
+    // show output table notes dialog
+    doShowTableNote (name) {
+      this.tableInfoName = name
+      this.tableInfoTickle = !this.tableInfoTickle
+    },
+    // show group notes dialog
+    doShowGroupNote (name) {
+      this.groupInfoName = name
+      this.groupInfoTickle = !this.groupInfoTickle
+    },
+
+    // click on clear filter: show all output tables and groups
+    onRetainAllTables () {
+      this.tablesRetain = []
+      this.refreshTableTreeTickle = !this.refreshTableTreeTickle
+      this.$q.notify({ type: 'info', message: this.$t('Retain all output tables') })
+    },
+
+    // add output table into the retain tables list
+    onTableAdd (name) {
+      if (!this.tablesRetain.length) return // all tables already in the retain list
+      if (!name) {
+        console.warn('Unable to add table into retain list, table name is empty')
+        return
+      }
+      // add into tables retain list if not in the list already
+      let isAdded = false
+      if (this.tablesRetain.indexOf(name) < 0) {
+        this.tablesRetain.push(name)
+        isAdded = true
+      }
+
+      if (this.tablesRetain.length === this.tableCount) { // all tables added into the retain list
+        this.tablesRetain = []
+        isAdded = true
+      }
+
+      if (isAdded) {
+        this.$q.notify({
+          type: 'info',
+          message: this.tablesRetain.length > 0 ? this.$t('Retain output table') + ':' + name : this.$t('Retain all output tables')
+        })
+        this.refreshTableTreeTickle = !this.refreshTableTreeTickle
+      }
+    },
+
+    // add group of output tables into the retain tables list
+    onTableGroupAdd (groupName) {
+      if (!this.tablesRetain.length) return // all tables already in the retain list
+      if (!groupName) {
+        console.warn('Unable to add table group into retain list, group name is empty')
+        return
+      }
+      // add each table from the group tables retain list if not in the list already
+      const gt = this.groupTableLeafs[groupName]
+      let isAdded = false
+      if (gt) {
+        for (const tn in gt?.leafs) {
+          if (this.tablesRetain.indexOf(tn) < 0) {
+            this.tablesRetain.push(tn)
+            isAdded = true
+          }
+        }
+      }
+      if (this.tablesRetain.length === this.tableCount) { // all tables added into the retain list
+        this.tablesRetain = []
+      }
+
+      if (isAdded) {
+        this.$q.notify({
+          type: 'info',
+          message: this.tablesRetain.length > 0 ? this.$t('Retain group of output tables') + ':' + groupName : this.$t('Retain all output tables')
+        })
+        this.refreshTableTreeTickle = !this.refreshTableTreeTickle
+      }
+    },
+
+    // remove output table from the retain tables list
+    onTableRemove (name) {
+      if (!name) {
+        console.warn('Unable to remove table from retain list, table name is empty')
+        return
+      }
+
+      // if retain list not empty then remove table name from the list
+      if (this.tablesRetain.length > 0) {
+        this.tablesRetain = this.tablesRetain.filter(tn => tn !== name)
+      } else {
+        // retain list empty: all tables in the retain list initially
+        this.tablesRetain.length = this.theModel.TableTxt.length - 1
+        let k = 0
+        for (const t of this.theModel.TableTxt) {
+          if (t.Table.Name !== name) {
+            this.tablesRetain[k++] = t.Table.Name
+          }
+        }
+      }
+
+      this.$q.notify({
+        type: 'info',
+        message: this.tablesRetain.length > 0 ? this.$t('Suppress output table') + ':' + name : this.$t('Retain all output tables')
+      })
+      this.refreshTableTreeTickle = !this.refreshTableTreeTickle
+    },
+
+    // remove group of output tables from the retain tables list
+    onTableGroupRemove (groupName) {
+      if (!groupName) {
+        console.warn('Unable to remove table group from retain list, group name is empty')
+        return
+      }
+
+      // if retain list not empty then remove table of the group from the list
+      const gt = this.groupTableLeafs[groupName]
+      if (gt) {
+        if (this.tablesRetain.length > 0) {
+          this.tablesRetain = this.tablesRetain.filter(tn => !gt?.leafs[tn])
+        } else {
+          // retain list empty: all tables in the retain list initially
+          this.tablesRetain.length = this.theModel.TableTxt.length
+          let n = 0
+          for (const t of this.theModel.TableTxt) {
+            if (!gt?.leafs[t.Table.Name]) {
+              this.tablesRetain[n++] = t.Table.Name
+            }
+          }
+          this.tablesRetain.length = n
+        }
+      }
+
+      this.$q.notify({
+        type: 'info',
+        message: this.tablesRetain.length > 0 ? this.$t('Suppress group of output tables') + ':' + groupName : this.$t('Retain all output tables')
+      })
+      this.refreshTableTreeTickle = !this.refreshTableTreeTickle
     },
 
     // set default name of new model run
@@ -371,6 +520,44 @@ export default {
 
       this.runOpts.worksetName = (this.useWorkset && this.isReadonlyWorksetCurrent) ? this.worksetNameSelected || '' : ''
       this.runOpts.baseRunDigest = (this.useBaseRun && this.isCompletedRunCurrent) ? this.runDigestSelected || '' : ''
+
+      // reduce tables retain list by using table groups
+      if (this.tablesRetain.length > 0) {
+        let tLst = Array.from(this.tablesRetain)
+
+        // make output tables groups list sorted by group size
+        const gLst = []
+        for (const gName in this.groupTableLeafs) {
+          gLst.push({
+            name: gName,
+            size: this.groupTableLeafs[gName].size
+          })
+        }
+        gLst.sort((left, right) => { return left.size - right.size })
+
+        // replace table names with group name
+        let isAny = false
+        do {
+          isAny = false
+
+          for (const gs of gLst) {
+            const gt = this.groupTableLeafs[gs.name]
+
+            let isAll = true
+            for (const tn in gt?.leafs) {
+              isAll = tLst.indexOf(tn) >= 0
+              if (!isAll) break
+            }
+            if (!isAll) continue
+
+            tLst = tLst.filter(tn => !gt?.leafs[tn])
+            tLst.push(gs.name)
+            isAny = true
+          }
+        } while (isAny)
+
+        this.retainTablesGroups = tLst
+      }
 
       // collect description and notes for each language
       this.newRunNotes = {}

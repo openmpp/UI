@@ -192,7 +192,8 @@
 
   <q-card
     v-if="isFromRunShow"
-    class="q-ma-sm"
+    bordered
+    class="border-025 q-ma-sm"
     >
     <div class="row items-center full-width q-pa-sm">
       <q-btn
@@ -232,7 +233,8 @@
 
   <q-card
     v-if="isFromWorksetShow"
-    class="q-ma-sm"
+    bordered
+    class="border-025 q-ma-sm"
     >
 
     <div class="row items-center full-width q-pa-sm">
@@ -272,7 +274,11 @@
 
   </q-card>
 
-  <q-card v-if="isNewWorksetShow" class="q-ma-sm">
+  <q-card
+    v-if="isNewWorksetShow"
+    bordered
+    class="border-025 q-ma-sm"
+    >
     <new-workset
       @save-new-set="onNewWorksetSave"
       @cancel-new-set="onNewWorksetCancel"
@@ -281,7 +287,11 @@
     </new-workset>
   </q-card>
 
-  <q-card v-if="isShowNoteEditor" class="q-ma-sm">
+  <q-card
+    v-if="isShowNoteEditor"
+    bordered
+    class="border-025 q-ma-sm"
+    >
     <q-card-section class="q-pa-sm">
 
       <div class="row items-center full-width">
@@ -561,5 +571,8 @@
   }
   .section-title {
     line-height: 2.5rem;
+  }
+  .border-025 {
+    border-width: 0.25rem;
   }
 </style>
