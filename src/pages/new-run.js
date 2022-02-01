@@ -90,6 +90,7 @@ export default {
     isCompletedRunCurrent () {
       return this.runDigestSelected && Mdf.isRunCompleted(this.runCurrent)
     },
+    isNoTables () { return !this.tablesRetain || this.tablesRetain.length <= 0 },
 
     ...mapState('model', {
       theModel: state => state.theModel,
@@ -180,6 +181,14 @@ export default {
       this.runOpts.profile = ''
       this.doProfileListRefresh()
 
+      // init retain tables list from existing base run
+      this.tablesRetain = []
+      if (Mdf.isNotEmptyRunText(this.runCurrent)) {
+        for (const t of this.runCurrent.Table) {
+          if (t?.Name) this.tablesRetain.push(t?.Name)
+        }
+      }
+
       // make list of model languages, description and notes for workset editor
       this.newRunNotes = {}
 
@@ -254,16 +263,21 @@ export default {
       this.groupInfoTickle = !this.groupInfoTickle
     },
 
-    // click on clear filter: show all output tables and groups
+    // click on clear filter: retain all output tables and groups
     onRetainAllTables () {
       this.tablesRetain = []
+      this.tablesRetain.length = this.theModel.TableTxt.length
+      let k = 0
+      for (const t of this.theModel.TableTxt) {
+        this.tablesRetain[k++] = t.Table.Name
+      }
       this.refreshTableTreeTickle = !this.refreshTableTreeTickle
       this.$q.notify({ type: 'info', message: this.$t('Retain all output tables') })
     },
 
     // add output table into the retain tables list
     onTableAdd (name) {
-      if (!this.tablesRetain.length) return // all tables already in the retain list
+      if (this.tablesRetain.length >= this.tableCount) return // all tables already in the retain list
       if (!name) {
         console.warn('Unable to add table into retain list, table name is empty')
         return
@@ -275,15 +289,10 @@ export default {
         isAdded = true
       }
 
-      if (this.tablesRetain.length === this.tableCount) { // all tables added into the retain list
-        this.tablesRetain = []
-        isAdded = true
-      }
-
       if (isAdded) {
         this.$q.notify({
           type: 'info',
-          message: this.tablesRetain.length > 0 ? this.$t('Retain output table') + ':' + name : this.$t('Retain all output tables')
+          message: (this.tablesRetain.length < this.tableCount) ? this.$t('Retain output table') + ':' + name : this.$t('Retain all output tables')
         })
         this.refreshTableTreeTickle = !this.refreshTableTreeTickle
       }
@@ -291,7 +300,7 @@ export default {
 
     // add group of output tables into the retain tables list
     onTableGroupAdd (groupName) {
-      if (!this.tablesRetain.length) return // all tables already in the retain list
+      if (!this.tablesRetain.length >= this.tableCount) return // all tables already in the retain list
       if (!groupName) {
         console.warn('Unable to add table group into retain list, group name is empty')
         return
@@ -307,14 +316,11 @@ export default {
           }
         }
       }
-      if (this.tablesRetain.length === this.tableCount) { // all tables added into the retain list
-        this.tablesRetain = []
-      }
 
       if (isAdded) {
         this.$q.notify({
           type: 'info',
-          message: this.tablesRetain.length > 0 ? this.$t('Retain group of output tables') + ':' + groupName : this.$t('Retain all output tables')
+          message: (this.tablesRetain.length < this.tableCount) ? this.$t('Retain group of output tables') + ':' + groupName : this.$t('Retain all output tables')
         })
         this.refreshTableTreeTickle = !this.refreshTableTreeTickle
       }
@@ -322,62 +328,32 @@ export default {
 
     // remove output table from the retain tables list
     onTableRemove (name) {
+      if (this.tablesRetain.length <= 0) return // retain tables list alredy empty
       if (!name) {
         console.warn('Unable to remove table from retain list, table name is empty')
         return
       }
+      this.$q.notify({ type: 'info', message: this.$t('Suppress output table') + ':' + name })
 
-      // if retain list not empty then remove table name from the list
-      if (this.tablesRetain.length > 0) {
-        this.tablesRetain = this.tablesRetain.filter(tn => tn !== name)
-      } else {
-        // retain list empty: all tables in the retain list initially
-        this.tablesRetain.length = this.theModel.TableTxt.length - 1
-        let k = 0
-        for (const t of this.theModel.TableTxt) {
-          if (t.Table.Name !== name) {
-            this.tablesRetain[k++] = t.Table.Name
-          }
-        }
-      }
-
-      this.$q.notify({
-        type: 'info',
-        message: this.tablesRetain.length > 0 ? this.$t('Suppress output table') + ':' + name : this.$t('Retain all output tables')
-      })
+      this.tablesRetain = this.tablesRetain.filter(tn => tn !== name)
       this.refreshTableTreeTickle = !this.refreshTableTreeTickle
     },
 
     // remove group of output tables from the retain tables list
     onTableGroupRemove (groupName) {
+      if (this.tablesRetain.length <= 0) return // retain tables list alredy empty
       if (!groupName) {
         console.warn('Unable to remove table group from retain list, group name is empty')
         return
       }
+      this.$q.notify({ type: 'info', message: this.$t('Suppress group of output tables') + ':' + groupName })
 
-      // if retain list not empty then remove table of the group from the list
+      // remove tables group from the list
       const gt = this.groupTableLeafs[groupName]
       if (gt) {
-        if (this.tablesRetain.length > 0) {
-          this.tablesRetain = this.tablesRetain.filter(tn => !gt?.leafs[tn])
-        } else {
-          // retain list empty: all tables in the retain list initially
-          this.tablesRetain.length = this.theModel.TableTxt.length
-          let n = 0
-          for (const t of this.theModel.TableTxt) {
-            if (!gt?.leafs[t.Table.Name]) {
-              this.tablesRetain[n++] = t.Table.Name
-            }
-          }
-          this.tablesRetain.length = n
-        }
+        this.tablesRetain = this.tablesRetain.filter(tn => !gt?.leafs[tn])
+        this.refreshTableTreeTickle = !this.refreshTableTreeTickle
       }
-
-      this.$q.notify({
-        type: 'info',
-        message: this.tablesRetain.length > 0 ? this.$t('Suppress group of output tables') + ':' + groupName : this.$t('Retain all output tables')
-      })
-      this.refreshTableTreeTickle = !this.refreshTableTreeTickle
     },
 
     // set default name of new model run
@@ -522,7 +498,9 @@ export default {
       this.runOpts.baseRunDigest = (this.useBaseRun && this.isCompletedRunCurrent) ? this.runDigestSelected || '' : ''
 
       // reduce tables retain list by using table groups
-      if (this.tablesRetain.length > 0) {
+      this.retainTablesGroups = [] // retain all tables
+
+      if (this.tablesRetain.length > 0 && this.tablesRetain.length < this.tableCount) {
         let tLst = Array.from(this.tablesRetain)
 
         // make output tables groups list sorted by group size

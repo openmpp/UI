@@ -10,7 +10,7 @@
         <span class="col-auto q-mr-sm">
           <q-btn
             @click="onModelRunClick"
-            :disable="isInitRun || !runOpts.runName"
+            :disable="isInitRun || !runOpts.runName || isNoTables"
             color="primary"
             class="rounded-borders q-pr-xs"
             >
@@ -60,25 +60,6 @@
           </td>
         </tr>
 
-        <tr
-          v-for="(p, idx) in presetLst" :key="p.name"
-          >
-          <td class="q-pr-xs">
-            <q-btn
-              @click="onPresetSelected(idx)"
-              no-caps
-              unelevated
-              color="primary"
-              align="between"
-              class="rounded-borders full-width"
-              >
-              <span>{{ p.label }}</span>
-              <q-icon name="mdi-menu-right" />
-            </q-btn>
-          </td>
-          <td class="om-text-descr-title">{{ p.descr }}</td>
-        </tr>
-
         <tr>
           <td class="q-pr-xs">{{ $t('Sub-Values (Sub-Samples)') }}:</td>
           <td>
@@ -98,29 +79,6 @@
               class="tc-max-width-10"
               input-class="tc-right"
               :title="$t('Number of sub-values (a.k.a. members or replicas or sub-samples)')"
-              />
-          </td>
-        </tr>
-
-        <tr>
-          <td class="q-pr-xs">{{ $t('Modelling Threads') }}:</td>
-          <td>
-            <q-input
-              v-model="runOpts.threadCount"
-              type="number"
-              maxlength="4"
-              min="1"
-              max="8192"
-              :rules="[
-                val => val !== void 0,
-                val => val >= 1 && val <= 8192
-              ]"
-              outlined
-              dense
-              hide-bottom-space
-              class="tc-max-width-10"
-              input-class="tc-right"
-              :title="$t('Number of modelling threads')"
               />
           </td>
         </tr>
@@ -163,9 +121,89 @@
           </td>
         </tr>
 
+        <tr
+          v-for="(p, idx) in presetLst" :key="p.name"
+          >
+          <td class="q-pr-xs">
+            <q-btn
+              @click="onPresetSelected(idx)"
+              no-caps
+              unelevated
+              color="primary"
+              align="between"
+              class="rounded-borders full-width"
+              >
+              <span>{{ p.label }}</span>
+              <q-icon name="mdi-menu-right" />
+            </q-btn>
+          </td>
+          <td class="om-text-descr-title">{{ p.descr }}</td>
+        </tr>
+
       </table>
 
     </q-card-section>
+
+  </q-card>
+
+  <q-card class="q-ma-sm">
+
+    <q-expansion-item
+      switch-toggle-side
+      expand-separator
+      header-class="bg-primary text-white"
+      >
+      <template v-slot:header>
+        <q-icon v-if="isNoTables" name="star" color="red" />
+        <span>{{ $t('Output Tables') + ': ' + (tablesRetain.length !== tableCount ? (tablesRetain.length.toString() + ' / ' + tableCount.toString()) : $t('All')) }}</span>
+      </template>
+
+      <q-card-section
+        class="q-pa-sm"
+        >
+        <template v-if="isNoTables">
+          <span class="text-negative text-weight-bold">*&nbsp;</span><span>{{ $t('Please select output tables in order to run the model') }}</span>
+        </template>
+        <template v-else>
+          <table-list
+            :run-digest="''"
+            :is-all-tables="true"
+            :refresh-tickle="refreshTickle"
+            :refresh-table-tree-tickle="refreshTableTreeTickle"
+            :name-filter="tablesRetain"
+            in-list-on-label="Show only retained output tables"
+            in-list-off-label="Show all output tables"
+            in-list-clear-label="Retain all output tables"
+            :is-remove="true"
+            :is-remove-group="true"
+            @table-remove="onTableRemove"
+            @table-group-remove="onTableGroupRemove"
+            @table-info-show="doShowTableNote"
+            @table-group-info-show="doShowGroupNote"
+            @table-clear-in-list="onRetainAllTables"
+            >
+          </table-list>
+        </template>
+      </q-card-section>
+
+      <q-card-section
+        class="grey-border-025 shadow-up-1 q-pa-sm"
+        >
+        <table-list
+          :run-digest="''"
+          :is-all-tables="true"
+          :refresh-tickle="refreshTickle"
+          :is-add="true"
+          :is-add-group="true"
+          @table-add="onTableAdd"
+          @table-group-add="onTableGroupAdd"
+          @table-info-show="doShowTableNote"
+          @table-group-info-show="doShowGroupNote"
+          >
+        </table-list>
+      </q-card-section>
+
+    </q-expansion-item>
 
   </q-card>
 
@@ -200,59 +238,6 @@
   </q-card>
 
   <q-card class="q-ma-sm">
-
-    <q-expansion-item
-      switch-toggle-side
-      expand-separator
-      header-class="bg-primary text-white"
-      :label="$t('Output Tables') + ': ' + (tablesRetain.length > 0 ? (tablesRetain.length.toString() + ' / ' + tableCount.toString()) : $t('All'))"
-      >
-
-      <q-card-section
-        class="q-pa-sm"
-        >
-        <table-list
-          :run-digest="''"
-          :is-all-tables="true"
-          :refresh-tickle="refreshTickle"
-          :refresh-table-tree-tickle="refreshTableTreeTickle"
-          :name-filter="tablesRetain"
-          in-list-on-label="Show only retained output tables"
-          in-list-off-label="Show all output tables"
-          in-list-clear-label="Retain all output tables"
-          :is-remove="true"
-          :is-remove-group="true"
-          @table-remove="onTableRemove"
-          @table-group-remove="onTableGroupRemove"
-          @table-info-show="doShowTableNote"
-          @table-group-info-show="doShowGroupNote"
-          @table-clear-in-list="onRetainAllTables"
-          >
-        </table-list>
-      </q-card-section>
-
-      <q-card-section
-        class="grey-border-025 shadow-up-1 q-pa-sm"
-        >
-        <table-list
-          :run-digest="''"
-          :is-all-tables="true"
-          :refresh-tickle="refreshTickle"
-          :is-add="true"
-          :is-add-group="true"
-          @table-add="onTableAdd"
-          @table-group-add="onTableGroupAdd"
-          @table-info-show="doShowTableNote"
-          @table-group-info-show="doShowGroupNote"
-          >
-        </table-list>
-      </q-card-section>
-
-    </q-expansion-item>
-
-  </q-card>
-
-  <q-card class="q-ma-sm">
     <q-expansion-item
       switch-toggle-side
       expand-separator
@@ -261,6 +246,30 @@
       >
       <q-card-section>
         <table>
+
+          <tr>
+            <td class="q-pr-xs">{{ $t('Modelling Threads') }}:</td>
+            <td>
+              <q-input
+                v-model="runOpts.threadCount"
+                type="number"
+                maxlength="4"
+                min="1"
+                max="8192"
+                :rules="[
+                  val => val !== void 0,
+                  val => val >= 1 && val <= 8192
+                ]"
+                outlined
+                dense
+                hide-bottom-space
+                class="tc-max-width-10"
+                input-class="tc-right"
+                :title="$t('Number of modelling threads')"
+                />
+            </td>
+          </tr>
+
           <tr>
             <td class="q-pr-xs">{{ $t('Log Progress Percent') }}:</td>
             <td>
