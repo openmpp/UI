@@ -158,19 +158,21 @@ export default {
 
       switch (this.tv.kind) {
         case kind.EXPR:
-          u += '/expr/csv'
+          u += '/expr'
           break
         case kind.ACC:
-          u += '/acc/csv'
+          u += '/acc'
           break
         case kind.ALL:
-          u += '/all-acc/csv'
+          u += '/all-acc'
           break
         default:
           console.warn('Unable to download output table, t.kind:', this.tv.kind)
           this.$q.notify({ type: 'negative', message: this.$t('Unable to download output table') + ': ' + this.tableName })
           return
       }
+      u += (this.$q.platform.is.win) ? '/csv-bom' : '/csv'
+
       openURL(u)
     },
 

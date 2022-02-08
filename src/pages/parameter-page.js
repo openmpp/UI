@@ -191,11 +191,12 @@ export default {
     onDownload () {
       const udgst = encodeURIComponent(this.digest)
       const uname = encodeURIComponent(this.parameterName)
-      const u = this.isFromRun
+      let u = this.isFromRun
         ? this.omsUrl +
-          '/api/model/' + udgst + '/run/' + encodeURIComponent(this.runDigest) + '/parameter/' + uname + '/csv'
+          '/api/model/' + udgst + '/run/' + encodeURIComponent(this.runDigest) + '/parameter/' + uname
         : this.omsUrl +
-          '/api/model/' + udgst + '/workset/' + encodeURIComponent(this.worksetName) + '/parameter/' + uname + '/csv'
+          '/api/model/' + udgst + '/workset/' + encodeURIComponent(this.worksetName) + '/parameter/' + uname
+      u += (this.$q.platform.is.win) ? '/csv-bom' : '/csv'
 
       openURL(u)
     },
