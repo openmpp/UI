@@ -537,7 +537,8 @@ export default {
 
       const u = this.omsUrl +
         '/api/download/model/' + encodeURIComponent(this.digest) +
-        '/workset/' + encodeURIComponent((name || ''))
+        '/workset/' + encodeURIComponent((name || '')) +
+        (this.$q.platform.is.win ? '/csv-bom' : '')
       try {
         // send download request to the server, response expected to be empty on success
         await this.$axios.post(u)

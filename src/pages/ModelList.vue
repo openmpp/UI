@@ -239,7 +239,10 @@ export default {
       let isOk = false
       let msg = ''
 
-      const u = this.omsUrl + '/api/download/model/' + encodeURIComponent((dgst || '')) + (this.noAccDownload ? '/no-acc' : '')
+      const u = this.omsUrl +
+        '/api/download/model/' + encodeURIComponent((dgst || '')) +
+        (this.noAccDownload ? '/no-acc' : '') +
+        (this.$q.platform.is.win ? '/csv-bom' : '')
       try {
         // send download request to the server, response expected to be empty on success
         await this.$axios.post(u)
