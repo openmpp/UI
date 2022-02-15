@@ -126,17 +126,17 @@ export const cleanTextInput = (sValue) => {
 }
 
 // check if string eneterd and clean it to make compatible with file name input rules:
-// replace special characters "'`$}{@><:|?*&^;/\ with underscore _ and trim
+// replace special characters "'`:*?><|$}{@&^;/\ with underscore _ and trim
 export const doFileNameClean = (fnValue) => {
   return (fnValue || '') ? { isEntered: true, name: cleanFileNameInput(fnValue) } : { isEntered: false, name: '' }
 }
 
 // invalid characters for file name, URL or dangerous for js
-export const invalidFileNameChars = '"\'`:*?><|@#$%^&;,+=}{][/\\'
+export const invalidFileNameChars = '"\'`:*?><|$}{@&^;/\\'
 
 // clean file name input: replace special characters "'`:*?><|@#$%^&;,+=}{][/\ with underscore _ and trim
 export const cleanFileNameInput = (fnValue) => {
   if (typeof fnValue !== typeof 'string' || fnValue === '' || fnValue === void 0) return ''
-  const s = fnValue.replace(/["'`:*?><|@#$%^&;,+=}{\][/\\]/g, '_').trim()
+  const s = fnValue.replace(/["'`:*?><|$}{@&^;/\\]/g, '_').trim()
   return s || ''
 }
