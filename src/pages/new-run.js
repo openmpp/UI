@@ -390,18 +390,6 @@ export default {
     doDirClean (dirValue) {
       return (dirValue || '') ? { isEntered: true, dir: this.cleanPathInput(dirValue) } : { isEntered: false, dir: '' }
     },
-    // clean integer as non-negative input, ignore + or - sign
-    cleanIntNonNegativeInput (sValue, nDefault = 0) {
-      if (sValue === '' || sValue === void 0) return nDefault
-      const n = parseInt(sValue)
-      return (!isNaN(n) && Number.isInteger(n)) ? n : nDefault
-    },
-    // clean float number input
-    cleanFloatInput (sValue, fDefault = 0.0) {
-      if (sValue === '' || sValue === void 0) return fDefault
-      const f = parseFloat(sValue)
-      return !isNaN(f) ? f : fDefault
-    },
     // clean path input: remove special characters "'`$}{@><:|?*&^; and force it to be relative path and use / separator
     cleanPathInput (sValue) {
       if (sValue === '' || sValue === void 0) return ''
@@ -476,8 +464,8 @@ export default {
     doModelRun () {
       // set new run options
       this.runOpts.runName = Mdf.cleanFileNameInput(this.runOpts.runName)
-      this.runOpts.subCount = this.cleanIntNonNegativeInput(this.runOpts.subCount, 1)
-      this.runOpts.threadCount = this.cleanIntNonNegativeInput(this.runOpts.threadCount, 1)
+      this.runOpts.subCount = Mdf.cleanIntNonNegativeInput(this.runOpts.subCount, 1)
+      this.runOpts.threadCount = Mdf.cleanIntNonNegativeInput(this.runOpts.threadCount, 1)
       this.runOpts.workDir = this.cleanPathInput(this.runOpts.workDir)
       this.runOpts.csvDir = this.cleanPathInput(this.runOpts.csvDir)
       this.runOpts.csvId = (this.csvCodeId || '') !== 'enumCode'
@@ -486,12 +474,12 @@ export default {
       this.runOpts.profile = Mdf.cleanTextInput(this.runOpts.profile)
       this.runOpts.sparseOutput = this.runOpts.sparseOutput || false
       this.runOpts.runTmpl = Mdf.cleanTextInput(this.runOpts.runTmpl)
-      this.runOpts.mpiNpCount = this.cleanIntNonNegativeInput(this.runOpts.mpiNpCount, 0)
+      this.runOpts.mpiNpCount = Mdf.cleanIntNonNegativeInput(this.runOpts.mpiNpCount, 0)
       this.runOpts.mpiOnRoot = this.runOpts.mpiOnRoot || false
       this.runOpts.mpiTmpl = Mdf.cleanTextInput(this.runOpts.mpiTmpl)
-      this.runOpts.progressPercent = this.cleanIntNonNegativeInput(this.runOpts.progressPercent, 1)
+      this.runOpts.progressPercent = Mdf.cleanIntNonNegativeInput(this.runOpts.progressPercent, 1)
 
-      this.runOpts.progressStep = this.cleanFloatInput(this.runOpts.progressStep, 0.0)
+      this.runOpts.progressStep = Mdf.cleanFloatInput(this.runOpts.progressStep, 0.0)
       if (this.runOpts.progressStep < 0) this.runOpts.progressStep = 0.0
 
       this.runOpts.worksetName = (this.useWorkset && this.isReadonlyWorksetCurrent) ? this.worksetNameSelected || '' : ''

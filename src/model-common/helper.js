@@ -140,3 +140,17 @@ export const cleanFileNameInput = (fnValue) => {
   const s = fnValue.replace(/["'`:*?><|$}{@&^;/\\]/g, '_').trim()
   return s || ''
 }
+
+// clean integer as non-negative input, ignore + or - sign
+export const cleanIntNonNegativeInput = (sValue, nDefault = 0) => {
+  if (sValue === '' || sValue === void 0) return nDefault
+  const n = parseInt(sValue)
+  return (!isNaN(n) && Number.isInteger(n)) ? n : nDefault
+}
+
+// clean float number input
+export const cleanFloatInput = (sValue, fDefault = 0.0) => {
+  if (sValue === '' || sValue === void 0) return fDefault
+  const f = parseFloat(sValue)
+  return !isNaN(f) ? f : fDefault
+}

@@ -90,7 +90,10 @@ export default {
       noteEditorNotes: '',
       noteEditorLangCode: '',
       showDiscardParamNoteTickle: false,
+      isUploadEnabled: false,
       uploadFileSelect: false,
+      subCountUpload: 1,
+      defaultSubUpload: 0,
       uploadFile: null
     }
   },
@@ -158,9 +161,16 @@ export default {
     },
 
     // workset updated: check read-only status and adjust controls
+    // if sub-values count changed as result of parameter upload then reset view and reload data
     onWorksetUpdated () {
+      const nSub = this.subCount
       const { isFound, src } = this.initParamRunSet()
-      this.edt.isEnabled = !this.isFromRun && isFound && Mdf.isNotEmptyWorksetText(src) && !src.IsReadonly
+      this.edt.isEnabled = this.isUploadEnabled = !this.isFromRun && isFound && Mdf.isNotEmptyWorksetText(src) && !src.IsReadonly
+
+      if (isFound && nSub !== (this.paramRunSet.SubCount || 0)) {
+        this.dispatchParamViewDelete(this.routeKey)
+        this.doRefresh()
+      }
     },
 
     // show or hide row/column/other bars
@@ -200,7 +210,7 @@ export default {
 
       openURL(u)
     },
-    /*
+
     // show input scenario upload dialog
     doShowFileSelect () {
       this.uploadFileSelect = true
@@ -210,34 +220,6 @@ export default {
       this.uploadFileSelect = false
       this.uploadFile = null
     },
-    // upload csv file to replace workset parameter value
-    async onUploadParameter () {
-      const u = this.omsUrl + '/api/workset-merge'
-      const wt = {
-        ModelDigest: this.digest,
-        Name: this.worksetName,
-        Param: [{
-          Name: this.parameterName,
-          SubCount: 1
-        }]
-      }
-
-      const fd = new FormData()
-      fd.append('workset', JSON.stringify(wt))
-      fd.append(this.parameterName, this.uploadFile, this.uploadFile.name)
-      try {
-        // update parameter value, drop response on success
-        await this.$axios.patch(u, fd)
-      } catch (e) {
-        let msg = ''
-        try {
-          if (e.response) msg = e.response.data || ''
-        } finally {}
-        console.warn('Unable to update input scenario', msg)
-        this.$q.notify({ type: 'negative', message: this.$t('Unable to update input scenario') })
-      }
-    },
-    */
 
     // reload parameter data and reset pivot view to default
     async onReloadDefaultView () {
@@ -261,18 +243,27 @@ export default {
       const enumIdsToCodes = (pvSrc) => {
         const dst = []
         for (const p of pvSrc) {
-          if (!p.values) continue // empty selection
+          if (!p.values) continue // skip if no items selected in the dimension
 
-          const dt = this.paramText.ParamDimsTxt.find((d) => d.Dim.Name === p.name)
-          if (!dt) {
-            console.warn('Error: dimension not found:', p.name)
-            continue
+          // if regular dimension then make array of enum codes
+          let cArr = []
+          if (p.name !== SUB_ID_DIM) {
+            const dt = this.paramText.ParamDimsTxt.find((d) => d.Dim.Name === p.name)
+            if (!dt) {
+              console.warn('Error: dimension not found:', p.name)
+              continue
+            }
+            const t = Mdf.typeTextById(this.theModel, (dt.Dim.TypeId || 0))
+            cArr = Mdf.enumIdArrayToCodeArray(t, p.values)
+          } else {
+            // sub-value dimension: enum code same as enum id
+            for (const eid of p.values) {
+              cArr.push(eid.toString())
+            }
           }
-          const t = Mdf.typeTextById(this.theModel, (dt.Dim.TypeId || 0))
-
           dst.push({
             name: p.name,
-            values: Mdf.enumIdArrayToCodeArray(t, p.values)
+            values: cArr
           })
         }
         return dst
@@ -325,15 +316,25 @@ export default {
         for (const p of pvSrc) {
           if (!p.values) continue // empty selection
 
-          const dt = this.paramText.ParamDimsTxt.find((d) => d.Dim.Name === p.name)
-          if (!dt) {
-            continue // unknown dimension: skip
+          // if regular dimension then make array of enum id's
+          let eArr = []
+          if (p.name !== SUB_ID_DIM) {
+            const dt = this.paramText.ParamDimsTxt.find((d) => d.Dim.Name === p.name)
+            if (!dt) {
+              continue // unknown dimension: skip
+            }
+            const t = Mdf.typeTextById(this.theModel, (dt.Dim.TypeId || 0))
+            eArr = Mdf.codeArrayToEnumIdArray(t, p.values)
+          } else {
+            // sub-value dimension: enum id the same as enum code
+            for (const ec of p.values) {
+              const n = parseInt(ec)
+              if (!isNaN(n)) eArr.push(n)
+            }
           }
-          const t = Mdf.typeTextById(this.theModel, (dt.Dim.TypeId || 0))
-
           dst.push({
             name: p.name,
-            values: Mdf.codeArrayToEnumIdArray(t, p.values)
+            values: eArr
           })
         }
         return dst
@@ -568,7 +569,7 @@ export default {
       this.subCount = this.paramRunSet.SubCount || 0
 
       // adjust controls
-      this.edt.isEnabled = !this.isFromRun && Mdf.isNotEmptyWorksetText(src) && !src.IsReadonly
+      this.edt.isEnabled = this.isUploadEnabled = !this.isFromRun && Mdf.isNotEmptyWorksetText(src) && !src.IsReadonly
       Pcvt.resetEdit(this.edt) // clear editor state
 
       const isRc = this.paramSize.rank > 0 || this.subCount > 1
@@ -738,6 +739,20 @@ export default {
       this.rowFields = restore(pv.rows)
       this.colFields = restore(pv.cols)
       this.otherFields = restore(pv.others)
+
+      // if there are any dimensions whch are not in row, columns or others then push it to others
+      // it is possible if view restored and sub-value dimension is added by parameter upload
+      for (const f of this.dimProp) {
+        if (this.rowFields.findIndex((p) => f.name === p.name) >= 0) continue
+        if (this.colFields.findIndex((p) => f.name === p.name) >= 0) continue
+        if (this.otherFields.findIndex((p) => f.name === p.name) >= 0) continue
+
+        // append to other fields
+        f.selection = []
+        f.selection.push(f.enums[0])
+        f.singleSelection = (f.selection.length > 0) ? f.selection[0] : {}
+        this.otherFields.push(f)
+      }
 
       // restore edit state and controls state
       if (this.edt.isEnabled) {
@@ -981,6 +996,63 @@ export default {
         this.$q.notify({ type: 'negative', message: this.$t('Server offline or parameter save failed') + ': ' + this.parameterName })
       }
       this.saveWait = false
+    },
+
+    // upload csv file to replace workset parameter value
+    async onUploadParameter () {
+      // validate sub-values count and default sub-value
+      const nSub = Mdf.cleanIntNonNegativeInput(this.subCountUpload, 1)
+      if (nSub < 1 || nSub > 8192 || !Number.isInteger(nSub)) {
+        this.$q.notify({ type: 'negative', message: this.$t('Invalid number of sub-value to upload') + toString(nSub) })
+        return
+      }
+      const nSubDefault = Mdf.cleanIntNonNegativeInput(this.defaultSubUpload, 0)
+
+      // check file name: warning if it is not parameterName.csv
+      const csvName = this.parameterName + '.csv'
+      const fName = this.uploadFile?.name
+      this.$q.notify({ type: (fName === csvName ? 'info' : 'warning'), message: this.$t('Uploading') + ': ' + fName })
+
+      // make upload multipart form
+      const u = this.omsUrl + '/api/workset-merge'
+      const wt = {
+        ModelDigest: this.digest,
+        Name: this.worksetName,
+        Param: [{
+          Name: this.parameterName,
+          SubCount: nSub,
+          DefaultSubId: nSubDefault
+        }]
+      }
+      const fd = new FormData()
+      fd.append('workset', JSON.stringify(wt))
+      fd.append('parameter-csv', this.uploadFile, csvName) // file name must be the parameterName.csv
+
+      try {
+        // update parameter value, drop response on success
+        await this.$axios.patch(u, fd)
+      } catch (e) {
+        let msg = ''
+        try {
+          if (e.response) msg = e.response.data || ''
+        } finally {}
+        console.warn('Unable to update input scenario', msg)
+        this.$q.notify({ type: 'negative', message: this.$t('Unable to update input scenario') })
+        return
+      }
+
+      // notify user and close upload controls
+      this.doCancelFileSelect()
+      this.$q.notify({ type: 'info', message: this.$t('Uploaded') + ': ' + fName })
+
+      // refresh parameter view on success
+      // if sub-values count the same then refresh only data
+      // else refresh workset, reset view to default and and refersh the data
+      if (nSub === this.subCount) {
+        this.doRefreshDataPage()
+      } else {
+        this.refreshWsTickle = !this.refreshWsTickle // refersh workset
+      }
     },
 
     // save run parameter value notes

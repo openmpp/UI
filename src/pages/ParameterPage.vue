@@ -131,28 +131,27 @@
       icon="mdi-download"
       :title="$t('Download') + ' '  + parameterName + ' ' + $t('as CSV')"
       />
-    <!--
+
     <q-btn
       v-if="!isFromRun"
       @click="doShowFileSelect()"
       v-show="!uploadFileSelect"
+      :disable="!isUploadEnabled"
       flat
       dense
       class="col-auto text-white rounded-borders q-ml-xs bg-primary text-white rounded-borders"
-      icon='mdi-file-upload-outline'
-      title='Upload parameter'
+      icon='mdi-upload'
+      :title="$t('Upload') + ' ' + parameterName + '.csv'"
       />
     <q-btn
-      v-if="!isFromRun"
       @click="doCancelFileSelect()"
       v-show="uploadFileSelect"
       flat
       dense
       class="col-auto text-white rounded-borders q-ml-xs bg-primary text-white rounded-borders"
       icon='mdi-close-circle'
-      title='Cancel upload'
+      :title="$t('Cancel upload')"
       />
-    -->
 
     <q-separator vertical inset spaced="sm" color="secondary" />
 
@@ -218,6 +217,7 @@
         :title="$t('Decrease precision')"
         />
     </template>
+
     <q-separator vertical inset spaced="sm" color="secondary" />
 
     <q-btn
@@ -250,18 +250,17 @@
 
     <q-card v-if="uploadFileSelect">
 
-      <span class="row q-mt-xs q-pa-sm">
+      <div class="row q-mt-xs q-pa-sm">
         <q-btn
           @click="onUploadParameter"
           v-if="uploadFileSelect"
           :disable="!fileSelected"
           flat
           dense
-          class="bg-primary text-white rounded-borders"
-          icon="mdi-file-upload-outline"
-          title='Upload selected file'
+          class="col-auto bg-primary text-white rounded-borders"
+          icon="mdi-upload"
+          :title="$t('Upload selected file')"
           />
-
         <q-file
           v-model="uploadFile"
           v-if="uploadFileSelect"
@@ -270,13 +269,50 @@
           dense
           clearable
           hide-bottom-space
-          class="q-pl-xs"
+          class="col q-pl-xs"
           color="primary"
-          label='Select parameter for upload'
+          :label="$t('Select') + ' ' + parameterName + '.csv'"
           >
         </q-file>
-      </span>
+      </div>
 
+      <div class="row items-center q-mt-xs q-pa-sm">
+        <span class="col-auto q-px-md"></span>
+        <span class="col-auto q-px-xs">{{ $t('Sub-values Count') }}:</span>
+        <q-input
+          v-model="subCountUpload"
+          type="number"
+          maxlength="4"
+          min="1"
+          max="8192"
+          :rules="[
+            val => val !== void 0,
+            val => val >= 1 && val <= 8192
+          ]"
+          outlined
+          dense
+          hide-bottom-space
+          class="upload-max-width-10"
+          input-class="col-auto upload-right"
+          :title="$t('Number of sub-values (a.k.a. members or replicas or sub-samples)')"
+          >
+        </q-input>
+
+        <span class="col-auto q-pl-md q-pr-xs">{{ $t('Default Sub-value') }}:</span>
+        <q-input
+          v-model="defaultSubUpload"
+          :disable="subCountUpload < 2"
+          type="number"
+          maxlength="4"
+          outlined
+          dense
+          hide-bottom-space
+          class="upload-max-width-10"
+          input-class="col-auto upload-right"
+          :title="$t('Default sub-value, if parameter has more than 1 sub-value')"
+          >
+        </q-input>
+      </div>
     </q-card>
   </div>
   <!-- end of parameter header -->
@@ -363,7 +399,10 @@
       </draggable>
     </div>
 
-    <div v-show="ctrl.isRowColControls" class="col-panel">
+    <div v-show="ctrl.isRowColControls"
+      :title="$t('Column dimensions')"
+      class="col-panel"
+      >
       <draggable
         v-model="colFields"
         group="fields"
@@ -634,5 +673,12 @@
     &:hover {
       cursor: move;
     }
+  }
+
+  .upload-right {
+    text-align: right;
+  }
+  .upload-max-width-10 {
+    max-width: 10rem;
   }
 </style>
