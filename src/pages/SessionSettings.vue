@@ -94,9 +94,9 @@
         <tr>
           <td colspan="2" class="settings-cell q-pa-sm om-text-secondary">{{ $t('Model Downloads') }}:</td>
           <td class="settings-cell q-pa-sm">
-            <q-radio v-model="fastDownload" val="no"  :label="$t('Full, compatible with desktop model')" />
+            <q-radio :disable="!serverConfig.AllowDownload" v-model="fastDownload" val="no"  :label="$t('Full, compatible with desktop model')" />
             <br />
-            <q-radio v-model="fastDownload" val="yes" :label="$t('Fast, only to analyze output values')" />
+            <q-radio :disable="!serverConfig.AllowDownload" v-model="fastDownload" val="yes" :label="$t('Fast, only to analyze output values')" />
           </td>
         </tr>
         <tr>
@@ -121,7 +121,7 @@
               no-caps
               align="left"
               class="bg-primary text-white rounded-borders col-grow"
-              icon="mdi-content-save-cog"
+              icon="mdi-download"
               :label="isModel ? $t('Download views of') + ' ' + modelTitle : $t('Download model views')"
               />
             </span>
@@ -136,7 +136,7 @@
               flat
               dense
               class="bg-primary text-white rounded-borders"
-              icon="mdi-cog-refresh-outline"
+              icon="mdi-upload"
               :title="$t('Upload views of') + (isModel ? (' ' + modelTitle) : '')"
               />
           </td>
@@ -242,6 +242,9 @@ export default {
     }),
     ...mapGetters('model', {
       modelCount: 'modelListCount'
+    }),
+    ...mapState('serverState', {
+      serverConfig: state => state.config
     }),
     ...mapState('uiState', {
       uiLang: state => state.uiLang,

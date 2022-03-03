@@ -45,15 +45,15 @@ const routes = [
             props: true
           },
           {
-            path: 'download-list',
-            component: () => import('pages/DownloadList'),
+            path: 'updown-list',
+            component: () => import('pages/UpDownList'),
             props: true
           }
         ]
       },
       {
-        path: 'download-list/model/:digest',
-        component: () => import('pages/DownloadList'),
+        path: 'updown-list/model/:digest',
+        component: () => import('pages/UpDownList'),
         props: true
       },
       { path: 'settings', component: () => import('pages/SessionSettings') },

@@ -18,7 +18,7 @@ const MAX_LOG_WAIT_PROGRESS_COUNT = 20 * 60 // "recent" progress threshold (20 *
 /* eslint-enable no-multi-spaces */
 
 export default {
-  name: 'DownloadList',
+  name: 'UpDownList',
   components: { ModelBar, RunBar, WorksetBar, ModelInfoDialog, RunInfoDialog, WorksetInfoDialog, DeleteConfirmDialog },
 
   props: {
@@ -62,6 +62,11 @@ export default {
   computed: {
     lastLogTimeStamp () {
       return this.lastLogDt ? Mdf.dtToTimeStamp(new Date(this.lastLogDt)) : ''
+    },
+    uploadUrl () {
+      return (this.serverConfig.AllowUpload && this.digest)
+        ? this.omsUrl + '/api/upload/model/' + encodeURIComponent(this.digest) + '/workset'
+        : ''
     },
 
     ...mapGetters('model', {
@@ -193,6 +198,31 @@ export default {
       this.isLogRefreshPaused = false
     },
 
+    // started workset file upload
+    onStartUpload (info) {
+      const fn = (info && Array.isArray(info?.files) && info?.files.length > 0) ? (info?.files[0]?.name || '') : ''
+      this.$q.notify({
+        type: 'info', message: this.$t('Uploading scenario') + (fn ? ': ' + fn : '')
+      })
+    },
+    // succees of workset file upload
+    onDoneUpload (info) {
+      const fn = (info && Array.isArray(info?.files) && info?.files.length > 0) ? (info?.files[0]?.name || '') : ''
+      this.$q.notify({
+        type: 'info', message: this.$t('Scenario uploaded') + (fn ? ': ' + fn : '')
+      })
+    },
+    // failed workset file upload
+    onFailUpload (info) {
+      //
+      console.log('onUploadFailed info:', info)
+      //
+      this.$q.notify({
+        type: 'negative',
+        message: this.$t('Scenario upload failed') + ((info?.xhr?.responseText && info?.xhr?.responseText) ? ': ' + info?.xhr.responseText : '')
+      })
+    },
+
     // update page view
     initView () {
       if (!this.serverConfig.AllowDownload) {
@@ -257,7 +287,7 @@ export default {
       }
       this.loadWait = false
 
-      if (!isOk || !dLst || !Array.isArray(dLst) || !Mdf.isDownloadLogList(dLst)) {
+      if (!isOk || !dLst || !Array.isArray(dLst) || !Mdf.isUpDownLogList(dLst)) {
         if (this.logNoDataCount++ > MAX_LOG_NO_DATA_COUNT) this.isLogRefreshPaused = true // pause refresh on errors
         return
       }
@@ -347,7 +377,7 @@ export default {
       }
       this.loadWait = false
 
-      if (!isOk || !fLst || !Array.isArray(fLst) || fLst.length <= 0 || !Mdf.isDownloadFileTree(fLst)) {
+      if (!isOk || !fLst || !Array.isArray(fLst) || fLst.length <= 0 || !Mdf.isUpDownFileTree(fLst)) {
         return
       }
 
@@ -391,6 +421,17 @@ export default {
         }
       }
 
+      // make href link: for each part of the path do encodeURIComponent and keep / as is
+      const pathEncode = (path) => {
+        if (!path || typeof path !== typeof 'string') return ''
+
+        const ps = path.split('/')
+        for (let k = 0; k < ps.length; k++) {
+          ps[k] = encodeURIComponent(ps[k])
+        }
+        return ps.join('/')
+      }
+
       // add top level folders and files as starting point into the tree
       const fTree = []
       const fProc = []
@@ -406,6 +447,7 @@ export default {
         const fn = {
           key: 'fi-' + fi.Path + '-' + (fi.ModTime || 0).toString(),
           Path: fi.Path,
+          link: pathEncode(fi.Path),
           label: fPath[fi.Path].label,
           descr: this.fileTimeStamp(fi.ModTime) + (!fi.IsDir ? ' : ' + this.fileSizeStr(fi.Size) : ''),
           children: [],
@@ -436,6 +478,7 @@ export default {
           const fn = {
             key: 'fi-' + fi.Path + '-' + (fi.ModTime || 0).toString(),
             Path: fi.Path,
+            link: pathEncode(fi.Path),
             label: fPath[fi.Path].label,
             descr: this.fileTimeStamp(fi.ModTime) + (!fi.IsDir ? ' : ' + this.fileSizeStr(fi.Size) : ''),
             children: [],
@@ -500,7 +543,7 @@ export default {
 
   mounted () {
     this.initView()
-    this.$emit('tab-mounted', 'download-list', { digest: this.digest })
+    this.$emit('tab-mounted', 'updown-list', { digest: this.digest })
   },
   beforeDestroy () {
     this.stopLogRefresh()

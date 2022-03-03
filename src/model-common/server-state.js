@@ -7,6 +7,7 @@ export const emptyConfig = () => {
     RowPageMaxSize: 100,
     AllowUserHome: false,
     AllowDownload: false,
+    AllowUpload: false,
     Env: {},
     ModelCatalog: {
       ModelDir: '',
@@ -26,7 +27,8 @@ export const emptyConfig = () => {
 // return true if this is service config (it can be empty)
 export const isConfig = (c) => {
   if (!c) return false
-  if (!c.hasOwnProperty('RootDir') || !c.hasOwnProperty('RowPageMaxSize') || !c.hasOwnProperty('AllowUserHome') || !c.hasOwnProperty('AllowDownload') ||
+  if (!c.hasOwnProperty('RootDir') || !c.hasOwnProperty('RowPageMaxSize') || !c.hasOwnProperty('AllowUserHome') ||
+    !c.hasOwnProperty('AllowDownload') || !c.hasOwnProperty('AllowUpload') ||
     !c.hasOwnProperty('Env') || !c.hasOwnProperty('ModelCatalog') || !c.hasOwnProperty('RunCatalog')) {
     return false
   }
@@ -110,17 +112,17 @@ export const configRunOptsPresets = (c, modelName, langCode) => {
 
 /* eslint-disable no-multi-spaces */
 /*
-// DownloadStatusLog contains download status info and content of log file
-type DownloadStatusLog struct {
+// UpDownStatusLog contains download, upload or delete  status info and content of log file
+type UpDownStatusLog struct {
   Status        string   // if not empty then one of: progress ready error
-  Kind          string   // if not empty then one of: model, run, workset or delete
+  Kind          string   // if not empty then one of: model, run, workset, delete, upload
   ModelDigest   string   // content of "Model Digest:"
   RunDigest     string   // content of "Run  Digest:"
   WorksetName   string   // content of "Scenario Name:"
-  IsFolder      bool     // if true then download folder exist
+  IsFolder      bool     // if true then download (or upload) folder exist
   Folder        string   // content of "Folder:"
   FolderModTime int64    // folder modification time in milliseconds since epoch
-  IsZip         bool     // if true then download zip exist
+  IsZip         bool     // if true then download (or upload) zip exist
   ZipFileName   string   // zip file name
   ZipModTime    int64    // zip modification time in milliseconds since epoch
   ZipSize       int64    // zip file size
@@ -129,8 +131,8 @@ type DownloadStatusLog struct {
   Lines         []string // file content
 }
 */
-// return empty DownloadStatusLog
-export const emptyDownloadLog = () => {
+// return empty UpDownStatusLog
+export const emptyUpDownLog = () => {
   return {
     Status: '',       // if not empty then one of: progress, ready, error
     Kind: '',         // if not empty then one of: model, run, workset or delete
@@ -152,9 +154,10 @@ export const emptyDownloadLog = () => {
 /* eslint-enable no-multi-spaces */
 
 export const allModelsDownloadLog = 'all-models-download-logs'
+export const allModelsUploadLog = 'all-models-upload-logs'
 
-// return true if this is download log status info (it can be empty or incomplete)
-export const isDownloadLog = (d) => {
+// return true if this is download-or-upload log status info (it can be empty or incomplete)
+export const isUpDownLog = (d) => {
   if (!d) return false
   if (!d.hasOwnProperty('Status') || !d.hasOwnProperty('Kind') ||
     !d.hasOwnProperty('ModelDigest') || !d.hasOwnProperty('RunDigest') || !d.hasOwnProperty('WorksetName') ||
@@ -166,12 +169,12 @@ export const isDownloadLog = (d) => {
   return Array.isArray(d.Lines)
 }
 
-// return true if each array element isDownloadLog()
-export const isDownloadLogList = (dLst) => {
+// return true if each array element isUpDownLog()
+export const isUpDownLogList = (dLst) => {
   if (!dLst) return false
   if (!Array.isArray(dLst)) return false
   for (let k = 0; k < dLst.length; k++) {
-    if (!isDownloadLog(dLst[k])) return false
+    if (!isUpDownLog(dLst[k])) return false
   }
   return true
 }
@@ -186,8 +189,8 @@ type PathItem struct {
   ModTime int64  // file modification time in milliseconds since epoch
 }
 */
-// return empty DownloadFileItem
-export const emptyDownloadFileItem = () => {
+// return empty  emptyUpDownFileItem
+export const emptyUpDownFileItem = () => {
   return {
     Path: '',     // file path in / slash form
     IsDir: false, // if true then it is a directory
@@ -197,8 +200,8 @@ export const emptyDownloadFileItem = () => {
 }
 /* eslint-enable no-multi-spaces */
 
-// return true if this is download file item
-export const isDownloadFileItem = (fi) => {
+// return true if this is download-or-upload file item
+export const isUpDownFileItem = (fi) => {
   if (!fi) return false
   if (!fi.hasOwnProperty('Path') || typeof fi.Path !== typeof 'string' ||
     !fi.hasOwnProperty('IsDir') || typeof fi.IsDir !== typeof true ||
@@ -209,18 +212,18 @@ export const isDownloadFileItem = (fi) => {
   return true
 }
 
-// return true if this is not enpty download file item
-export const isNotEmptyDownloadFileItem = (fi) => {
-  if (!isDownloadFileItem(fi)) return false
+// return true if this is not empty download-or-upload file item
+export const isNotEmptyUpDownFileItem = (fi) => {
+  if (!isUpDownFileItem(fi)) return false
   return (fi.Path || '') !== ''
 }
 
-// return true if each array element isDownloadFileItem()
-export const isDownloadFileTree = (pLst) => {
+// return true if each array element isUpDownFileItem()
+export const isUpDownFileTree = (pLst) => {
   if (!pLst) return false
   if (!Array.isArray(pLst)) return false
   for (let k = 0; k < pLst.length; k++) {
-    if (!isDownloadFileItem(pLst[k])) return false
+    if (!isUpDownFileItem(pLst[k])) return false
   }
   return true
 }

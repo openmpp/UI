@@ -15,7 +15,7 @@ import UploadUserViews from 'components/UploadUserViews.vue'
 const RUN_LST_TAB_POS = 1       // model runs list tab position
 const WS_LST_TAB_POS = 4        // worksets list tab position
 const NEW_RUN_TAB_POS = 8       // new model run tab position
-const DOWNLOADS_TAB_POS = 12    // downloads list tab position
+const UP_DOWN_TAB_POS = 12      // downloads and uploads list tab position
 const FREE_TAB_POS = 20         // first unassigned tab position
 /* eslint-enable no-multi-spaces */
 
@@ -336,9 +336,9 @@ export default {
       const p = this.doTabAdd('run-log', { digest: this.digest, runStamp: stamp })
       if (p) this.$router.push(p)
     },
-    // view download list: add tab with open download page
-    onDownloadSelect () {
-      const p = this.doTabAdd('download-list', { digest: this.digest })
+    // view downloads and uploads: add tab with open downloads and uploads page
+    onUpDownSelect () {
+      const p = this.doTabAdd('updown-list', { digest: this.digest })
       if (p) this.$router.push(p)
     },
     // new model run selected by user:
@@ -554,13 +554,13 @@ export default {
           }
         }
 
-        case 'download-list':
+        case 'updown-list':
           return {
             kind: kind,
-            path: '/model/' + udgst + '/download-list',
+            path: '/model/' + udgst + '/updown-list',
             routeParts: routeParts,
-            title: this.$t('Downloads'),
-            pos: DOWNLOADS_TAB_POS,
+            title: this.$t('Downloads and Uploads'),
+            pos: UP_DOWN_TAB_POS,
             updated: false
           }
       }

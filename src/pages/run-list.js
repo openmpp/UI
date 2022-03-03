@@ -64,9 +64,7 @@ export default {
       runDigestToDelete: '',
       showDeleteDialogTickle: false,
       noteEditorShow: false,
-      noteEditorLangCode: '',
-      uploadFileSelect: false,
-      uploadFile: null
+      noteEditorLangCode: ''
     }
   },
 
@@ -74,7 +72,6 @@ export default {
     isNotEmptyRunCurrent () { return Mdf.isNotEmptyRunText(this.runCurrent) },
     descrRunCurrent () { return Mdf.descrOfTxt(this.runCurrent) },
     isCompare () { return !!this.runCompare && (this.runCompare?.RunDigest || '') !== '' },
-    fileSelected () { return !(this.uploadFile === null) },
 
     ...mapState('model', {
       theModel: state => state.theModel,
@@ -311,19 +308,6 @@ export default {
 
       this.startRunDownload(dgst) // start run download and show download page on success
     },
-    /*
-    // show model run upload dialog
-    doShowFileSelect () {
-      this.uploadFileSelect = true
-    },
-    // hides model run upload dialog
-    doCancelFileSelect () {
-      this.uploadFileSelect = false
-      this.uploadFile = null
-    },
-    // uploads model run
-    onUploadModelRun () {},
-    */
 
     // show or hide parameters tree
     onToogleShowParamTree () {

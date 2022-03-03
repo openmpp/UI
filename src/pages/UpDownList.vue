@@ -50,6 +50,21 @@
               <q-radio v-model="fastDownload" val="yes" :label="$t('Do fast downloads, only to analyze output values')" />
             </td>
           </tr>
+          <tr>
+            <td colspan="5" class="pt-cell">
+              <q-uploader
+                :disable="!serverConfig.AllowUpload || !digest"
+                :url="uploadUrl"
+                @uploading="onStartUpload"
+                @uploaded="onDoneUpload"
+                @failed="onFailUpload"
+                accept=".zip"
+                no-thumbnails
+                class="full-width"
+                :label="$t('Upload scenario .zip')"
+                />
+            </td>
+          </tr>
         </tbody>
       </table>
 
@@ -217,8 +232,8 @@
 
               <a
                 v-if="!prop.node.isGroup"
-                @click="onFolderLeafClick(prop.node.label, '/download/' + encodeURIComponent(prop.node.Path))"
-                :href="'/download/' + encodeURIComponent(prop.node.Path)"
+                @click="onFolderLeafClick(prop.node.label, '/download/' + prop.node.link)"
+                :href="'/download/' + prop.node.link"
                 target="_blank"
                 :download="prop.node.label"
                 :title="$t('Download') + ' ' + prop.node.label"
@@ -253,7 +268,7 @@
 </div>
 </template>
 
-<script src="./download-list.js"></script>
+<script src="./updown-list.js"></script>
 
 <style lang="scss" scope="local">
   .pt-table {
