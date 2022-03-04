@@ -439,9 +439,9 @@ export default {
           uL.push(st)
         }
       }
-      this.upDownStatusLst = Object.freeze(udLst)
-      this.downStatusLst = Object.freeze(dL)
-      this.upStatusLst = Object.freeze(uL)
+      this.upDownStatusLst = udLst
+      this.downStatusLst = dL
+      this.upStatusLst = uL
 
       this.logAllKey = logKey
       this.readyDownCount = nDownReady
