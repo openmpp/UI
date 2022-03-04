@@ -35,7 +35,7 @@
             <q-icon v-if="t.updated && t.kind === 'set-parameter'" name="mdi-content-save-edit" size="sm" class="self-center q-pr-xs"/>
             <q-icon v-if="t.kind === 'table'" name="mdi-table-large" size="sm" class="self-center q-pr-xs"/>
             <q-icon v-if="t.kind === 'run-log'" name="mdi-text-long" size="sm" class="self-center q-pr-xs"/>
-            <q-icon v-if="t.kind === 'updown-list'" name="mdi-file-download-outline" size="sm" class="self-center q-pr-xs"/>
+            <q-icon v-if="t.kind === 'updown-list'" name="mdi-download-circle-outline" size="sm" class="self-center q-pr-xs"/>
             <span class="col-shrink om-tab-title" :title="$t(t.title)">{{ $t(t.title) }}</span>
             <q-badge v-if="t.kind === 'run-list'" transparent outline class="q-ml-xs">{{ runTextCount }}</q-badge>
             <q-badge v-if="t.kind === 'set-list'" transparent outline class="q-ml-xs">{{ worksetTextCount }}</q-badge>
@@ -83,7 +83,7 @@
               <q-icon v-if="t.updated && t.kind === 'set-parameter'" name="mdi-content-save-edit" />
               <q-icon v-if="t.kind === 'table'" name="mdi-table-large" />
               <q-icon v-if="t.kind === 'run-log'" name="mdi-text-long" />
-              <q-icon v-if="t.kind === 'updown-list'" name="mdi-file-download-outline" />
+              <q-icon v-if="t.kind === 'updown-list'" name="mdi-download-circle-outline" />
             </q-item-section>
             <q-item-section>
               <q-item-label lines="1" :title="$t(t.title)">{{ $t(t.title) }}</q-item-label>

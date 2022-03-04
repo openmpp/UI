@@ -71,7 +71,7 @@
             dense
             color="primary"
             class="col-auto"
-            icon="mdi-file-download-outline"
+            icon="mdi-download-circle-outline"
             :title="$t('Download') + ' ' + prop.node.label"
             />
           <router-link

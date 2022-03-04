@@ -133,7 +133,7 @@
             unelevated
             dense
             color="primary"
-            class="rounded-borders tab-switch-button"
+            class="rounded-borders tab-switch-button q-pr-xs"
             :class="isReady(uds.Status) || isProgress(uds.Status) ? 'bg-primary' : 'bg-warning'"
             >
             <q-icon :name="uds.isShowLog ? 'keyboard_arrow_up' : 'keyboard_arrow_down'" />
@@ -187,7 +187,7 @@
           :title="$t('Download') + ' ' + uds.ZipFileName"
           >
           <q-item-section avatar>
-            <q-avatar rounded icon="mdi-folder-download" size="md" font-size="1.25rem" color="primary" text-color="white" />
+            <q-avatar rounded icon="mdi-download-circle" size="md" font-size="1.25rem" color="primary" text-color="white" />
           </q-item-section>
           <q-item-section>
             <q-item-label>{{ uds.ZipFileName }}</q-item-label>
@@ -326,7 +326,7 @@
             unelevated
             dense
             color="primary"
-            class="rounded-borders tab-switch-button"
+            class="rounded-borders tab-switch-button q-pr-xs"
             :class="isReady(uds.Status) || isProgress(uds.Status) ? 'bg-primary' : 'bg-warning'"
             >
             <q-icon :name="uds.isShowLog ? 'keyboard_arrow_up' : 'keyboard_arrow_down'" />
@@ -366,7 +366,7 @@
           :title="$t('Download') + ' ' + uds.ZipFileName"
           >
           <q-item-section avatar>
-            <q-avatar rounded icon="mdi-folder-download" size="md" font-size="1.25rem" color="primary" text-color="white" />
+            <q-avatar rounded icon="mdi-download-circle" size="md" font-size="1.25rem" color="primary" text-color="white" />
           </q-item-section>
           <q-item-section>
             <q-item-label>{{ uds.ZipFileName }}</q-item-label>

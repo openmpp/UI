@@ -247,11 +247,11 @@
         :to="'/model/' + modelDigest + '/updown-list'"
         >
         <q-item-section avatar>
-          <q-icon name="mdi-file-download-outline" />
+          <q-icon name="mdi-download-circle" />
         </q-item-section>
         <q-item-section>
-          <q-item-label>{{ $t('Uploads and Downloads') }}</q-item-label>
-          <q-item-label caption>{{ $t('View uploads and downloads') }}</q-item-label>
+          <q-item-label>{{ $t('Downloads and Uploads') }}</q-item-label>
+          <q-item-label caption>{{ $t('View downloads and uploads') }}</q-item-label>
         </q-item-section>
       </q-item>
       <q-separator />
@@ -409,13 +409,13 @@ export default {
       this.refreshTickle = !this.refreshTickle
     },
 
-    // view upload and download page
+    // view download and upload page
     onUpDownSelect (digest) {
       if (!digest) {
-        this.$q.notify({ type: 'negative', message: this.$t('Unable to view uploads and downloads') })
+        this.$q.notify({ type: 'negative', message: this.$t('Unable to view downloads and uploads') })
         return
       }
-      this.$router.push('/updown-list/model/' + digest) // show uploads and downloads for model selected from model list
+      this.$router.push('/updown-list/model/' + digest) // show downloads and uploads for model selected from model list
     },
 
     // receive server configuration, including configuration of model catalog and run catalog
