@@ -6,6 +6,7 @@ import WorksetBar from 'components/WorksetBar.vue'
 import ModelInfoDialog from 'components/ModelInfoDialog.vue'
 import RunInfoDialog from 'components/RunInfoDialog.vue'
 import WorksetInfoDialog from 'components/WorksetInfoDialog.vue'
+import RefreshWorksetList from 'components/RefreshWorksetList.vue'
 import DeleteConfirmDialog from 'components/DeleteConfirmDialog.vue'
 import { openURL } from 'quasar'
 
@@ -19,7 +20,7 @@ const MAX_LOG_WAIT_PROGRESS_COUNT = 20 * 60 // "recent" progress threshold (20 *
 
 export default {
   name: 'UpDownList',
-  components: { ModelBar, RunBar, WorksetBar, ModelInfoDialog, RunInfoDialog, WorksetInfoDialog, DeleteConfirmDialog },
+  components: { ModelBar, RunBar, WorksetBar, ModelInfoDialog, RunInfoDialog, WorksetInfoDialog, RefreshWorksetList, DeleteConfirmDialog },
 
   props: {
     digest: { type: String, default: '' },
@@ -28,13 +29,24 @@ export default {
 
   data () {
     return {
-      downloadLst: [],
+      upDownStatusLst: [],
+      downStatusLst: [],
+      upStatusLst: [],
+      downloadExpand: false,
+      uploadExpand: false,
       folderSelected: '',
-      totalLogCount: 0,
-      readyLogCount: 0,
-      progressLogCount: 0,
-      errorLogCount: 0,
+      upDownSelected: '',
+      totalDownCount: 0,
+      readyDownCount: 0,
+      progressDownCount: 0,
+      errorDownCount: 0,
+      totalUpCount: 0,
+      readyUpCount: 0,
+      progressUpCount: 0,
+      errorUpCount: 0,
       loadWait: false,
+      loadWsListWait: false,
+      refreshWsListTickle: false,
       isLogRefreshPaused: false,
       lastLogDt: 0,
       logRefreshInt: '',
@@ -51,6 +63,7 @@ export default {
       worksetInfoName: '',
       showDeleteDialogTickle: false,
       folderToDelete: '',
+      upDownToDelete: '',
       folderTreeData: [],
       isAnyFolderDir: false,
       folderTreeFilter: '',
@@ -63,6 +76,8 @@ export default {
     lastLogTimeStamp () {
       return this.lastLogDt ? Mdf.dtToTimeStamp(new Date(this.lastLogDt)) : ''
     },
+    isDownloadEnabled () { return this.serverConfig.AllowDownload },
+    isUploadEnabled () { return this.serverConfig.AllowUpload },
     uploadUrl () {
       return (this.serverConfig.AllowUpload && this.digest)
         ? this.omsUrl + '/api/upload/model/' + encodeURIComponent(this.digest) + '/workset'
@@ -97,7 +112,9 @@ export default {
     isRunKind (kind) { return kind === 'run' },
     isWorksetKind (kind) { return kind === 'workset' },
     isDeleteKind (kind) { return kind === 'delete' },
-    isUnkownKind (kind) { return kind !== 'model' && kind !== 'run' && kind !== 'workset' && kind !== 'delete' },
+    isUploadKind (kind) { return kind === 'upload' },
+    isAnyDownloadKind (kind) { return kind === 'model' || kind === 'run' || kind === 'workset' },
+    isUnkownKind (kind) { return kind !== 'model' && kind !== 'run' && kind !== 'workset' && kind !== 'delete' && kind !== 'upload' },
     fileTimeStamp (t) {
       if (!t || t <= 0) return ''
 
@@ -136,28 +153,35 @@ export default {
         this.doLogListRefresh()
 
         // refresh files list in selected folder
-        if ((this.folderSelected || '') !== '') {
-          const st = this.statusByFolder(this.folderSelected)
-          if (this.isProgress(st)) this.doFolderFilesRefresh(this.folderSelected)
+        if ((this.folderSelected || '') !== '' && (this.upDownSelected || '') !== '') {
+          const st = this.statusByUpDownFolder(this.folderSelected, this.upDownSelected)
+          if (this.isProgress(st)) this.doFolderFilesRefresh(this.upDownSelected, this.folderSelected)
         }
       }
       this.logRefreshCount++
     },
-    // return downlod status by folder
-    statusByFolder (folder) {
-      const n = this.downloadLst.findIndex((dl) => dl.Folder === folder)
-      return n >= 0 ? this.downloadLst[n].Status : ''
+    // return status by folder
+    statusByUpDownFolder (folder, upDown) {
+      if (upDown === 'up') {
+        const n = this.upStatusLst.findIndex((uds) => uds.Folder === folder)
+        return n >= 0 ? this.upStatusLst[n].Status : ''
+      }
+      // else find in download
+      const n = this.downStatusLst.findIndex((uds) => uds.Folder === folder)
+      return n >= 0 ? this.downStatusLst[n].Status : ''
     },
 
     // show or hide folder tree
-    onFolderTreeClick (folder) {
-      if (!folder) return
+    onFolderTreeClick (upDown, folder) {
+      if (!folder || (upDown !== 'up' && upDown !== 'down')) return
 
-      if (folder === this.folderSelected) { // collapse: this folder is now open
+      if (folder === this.folderSelected && upDown === this.upDownSelected) { // collapse: this folder is now open
         this.folderSelected = ''
+        this.upDownSelected = ''
       } else {
         this.folderSelected = folder
-        this.doFolderFilesRefresh(this.folderSelected)
+        this.upDownSelected = upDown
+        this.doFolderFilesRefresh(upDown, this.folderSelected)
         this.isFolderTreeExpanded = false
       }
     },
@@ -181,19 +205,20 @@ export default {
       this.folderTreeFilter = ''
       this.$refs.folderTreeFilterInput[0].focus()
     },
-    // open download url
+    // open file download url
     onFolderLeafClick (name, path) {
       openURL(path)
     },
 
-    // delete download results by folder name
-    onDeleteClick (folder) {
+    // delete download or upload results by folder name
+    onDeleteClick (upDown, folder) {
       this.folderToDelete = folder
+      this.upDownToDelete = upDown
       this.showDeleteDialogTickle = !this.showDeleteDialogTickle
     },
-    // delete download results by folder name
-    onYesDownloadDelete (folder) {
-      this.doDeleteDownload(folder)
+    // delete download or upload results by folder name
+    onYesUpDownDelete (folder, itemId, upDown) {
+      this.doDeleteUpDown(upDown, folder)
       this.logRefreshPauseToggle()
       this.isLogRefreshPaused = false
     },
@@ -202,36 +227,53 @@ export default {
     onStartUpload (info) {
       const fn = (info && Array.isArray(info?.files) && info?.files.length > 0) ? (info?.files[0]?.name || '') : ''
       this.$q.notify({
-        type: 'info', message: this.$t('Uploading scenario') + (fn ? ': ' + fn : '')
+        type: 'info', message: this.$t('Upload scenario') + (fn ? ': ' + fn : '') + '\u2026'
       })
+      this.uploadExpand = true
+      this.downloadExpand = false
     },
     // succees of workset file upload
     onDoneUpload (info) {
       const fn = (info && Array.isArray(info?.files) && info?.files.length > 0) ? (info?.files[0]?.name || '') : ''
       this.$q.notify({
-        type: 'info', message: this.$t('Scenario uploaded') + (fn ? ': ' + fn : '')
+        type: 'info',
+        message: this.$t('Import scenario') + (fn ? ': ' + fn : '') + '\u2026'
       })
+      // refresh list of uploads
+      this.logRefreshPauseToggle()
+      this.isLogRefreshPaused = false
+      this.uploadExpand = true
+      this.downloadExpand = false
     },
     // failed workset file upload
     onFailUpload (info) {
-      //
-      console.log('onUploadFailed info:', info)
-      //
       this.$q.notify({
         type: 'negative',
         message: this.$t('Scenario upload failed') + ((info?.xhr?.responseText && info?.xhr?.responseText) ? ': ' + info?.xhr.responseText : '')
       })
+      // refresh list of uploads
+      this.logRefreshPauseToggle()
+      this.isLogRefreshPaused = false
+      this.uploadExpand = true
+      this.downloadExpand = false
     },
 
     // update page view
     initView () {
-      if (!this.serverConfig.AllowDownload) {
-        this.$q.notify({ type: 'negative', message: this.$t('Downloads are not allowed') })
+      if (!this.serverConfig.AllowDownload && !this.serverConfig.AllowUpload) {
+        this.$q.notify({ type: 'negative', message: this.$t('Downloads and uploads are not allowed') })
+        this.downloadExpand = false
+        this.uploadExpand = false
         return
       }
+      this.uploadExpand = !this.serverConfig.AllowDownload && this.serverConfig.AllowUpload
+      this.downloadExpand = !this.uploadExpand
 
-      this.downloadLst = []
+      this.upDownStatusLst = []
+      this.downStatusLst = []
+      this.upStatusLst = []
       this.folderSelected = ''
+      this.upDownSelected = ''
       this.folderTreeData = []
       this.isAnyFolderDir = false
       this.folderTreeFilter = ''
@@ -260,7 +302,7 @@ export default {
       clearInterval(this.logRefreshInt)
     },
 
-    // retrive list of download log files by model digest
+    // retrive list of download and upload log files by model digest
     async doLogListRefresh () {
       this.logSendCount = 0
       const now = Date.now()
@@ -269,61 +311,93 @@ export default {
 
       this.loadWait = true
       let isOk = false
-      let dLst = []
-      const u = this.omsUrl +
-        ((this.digest && this.digest !== Mdf.allModelsDownloadLog)
-          ? '/api/download/log/model/' + encodeURIComponent(this.digest)
-          : '/api/download/log/all')
-      try {
-        const response = await this.$axios.get(u)
-        dLst = response.data
-        isOk = true
-      } catch (e) {
-        let em = ''
+      let dR = []
+      let uR = []
+
+      if (this.serverConfig.AllowDownload) { // retrive download status
+        const u = this.omsUrl +
+          ((this.digest && this.digest !== Mdf.allModelsDownloadLog)
+            ? '/api/download/log/model/' + encodeURIComponent(this.digest)
+            : '/api/download/log/all')
         try {
-          if (e.response) em = e.response.data || ''
-        } finally {}
-        console.warn('Server offline or download log files retrive failed.', em)
+          const response = await this.$axios.get(u)
+          dR = response.data
+          isOk = true
+        } catch (e) {
+          let em = ''
+          try {
+            if (e.response) em = e.response.data || ''
+          } finally {}
+          console.warn('Server offline or download log files retrive failed.', em)
+        }
       }
+      if (this.serverConfig.AllowUpload) { // retrive upload status
+        const u = this.omsUrl +
+          ((this.digest && this.digest !== Mdf.allModelsUploadLog)
+            ? '/api/upload/log/model/' + encodeURIComponent(this.digest)
+            : '/api/upload/log/all')
+        try {
+          const response = await this.$axios.get(u)
+          uR = response.data
+          isOk = true
+        } catch (e) {
+          let em = ''
+          try {
+            if (e.response) em = e.response.data || ''
+          } finally {}
+          console.warn('Server offline or upload log files retrive failed.', em)
+        }
+      }
+      const udLst = [].concat(dR, uR)
+
       this.loadWait = false
 
-      if (!isOk || !dLst || !Array.isArray(dLst) || !Mdf.isUpDownLogList(dLst)) {
+      if (!isOk || !udLst || !Array.isArray(udLst) || !Mdf.isUpDownLogList(udLst)) {
         if (this.logNoDataCount++ > MAX_LOG_NO_DATA_COUNT) this.isLogRefreshPaused = true // pause refresh on errors
         return
       }
-      if (dLst.length <= 0) {
+      if (udLst.length <= 0) {
         if (this.logNoDataCount++ > MAX_LOG_NO_DATA_COUNT) this.isLogRefreshPaused = true // pause refresh if no log files exist
       }
 
       // check if any changes in log files and update status counts
       let logKey = ''
-      let nReady = 0
-      let nProgress = 0
-      let nError = 0
+      let nDownReady = 0
+      let nDownProgress = 0
+      let nDownError = 0
+      let nUpReady = 0
+      let nUpProgress = 0
+      let nUpError = 0
       let maxTime = 0
 
-      for (let k = 0; k < dLst.length; k++) {
-        logKey = logKey + '|' + dLst[k].LogFileName + ':' + dLst[k].LogModTime.toString() + ':' + dLst[k].FolderModTime.toString() + ':' + dLst[k].ZipModTime.toString()
+      for (let k = 0; k < udLst.length; k++) {
+        logKey = logKey + '|' + udLst[k].LogFileName + ':' + udLst[k].LogModTime.toString() + ':' + udLst[k].FolderModTime.toString() + ':' + udLst[k].ZipModTime.toString()
 
-        switch (dLst[k].Status) {
+        switch (udLst[k].Status) {
           case 'ready':
-            nReady++
+            if (this.isAnyDownloadKind(udLst[k].Kind)) nDownReady++
+            if (this.isUploadKind(udLst[k].Kind)) nUpReady++
             break
+
           case 'progress':
-            nProgress++
-            if (dLst[k].LogModTime > maxTime) maxTime = dLst[k].LogModTime
-            if (dLst[k].FolderModTime > maxTime) maxTime = dLst[k].FolderModTime
-            if (dLst[k].ZipModTime > maxTime) maxTime = dLst[k].ZipModTime
+            if (this.isAnyDownloadKind(udLst[k].Kind)) nDownProgress++
+            if (this.isUploadKind(udLst[k].Kind)) nUpProgress++
+
+            if (udLst[k].LogModTime > maxTime) maxTime = udLst[k].LogModTime
+            if (udLst[k].FolderModTime > maxTime) maxTime = udLst[k].FolderModTime
+            if (udLst[k].ZipModTime > maxTime) maxTime = udLst[k].ZipModTime
             break
+
           case 'error':
-            nError++
+            if (this.isAnyDownloadKind(udLst[k].Kind)) nDownError++
+            if (this.isUploadKind(udLst[k].Kind)) nUpError++
             break
         }
       }
 
       // pause refresh if no changes in log files, folders and zip files
       // wait longer if there is a "recent" progress
-      const isRecent = nProgress > 0 && (Date.now() - maxTime < 1000 * MAX_LOG_WAIT_PROGRESS_COUNT)
+      const isRecent = (nDownProgress > 0 || nUpProgress > 0) && (Date.now() - maxTime < 1000 * MAX_LOG_WAIT_PROGRESS_COUNT)
 
       if (this.logAllKey === logKey) {
         this.isLogRefreshPaused = this.logNoDataCount++ > (!isRecent ? MAX_LOG_NO_DATA_COUNT : MAX_LOG_RECENT_COUNT)
@@ -331,39 +405,65 @@ export default {
         this.logNoDataCount = 0 // new data found
       }
 
-      // notify on completed downloads and copy log file show / hide status
-      for (let k = 0; k < dLst.length; k++) {
-        dLst[k].isShowLog = false
-        const n = this.downloadLst.findIndex((dl) => dl.Folder === dLst[k].Folder)
+      // notify on completed downloads or uploads and copy log file show / hide status
+      for (let k = 0; k < udLst.length; k++) {
+        udLst[k].isShowLog = false
+        const n = this.upDownStatusLst.findIndex((st) => st.Folder === udLst[k].Folder)
         if (n < 0) continue
 
-        if (this.isProgress(this.downloadLst[n].Status) && (this.isModelKind(dLst[k].Kind) || this.isRunKind(dLst[k].Kind) || this.isWorksetKind(dLst[k].Kind))) {
-          if (this.isReady(dLst[k].Status)) this.$q.notify({ type: 'info', message: this.$t('Download completed') + (dLst[k].Folder ? (': ' + dLst[k].Folder) : '') })
-          if (this.isError(dLst[k].Status)) this.$q.notify({ type: 'negative', message: this.$t('Download error') + (dLst[k].Folder ? (': ' + dLst[k].Folder) : '') })
+        if (this.isProgress(this.upDownStatusLst[n].Status) && (this.isAnyDownloadKind(udLst[k].Kind))) {
+          if (this.isReady(udLst[k].Status)) this.$q.notify({ type: 'info', message: this.$t('Download completed') + (udLst[k].Folder ? (': ' + udLst[k].Folder) : '') })
+          if (this.isError(udLst[k].Status)) this.$q.notify({ type: 'negative', message: this.$t('Download error') + (udLst[k].Folder ? (': ' + udLst[k].Folder) : '') })
         }
-        dLst[k].isShowLog = this.downloadLst[n].isShowLog
+        if (this.isProgress(this.upDownStatusLst[n].Status) && this.isUploadKind(udLst[k].Kind)) {
+          if (this.isReady(udLst[k].Status)) this.$q.notify({ type: 'info', message: this.$t('Upload completed') + (udLst[k].Folder ? (': ' + udLst[k].Folder) : '') })
+          if (this.isError(udLst[k].Status)) this.$q.notify({ type: 'negative', message: this.$t('Upload error') + (udLst[k].Folder ? (': ' + udLst[k].Folder) : '') })
+        }
+        udLst[k].isShowLog = this.upDownStatusLst[n].isShowLog
       }
 
-      // replace download log list
-      this.downloadLst = dLst
+      // refresh workset list on upload success
+      if (nUpReady !== this.readyUpCount) {
+        this.refreshWsListTickle = !this.refreshWsListTickle
+      }
+
+      // replace download and upload status list
+      const dL = []
+      const uL = []
+
+      for (const st of udLst) {
+        if (this.isAnyDownloadKind(st.Kind)) {
+          dL.push(st)
+        }
+        if (this.isUploadKind(st.Kind)) {
+          uL.push(st)
+        }
+      }
+      this.upDownStatusLst = Object.freeze(udLst)
+      this.downStatusLst = Object.freeze(dL)
+      this.upStatusLst = Object.freeze(uL)
 
       this.logAllKey = logKey
-      this.readyLogCount = nReady
-      this.progressLogCount = nProgress
-      this.errorLogCount = nError
-      this.totalLogCount = this.downloadLst.length
+      this.readyDownCount = nDownReady
+      this.progressDownCount = nDownProgress
+      this.errorDownCount = nDownError
+      this.readyUpCount = nUpReady
+      this.progressUpCount = nUpProgress
+      this.errorUpCount = nUpError
+      this.totalDownCount = this.downStatusLst.length
+      this.totalUpCount = this.upStatusLst.length
     },
 
-    // retrive list of files in download folder
-    async doFolderFilesRefresh (folder) {
-      if (!folder) {
+    // retrive list of files in download or upload folder
+    async doFolderFilesRefresh (upDown, folder) {
+      if (!folder || !upDown) {
         return // exit on empty folder
       }
       this.loadWait = true
       let isOk = false
       let fLst = []
 
-      const u = this.omsUrl + '/api/download/file-tree/' + encodeURIComponent(folder || '')
+      const u = this.omsUrl + '/api/' + (upDown === 'up' ? 'upload' : 'download') + '/file-tree/' + encodeURIComponent(folder || '')
       try {
         const response = await this.$axios.get(u)
         fLst = response.data
@@ -373,7 +473,7 @@ export default {
         try {
           if (e.response) em = e.response.data || ''
         } finally {}
-        console.warn('Server offline or download file tree retrive failed.', em)
+        console.warn('Server offline or file tree retrive failed.', em)
       }
       this.loadWait = false
 
@@ -503,10 +603,10 @@ export default {
       return { isAnyDir: isAnyDir, tree: fTree }
     },
 
-    // delete download by folder name
-    async doDeleteDownload (folder) {
-      if (!folder) {
-        console.warn('Unable to delete: invalid (empty) folder name')
+    // delete download or upload by folder name
+    async doDeleteUpDown (upDown, folder) {
+      if (!folder || !upDown) {
+        console.warn('Unable to delete: invalid (empty) folder name or upload-download direction')
         return
       }
       this.$q.notify({ type: 'info', message: this.$t('Deleting') + ': ' + folder })
@@ -514,9 +614,9 @@ export default {
       this.loadWait = true
       let isOk = false
 
-      const u = this.omsUrl + '/api/download/delete/' + encodeURIComponent(folder || '')
+      const u = this.omsUrl + '/api/' + (upDown === 'up' ? 'upload' : 'download') + '/delete/' + encodeURIComponent(folder || '')
       try {
-        // send download request to the server, response expected to be empty on success
+        // send delete request to the server, response expected to be empty on success
         await this.$axios.delete(u)
         isOk = true
       } catch (e) {

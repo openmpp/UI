@@ -86,9 +86,7 @@ export default {
       showDeleteParameterTickle: false,
       showDeleteGroupTickle: false,
       noteEditorLangCode: '',
-      noteCurrent: '',
-      uploadFileSelect: false,
-      uploadFile: null
+      noteCurrent: ''
     }
   },
 
@@ -96,7 +94,6 @@ export default {
     isNotEmptyWorksetCurrent () { return Mdf.isNotEmptyWorksetText(this.worksetCurrent) },
     isReadonlyWorksetCurrent () { return Mdf.isNotEmptyWorksetText(this.worksetCurrent) && this.worksetCurrent.IsReadonly },
     descrWorksetCurrent () { return Mdf.descrOfTxt(this.worksetCurrent) },
-    fileSelected () { return !(this.uploadFile === null) },
 
     ...mapState('model', {
       theModel: state => state.theModel,
@@ -251,20 +248,6 @@ export default {
     onWorksetParamClick (name) {
       this.$emit('set-parameter-select', name)
     },
-
-    /*
-    // show input scenario upload dialog
-    doShowFileSelect () {
-      this.uploadFileSelect = true
-    },
-    // hides input scenario upload dialog
-    doCancelFileSelect () {
-      this.uploadFileSelect = false
-      this.uploadFile = null
-    },
-    onUploadInputScenario () {},
-    onUploadReplaceInputScenario () {},
-    */
 
     // start create new workset
     onNewWorksetClick () {

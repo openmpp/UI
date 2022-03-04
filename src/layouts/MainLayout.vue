@@ -189,10 +189,7 @@
       <q-separator />
 
       <q-item v-if="isModel">
-        <q-item-label
-          header
-          class="ellipsis secondary q-pl-none q-pb-sm"
-          >
+        <q-item-label class="ellipsis om-text-descr-title q-pl-none q-pb-sm q-pt-md q-pr-md">
           {{ modelName }}
         </q-item-label>
       </q-item>

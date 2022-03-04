@@ -16,26 +16,6 @@
         icon="mdi-notebook-plus"
         :title="$t('Create new input scenario')"
        />
-      <!--
-      <q-btn
-        @click="doShowFileSelect()"
-        v-show="!uploadFileSelect"
-        flat
-        dense
-        class="col-auto text-white rounded-borders q-ml-xs bg-primary text-white rounded-borders"
-        icon='mdi-file-upload-outline'
-        title='Upload input scenario'
-        />
-      <q-btn
-        @click="doCancelFileSelect()"
-        v-show="uploadFileSelect"
-        flat
-        dense
-        class="col-auto text-white rounded-borders q-ml-xs bg-primary text-white rounded-borders"
-        icon='mdi-close-circle'
-        title='Cancel upload'
-        />
-      -->
       <q-separator vertical inset spaced="sm" color="secondary" />
 
       <span class="col-auto no-wrap q-mr-xs">
@@ -127,44 +107,6 @@
         </div>
       </transition>
     </div>
-
-    <span class="row q-pl-sm q-pb-sm">
-      <q-btn
-        @click="onUploadInputScenario"
-        v-if="uploadFileSelect"
-        :disable="!fileSelected"
-        flat
-        dense
-        class="bg-primary text-white rounded-borders q-mr-xs"
-        icon="mdi-file-upload-outline"
-        :title="$t('Upload selected input scenario')"
-        />
-
-      <q-btn
-        @click="onUploadReplaceInputScenario"
-        v-if="uploadFileSelect"
-        :disable="!fileSelected"
-        flat
-        dense
-        class="bg-primary text-white rounded-borders"
-        icon="mdi-file-replace-outline"
-        title='Upload and replace selected input scenario'
-        />
-
-      <q-file
-        v-model="uploadFile"
-        v-if="uploadFileSelect"
-        accept=".zip"
-        outlined
-        dense
-        clearable
-        hide-bottom-space
-        class="q-pl-xs"
-        color="primary"
-        label='Select input scenario for upload'
-        >
-      </q-file>
-    </span>
 
     <q-card-section
       v-show="isParamTreeShow"
