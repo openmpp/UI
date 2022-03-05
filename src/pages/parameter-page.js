@@ -211,11 +211,11 @@ export default {
       openURL(u)
     },
 
-    // show input scenario upload dialog
+    // show parameter csv upload dialog
     doShowFileSelect () {
       this.uploadFileSelect = true
     },
-    // hides input scenario upload dialog
+    // hides input parameter csv upload dialog
     doCancelFileSelect () {
       this.uploadFileSelect = false
       this.uploadFile = null

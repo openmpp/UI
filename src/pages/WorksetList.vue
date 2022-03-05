@@ -16,6 +16,25 @@
         icon="mdi-notebook-plus"
         :title="$t('Create new input scenario')"
        />
+      <q-btn
+        @click="doShowFileSelect()"
+        v-show="!uploadFileSelect"
+        :disable="!isUploadEnabled"
+        flat
+        dense
+        class="col-auto text-white rounded-borders q-ml-xs bg-primary text-white rounded-borders"
+        icon='mdi-cloud-upload'
+        :title="$t('Upload scenario .zip')"
+        />
+      <q-btn
+        @click="doCancelFileSelect()"
+        v-show="uploadFileSelect"
+        flat
+        dense
+        class="col-auto text-white rounded-borders q-ml-xs bg-primary text-white rounded-borders"
+        icon='mdi-close-circle'
+        :title="$t('Cancel upload')"
+        />
       <q-separator vertical inset spaced="sm" color="secondary" />
 
       <span class="col-auto no-wrap q-mr-xs">
@@ -227,6 +246,34 @@
       class="q-pa-sm"
       >
     </new-workset>
+  </q-card>
+
+  <q-card v-if="uploadFileSelect">
+    <div class="row q-mt-xs q-pa-sm">
+      <q-btn
+        @click="onUploadWorkset"
+        v-if="uploadFileSelect"
+        :disable="!fileSelected"
+        flat
+        dense
+        class="col-auto bg-primary text-white rounded-borders"
+        icon="mdi-upload"
+        :title="$t('Upload scenario .zip')"
+        />
+      <q-file
+        v-model="uploadFile"
+        v-if="uploadFileSelect"
+        accept='.zip'
+        outlined
+        dense
+        clearable
+        hide-bottom-space
+        class="col q-pl-xs"
+        color="primary"
+        :label="$t('Select input scenario .zip for upload')"
+        >
+      </q-file>
+    </div>
   </q-card>
 
   <q-card

@@ -52,19 +52,20 @@ export default {
       uploadUserViewsTickle: false,
       uploadUserViewsDone: false,
       modelName: '',
-      runDnsCurrent: '',      // run digest selected (run name, run stamp)
-      wsNameCurrent: '',      // workset name selected
-      runViewsArray: [],      // digests of runs to refresh to view existing tabs
-      wsViewsArray: [],       // names of worksets to refresh to view existing tabs
-      activeTabKey: '',       // active tab path
-      tabItems: [],           // tab list
+      runDnsCurrent: '',        // run digest selected (run name, run stamp)
+      wsNameCurrent: '',        // workset name selected
+      runViewsArray: [],        // digests of runs to refresh to view existing tabs
+      wsViewsArray: [],         // names of worksets to refresh to view existing tabs
+      activeTabKey: '',         // active tab path
+      tabItems: [],             // tab list
       updatingWsStatus: false,
       isReadonlyWsStatus: false,
       nameWsStatus: '',
       updateWsStatusTickle: false,
-      paramEditCount: 0,      // number of edited and unsaved parameters
-      pathToRouteLeave: '',   // router component leave guard: path-to leave if user confirm changes discard
-      isYesToLeave: false,    // if true then do router push to leave the page
+      toUpDownSection: 'down',    // downloads and uploads page active section
+      paramEditCount: 0,          // number of edited and unsaved parameters
+      pathToRouteLeave: '',       // router component leave guard: path-to leave if user confirm changes discard
+      isYesToLeave: false,        // if true then do router push to leave the page
       showAllDiscardDlg: false
     }
   },
@@ -336,10 +337,29 @@ export default {
       const p = this.doTabAdd('run-log', { digest: this.digest, runStamp: stamp })
       if (p) this.$router.push(p)
     },
-    // view downloads and uploads: add tab with open downloads and uploads page
-    onUpDownSelect () {
+    // view downloads: add tab with open downloads page section
+    onDownloadSelect () {
       const p = this.doTabAdd('updown-list', { digest: this.digest })
-      if (p) this.$router.push(p)
+      if (p) {
+        this.toUpDownSection = 'down'
+        if (this.$route.path === p) {
+          this.activeTabKey = p
+        } else {
+          this.$router.push(p)
+        }
+      }
+    },
+    // view uploads: add tab with open uploads page section
+    onUploadSelect () {
+      const p = this.doTabAdd('updown-list', { digest: this.digest })
+      if (p) {
+        this.toUpDownSection = 'up'
+        if (this.$route.path === p) {
+          this.activeTabKey = p
+        } else {
+          this.$router.push(p)
+        }
+      }
     },
     // new model run selected by user:
     // if workset name supplied then select workset first and open run tab after

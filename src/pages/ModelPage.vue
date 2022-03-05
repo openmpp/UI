@@ -99,6 +99,7 @@
   <router-view
     ref="theTab"
     :refresh-tickle="refreshTickle"
+    :to-up-down-section="toUpDownSection"
     @tab-mounted="onTabMounted"
     @tab-select="onTabSelect"
     @run-select="onRunSelect"
@@ -110,8 +111,8 @@
     @edit-updated="onEditUpdated"
     @run-log-select="onRunLogSelect"
     @new-run-select="onNewRunSelect"
-    @download-select="onUpDownSelect"
-    @upload-select="onUpDownSelect"
+    @download-select="onDownloadSelect"
+    @upload-select="onUploadSelect"
     @run-completed-list="onRunCompletedList"
     @parameter-view-saved="onParameterViewSaved"
     @run-list-refresh="onRunListRefresh"

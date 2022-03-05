@@ -292,8 +292,9 @@
   <q-page-container>
     <router-view
       :refresh-tickle="refreshTickle"
-      @download-select="onUpDownSelect"
-      @upload-select="onUpDownSelect"
+      :to-up-down-section="toUpDownSection"
+      @download-select="onDownloadSelect"
+      @upload-select="onUploadSelect"
       >
     </router-view>
   </q-page-container>
@@ -325,6 +326,7 @@ export default {
       loadWait: false,
       isBeta: true,
       modelInfoTickle: false,
+      toUpDownSection: 'down',
       langCode: this.$q.lang.getLocale(),
       appLanguages: languages.filter(lang => ['fr', 'en-us'].includes(lang.isoName))
     }
@@ -409,13 +411,25 @@ export default {
       this.refreshTickle = !this.refreshTickle
     },
 
-    // view download and upload page
-    onUpDownSelect (digest) {
+    // view downloads page section
+    onDownloadSelect (digest) {
       if (!digest) {
-        this.$q.notify({ type: 'negative', message: this.$t('Unable to view downloads and uploads') })
+        this.$q.notify({ type: 'negative', message: this.$t('Unable to view downloads') })
         return
       }
-      this.$router.push('/updown-list/model/' + digest) // show downloads and uploads for model selected from model list
+      // show downloads for model selected from model list
+      this.toUpDownSection = 'down'
+      this.$router.push('/updown-list/model/' + encodeURIComponent(digest))
+    },
+    // view uploads page section
+    onUploadSelect (digest) {
+      if (!digest) {
+        this.$q.notify({ type: 'negative', message: this.$t('Unable to view uploads') })
+        return
+      }
+      // show uploads for model selected from model list
+      this.toUpDownSection = 'up'
+      this.$router.push('/updown-list/model/' + encodeURIComponent(digest))
     },
 
     // receive server configuration, including configuration of model catalog and run catalog

@@ -85,6 +85,8 @@ export default {
       isShowNoteEditor: false,
       showDeleteParameterTickle: false,
       showDeleteGroupTickle: false,
+      uploadFileSelect: false,
+      uploadFile: null,
       noteEditorLangCode: '',
       noteCurrent: ''
     }
@@ -94,6 +96,8 @@ export default {
     isNotEmptyWorksetCurrent () { return Mdf.isNotEmptyWorksetText(this.worksetCurrent) },
     isReadonlyWorksetCurrent () { return Mdf.isNotEmptyWorksetText(this.worksetCurrent) && this.worksetCurrent.IsReadonly },
     descrWorksetCurrent () { return Mdf.descrOfTxt(this.worksetCurrent) },
+    isUploadEnabled () { return this.serverConfig.AllowUpload },
+    fileSelected () { return !(this.uploadFile === null) },
 
     ...mapState('model', {
       theModel: state => state.theModel,
@@ -322,6 +326,54 @@ export default {
       }
 
       this.startWorksetDownload(name) // start workset download and show download page on success
+    },
+
+    // show input scenario upload dialog
+    doShowFileSelect () {
+      this.uploadFileSelect = true
+    },
+    // hides input scenario upload dialog
+    doCancelFileSelect () {
+      this.uploadFileSelect = false
+      this.uploadFile = null
+    },
+
+    // upload workset zip file
+    async onUploadWorkset () {
+      // check file name and notify user
+      const fName = this.uploadFile?.name
+      if (!fName) {
+        this.$q.notify({ type: 'negative', message: this.$t('Invalid (empty) file name') })
+        return
+      }
+      this.$q.notify({ type: 'info', message: this.$t('Uploading') + ': ' + fName + '\u2026' })
+
+      // make upload multipart form
+      const u = this.omsUrl + '/api/upload/model/' + encodeURIComponent(this.digest) + '/workset'
+
+      const fd = new FormData()
+      fd.append('workset.zip', this.uploadFile, fName) // name and file name are ignored by server
+      try {
+        // update workset zip, drop response on success
+        await this.$axios.post(u, fd)
+      } catch (e) {
+        let msg = ''
+        try {
+          if (e.response) msg = e.response.data || ''
+        } finally {}
+        console.warn('Unable to upload input scenario', msg, fName)
+        this.$q.notify({ type: 'negative', message: this.$t('Unable to upload input scenario') + ': ' + fName })
+        return
+      }
+
+      // notify user and close upload controls
+      this.doCancelFileSelect()
+      this.$q.notify({ type: 'info', message: this.$t('Uploaded') + ': ' + fName })
+      this.$q.notify({ type: 'info', message: this.$t('Import scenario') + ': ' + fName + '\u2026' })
+
+      // upload started: show upload list page
+      this.$emit('upload-select', this.digest)
+      this.$emit('set-list-refresh') // refresh workset list if upload completed fast
     },
 
     // open description and notes editor for current workset

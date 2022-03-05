@@ -59,18 +59,36 @@
             </td>
           </tr>
           <tr>
-            <td colspan="6" class="pt-cell">
-              <q-uploader
-                :disable="!serverConfig.AllowUpload || !digest"
-                :url="uploadUrl"
-                @uploading="onStartUpload"
-                @uploaded="onDoneUpload"
-                @failed="onFailUpload"
-                accept=".zip"
-                no-thumbnails
-                class="full-width"
-                :label="$t('Upload scenario .zip')"
+            <td colspan="6" class="bg-primary text-white pt-cell-left text-weight-medium">
+              <span class="q-pl-xs">{{ $t('Upload scenario .zip') }}</span>
+            </td>
+          </tr>
+          <tr>
+            <td class="pt-cell">
+              <q-btn
+                @click="onUploadWorkset"
+                :disable="!isUploadEnabled || !fileSelected"
+                flat
+                dense
+                class="col-auto bg-primary text-white rounded-borders"
+                icon="mdi-upload"
+                :title="$t('Upload scenario .zip')"
                 />
+            </td>
+            <td colspan="5" class="pt-cell">
+              <q-file
+                v-model="uploadFile"
+                :disable="!isUploadEnabled || !digest"
+                accept='.zip'
+                outlined
+                dense
+                clearable
+                hide-bottom-space
+                class="col q-pl-xs"
+                color="primary"
+                :label="$t('Select input scenario .zip for upload')"
+                >
+              </q-file>
             </td>
           </tr>
         </tbody>

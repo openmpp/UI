@@ -24,6 +24,7 @@ export default {
 
   props: {
     digest: { type: String, default: '' },
+    toUpDownSection: { type: String, default: 'down' },
     refreshTickle: { type: Boolean, default: false }
   },
 
@@ -68,7 +69,8 @@ export default {
       isAnyFolderDir: false,
       folderTreeFilter: '',
       isFolderTreeExpanded: false,
-      fastDownload: 'yes'
+      fastDownload: 'yes',
+      uploadFile: null
     }
   },
 
@@ -77,12 +79,8 @@ export default {
       return this.lastLogDt ? Mdf.dtToTimeStamp(new Date(this.lastLogDt)) : ''
     },
     isDownloadEnabled () { return this.serverConfig.AllowDownload },
-    isUploadEnabled () { return this.serverConfig.AllowUpload },
-    uploadUrl () {
-      return (this.serverConfig.AllowUpload && this.digest)
-        ? this.omsUrl + '/api/upload/model/' + encodeURIComponent(this.digest) + '/workset'
-        : ''
-    },
+    isUploadEnabled () { return this.serverConfig.AllowUpload && this.digest },
+    fileSelected () { return !(this.uploadFile === null) && (this.uploadFile?.name || '') !== '' },
 
     ...mapGetters('model', {
       runTextByDigest: 'runTextByDigest'
@@ -223,41 +221,6 @@ export default {
       this.isLogRefreshPaused = false
     },
 
-    // started workset file upload
-    onStartUpload (info) {
-      const fn = (info && Array.isArray(info?.files) && info?.files.length > 0) ? (info?.files[0]?.name || '') : ''
-      this.$q.notify({
-        type: 'info', message: this.$t('Upload scenario') + (fn ? ': ' + fn : '') + '\u2026'
-      })
-      this.uploadExpand = true
-      this.downloadExpand = false
-    },
-    // succees of workset file upload
-    onDoneUpload (info) {
-      const fn = (info && Array.isArray(info?.files) && info?.files.length > 0) ? (info?.files[0]?.name || '') : ''
-      this.$q.notify({
-        type: 'info',
-        message: this.$t('Import scenario') + (fn ? ': ' + fn : '') + '\u2026'
-      })
-      // refresh list of uploads
-      this.logRefreshPauseToggle()
-      this.isLogRefreshPaused = false
-      this.uploadExpand = true
-      this.downloadExpand = false
-    },
-    // failed workset file upload
-    onFailUpload (info) {
-      this.$q.notify({
-        type: 'negative',
-        message: this.$t('Scenario upload failed') + ((info?.xhr?.responseText && info?.xhr?.responseText) ? ': ' + info?.xhr.responseText : '')
-      })
-      // refresh list of uploads
-      this.logRefreshPauseToggle()
-      this.isLogRefreshPaused = false
-      this.uploadExpand = true
-      this.downloadExpand = false
-    },
-
     // update page view
     initView () {
       if (!this.serverConfig.AllowDownload && !this.serverConfig.AllowUpload) {
@@ -266,7 +229,7 @@ export default {
         this.uploadExpand = false
         return
       }
-      this.uploadExpand = !this.serverConfig.AllowDownload && this.serverConfig.AllowUpload
+      this.uploadExpand = this.serverConfig.AllowUpload && (this.toUpDownSection === 'up' || !this.serverConfig.AllowDownload)
       this.downloadExpand = !this.uploadExpand
 
       this.upDownStatusLst = []
@@ -601,6 +564,49 @@ export default {
       fTree.push(...fTopFiles)
 
       return { isAnyDir: isAnyDir, tree: fTree }
+    },
+
+    // upload workset zip file
+    async onUploadWorkset () {
+      // check file name and notify user
+      const fName = this.uploadFile?.name
+      if (!fName) {
+        this.$q.notify({ type: 'negative', message: this.$t('Invalid (empty) file name') })
+        return
+      }
+      this.$q.notify({ type: 'info', message: this.$t('Uploading') + ': ' + fName + '\u2026' })
+
+      // make upload multipart form
+      const u = this.omsUrl + '/api/upload/model/' + encodeURIComponent(this.digest) + '/workset'
+
+      const fd = new FormData()
+      fd.append('workset.zip', this.uploadFile, fName) // name and file name are ignored by server
+      try {
+        // update workset zip, drop response on success
+        await this.$axios.post(u, fd)
+      } catch (e) {
+        let msg = ''
+        try {
+          if (e.response) msg = e.response.data || ''
+        } finally {}
+        console.warn('Unable to upload input scenario', msg, fName)
+        this.$q.notify({ type: 'negative', message: this.$t('Unable to upload input scenario') + ': ' + fName })
+        return
+      }
+
+      // notify user and clean upload file name
+      this.uploadFile = null
+      this.$q.notify({ type: 'info', message: this.$t('Uploaded') + ': ' + fName })
+      this.$q.notify({ type: 'info', message: this.$t('Import scenario') + ': ' + fName + '\u2026' })
+
+      // upload started: show upload list page
+      this.$emit('upload-select', this.digest)
+
+      // refresh list of uploads
+      this.logRefreshPauseToggle()
+      this.isLogRefreshPaused = false
+      this.uploadExpand = true
+      this.downloadExpand = false
     },
 
     // delete download or upload by folder name
