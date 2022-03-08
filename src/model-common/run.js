@@ -73,7 +73,7 @@ export const lastRunDigest = (rtl) => {
   for (let k = 0; k < rtl.length; k++) {
     if (isRunSuccess(rtl[k])) return rtl[k].RunDigest
     if (!lastCompleted && isRunCompleted(rtl[k])) lastCompleted = rtl[k].RunDigest
-    if (!lastDg && isRunCompleted(rtl[k])) lastDg = rtl[k].RunDigest
+    if (!lastDg) lastDg = rtl[k].RunDigest
   }
   return lastCompleted || lastDg
 }
