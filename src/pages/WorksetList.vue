@@ -16,25 +16,26 @@
         icon="mdi-notebook-plus"
         :title="$t('Create new input scenario')"
        />
-      <q-btn
-        @click="doShowFileSelect()"
-        v-show="!uploadFileSelect"
-        :disable="!isUploadEnabled"
-        flat
-        dense
-        class="col-auto text-white rounded-borders q-ml-xs bg-primary text-white rounded-borders"
-        icon='mdi-cloud-upload'
-        :title="$t('Upload scenario .zip')"
-        />
-      <q-btn
-        @click="doCancelFileSelect()"
-        v-show="uploadFileSelect"
-        flat
-        dense
-        class="col-auto text-white rounded-borders q-ml-xs bg-primary text-white rounded-borders"
-        icon='mdi-close-circle'
-        :title="$t('Cancel upload')"
-        />
+      <template v-if="serverConfig.AllowUpload">
+        <q-btn
+          @click="doShowFileSelect()"
+          v-show="!uploadFileSelect"
+          flat
+          dense
+          class="col-auto text-white rounded-borders q-ml-xs bg-primary text-white rounded-borders"
+          icon='mdi-cloud-upload'
+          :title="$t('Upload scenario .zip')"
+          />
+        <q-btn
+          @click="doCancelFileSelect()"
+          v-show="uploadFileSelect"
+          flat
+          dense
+          class="col-auto text-white rounded-borders q-ml-xs bg-primary text-white rounded-borders"
+          icon='mdi-close-circle'
+          :title="$t('Cancel upload')"
+          />
+      </template>
       <q-separator vertical inset spaced="sm" color="secondary" />
 
       <span class="col-auto no-wrap q-mr-xs">

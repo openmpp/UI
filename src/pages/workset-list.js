@@ -96,7 +96,6 @@ export default {
     isNotEmptyWorksetCurrent () { return Mdf.isNotEmptyWorksetText(this.worksetCurrent) },
     isReadonlyWorksetCurrent () { return Mdf.isNotEmptyWorksetText(this.worksetCurrent) && this.worksetCurrent.IsReadonly },
     descrWorksetCurrent () { return Mdf.descrOfTxt(this.worksetCurrent) },
-    isUploadEnabled () { return this.serverConfig.AllowUpload },
     fileSelected () { return !(this.uploadFile === null) },
 
     ...mapState('model', {

@@ -63,7 +63,7 @@
               <span class="q-pl-xs">{{ $t('Upload scenario .zip') }}</span>
             </td>
           </tr>
-          <tr>
+          <tr v-if="isUploadEnabled">
             <td class="pt-cell">
               <q-btn
                 @click="onUploadWorkset"
@@ -108,7 +108,7 @@
     class="q-ma-sm"
     >
   <q-card
-    v-for="uds in downStatusLst" :key="'down-' + (uds.LogFileName || 'no-log') + '-' + (uds.LogModTime || 0).toString() + '-' + (uds.FolderModTime || 0).toString() + '-' + (uds.ZipModTime || 0).toString()"
+    v-for="uds in downStatusLst" :key="'down-' + (uds.LogFileName || 'no-log')"
     class="up-down-card q-my-sm"
     >
 
@@ -301,7 +301,7 @@
     class="q-ma-sm"
     >
   <q-card
-    v-for="uds in upStatusLst" :key="'up-' + (uds.LogFileName || 'no-log') + '-' + (uds.LogModTime || 0).toString() + '-' + (uds.FolderModTime || 0).toString() + '-' + (uds.ZipModTime || 0).toString()"
+    v-for="uds in upStatusLst" :key="'up-' + (uds.LogFileName || 'no-log')"
     class="up-down-card q-my-sm"
     >
 

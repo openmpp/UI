@@ -11,9 +11,9 @@ import DeleteConfirmDialog from 'components/DeleteConfirmDialog.vue'
 import { openURL } from 'quasar'
 
 /* eslint-disable no-multi-spaces */
-const LOG_REFRESH_TIME = 2000               // msec, log files refresh interval
+const LOG_REFRESH_TIME = 1000               // msec, log files refresh interval
 const MAX_LOG_SEND_COUNT = 4                // max request to send without response
-const MAX_LOG_NO_DATA_COUNT = 5             // pause log refresh if no new data or empty response exceed this count (5 = 10 seconds)
+const MAX_LOG_NO_DATA_COUNT = 5             // pause log refresh if no new data or empty response exceed this count (5 = 5 seconds)
 const MAX_LOG_RECENT_COUNT = 149            // pause log refresh if "recent" progess and no new data exceed this count
 const MAX_LOG_WAIT_PROGRESS_COUNT = 20 * 60 // "recent" progress threshold (20 * 60 = 20 minutes)
 /* eslint-enable no-multi-spaces */
@@ -371,7 +371,7 @@ export default {
       // notify on completed downloads or uploads and copy log file show / hide status
       for (let k = 0; k < udLst.length; k++) {
         udLst[k].isShowLog = false
-        const n = this.upDownStatusLst.findIndex((st) => st.Folder === udLst[k].Folder)
+        const n = this.upDownStatusLst.findIndex((st) => st.Folder === udLst[k].Folder && st.Kind === udLst[k].Kind)
         if (n < 0) continue
 
         if (this.isProgress(this.upDownStatusLst[n].Status) && (this.isAnyDownloadKind(udLst[k].Kind))) {
