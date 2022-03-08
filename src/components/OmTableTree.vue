@@ -59,7 +59,8 @@ Expected array of tree items as:
       :title="isShowInList ? $t(inListOffLabel || 'Show filtered out items') : $t(inListOnLabel || 'Do not show filtered out items')"
       />
     <q-btn
-      v-if="isAnyInList"
+      v-if="isInListClear"
+      :disable="!isAnyInList"
       @click="$emit('om-table-tree-clear-in-list')"
       dense
       class="col-auto bg-primary text-white rounded-borders q-mr-xs om-tree-control-button"
@@ -235,6 +236,7 @@ export default {
     inListOnLabel: { type: String, default: '' },
     inListOffLabel: { type: String, default: '' },
     inListIcon: { type: String, default: '' },
+    isInListClear: { type: Boolean, default: false },
     inListClearLabel: { type: String, default: '' },
     inListClearIcon: { type: String, default: '' }
   },

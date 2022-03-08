@@ -171,6 +171,7 @@
             :refresh-tickle="refreshTickle"
             :refresh-table-tree-tickle="refreshTableTreeTickle"
             :name-filter="tablesRetain"
+            :is-in-list-clear="true"
             in-list-on-label="Show only retained output tables"
             in-list-off-label="Show all output tables"
             in-list-clear-label="Retain all output tables"

@@ -23,6 +23,7 @@
     :in-list-on-label="inListOnLabel"
     :in-list-off-label="inListOffLabel"
     :in-list-icon="inListIcon"
+    :is-in-list-clear="isInListClear"
     :in-list-clear-label="inListClearLabel"
     :in-list-clear-icon="inListClearIcon"
     @om-table-tree-show-hidden="onToogleHiddenNodes"
@@ -64,6 +65,7 @@ export default {
     inListOnLabel: { type: String, default: '' },
     inListOffLabel: { type: String, default: '' },
     inListIcon: { type: String, default: '' },
+    isInListClear: { type: Boolean, default: false },
     inListClearLabel: { type: String, default: '' },
     inListClearIcon: { type: String, default: '' }
   },
