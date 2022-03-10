@@ -63,8 +63,8 @@ export default {
         try {
           if (e.response) em = e.response.data || ''
         } finally {}
-        console.warn('Server offline or no input scenarios published', em)
-        this.$q.notify({ type: 'negative', message: this.$t('Server offline or no input scenarios published') + ': ' + this.digest })
+        console.warn('No input scenarios published or server offline', em)
+        this.$q.notify({ type: 'negative', message: this.$t('No input scenarios published or server offline') + ': ' + this.digest })
       }
 
       this.$emit('done', this.loadDone)

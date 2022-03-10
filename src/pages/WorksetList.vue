@@ -347,7 +347,7 @@
         :filter="treeFilter"
         :filter-method="doTreeFilter"
         :no-results-label="$t('No input scenarios found')"
-        :no-nodes-label="$t('Server offline or no input scenarios published')"
+        :no-nodes-label="$t('No input scenarios published or server offline')"
         >
         <template v-slot:default-header="prop">
 

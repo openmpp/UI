@@ -208,6 +208,7 @@ export default {
       }
       // esle: start run comparison by refresh run
       this.runDigestRefresh = dgst
+      this.refreshRunTickle = !this.refreshRunTickle
     },
     // run to compare loaded from the server
     doneRunLoad (isSuccess, dgst) {

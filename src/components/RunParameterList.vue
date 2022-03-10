@@ -17,7 +17,7 @@
     :is-remove-disabled="isRemoveDisabled"
     :filter-placeholder="$t('Find parameter...')"
     :no-results-label="$t('No model parameters found')"
-    :no-nodes-label="$t('Server offline or no model parameters found')"
+    :no-nodes-label="$t('No model parameters found or server offline')"
     :is-any-in-list="isAnyFiltered"
     :is-show-in-list="isShowFiltered"
     :in-list-on-label="inListOnLabel"

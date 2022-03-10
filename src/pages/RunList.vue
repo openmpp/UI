@@ -187,7 +187,7 @@
         :filter="runFilter"
         :filter-method="doRunTreeFilter"
         :no-results-label="$t('No model runs found')"
-        :no-nodes-label="$t('Server offline or no model runs published')"
+        :no-nodes-label="$t('No model runs published or server offline')"
         >
         <template v-slot:default-header="prop">
 

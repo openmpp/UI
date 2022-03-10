@@ -63,8 +63,8 @@ export default {
         try {
           if (e.response) em = e.response.data || ''
         } finally {}
-        console.warn('Server offline or no model runs published.', em)
-        this.$q.notify({ type: 'negative', message: this.$t('Server offline or no model runs published') + ': ' + this.digest })
+        console.warn('No model runs published or server offline', em)
+        this.$q.notify({ type: 'negative', message: this.$t('No model runs published or server offline') + ': ' + this.digest })
       }
 
       this.$emit('done', this.loadDone)

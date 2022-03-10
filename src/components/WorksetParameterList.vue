@@ -17,7 +17,7 @@
     :is-remove-disabled="isRemoveDisabled"
     :filter-placeholder="$t('Find parameter...')"
     :no-results-label="$t('No model parameters found')"
-    :no-nodes-label="$t('Server offline or no model parameters found')"
+    :no-nodes-label="$t('No model parameters found or server offline')"
     @om-table-tree-show-hidden="onToogleHiddenNodes"
     @om-table-tree-leaf-select="onParamLeafClick"
     @om-table-tree-leaf-add="onAddClick"

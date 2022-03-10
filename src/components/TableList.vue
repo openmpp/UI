@@ -17,7 +17,7 @@
     :is-remove-disabled="isRemoveDisabled"
     :filter-placeholder="$t('Find output table...')"
     :no-results-label="$t('No output tables found')"
-    :no-nodes-label="$t('Server offline or no output tables found')"
+    :no-nodes-label="$t('No output tables found or server offline')"
     :is-any-in-list="isAnyFiltered"
     :is-show-in-list="isShowFiltered"
     :in-list-on-label="inListOnLabel"
