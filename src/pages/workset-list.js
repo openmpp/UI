@@ -226,7 +226,7 @@ export default {
     doParamNoteRun (name) {
       this.runInfoDigest = this.runDigestSelected
       this.paramInfoName = name
-      this.paramRunInfoTickle = !this.paramRunInfoTickle
+      this.paramInfoTickle = !this.paramInfoTickle
     },
     // show group notes dialog
     doShowGroupNote (name) {
