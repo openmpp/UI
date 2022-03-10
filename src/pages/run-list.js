@@ -8,6 +8,8 @@ import ParameterInfoDialog from 'components/ParameterInfoDialog.vue'
 import TableInfoDialog from 'components/TableInfoDialog.vue'
 import GroupInfoDialog from 'components/GroupInfoDialog.vue'
 import DeleteConfirmDialog from 'components/DeleteConfirmDialog.vue'
+import NewWorkset from 'components/NewWorkset.vue'
+import CreateWorkset from 'components/CreateWorkset.vue'
 import MarkdownEditor from 'components/MarkdownEditor.vue'
 
 export default {
@@ -21,6 +23,8 @@ export default {
     TableInfoDialog,
     GroupInfoDialog,
     DeleteConfirmDialog,
+    NewWorkset,
+    CreateWorkset,
     MarkdownEditor
   },
 
@@ -41,6 +45,12 @@ export default {
       runCompare: Mdf.emptyRunText(), // run to compare
       paramDiff: [], // name list of different parameters
       tableDiff: [], // name list of different tables
+      isNewWorksetShow: false,
+      isCreateWorksetNow: false,
+      loadWorksetCreate: false,
+      nameOfNewWorkset: '',
+      copyParamNewWorkset: [],
+      newDescrNotes: [], // new workset description and notes
       refreshParamTreeTickle: false,
       refreshTableTreeTickle: false,
       runDigestRefresh: '',
@@ -63,7 +73,7 @@ export default {
       runNameToDelete: '',
       runDigestToDelete: '',
       showDeleteDialogTickle: false,
-      noteEditorShow: false,
+      isShowNoteEditor: false,
       noteEditorLangCode: ''
     }
   },
@@ -187,16 +197,18 @@ export default {
 
     // show run description and notes dialog
     onEditRunNote (dgst) {
-      this.noteEditorShow = true
+      this.isShowNoteEditor = true
       this.noteEditorLangCode = this.uiLang || this.$q.lang.getLocale() || ''
+      this.isParamTreeShow = false
+      this.isTableTreeShow = false
     },
     // save run notes editor content
     onSaveRunNote (descr, note, isUpd, lc) {
       this.doSaveRunNote(this.runDigestSelected, lc, descr, note)
-      this.noteEditorShow = false
+      this.isShowNoteEditor = false
     },
     onCancelRunNote (dgst) {
-      this.noteEditorShow = false
+      this.isShowNoteEditor = false
     },
 
     // run comparison click: set or clear run comparison
@@ -209,6 +221,8 @@ export default {
       // esle: start run comparison by refresh run
       this.runDigestRefresh = dgst
       this.refreshRunTickle = !this.refreshRunTickle
+      this.isNewWorksetShow = false // clear new workset create panel
+      this.resetNewWorkset()
     },
     // run to compare loaded from the server
     doneRunLoad (isSuccess, dgst) {
@@ -281,7 +295,68 @@ export default {
       this.refreshParamTreeTickle = !this.refreshParamTreeTickle
       this.refreshTableTreeTickle = !this.refreshTableTreeTickle
       this.dispatchRunDigestCompare({ digest: this.digest, runCompare: '' })
+      // clear new workset create panel
+      this.isNewWorksetShow = false
+      this.resetNewWorkset()
     },
+
+    // create new workset from parameters different between two runs
+    //
+    // return true to disable new workset create button click
+    isNewWorksetDisabled () {
+      return !this.isCompare || !Array.isArray(this.paramDiff) || this.paramDiff.length <= 0 || this.isNewWorksetShow || this.isShowNoteEditor
+    },
+    // start create new workset
+    onNewWorksetClick () {
+      this.resetNewWorkset()
+      this.isNewWorksetShow = true
+      this.isParamTreeShow = false
+      this.isTableTreeShow = false
+    },
+    // cancel creation of new workset
+    onNewWorksetCancel () {
+      this.resetNewWorkset()
+      this.isNewWorksetShow = false
+    },
+    // send request to create new workset
+    onNewWorksetSave (dgst, name, txt) {
+      this.nameOfNewWorkset = name || ''
+
+      // parameters to copy into the new workset
+      const pLst = []
+      for (const pn of this.paramDiff) {
+        pLst.push({
+          name: pn,
+          isGroup: false
+        })
+      }
+      this.copyParamNewWorkset = Object.freeze(pLst)
+
+      this.newDescrNotes = txt || []
+      this.isCreateWorksetNow = true
+    },
+    // request to create workset completed
+    doneWorksetCreate  (isSuccess, dgst, name) {
+      this.loadWorksetCreate = false
+      this.resetNewWorkset()
+
+      if (!isSuccess) return // workset not created: keep user input
+
+      this.isNewWorksetShow = false // workset created: close section
+
+      if (dgst && name && dgst === this.digest) { // if the same model then refresh workset from server
+        this.$emit('set-select', name)
+      }
+    },
+    // clean new workset data
+    resetNewWorkset () {
+      this.isCreateWorksetNow = false
+      this.nameOfNewWorkset = ''
+      this.copyParamNewWorkset = []
+      this.newDescrNotes = []
+    },
+    // end of create new workset
+    //
 
     // show yes/no dialog to confirm run delete
     onRunDelete (runName, dgst) {

@@ -7,6 +7,20 @@
     <div
       class="row reverse-wrap items-center"
       >
+
+      <template v-if="isCompare">
+        <q-btn
+          :disable="isNewWorksetDisabled()"
+          @click="onNewWorksetClick"
+          flat
+          dense
+          class="col-auto bg-primary text-white rounded-borders q-ml-sm q-mr-xs"
+          icon="mdi-notebook-plus"
+          :title="paramDiff.length > 0 ? ($t('Create new input scenario with {count} parameter(s) from', { count: paramDiff.length }) + ': ' + runCompare.Name) : $t('Create new input scenario')"
+          />
+        <q-separator vertical inset color="secondary" />
+      </template>
+
       <span class="col-auto no-wrap tab-switch-container q-ml-xs">
         <q-btn
           @click="onToogleShowParamTree"
@@ -67,7 +81,7 @@
         />
 
       <q-btn
-        :disable="noteEditorShow"
+        :disable="isShowNoteEditor || isCompare"
         @click="onEditRunNote(runDigestSelected)"
         flat
         dense
@@ -92,21 +106,6 @@
       </transition>
 
     </div>
-
-    <markdown-editor
-      v-if="noteEditorShow"
-      :the-key="noteEditorLangCode"
-      :the-name="runCurrent.Name"
-      :the-descr="runCurrentDescr()"
-      :the-note="runCurrentNote()"
-      :description-editable="true"
-      :notes-editable="true"
-      :lang-code="noteEditorLangCode"
-      @cancel-note="onCancelRunNote"
-      @save-note="onSaveRunNote"
-      class="q-px-sm q-pt-none"
-    >
-    </markdown-editor>
 
     <q-card-section v-show="isParamTreeShow" class="q-px-sm q-pt-none">
 
@@ -146,6 +145,48 @@
 
     </q-card-section>
 
+  </q-card>
+
+  <q-card
+    v-if="isNewWorksetShow"
+    bordered
+    class="border-025 q-ma-sm"
+    >
+    <new-workset
+      @save-new-set="onNewWorksetSave"
+      @cancel-new-set="onNewWorksetCancel"
+      class="q-pa-sm"
+      >
+    </new-workset>
+  </q-card>
+
+  <q-card
+    v-if="isShowNoteEditor"
+    bordered
+    class="border-025 q-ma-sm"
+    >
+    <q-card-section class="q-pa-sm">
+
+      <div class="row items-center full-width">
+        <div class="col section-title bg-primary text-white q-pl-md"><span>{{ $t('Description and Notes') }}</span></div>
+      </div>
+
+      <markdown-editor
+        v-if="isShowNoteEditor"
+        :the-key="noteEditorLangCode"
+        :the-name="runCurrent.Name"
+        :the-descr="runCurrentDescr()"
+        :the-note="runCurrentNote()"
+        :description-editable="true"
+        :notes-editable="true"
+        :lang-code="noteEditorLangCode"
+        @cancel-note="onCancelRunNote"
+        @save-note="onSaveRunNote"
+        class="q-pa-sm"
+      >
+      </markdown-editor>
+
+    </q-card-section>
   </q-card>
 
   <q-card class="q-ma-sm">
@@ -297,7 +338,19 @@
     >
   </delete-confirm-dialog>
 
-  <q-inner-loading :showing="loadWait || loadRunWait">
+  <create-workset
+    :create-now="isCreateWorksetNow"
+    :model-digest="digest"
+    :new-name="nameOfNewWorkset"
+    :current-run-digest="runCompare.RunDigest"
+    :copy-from-run="copyParamNewWorkset"
+    :descr-notes="newDescrNotes"
+    @done="doneWorksetCreate"
+    @wait="loadWorksetCreate = true"
+    >
+  </create-workset>
+
+  <q-inner-loading :showing="loadWait || loadRunWait || loadWorksetCreate">
     <q-spinner-gears size="md" color="primary" />
   </q-inner-loading>
 
