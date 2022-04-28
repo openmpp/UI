@@ -10,7 +10,7 @@
       class="col-auto bg-primary text-white rounded-borders q-mr-xs om-tree-control-button"
       :icon="isAllCollapsed ? 'keyboard_arrow_down' :'keyboard_arrow_up'"
       :title="isAllCollapsed ? $t('Expand all') : $t('Collapse all')"
-      @click="onToogleAll"
+      @click="onToogleExpandAll"
       />
     <span class="col-grow">
       <q-input
@@ -32,8 +32,8 @@
   <div class="q-pa-sm">
     <q-tree
       ref="theTree"
-      default-expand-all
       :nodes="treeData"
+      default-expand-all
       node-key="key"
       :filter="treeFilter"
       :filter-method="doModelFilter"
@@ -151,13 +151,16 @@ export default {
 
   methods: {
     // expand or collapse all tree nodes
-    onToogleAll () {
-      if (this.isAllCollapsed) {
-        this.$refs.theTree.expandAll()
-      } else {
-        this.$refs.theTree.collapseAll()
-      }
+    onToogleExpandAll () {
       this.isAllCollapsed = !this.isAllCollapsed
+      this.doExpandCollapse()
+    },
+    doExpandCollapse () {
+      if (this.isAllCollapsed) {
+        this.$refs.theTree.collapseAll()
+      } else {
+        this.$refs.theTree.expandAll()
+      }
     },
     // filter by model name (label) or model description
     doModelFilter (node, filter) {
@@ -195,18 +198,66 @@ export default {
         return [] // invalid model list
       }
 
-      // add models which are not included in any group
+      // make folders tree
+      const fm = {}
       const td = []
 
       for (const md of mLst) {
-        td.push({
-          key: 'mtl-' + md.Model.Digest + '-' + this.nextId++,
-          digest: md.Model.Digest,
-          label: md.Model.Name,
-          descr: Mdf.descrOfDescrNote(md),
-          children: [],
-          disabled: false
-        })
+        if (!md?.Dir || md.Dir === '.' || md.Dir === '/' || md.Dir === './') continue // empty or top-level directory
+
+        // add each folder/sub-folder into the tree
+        const fa = md.Dir.split('/')
+        let p = '', pp = ''
+
+        for (const fn of fa) {
+          if (!fn || fn === '.') continue // empty or top-level folder
+
+          p = pp ? pp + '/' + fn : fn
+
+          if (fm?.[p]) continue // path already exist
+
+          const f = {
+            key: 'mf-' + p + '-' + this.nextId++,
+            digest: '',
+            label: p,
+            descr: '',
+            children: [],
+            disabled: false
+          }
+          fm[p] = f
+          if (fm?.[pp]) fm[pp].children.push(f)
+          if (!pp) {
+            td.push(f) // add new top-level folder
+          }
+          pp = p
+        }
+
+        if (fm?.[p]) { // add model to the current folder, if it is not empty or top-level directory
+          fm[p].children.push({
+            key: 'md-' + md.Model.Digest + '-' + this.nextId++,
+            digest: md.Model.Digest,
+            label: md.Model.Name,
+            descr: Mdf.descrOfDescrNote(md),
+            children: [],
+            disabled: false
+          })
+        }
+      }
+
+      this.isAnyModelGroup = td.length > 0
+
+      // add models which are not included in any group
+      for (const md of mLst) {
+        if (!md?.Dir || md.Dir === '.' || md.Dir === '/' || md.Dir === './') { // empty or top-level directory
+          td.push({
+            key: 'md-' + md.Model.Digest + '-' + this.nextId++,
+            digest: md.Model.Digest,
+            label: md.Model.Name,
+            descr: Mdf.descrOfDescrNote(md),
+            children: [],
+            disabled: false
+          })
+        }
       }
       return td
     },
@@ -231,6 +282,7 @@ export default {
         this.$q.notify({ type: 'negative', message: this.$t('Server offline or no models published') })
       }
 
+      this.$nextTick(() => { this.doExpandCollapse() })
       this.loadWait = false
     },
 
@@ -272,6 +324,7 @@ export default {
     if (this.modelCount > 0) {
       this.loadDone = true
       this.treeData = this.makeTreeData(this.modelList) // update model list tree
+      this.$nextTick(() => { this.doExpandCollapse() })
       return
     }
     this.doRefresh() // load new model list

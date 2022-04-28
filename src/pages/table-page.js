@@ -471,7 +471,7 @@ export default {
         }, {})
       }
 
-      // filter for measure column: first expression or accumulator lable
+      // filter for measure column: first expression or accumulator label
       if (!isMrow && !isMcol) {
         const mAttr = this.colLabels[nRank]
         if (mAttr) {
