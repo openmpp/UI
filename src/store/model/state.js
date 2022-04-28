@@ -6,6 +6,7 @@ export default function () {
     modelList: [],
     modelListUpdated: 0,
     theModel: Mdf.emptyModel(),
+    theModelDir: '',
     theModelUpdated: 0,
     groupParameterLeafs: {},
     groupTableLeafs: {},

@@ -39,6 +39,7 @@ export const theModel = (state, model) => {
 
   if (Mdf.isModel(model) || Mdf.isEmptyModel(model)) {
     state.theModel = model
+    state.theModelDir = Mdf.modelDirByDigest(digest, state.modelList)
     if (digest !== storeDigest) {
       state.groupParameterLeafs = Mdf.groupLeafs(model, true)
       state.groupTableLeafs = Mdf.groupLeafs(model, false)

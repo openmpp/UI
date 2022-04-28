@@ -33,8 +33,8 @@
     <q-tree
       ref="theTree"
       :nodes="treeData"
-      default-expand-all
       node-key="key"
+      default-expand-all
       :filter="treeFilter"
       :filter-method="doModelFilter"
       :no-results-label="$t('No models found')"
@@ -221,6 +221,7 @@ export default {
             digest: '',
             label: p,
             descr: '',
+            dir: pp,
             children: [],
             disabled: false
           }
@@ -238,6 +239,7 @@ export default {
             digest: md.Model.Digest,
             label: md.Model.Name,
             descr: Mdf.descrOfDescrNote(md),
+            dir: p,
             children: [],
             disabled: false
           })
@@ -254,6 +256,7 @@ export default {
             digest: md.Model.Digest,
             label: md.Model.Name,
             descr: Mdf.descrOfDescrNote(md),
+            dir: '',
             children: [],
             disabled: false
           })

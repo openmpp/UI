@@ -188,12 +188,6 @@
       </q-item>
       <q-separator />
 
-      <q-item v-if="isModel">
-        <q-item-label class="ellipsis om-text-descr-title q-pl-none q-pb-sm q-pt-md q-pr-md">
-          {{ modelName }}
-        </q-item-label>
-      </q-item>
-
       <q-item
         clickable
         :disable="!isModel || !runTextCount"
@@ -334,12 +328,12 @@ export default {
 
   computed: {
     mainTitle () {
-      const t = Mdf.modelTitle(this.theModel)
+      const t = (this.theModelDir ? this.theModelDir + '/' : '') + Mdf.modelTitle(this.theModel)
       return (t !== '') ? t : 'OpenM++'
     },
     isModel () { return Mdf.isModel(this.theModel) },
-    modelName () { return Mdf.modelName(this.theModel) },
     modelDigest () { return Mdf.modelDigest(this.theModel) },
+    modelName () { return Mdf.modelName(this.theModel) },
     runTextCount () { return Mdf.runTextCount(this.runTextList) },
     worksetTextCount () { return Mdf.worksetTextCount(this.worksetTextList) },
     loginUrl () { return Mdf.configEnvValue(this.serverConfig, 'OM_CFG_LOGIN_URL') },
@@ -347,6 +341,7 @@ export default {
 
     ...mapState('model', {
       theModel: state => state.theModel,
+      theModelDir: state => state.theModelDir,
       runTextList: state => state.runTextList,
       worksetTextList: state => state.worksetTextList
     }),

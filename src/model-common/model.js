@@ -12,6 +12,19 @@ export const isModelList = (ml) => {
   return true
 }
 
+// return model folder by digest: find first in model list
+// digest expected to be unique in models tree
+export const modelDirByDigest = (dgst, ml) => {
+  if (!dgst || typeof dgst !== typeof 'string') return ''
+  if (!ml || !Array.isArray(ml)) return ''
+  for (const m of ml) {
+    if (modelDigest(m) === dgst) {
+      return (!m?.Dir || m.Dir === '.' || m.Dir === '/' || m.Dir === './') ? '' : m.Dir
+    }
+  }
+  return ''
+}
+
 // return empty Model
 export const emptyModel = () => {
   return {
@@ -45,13 +58,6 @@ export const isEmptyModel = (md) => {
   return (md.Model.Name || '') === '' || (md.Model.Digest || '') === '' || (md.Model.CreateDateTime || '') === ''
 }
 
-// name of the model
-export const modelName = (md) => {
-  if (!md) return ''
-  if (!md.hasOwnProperty('Model')) return ''
-  return (md.Model.Name || '')
-}
-
 // digest of the model
 export const modelDigest = (md) => {
   if (!md) return ''
@@ -59,9 +65,16 @@ export const modelDigest = (md) => {
   return (md.Model.Digest || '')
 }
 
+// name of the model
+export const modelName = (md) => {
+  if (!md) return ''
+  if (!md.hasOwnProperty('Model')) return ''
+  return (md.Model.Name || '')
+}
+
 // make model title
 export const modelTitle = (md) => {
   if (!isModel(md)) return ''
   const descr = Dnf.descrOfDescrNote(md)
-  return (descr !== '') ? md.Model.Name + ': ' + descr : md.Model.Name
+  return md.Model.Name + ((md.Model.Version || '') ? ': ' + md.Model.Version : '') + ((descr !== '') ? ': ' + descr : '')
 }

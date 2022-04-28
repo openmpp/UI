@@ -21,6 +21,9 @@
         <div class="om-note-row">
           <span class="om-note-cell q-pr-sm">{{ $t('Digest') }}:</span><span class="om-note-cell">{{ digest }}</span>
         </div>
+        <div v-if="dir" class="om-note-row">
+          <span class="om-note-cell q-pr-sm">{{ $t('Folder') }}:</span><span class="om-note-cell">{{ dir }}</span>
+        </div>
       </div>
 
       <div v-if="notes" v-html="notes" />
@@ -35,7 +38,7 @@
 </template>
 
 <script>
-import { mapGetters } from 'vuex'
+import { mapState, mapGetters } from 'vuex'
 import * as Mdf from 'src/model-common'
 import { marked } from 'marked'
 import hljs from 'highlight.js'
@@ -56,11 +59,15 @@ export default {
       notes: '',
       modelName: '',
       createDateTime: '',
-      version: ''
+      version: '',
+      dir: ''
     }
   },
 
   computed: {
+    ...mapState('model', {
+      modelList: state => state.modelList
+    }),
     ...mapGetters('model', {
       modelByDigest: 'modelByDigest'
     })
@@ -81,6 +88,7 @@ export default {
       this.modelName = Mdf.modelName(m)
       this.createDateTime = Mdf.dtStr(m.Model.CreateDateTime)
       this.version = m.Model.Version || ''
+      this.dir = Mdf.modelDirByDigest(this.digest, this.modelList)
 
       // model notes: convert from markdown to html
       marked.setOptions({
