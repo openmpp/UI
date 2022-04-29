@@ -70,6 +70,7 @@ export default {
       folderTreeFilter: '',
       isFolderTreeExpanded: false,
       fastDownload: 'yes',
+      isNoDigestCheck: false,
       uploadFile: null
     }
   },
@@ -577,7 +578,10 @@ export default {
       this.$q.notify({ type: 'info', message: this.$t('Uploading') + ': ' + fName + '\u2026' })
 
       // make upload multipart form
-      const u = this.omsUrl + '/api/upload/model/' + encodeURIComponent(this.digest) + '/workset'
+      const u = this.omsUrl +
+        '/api/upload/model/' + encodeURIComponent(this.digest) +
+        (this.isNoDigestCheck ? '/no-digest-check' : '') +
+        '/workset'
 
       const fd = new FormData()
       fd.append('workset.zip', this.uploadFile, fName) // name and file name are ignored by server

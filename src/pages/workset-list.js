@@ -87,6 +87,7 @@ export default {
       showDeleteGroupTickle: false,
       uploadFileSelect: false,
       uploadFile: null,
+      isNoDigestCheck: false,
       noteEditorLangCode: '',
       noteCurrent: ''
     }
@@ -348,7 +349,10 @@ export default {
       this.$q.notify({ type: 'info', message: this.$t('Uploading') + ': ' + fName + '\u2026' })
 
       // make upload multipart form
-      const u = this.omsUrl + '/api/upload/model/' + encodeURIComponent(this.digest) + '/workset'
+      const u = this.omsUrl +
+        '/api/upload/model/' + encodeURIComponent(this.digest) +
+        (this.isNoDigestCheck ? '/no-digest-check' : '') +
+        '/workset'
 
       const fd = new FormData()
       fd.append('workset.zip', this.uploadFile, fName) // name and file name are ignored by server

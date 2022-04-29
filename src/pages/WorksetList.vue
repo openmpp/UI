@@ -275,6 +275,14 @@
         >
       </q-file>
     </div>
+    <div class="row q-pl-sm q-pb-sm">
+      <q-checkbox
+        v-model="isNoDigestCheck"
+        v-if="uploadFileSelect"
+        :disable="!fileSelected"
+        :label="$t('Ignore input scenario model digest (model version)')"
+        />
+    </div>
   </q-card>
 
   <q-card

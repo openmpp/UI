@@ -91,6 +91,16 @@
               </q-file>
             </td>
           </tr>
+          <tr v-if="isUploadEnabled">
+            <td class="pt-cell">
+              <q-checkbox
+                v-model="isNoDigestCheck"
+                :disable="!isUploadEnabled || !fileSelected"
+                :title="$t('Ignore input scenario model digest (model version)')"
+                />
+            </td>
+            <td colspan="6" class="pt-cell-left"><span class="q-pl-sm">{{ $t('Ignore input scenario model digest (model version)') }}</span></td>
+          </tr>
         </tbody>
       </table>
 
