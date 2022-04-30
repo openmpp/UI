@@ -8,9 +8,9 @@
       flat
       dense
       class="col-auto bg-primary text-white rounded-borders q-mr-xs om-tree-control-button"
-      :icon="isAllCollapsed ? 'keyboard_arrow_down' :'keyboard_arrow_up'"
-      :title="isAllCollapsed ? $t('Expand all') : $t('Collapse all')"
-      @click="onToogleExpandAll"
+      :icon="!isAllExpanded ? 'keyboard_arrow_down' :'keyboard_arrow_up'"
+      :title="!isAllExpanded ? $t('Expand all') : $t('Collapse all')"
+      @click="doToogleExpandTree"
       />
     <span class="col-grow">
       <q-input
@@ -44,6 +44,7 @@
         <div
           v-if="prop.node.children && prop.node.children.length"
           class="row no-wrap items-center"
+          :class="{'om-tree-found-node': treeWalk.keysFound[prop.node.key]}"
           >
           <div class="col">
             <span>{{ prop.node.label }}<br />
@@ -52,6 +53,7 @@
         </div>
         <div v-else
           class="row no-wrap items-center full-width om-tree-leaf"
+          :class="{'om-tree-found-node': treeWalk.keysFound[prop.node.key]}"
           >
           <q-btn
             @click.stop="doShowModelNote(prop.node.digest)"
@@ -113,10 +115,17 @@ export default {
   data () {
     return {
       treeFilter: '',
-      isAllCollapsed: false,
+      isAllExpanded: false,
       isAnyModelGroup: false,
       nextId: 100,
       treeData: [],
+      treeWalk: {
+        isAnyFound: false,
+        prevFilter: '',
+        size: 0,
+        count: 0,
+        keysFound: {} // if node match filter then map keysFound[node.key] = true
+      },
       modelInfoTickle: false,
       modelInfoDigest: '',
       loadDone: false,
@@ -151,27 +160,62 @@ export default {
 
   methods: {
     // expand or collapse all tree nodes
-    onToogleExpandAll () {
-      this.isAllCollapsed = !this.isAllCollapsed
-      this.doExpandCollapse()
-    },
-    doExpandCollapse () {
-      if (this.isAllCollapsed) {
+    doToogleExpandTree () {
+      if (this.isAllExpanded) {
         this.$refs.theTree.collapseAll()
       } else {
         this.$refs.theTree.expandAll()
       }
+      this.isAllExpanded = !this.isAllExpanded
     },
     // filter by model name (label) or model description
     doModelFilter (node, filter) {
       const flt = filter.toLowerCase()
-      return (node.label && node.label.toLowerCase().indexOf(flt) > -1) ||
+      let isFound = (node.label && node.label.toLowerCase().indexOf(flt) > -1) ||
         ((node.descr || '') !== '' && node.descr.toLowerCase().indexOf(flt) > -1)
+
+      isFound = this.updateTreeWalk(isFound, node, filter)
+
+      // if this is a last node and any match found then expand tree
+      if (this.treeWalk.count >= this.treeWalk.size && this.treeWalk.isAnyFound && !this.isAllExpanded) {
+        this.$nextTick(() => { this.doToogleExpandTree() })
+      }
+      return isFound
     },
     // clear filter value
     resetFilter () {
       this.treeFilter = ''
+      this.resetTreeWalk()
       this.$refs.filterInput.focus()
+    },
+    // clear tree walk state
+    resetTreeWalk () {
+      this.treeWalk.isAnyFound = false
+      this.treeWalk.count = 0
+      this.treeWalk.prevFilter = ''
+      this.treeWalk.keysFound = {}
+    },
+    // update tree walk found status for all tree nodes
+    updateTreeWalk (isFound, node, filter) {
+      if (filter !== this.treeWalk.prevFilter) {
+        this.resetTreeWalk()
+        this.treeWalk.prevFilter = filter
+      }
+      this.treeWalk.count++
+
+      // node found if it is a child of found node or it is match the filter
+      if (!isFound) isFound = this.treeWalk.keysFound[node.key] === true
+      if (isFound && !this.treeWalk.keysFound[node.key]) this.treeWalk.keysFound[node.key] = true
+
+      // if current node match the filter then add all children to matched keys list
+      if (isFound) {
+        for (const cn of node.children) {
+          this.treeWalk.keysFound[cn.key] = true
+        }
+      }
+
+      if (isFound) this.treeWalk.isAnyFound = true
+      return isFound
     },
 
     // show model notes dialog
@@ -192,6 +236,9 @@ export default {
     // return tree of models
     makeTreeData (mLst) {
       this.isAnyModelGroup = false
+      this.resetTreeWalk()
+      this.treeWalk.size = 0
+
       if (!Mdf.isLength(mLst)) return [] // empty model list
       if (!Mdf.isModelList(mLst)) {
         this.$q.notify({ type: 'negative', message: this.$t('Model list is empty or invalid') })
@@ -225,6 +272,7 @@ export default {
             children: [],
             disabled: false
           }
+          this.treeWalk.size++
           fm[p] = f
           if (fm?.[pp]) fm[pp].children.push(f)
           if (!pp) {
@@ -243,6 +291,7 @@ export default {
             children: [],
             disabled: false
           })
+          this.treeWalk.size++
         }
       }
 
@@ -260,6 +309,7 @@ export default {
             children: [],
             disabled: false
           })
+          this.treeWalk.size++
         }
       }
       return td
@@ -285,7 +335,10 @@ export default {
         this.$q.notify({ type: 'negative', message: this.$t('Server offline or no models published') })
       }
 
-      this.$nextTick(() => { this.doExpandCollapse() })
+      // expand after refresh
+      this.isAllExpanded = false
+      this.$nextTick(() => { this.doToogleExpandTree() })
+
       this.loadWait = false
     },
 
@@ -327,7 +380,7 @@ export default {
     if (this.modelCount > 0) {
       this.loadDone = true
       this.treeData = this.makeTreeData(this.modelList) // update model list tree
-      this.$nextTick(() => { this.doExpandCollapse() })
+      this.$nextTick(() => { this.doToogleExpandTree() })
       return
     }
     this.doRefresh() // load new model list
