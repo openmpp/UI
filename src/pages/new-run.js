@@ -55,6 +55,8 @@ export default {
         mpiOnRoot: false,
         mpiTmpl: ''
       },
+      advOptsExpanded: false,
+      mpiOptsExpanded: false,
       retainTablesGroups: [], // if not empty then names of tables and groups to retain
       tablesRetain: [],
       refreshTableTreeTickle: false,
@@ -437,6 +439,19 @@ export default {
       this.runOpts.mpiTmpl = ps.mpiTmpl ?? this.runOpts.mpiTmpl
       this.runOpts.progressPercent = ps.progressPercent ?? this.runOpts.progressPercent
       this.runOpts.progressStep = ps.progressStep ?? this.runOpts.progressStep
+
+      // expand sections if preset options supplied with non-default values
+      this.mpiOptsExpanded = (ps.mpiNpCount || 0) !== 0 || (ps.mpiTmpl || '') !== ''
+
+      this.advOptsExpanded = (ps.threadCount || 0) > 1 ||
+        (ps.workDir || '') !== '' ||
+        (ps.csvDir || '') !== '' ||
+        (ps.csvCodeId || 'enumCode') !== 'enumCode' ||
+        !!ps.useIni ||
+        !!ps.iniAnyKey ||
+        (ps.profile || '') !== '' ||
+        !!ps.sparseOutput ||
+        (ps.runTmpl || '') !== ''
 
       this.$q.notify({ type: 'info', message: this.presetLst[idx].descr || this.presetLst[idx].label || (this.$t('Using Run Options') + ': ' + this.presetLst[idx].name || '') })
     },

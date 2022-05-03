@@ -240,6 +240,7 @@
 
   <q-card class="q-ma-sm">
     <q-expansion-item
+      v-model="advOptsExpanded"
       switch-toggle-side
       expand-separator
       header-class="bg-primary text-white"
@@ -438,6 +439,7 @@
 
   <q-card class="q-ma-sm">
     <q-expansion-item
+    v-model="mpiOptsExpanded"
       switch-toggle-side
       expand-separator
       header-class="bg-primary text-white"
