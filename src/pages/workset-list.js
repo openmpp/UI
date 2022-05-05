@@ -349,13 +349,14 @@ export default {
       this.$q.notify({ type: 'info', message: this.$t('Uploading') + ': ' + fName + '\u2026' })
 
       // make upload multipart form
-      const u = this.omsUrl +
-        '/api/upload/model/' + encodeURIComponent(this.digest) +
-        (this.isNoDigestCheck ? '/no-digest-check' : '') +
-        '/workset'
-
+      const opts = {
+        NoDigestCheck: this.isNoDigestCheck
+      }
       const fd = new FormData()
+      fd.append('workset-upload-options', JSON.stringify(opts))
       fd.append('workset.zip', this.uploadFile, fName) // name and file name are ignored by server
+
+      const u = this.omsUrl + '/api/upload/model/' + encodeURIComponent(this.digest) + '/workset'
       try {
         // update workset zip, drop response on success
         await this.$axios.post(u, fd)
@@ -573,13 +574,15 @@ export default {
       let isOk = false
       let msg = ''
 
+      const opts = {
+        Utf8BomIntoCsv: this.$q.platform.is.win
+      }
       const u = this.omsUrl +
         '/api/download/model/' + encodeURIComponent(this.digest) +
-        '/workset/' + encodeURIComponent((name || '')) +
-        (this.$q.platform.is.win ? '/csv-bom' : '')
+        '/workset/' + encodeURIComponent((name || ''))
       try {
         // send download request to the server, response expected to be empty on success
-        await this.$axios.post(u)
+        await this.$axios.post(u, opts)
         isOk = true
       } catch (e) {
         try {

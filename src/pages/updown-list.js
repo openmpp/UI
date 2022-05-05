@@ -71,7 +71,8 @@ export default {
       isFolderTreeExpanded: false,
       fastDownload: 'yes',
       isNoDigestCheck: false,
-      uploadFile: null
+      wsUploadFile: null,
+      runUploadFile: null
     }
   },
 
@@ -81,7 +82,7 @@ export default {
     },
     isDownloadEnabled () { return this.serverConfig.AllowDownload },
     isUploadEnabled () { return this.serverConfig.AllowUpload && this.digest },
-    fileSelected () { return !(this.uploadFile === null) && (this.uploadFile?.name || '') !== '' },
+    fileSelected () { return !(this.wsUploadFile === null) && (this.wsUploadFile?.name || '') !== '' },
 
     ...mapGetters('model', {
       runTextByDigest: 'runTextByDigest'
@@ -570,7 +571,7 @@ export default {
     // upload workset zip file
     async onUploadWorkset () {
       // check file name and notify user
-      const fName = this.uploadFile?.name
+      const fName = this.wsUploadFile?.name
       if (!fName) {
         this.$q.notify({ type: 'negative', message: this.$t('Invalid (empty) file name') })
         return
@@ -578,13 +579,14 @@ export default {
       this.$q.notify({ type: 'info', message: this.$t('Uploading') + ': ' + fName + '\u2026' })
 
       // make upload multipart form
-      const u = this.omsUrl +
-        '/api/upload/model/' + encodeURIComponent(this.digest) +
-        (this.isNoDigestCheck ? '/no-digest-check' : '') +
-        '/workset'
-
+      const opts = {
+        NoDigestCheck: this.isNoDigestCheck
+      }
       const fd = new FormData()
-      fd.append('workset.zip', this.uploadFile, fName) // name and file name are ignored by server
+      fd.append('workset-upload-options', JSON.stringify(opts))
+      fd.append('workset.zip', this.wsUploadFile, fName) // name and file name are ignored by server
+
+      const u = this.omsUrl + '/api/upload/model/' + encodeURIComponent(this.digest) + '/workset'
       try {
         // update workset zip, drop response on success
         await this.$axios.post(u, fd)
@@ -599,7 +601,7 @@ export default {
       }
 
       // notify user and clean upload file name
-      this.uploadFile = null
+      this.wsUploadFile = null
       this.$q.notify({ type: 'info', message: this.$t('Uploaded') + ': ' + fName })
       this.$q.notify({ type: 'info', message: this.$t('Import scenario') + ': ' + fName + '\u2026' })
 

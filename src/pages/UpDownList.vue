@@ -77,7 +77,7 @@
             </td>
             <td colspan="5" class="pt-cell">
               <q-file
-                v-model="uploadFile"
+                v-model="wsUploadFile"
                 :disable="!isUploadEnabled || !digest"
                 accept='.zip'
                 outlined
