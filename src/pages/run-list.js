@@ -73,6 +73,8 @@ export default {
       runNameToDelete: '',
       runDigestToDelete: '',
       showDeleteDialogTickle: false,
+      uploadFileSelect: false,
+      uploadFile: null,
       isShowNoteEditor: false,
       noteEditorLangCode: ''
     }
@@ -82,6 +84,7 @@ export default {
     isNotEmptyRunCurrent () { return Mdf.isNotEmptyRunText(this.runCurrent) },
     descrRunCurrent () { return Mdf.descrOfTxt(this.runCurrent) },
     isCompare () { return !!this.runCompare && (this.runCompare?.RunDigest || '') !== '' },
+    fileSelected () { return !(this.uploadFile === null) },
 
     ...mapState('model', {
       theModel: state => state.theModel,
@@ -513,6 +516,61 @@ export default {
 
       this.$emit('download-select', this.digest) // download started: show download list page
       this.$q.notify({ type: 'info', message: this.$t('Model run download started') })
+    },
+
+    // show model run upload panel
+    doShowFileSelect () {
+      this.uploadFileSelect = true
+    },
+    // hides model upload panel
+    doCancelFileSelect () {
+      this.uploadFileSelect = false
+      this.uploadFile = null
+    },
+
+    // upload model run zip file
+    async onUploadRun () {
+      // check file name and notify user
+      const fName = this.uploadFile?.name
+      if (!fName) {
+        this.$q.notify({ type: 'negative', message: this.$t('Invalid (empty) file name') })
+        return
+      }
+      // check if model run with the same name already exist
+      for (const rt of this.runTextList) {
+        if (Mdf.isRunText(rt) && Mdf.modelName(this.theModel) + '.run.' + rt.Name + '.zip' === fName) {
+          this.$q.notify({ type: 'negative', message: this.$t('Model run with the same name already exist' + ': ' + rt.Name) })
+          return
+        }
+      }
+      this.$q.notify({ type: 'info', message: this.$t('Uploading') + ': ' + fName + '\u2026' })
+
+      // make upload multipart form
+      const fd = new FormData()
+      fd.append('run.zip', this.uploadFile, fName) // name and file name are ignored by server
+
+      const u = this.omsUrl + '/api/upload/model/' + encodeURIComponent(this.digest) + '/run'
+      try {
+        // update run zip, drop response on success
+        await this.$axios.post(u, fd)
+      } catch (e) {
+        let msg = ''
+        try {
+          if (e.response) msg = e.response.data || ''
+        } finally {}
+        console.warn('Unable to upload model run', msg, fName)
+        this.$q.notify({ type: 'negative', message: this.$t('Unable to upload model run') + ': ' + fName })
+        return
+      }
+
+      // notify user and close upload controls
+      this.doCancelFileSelect()
+      this.$q.notify({ type: 'info', message: this.$t('Uploaded') + ': ' + fName })
+      this.$q.notify({ type: 'info', message: this.$t('Import model run') + ': ' + fName + '\u2026' })
+
+      // upload started: show upload list page
+      this.$emit('upload-select', this.digest)
+      this.$emit('run-list-refresh') // refresh model run list if upload completed fast
     },
 
     // save run notes

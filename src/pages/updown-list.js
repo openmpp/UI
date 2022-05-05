@@ -82,8 +82,14 @@ export default {
     },
     isDownloadEnabled () { return this.serverConfig.AllowDownload },
     isUploadEnabled () { return this.serverConfig.AllowUpload && this.digest },
-    fileSelected () { return !(this.wsUploadFile === null) && (this.wsUploadFile?.name || '') !== '' },
+    wsFileSelected () { return !(this.wsUploadFile === null) && (this.wsUploadFile?.name || '') !== '' },
+    runFileSelected () { return !(this.runUploadFile === null) && (this.runUploadFile?.name || '') !== '' },
 
+    ...mapState('model', {
+      theModel: state => state.theModel,
+      runTextList: state => state.runTextList,
+      worksetTextList: state => state.worksetTextList
+    }),
     ...mapGetters('model', {
       runTextByDigest: 'runTextByDigest'
     }),
@@ -568,6 +574,56 @@ export default {
       return { isAnyDir: isAnyDir, tree: fTree }
     },
 
+    // upload model run zip file
+    async onUploadRun () {
+      // check file name and notify user
+      const fName = this.runUploadFile?.name
+      if (!fName) {
+        this.$q.notify({ type: 'negative', message: this.$t('Invalid (empty) file name') })
+        return
+      }
+      // check if model run with the same name already exist
+      for (const rt of this.runTextList) {
+        if (Mdf.isRunText(rt) && Mdf.modelName(this.theModel) + '.run.' + rt.Name + '.zip' === fName) {
+          this.$q.notify({ type: 'negative', message: this.$t('Model run with the same name already exist' + ': ' + rt.Name) })
+          return
+        }
+      }
+      this.$q.notify({ type: 'info', message: this.$t('Uploading') + ': ' + fName + '\u2026' })
+
+      // make upload multipart form
+      const fd = new FormData()
+      fd.append('run.zip', this.runUploadFile, fName) // name and file name are ignored by server
+
+      const u = this.omsUrl + '/api/upload/model/' + encodeURIComponent(this.digest) + '/run'
+      try {
+        // update model run zip, drop response on success
+        await this.$axios.post(u, fd)
+      } catch (e) {
+        let msg = ''
+        try {
+          if (e.response) msg = e.response.data || ''
+        } finally {}
+        console.warn('Unable to upload model run', msg, fName)
+        this.$q.notify({ type: 'negative', message: this.$t('Unable to upload model run') + ': ' + fName })
+        return
+      }
+
+      // notify user and clean upload file name
+      this.runUploadFile = null
+      this.$q.notify({ type: 'info', message: this.$t('Uploaded') + ': ' + fName })
+      this.$q.notify({ type: 'info', message: this.$t('Import model run') + ': ' + fName + '\u2026' })
+
+      // upload started: show upload list page
+      this.$emit('upload-select', this.digest)
+
+      // refresh list of uploads
+      this.logRefreshPauseToggle()
+      this.isLogRefreshPaused = false
+      this.uploadExpand = true
+      this.downloadExpand = false
+    },
+
     // upload workset zip file
     async onUploadWorkset () {
       // check file name and notify user
@@ -575,6 +631,13 @@ export default {
       if (!fName) {
         this.$q.notify({ type: 'negative', message: this.$t('Invalid (empty) file name') })
         return
+      }
+      // check if workset with the same name already exist
+      for (const wt of this.worksetTextList) {
+        if (Mdf.isWorksetText(wt) && Mdf.modelName(this.theModel) + '.set.' + wt.Name + '.zip' === fName) {
+          this.$q.notify({ type: 'negative', message: this.$t('Input scenario with the same name already exist' + ': ' + wt.Name) })
+          return
+        }
       }
       this.$q.notify({ type: 'info', message: this.$t('Uploading') + ': ' + fName + '\u2026' })
 

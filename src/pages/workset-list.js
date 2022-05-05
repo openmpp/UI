@@ -328,11 +328,11 @@ export default {
       this.startWorksetDownload(name) // start workset download and show download page on success
     },
 
-    // show input scenario upload dialog
+    // show input scenario upload panel
     doShowFileSelect () {
       this.uploadFileSelect = true
     },
-    // hides input scenario upload dialog
+    // hides input scenario upload panel
     doCancelFileSelect () {
       this.uploadFileSelect = false
       this.uploadFile = null
@@ -345,6 +345,13 @@ export default {
       if (!fName) {
         this.$q.notify({ type: 'negative', message: this.$t('Invalid (empty) file name') })
         return
+      }
+      // check if workset with the same name already exist
+      for (const wt of this.worksetTextList) {
+        if (Mdf.isWorksetText(wt) && Mdf.modelName(this.theModel) + '.set.' + wt.Name + '.zip' === fName) {
+          this.$q.notify({ type: 'negative', message: this.$t('Input scenario with the same name already exist' + ': ' + wt.Name) })
+          return
+        }
       }
       this.$q.notify({ type: 'info', message: this.$t('Uploading') + ': ' + fName + '\u2026' })
 

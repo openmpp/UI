@@ -14,12 +14,33 @@
           @click="onNewWorksetClick"
           flat
           dense
-          class="col-auto bg-primary text-white rounded-borders q-ml-sm q-mr-xs"
+          class="col-auto bg-primary text-white rounded-borders q-ml-xs"
           icon="mdi-notebook-plus"
           :title="paramDiff.length > 0 ? ($t('Create new input scenario with {count} parameter(s) from', { count: paramDiff.length }) + ': ' + runCompare.Name) : $t('Create new input scenario')"
           />
-        <q-separator vertical inset color="secondary" />
       </template>
+
+      <template v-if="serverConfig.AllowUpload">
+        <q-btn
+          @click="doShowFileSelect()"
+          v-show="!uploadFileSelect"
+          flat
+          dense
+          class="col-auto text-white rounded-borders q-ml-xs bg-primary text-white rounded-borders"
+          icon='mdi-cloud-upload'
+          :title="$t('Upload model run .zip')"
+          />
+        <q-btn
+          @click="doCancelFileSelect()"
+          v-show="uploadFileSelect"
+          flat
+          dense
+          class="col-auto text-white rounded-borders q-ml-xs bg-primary text-white rounded-borders"
+          icon='mdi-close-circle'
+          :title="$t('Cancel upload')"
+          />
+      </template>
+      <q-separator v-if="serverConfig.AllowUpload || isCompare" vertical inset color="secondary" class="q-ml-xs" />
 
       <span class="col-auto no-wrap tab-switch-container q-ml-xs">
         <q-btn
@@ -158,6 +179,34 @@
       class="q-pa-sm"
       >
     </new-workset>
+  </q-card>
+
+  <q-card v-if="uploadFileSelect">
+    <div class="row q-mt-xs q-pa-sm">
+      <q-btn
+        @click="onUploadRun"
+        v-if="uploadFileSelect"
+        :disable="!fileSelected"
+        flat
+        dense
+        class="col-auto bg-primary text-white rounded-borders"
+        icon="mdi-upload"
+        :title="$t('Upload model run .zip')"
+        />
+      <q-file
+        v-model="uploadFile"
+        v-if="uploadFileSelect"
+        accept='.zip'
+        outlined
+        dense
+        clearable
+        hide-bottom-space
+        class="col q-pl-xs"
+        color="primary"
+        :label="$t('Select model run .zip for upload')"
+        >
+      </q-file>
+    </div>
   </q-card>
 
   <q-card

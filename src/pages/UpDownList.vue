@@ -51,6 +51,7 @@
             <td class="pt-cell-right mono">{{ errorUpCount }}</td>
             <td class="pt-cell-right mono">{{ totalUpCount }}</td>
           </tr>
+
           <tr>
             <td colspan="6" class="pt-cell">
               <q-radio v-model="fastDownload" val="no"  :label="$t('Do full downloads, compatible with desktop model')" />
@@ -58,6 +59,41 @@
               <q-radio v-model="fastDownload" val="yes" :label="$t('Do fast downloads, only to analyze output values')" />
             </td>
           </tr>
+
+          <tr>
+            <td colspan="6" class="bg-primary text-white pt-cell-left text-weight-medium">
+              <span class="q-pl-xs">{{ $t('Upload model run .zip') }}</span>
+            </td>
+          </tr>
+          <tr v-if="isUploadEnabled">
+            <td class="pt-cell">
+              <q-btn
+                @click="onUploadRun"
+                :disable="!isUploadEnabled || !runFileSelected"
+                flat
+                dense
+                class="col-auto bg-primary text-white rounded-borders"
+                icon="mdi-upload"
+                :title="$t('Upload model run .zip')"
+                />
+            </td>
+            <td colspan="5" class="pt-cell">
+              <q-file
+                v-model="runUploadFile"
+                :disable="!isUploadEnabled || !digest"
+                accept='.zip'
+                outlined
+                dense
+                clearable
+                hide-bottom-space
+                class="col q-pl-xs"
+                color="primary"
+                :label="$t('Select model run .zip for upload')"
+                >
+              </q-file>
+            </td>
+          </tr>
+
           <tr>
             <td colspan="6" class="bg-primary text-white pt-cell-left text-weight-medium">
               <span class="q-pl-xs">{{ $t('Upload scenario .zip') }}</span>
@@ -67,7 +103,7 @@
             <td class="pt-cell">
               <q-btn
                 @click="onUploadWorkset"
-                :disable="!isUploadEnabled || !fileSelected"
+                :disable="!isUploadEnabled || !wsFileSelected"
                 flat
                 dense
                 class="col-auto bg-primary text-white rounded-borders"
@@ -95,7 +131,7 @@
             <td class="pt-cell">
               <q-checkbox
                 v-model="isNoDigestCheck"
-                :disable="!isUploadEnabled || !fileSelected"
+                :disable="!isUploadEnabled || !wsFileSelected"
                 :title="$t('Ignore input scenario model digest (model version)')"
                 />
             </td>
