@@ -168,7 +168,6 @@ export default {
   'Login': "S'identifier",
   'Logout': 'Se déconnecter',
   'Measure': 'Mesure',
-  'MEASURE_': 'MESURE_',
   'Menu': 'Menu',
   'Model': 'Modèle',
   'model(s)': 'des modèles',
