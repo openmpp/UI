@@ -329,12 +329,12 @@
               :title="(prop.node.digest !== runCompare.RunDigest ? $t('Compare this model run with') : $t('Clear run comparison with')) + ' ' + runCurrent.Name"
               />
             <q-btn
-              :disable="!prop.node.digest || isInProgress(prop.node.status)"
-              @click.stop="onRunDelete(prop.node.label, prop.node.digest)"
+              :disable="!prop.node.digest"
+              @click.stop="onRunDelete(prop.node.label, prop.node.digest, prop.node.status)"
               flat
               round
               dense
-              :color="(prop.node.digest && !isInProgress(prop.node.status)) ? 'primary' : 'secondary'"
+              :color="prop.node.digest ? 'primary' : 'secondary'"
               class="col-auto"
               icon="mdi-delete-outline"
               :title="$t('Delete') + ': ' + prop.node.label"
@@ -383,6 +383,7 @@
     :show-tickle="showDeleteDialogTickle"
     :item-name="runNameToDelete"
     :item-id="runDigestToDelete"
+    :bodyText="isInProgress(runStatusToDelete) ? $t('This model run is NOT completed.') : ''"
     :dialog-title="$t('Delete model run') + '?'"
     >
   </delete-confirm-dialog>

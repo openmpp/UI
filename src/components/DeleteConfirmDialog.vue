@@ -6,7 +6,11 @@
 
     <q-card-section class="row items-center">
       <q-avatar icon="mdi-delete" color="primary" text-color="white" />
-      <span class="q-ml-sm">{{ bodyText ? bodyText : itemName }}</span>
+      <span class="q-ml-sm">{{ itemName }}</span>
+    </q-card-section>
+
+    <q-card-section v-if="bodyText" class="row items-center">
+      <span class="q-ml-sm om-text-descr">{{ bodyText }}</span>
     </q-card-section>
 
     <q-card-actions align="right">

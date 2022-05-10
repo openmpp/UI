@@ -379,12 +379,12 @@ export default {
     // setup make colunm labels (attributes in react-pivottable terms)
     makeColLabels () {
       // add dimension(s) lables
-      let mAttr = this.tableText.ExprDescr || 'Measure'
+      const mAttr = this.tableText.ExprDescr || 'Measure'
       this.colLabels = []
       for (let j = 0; j < this.tableSize.rank; j++) {
-        const dn = (this.dimProp[j].label || this.dimProp[j].name)
+        let dn = (this.dimProp[j].label || this.dimProp[j].name)
+        if (dn === mAttr) dn = 'MEASURE_' + j.toString()
         this.colLabels.push(dn)
-        if (dn === mAttr) mAttr = 'MEASURE_'
       }
       this.colLabels.push(mAttr) // expression dimension
 

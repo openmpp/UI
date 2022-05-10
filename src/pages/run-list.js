@@ -72,6 +72,7 @@ export default {
       nextId: 100,
       runNameToDelete: '',
       runDigestToDelete: '',
+      runStatusToDelete: '',
       showDeleteDialogTickle: false,
       uploadFileSelect: false,
       uploadFile: null,
@@ -362,9 +363,10 @@ export default {
     //
 
     // show yes/no dialog to confirm run delete
-    onRunDelete (runName, dgst) {
+    onRunDelete (runName, dgst, status) {
       this.runNameToDelete = runName
       this.runDigestToDelete = dgst
+      this.runStatusToDelete = status
       this.showDeleteDialogTickle = !this.showDeleteDialogTickle
     },
     // user answer yes to confirm delete model run
