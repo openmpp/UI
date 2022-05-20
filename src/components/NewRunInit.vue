@@ -147,9 +147,10 @@ export default {
       }
       this.loadWait = false
 
-      // return run status
+      // return run status, empty on error
       if (!Mdf.isRunState(rst)) rst = Mdf.emptyRunState()
-      this.$emit('done', this.loadDone, rst.RunStamp)
+
+      this.$emit('done', this.loadDone, rst.RunStamp, rst.SubmitStamp)
     }
   },
 

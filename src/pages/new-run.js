@@ -216,7 +216,12 @@ export default {
       }
 
       // get run options presets as array of { name, descr, opts{....} }
+      // if first preset starts with "current-model-name." then apply it
       this.presetLst = Mdf.configRunOptsPresets(this.serverConfig, this.theModel.Model.Name, this.modelLanguage.LangCode)
+
+      if (Array.isArray(this.presetLst) && this.presetLst.length > 0) {
+        if (this.presetLst[0].name?.startsWith(this.theModel.Model.Name + '.')) this.doPresetSelected(0)
+      }
     },
 
     // use current run as base base run if:
@@ -414,7 +419,7 @@ export default {
     },
 
     // apply preset to run options
-    onPresetSelected (idx) {
+    doPresetSelected (idx) {
       if (!Array.isArray(this.presetLst) || idx < 0 || idx >= this.presetLst.length) {
         this.$q.notify({ type: 'warning', message: this.$t('Invalid run options') })
         console.warn('Invalid run options', idx)
@@ -453,7 +458,11 @@ export default {
         !!ps.sparseOutput ||
         (ps.runTmpl || '') !== ''
 
-      this.$q.notify({ type: 'info', message: this.presetLst[idx].descr || this.presetLst[idx].label || (this.$t('Using Run Options') + ': ' + this.presetLst[idx].name || '') })
+      this.$q.notify({
+        type: 'info',
+        // type: 'info',
+        message: this.presetLst[idx].descr || this.presetLst[idx].label || (this.$t('Using Run Options') + ': ' + this.presetLst[idx].name || '')
+      })
     },
 
     // on model run click: if workset partial and no base run and no csv directory then do not run the model
@@ -559,21 +568,24 @@ export default {
     },
 
     // new model run started: response from server
-    doneNewRunInit (ok, stamp) {
+    doneNewRunInit (ok, runStamp, submitStamp) {
       this.isInitRun = false
       this.loadWait = false
-      this.$emit('run-list-refresh')
 
-      if (!ok) {
+      if (!ok || !submitStamp) {
         this.$q.notify({ type: 'negative', message: this.$t('Server offline or model run failed to start') })
         return
       }
-      // model started
-      if (!stamp) {
-        this.$q.notify({ type: 'negative', message: this.$t('Unable to show run log: run stamp is empty') })
+      // model wait in the queue
+      if (!runStamp) {
+        this.$q.notify({ type: 'positive', message: this.$t('Model run queued' + ': ' + Mdf.fromUnderscoreTimeStamp(submitStamp)) })
+        this.$emit('run-job-select', submitStamp)
         return
       }
-      this.$emit('run-log-select', stamp)
+      // else: model started
+      this.$q.notify({ type: 'positive', message: this.$t('Model run strated' + ': ' + Mdf.fromUnderscoreTimeStamp(runStamp)) })
+      this.$emit('run-list-refresh')
+      this.$emit('run-log-select', runStamp)
     },
 
     // receive profile list by model digest

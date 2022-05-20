@@ -188,6 +188,7 @@ export default {
   'Model run notes': "Notes d'exécution du modèle",
   'Model run output tables': "Tableaux de résultats d'exécution du modèle",
   'Model run parameters': "Paramètres d'exécution du modèle",
+  'Model run queued': "Exécution du modèle en file d'attente",
   'Model Run Template': "Modèle d'exécution la traverse",
   'Model run with the same name already exist': 'Le modèle exécuté avec le même nom existe déjà',
   'Model Runs': "Le modèle s'exécute",

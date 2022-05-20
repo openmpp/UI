@@ -33,10 +33,26 @@ export const tablePath = (model, runDigest, tableName) => {
 // return date-time string: truncate milliseconds from timestamp
 export const dtStr = (ts) => { return ((typeof ts === typeof 'string') ? (ts || '').substr(0, 19) : '') }
 
-// format date-time string to timestamp string: 2021-07-16 13:40:53.882 2021_07_16_13_40_53_882
+// format date-time string to timestamp string: 2021-07-16 13:40:53.882 into 2021_07_16_13_40_53_882
 export const toUnderscoreTimeStamp = (ts) => {
   if (!ts || typeof ts !== typeof 'string') return ''
   return ts.replace(/[:\s-.]/g, '_')
+}
+
+// format timestamp string to date-time string: 2021_07_16_13_40_53_882 into 2021-07-16 13:40:53.882
+export const fromUnderscoreTimeStamp = (ts) => {
+  if (!ts || typeof ts !== typeof 'string') return ''
+
+  const a = Array.from(ts, (c, i) => {
+    if (i === 4 && c === '_') return '-'
+    if (i === 7 && c === '_') return '-'
+    if (i === 10 && c === '_') return ' '
+    if (i === 13 && c === '_') return ':'
+    if (i === 16 && c === '_') return ':'
+    if (i === 19 && c === '_') return '.'
+    return c
+  })
+  return a.join('')
 }
 
 // format date-time to timestamp string: YYYY-MM-DD hh:mm:ss.SSS

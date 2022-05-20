@@ -160,7 +160,7 @@ export const statusTextByCode = (status) => {
 export const isRunState = (rst) => {
   if (!rst) return false
   return rst.hasOwnProperty('ModelName') && rst.hasOwnProperty('ModelDigest') &&
-    rst.hasOwnProperty('RunStamp') && rst.hasOwnProperty('IsFinal') &&
+  rst.hasOwnProperty('RunStamp') && rst.hasOwnProperty('SubmitStamp') && rst.hasOwnProperty('IsFinal') &&
     rst.hasOwnProperty('RunName') && rst.hasOwnProperty('UpdateDateTime') && rst.hasOwnProperty('TaskRunName') &&
     rst.hasOwnProperty('IsLog') && rst.hasOwnProperty('LogFileName')
 }
@@ -168,7 +168,7 @@ export const isRunState = (rst) => {
 // if this is not empty model run state
 export const isNotEmptyRunState = (rst) => {
   if (!isRunState(rst)) return false
-  return (rst.ModelDigest || '') !== '' && (rst.RunStamp || '') !== '' && (rst.UpdateDateTime || '') !== ''
+  return (rst.ModelDigest || '') !== '' && (rst.RunStamp || '') !== '' && (rst.SubmitStamp || '') !== '' && (rst.UpdateDateTime || '') !== ''
 }
 
 // return model run state
@@ -177,6 +177,7 @@ export const emptyRunState = () => {
     ModelName: '',
     ModelDigest: '',
     RunStamp: '',
+    SubmitStamp: '',
     IsFinal: false,
     UpdateDateTime: '',
     RunName: '',
@@ -207,6 +208,7 @@ export const emptyRunStateLog = () => {
     ModelName: '',
     ModelDigest: '',
     RunStamp: '',
+    SubmitStamp: '',
     IsFinal: false,
     UpdateDateTime: '',
     RunName: '',
@@ -228,6 +230,7 @@ export const toRunStateFromLog = (rlp) => {
     ModelName: rlp.ModelName,
     ModelDigest: rlp.ModelDigest,
     RunStamp: rlp.RunStamp || '',
+    SubmitStamp: rlp.SubmitStamp || '',
     IsFinal: !!rlp.IsFinal,
     RunName: rlp.RunName || '',
     TaskRunName: rlp.TaskRunName || '',

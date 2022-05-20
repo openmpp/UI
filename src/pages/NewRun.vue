@@ -126,7 +126,7 @@
           >
           <td class="q-pr-xs">
             <q-btn
-              @click="onPresetSelected(idx)"
+              @click="doPresetSelected(idx)"
               no-caps
               unelevated
               color="primary"

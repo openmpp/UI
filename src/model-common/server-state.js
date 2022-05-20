@@ -3,7 +3,7 @@
 // return empty service configuration
 export const emptyConfig = () => {
   return {
-    RootDir: '',
+    OmsName: '',
     RowPageMaxSize: 100,
     AllowUserHome: false,
     AllowDownload: false,
@@ -27,7 +27,7 @@ export const emptyConfig = () => {
 // return true if this is service config (it can be empty)
 export const isConfig = (c) => {
   if (!c) return false
-  if (!c.hasOwnProperty('RootDir') || !c.hasOwnProperty('RowPageMaxSize') || !c.hasOwnProperty('AllowUserHome') ||
+  if (!c.hasOwnProperty('OmsName') || !c.hasOwnProperty('RowPageMaxSize') || !c.hasOwnProperty('AllowUserHome') ||
     !c.hasOwnProperty('AllowDownload') || !c.hasOwnProperty('AllowUpload') ||
     !c.hasOwnProperty('Env') || !c.hasOwnProperty('ModelCatalog') || !c.hasOwnProperty('RunCatalog')) {
     return false
