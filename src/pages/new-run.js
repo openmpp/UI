@@ -583,7 +583,7 @@ export default {
         return
       }
       // else: model started
-      this.$q.notify({ type: 'positive', message: this.$t('Model run strated' + ': ' + Mdf.fromUnderscoreTimeStamp(runStamp)) })
+      this.$q.notify({ type: 'positive', message: this.$t('Model run started' + ': ' + Mdf.fromUnderscoreTimeStamp(runStamp)) })
       this.$emit('run-list-refresh')
       this.$emit('run-log-select', runStamp)
     },
