@@ -740,7 +740,7 @@ export default {
       this.colFields = restore(pv.cols)
       this.otherFields = restore(pv.others)
 
-      // if there are any dimensions whch are not in row, columns or others then push it to others
+      // if there are any dimensions which are not in rows, columns or others then push it to others
       // it is possible if view restored and sub-value dimension is added by parameter upload
       for (const f of this.dimProp) {
         if (this.rowFields.findIndex((p) => f.name === p.name) >= 0) continue
@@ -771,21 +771,24 @@ export default {
     // set initial page view for parameter
     setInitialPageView () {
       // set rows, columns and other:
-      //   first dimension on rows
+      //   last-1 dimension on rows
       //   last dimension on columns
       //   the rest on other fields
       const rf = []
       const cf = []
       const tf = []
-      if (this.dimProp.length > 0) rf.push(this.dimProp[0])
-      if (this.dimProp.length > 1) cf.push(this.dimProp[this.dimProp.length - 1])
+      if (this.dimProp.length === 1) rf.push(this.dimProp[0])
+      if (this.dimProp.length > 1) {
+        rf.push(this.dimProp[this.dimProp.length - 2])
+        cf.push(this.dimProp[this.dimProp.length - 1])
+      }
 
       for (let k = 0; k < this.dimProp.length; k++) {
         const f = this.dimProp[k]
         f.selection = []
 
         // if other then single selection else rows and columns: multiple selection
-        if (k > 0 && k < this.dimProp.length - 1) {
+        if (k < this.dimProp.length - 2) {
           tf.push(f)
           f.selection.push(f.enums[0])
         } else {

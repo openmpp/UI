@@ -428,7 +428,14 @@ export default {
       // merge preset with run options
       const ps = this.presetLst[idx].opts
 
+      this.runOpts.subCount = ps.subCount ?? this.runOpts.subCount
+      if (this.runOpts.subCount < 1) {
+        this.runOpts.subCount = 1
+      }
       this.runOpts.threadCount = ps.threadCount ?? this.runOpts.threadCount
+      if (this.runOpts.threadCount < 1) {
+        this.runOpts.threadCount = 1
+      }
       this.runOpts.workDir = ps.workDir ?? this.runOpts.workDir
       this.runOpts.csvDir = ps.csvDir ?? this.runOpts.csvDir
       this.csvCodeId = ps.csvCodeId ?? this.csvCodeId
@@ -440,10 +447,19 @@ export default {
       this.runOpts.sparseOutput = ps.sparseOutput ?? this.runOpts.sparseOutput
       this.runOpts.runTmpl = ps.runTmpl ?? this.runOpts.runTmpl
       this.runOpts.mpiNpCount = ps.mpiNpCount ?? this.runOpts.mpiNpCount
+      if (this.runOpts.mpiNpCount < 0) {
+        this.runOpts.mpiNpCount = 0
+      }
       this.runOpts.mpiOnRoot = ps.mpiOnRoot ?? this.runOpts.mpiOnRoot
       this.runOpts.mpiTmpl = ps.mpiTmpl ?? this.runOpts.mpiTmpl
       this.runOpts.progressPercent = ps.progressPercent ?? this.runOpts.progressPercent
+      if (this.runOpts.progressPercent < 1) {
+        this.runOpts.progressPercent = 1
+      }
       this.runOpts.progressStep = ps.progressStep ?? this.runOpts.progressStep
+      if (this.runOpts.progressStep < 0) {
+        this.runOpts.progressStep = 0
+      }
 
       // expand sections if preset options supplied with non-default values
       this.mpiOptsExpanded = (ps.mpiNpCount || 0) !== 0 || (ps.mpiTmpl || '') !== ''
