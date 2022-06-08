@@ -29,6 +29,25 @@
           :title="$t('Refresh')"
           />
 
+        <q-btn
+          v-if="!runState.IsFinal && (runState.RunStamp || '')"
+          @click="showStopRunTickle = !showStopRunTickle"
+          flat
+          dense
+          class="col-auto bg-primary text-white rounded-borders q-mr-xs"
+          icon="mdi-alert-octagon-outline"
+          :title="$t('Stop model run')"
+          />
+        <q-btn
+          v-else
+          disable
+          flat
+          dense
+          class="col-auto bg-primary text-white rounded-borders q-mr-xs"
+          icon="mdi-alert-octagon-outline"
+          :title="$t('Stop model run')"
+          />
+
         <div
           class="col-auto"
           >
@@ -123,16 +142,27 @@
 
   <run-info-dialog :show-tickle="runInfoTickle" :model-digest="digest" :run-digest="runInfoDigest"></run-info-dialog>
 
+  <confirm-dialog
+    @confirm-yes="onYesStopRun"
+    :show-tickle="showStopRunTickle"
+    :item-name="runState.TaskRunName || runState.RunName || runState.RunStamp"
+    :dialog-title="$t('Stop model run?')"
+    :body-text="$t('Stop')"
+    :icon-name="'mdi-alert-octagon'"
+    >
+  </confirm-dialog>
+
 </div>
 </template>
 
 <script>
-import { mapGetters, mapActions } from 'vuex'
+import { mapState, mapGetters, mapActions } from 'vuex'
 import * as Mdf from 'src/model-common'
 import RefreshRunLog from 'components/RefreshRunLog.vue'
 import RefreshRunProgress from 'components/RefreshRunProgress.vue'
 import RunBar from 'components/RunBar.vue'
 import RunInfoDialog from 'components/RunInfoDialog.vue'
+import ConfirmDialog from 'components/ConfirmDialog.vue'
 
 /* eslint-disable no-multi-spaces */
 const MAX_EMPTY_LOG_COUNT = 5          // pause log refresh if empty response exceed this count (5 = 5 seconds)
@@ -145,7 +175,7 @@ const MIN_LOG_COUNT = 200              // min size of page log read request
 
 export default {
   name: 'RunLog',
-  components: { RefreshRunLog, RefreshRunProgress, RunBar, RunInfoDialog },
+  components: { RefreshRunLog, RefreshRunProgress, RunBar, RunInfoDialog, ConfirmDialog },
 
   props: {
     digest: { type: String, default: '' },
@@ -174,7 +204,8 @@ export default {
       logCount: MIN_LOG_COUNT,
       logLines: [],
       runInfoTickle: false,
-      runInfoDigest: ''
+      runInfoDigest: '',
+      showStopRunTickle: false
     }
   },
 
@@ -183,6 +214,9 @@ export default {
       return this.lastProgressDt ? Mdf.dtToTimeStamp(new Date(this.lastProgressDt)) : ''
     },
 
+    ...mapState('serverState', {
+      omsUrl: state => state.omsUrl
+    }),
     ...mapGetters('model', {
       runTextByDigest: 'runTextByDigest'
     })
@@ -253,6 +287,29 @@ export default {
     stopRefreshProgress () {
       this.refreshCount = 0
       clearInterval(this.refreshInt)
+    },
+
+    // user answer is Yes to stop model run
+    async onYesStopRun () {
+      if (!this.digest || !this.runStamp) {
+        console.warn('Unable to stop: model digest or run stamp is empty', this.digest, this.runStamp)
+        this.$q.notify({ type: 'negative', message: this.$t('Unable to stop: model digest or run stamp is empty') })
+        return
+      }
+
+      const u = this.omsUrl +
+        '/api/run/stop/model/' + encodeURIComponent(this.digest) +
+        '/stamp/' + encodeURIComponent(this.runStamp)
+      try {
+        await this.$axios.put(u) // ignore response on success
+      } catch (e) {
+        console.warn('Unable to stop model run', e)
+        this.$q.notify({ type: 'negative', message: this.$t('Unable to stop model run') + ': ' + this.runStamp })
+        return // exit on error
+      }
+
+      // notify user on success, even run may not exist
+      this.$q.notify({ type: 'info', message: this.$t('Stopping model run') + ': ' + this.runStamp })
     },
 
     // model current run log status and page: response from server

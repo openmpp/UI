@@ -594,12 +594,12 @@ export default {
       }
       // model wait in the queue
       if (!runStamp) {
-        this.$q.notify({ type: 'positive', message: this.$t('Model run queued' + ': ' + Mdf.fromUnderscoreTimeStamp(submitStamp)) })
+        this.$q.notify({ type: 'info', message: this.$t('Model run queued' + ': ' + Mdf.fromUnderscoreTimeStamp(submitStamp)) })
         this.$emit('run-job-select', submitStamp)
         return
       }
       // else: model started
-      this.$q.notify({ type: 'positive', message: this.$t('Model run started' + ': ' + Mdf.fromUnderscoreTimeStamp(runStamp)) })
+      this.$q.notify({ type: 'info', message: this.$t('Model run started' + ': ' + Mdf.fromUnderscoreTimeStamp(runStamp)) })
       this.$emit('run-list-refresh')
       this.$emit('run-log-select', runStamp)
     },
