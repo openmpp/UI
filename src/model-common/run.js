@@ -168,8 +168,7 @@ export const isRunState = (rst) => {
 // if this is not empty model run state
 export const isNotEmptyRunState = (rst) => {
   if (!isRunState(rst)) return false
-  return (rst.ModelDigest || '') !== '' && (rst.UpdateDateTime || '') !== '' &&
-    ((rst.RunStamp || '') !== '' || (rst.SubmitStamp || '') !== '')
+  return (rst.ModelDigest || '') !== '' && (rst.UpdateDateTime || '') !== '' && ((rst.RunStamp || '') !== '' || (rst.SubmitStamp || '') !== '')
 }
 
 // return model run state
