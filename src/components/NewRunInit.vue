@@ -82,6 +82,7 @@ export default {
         Dir: '',
         Opts: { },
         Tables: [],
+        Threads: 1,
         Mpi: {
           Np: 0
         },
@@ -92,7 +93,6 @@ export default {
       if ((this.runOpts.worksetName || '') !== '') rv.Opts['OpenM.SetName'] = this.runOpts.worksetName
       if ((this.runOpts.baseRunDigest || '') !== '') rv.Opts['OpenM.BaseRunDigest'] = this.runOpts.baseRunDigest
       if ((this.runOpts.subCount || 1) !== 1) rv.Opts['OpenM.SubValues'] = this.runOpts.subCount.toString()
-      if ((this.runOpts.threadCount || 1) !== 1) rv.Opts['OpenM.Threads'] = this.runOpts.threadCount.toString()
       if ((this.runOpts.workDir || '') !== '') rv.Dir = this.runOpts.workDir
       if ((this.runOpts.progressPercent || 1) !== 1) rv.Opts['OpenM.ProgressPercent'] = this.runOpts.progressPercent.toString()
       if (this.runOpts.progressStep) rv.Opts['OpenM.ProgressStep'] = this.runOpts.progressStep.toString()
@@ -103,6 +103,8 @@ export default {
       if ((this.runOpts.profile || '') !== '') rv.Opts['OpenM.Profile'] = this.runOpts.profile
       if (this.runOpts.sparseOutput) rv.Opts['OpenM.SparseOutput'] = 'true'
       if (this.uiLang) rv.Opts['OpenM.MessageLanguage'] = this.uiLang
+
+      if ((this.runOpts.threadCount || 1) >= 1) rv.Threads = this.runOpts.threadCount
 
       rv.Tables = Array.from(this.tablesRetain)
 
