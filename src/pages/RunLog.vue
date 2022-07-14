@@ -230,7 +230,7 @@ export default {
   methods: {
     isSuccess (status) { return status === Mdf.RUN_SUCCESS },
     isInProgress (status) { return status === Mdf.RUN_IN_PROGRESS || status === Mdf.RUN_INITIAL },
-    runStatusDescr (status) { return Mdf.statusTextByCode(status) },
+    runStatusDescr (status) { return Mdf.statusText(status) },
     descrOfRun (rd) { return Mdf.descrOfTxt(this.runTextByDigest({ ModelDigest: this.digest, RunDigest: rd })) },
 
     // show run notes dialog

@@ -273,7 +273,7 @@ export default {
       clearInterval(this.logRefreshInt)
     },
 
-    // retrive list of download and upload log files by model digest
+    // retrieve list of download and upload log files by model digest
     async doLogListRefresh () {
       this.logSendCount = 0
       const now = Date.now()
@@ -285,7 +285,7 @@ export default {
       let dR = []
       let uR = []
 
-      if (this.serverConfig.AllowDownload) { // retrive download status
+      if (this.serverConfig.AllowDownload) { // retrieve download status
         const u = this.omsUrl +
           ((this.digest && this.digest !== Mdf.allModelsDownloadLog)
             ? '/api/download/log/model/' + encodeURIComponent(this.digest)
@@ -299,10 +299,10 @@ export default {
           try {
             if (e.response) em = e.response.data || ''
           } finally {}
-          console.warn('Server offline or download log files retrive failed.', em)
+          console.warn('Server offline or download log files retrieve failed.', em)
         }
       }
-      if (this.serverConfig.AllowUpload) { // retrive upload status
+      if (this.serverConfig.AllowUpload) { // retrieve upload status
         const u = this.omsUrl +
           ((this.digest && this.digest !== Mdf.allModelsUploadLog)
             ? '/api/upload/log/model/' + encodeURIComponent(this.digest)
@@ -316,7 +316,7 @@ export default {
           try {
             if (e.response) em = e.response.data || ''
           } finally {}
-          console.warn('Server offline or upload log files retrive failed.', em)
+          console.warn('Server offline or upload log files retrieve failed.', em)
         }
       }
       const udLst = [].concat(dR, uR)
@@ -425,7 +425,7 @@ export default {
       this.totalUpCount = this.upStatusLst.length
     },
 
-    // retrive list of files in download or upload folder
+    // retrieve list of files in download or upload folder
     async doFolderFilesRefresh (upDown, folder) {
       if (!folder || !upDown) {
         return // exit on empty folder
@@ -444,7 +444,7 @@ export default {
         try {
           if (e.response) em = e.response.data || ''
         } finally {}
-        console.warn('Server offline or file tree retrive failed.', em)
+        console.warn('Server offline or file tree retrieve failed.', em)
       }
       this.loadWait = false
 

@@ -118,6 +118,7 @@ export const runTableByName = (rt, name) => {
 export const RUN_SUCCESS = 's'      // run completed successfuly
 export const RUN_IN_PROGRESS = 'p'  // run in progress
 export const RUN_INITIAL = 'i'      // run not started yet
+export const RUN_WAIT = 'w'         // task run paused
 export const RUN_FAILED = 'e'       // run falied (comleted with error)
 export const RUN_EXIT = 'x'         // run exit and not completed
 /* eslint-enable no-multi-spaces */
@@ -129,7 +130,7 @@ export const isRunSuccess = (rt) => {
 
 // retrun true if run in progress
 export const isRunInProgress = (rt) => {
-  return isRunText(rt) && rt.Status === RUN_IN_PROGRESS
+  return isRunText(rt) && (rt.Status === RUN_IN_PROGRESS || rt.Status === RUN_INITIAL)
 }
 
 // retrun true if run completed, status is one of: s=success, x=exit, e=error
@@ -142,14 +143,26 @@ export const isRunCompletedStatus = (code) => {
   return code === RUN_SUCCESS || code === RUN_EXIT || code === RUN_FAILED
 }
 
-// return run status description by code: i=init p=progress s=success x=exit e=error(failed)
-export const statusTextByCode = (status) => {
+// return run status description, e.g: i=init p=progress s=success x=exit e=error(failed)
+export const statusText = (status) => {
   switch (status || '') {
     case RUN_SUCCESS: return 'success'
     case RUN_IN_PROGRESS: return 'in progress'
     case RUN_INITIAL: return 'initial'
+    case RUN_WAIT: return 'waiting'
     case RUN_FAILED: return 'failed'
     case RUN_EXIT: return 'exit (not completed)'
+    case 'success': return 'success'
+    case 'in progress': return 'in progress'
+    case 'progress': return 'in progress'
+    case 'init': return 'initial'
+    case 'initial': return 'initial'
+    case 'wait': return 'waiting'
+    case 'waiting': return 'waiting'
+    case 'failed': return 'failed'
+    case 'error': return 'failed'
+    case 'exit': return 'exit (not completed)'
+    case 'exit (not completed)': return 'exit (not completed)'
   }
   return 'unknown'
 }
@@ -314,4 +327,73 @@ export const isRunProgress = (rpi) => {
 export const isNotEmptyRunProgress = (rpi) => {
   if (!isRunProgress(rpi)) return false
   return (rpi.Status || '') !== '' && (rpi.CreateDateTime || '') !== '' && (rpi.UpdateDateTime || '') !== ''
+}
+
+// job control item
+// for queue jobs RunStatus, LogFileName and log Lines are always empty
+/*
+{
+  JobKey: "2022_07_04_20_08_21_158{_4040}",
+  JobStatus: "",
+  SubmitStamp: "2022_07_04_20_08_21_158",
+  ModelName: "RiskPaths",
+  ModelDigest: "d90e1e9a49a06d972ecf1d50e684c62b",
+  RunStamp: "2022_07_04_20_08_21_159",
+  Opts: {},
+  Threads: 1,
+  Mpi: {
+    Np: 0
+  },
+  Template: "",
+  Tables: [],
+  RunNotes: [],
+  LogFileName: "RiskPaths.2022_07_05_19_55_38_627.console.log",
+  RunStatus: [],
+  Lines: []
+}
+*/
+
+// retrun empty job control item
+export const emptyJobItem = (jKey) => {
+  return {
+    JobKey: (!!jKey && typeof jKey === typeof 'string' && jKey !== '') ? jKey : 'none',
+    JobStatus: '',
+    RunStatus: [],
+    Lines: [],
+    SubmitStamp: '',
+    ModelName: '',
+    ModelDigest: '',
+    RunStamp: '',
+    Opts: {},
+    RunNotes: [],
+    Tables: [],
+    LogFileName: '',
+    Threads: 1,
+    Mpi: { Np: 0 },
+    Template: ''
+  }
+}
+
+// return true if this is job control state
+export const isJobItem = (jc) => {
+  if (!jc) return false
+  if (!jc.hasOwnProperty('JobKey') || !jc.hasOwnProperty('JobStatus') || !jc.hasOwnProperty('RunStatus') || !jc.hasOwnProperty('Lines')) {
+    return false
+  }
+  if (!Array.isArray(jc.RunStatus) || !Array.isArray(jc.Lines)) {
+    return false
+  }
+  if (!jc.hasOwnProperty('SubmitStamp') || !jc.hasOwnProperty('ModelName') || !jc.hasOwnProperty('ModelDigest') || !jc.hasOwnProperty('RunStamp') ||
+    !jc.hasOwnProperty('Opts') || !jc.hasOwnProperty('RunNotes') || !jc.hasOwnProperty('Tables') || !jc.hasOwnProperty('LogFileName') ||
+    !jc.hasOwnProperty('Threads') || !jc.hasOwnProperty('Mpi') || !jc.Mpi.hasOwnProperty('Np') || !jc.hasOwnProperty('Template')) {
+    return false
+  }
+  if (typeof jc.Threads !== typeof 1 || typeof jc.Mpi.Np !== typeof 1) return false
+
+  return Array.isArray(jc.Tables) && Array.isArray(jc.RunNotes)
+}
+
+// return true if this is not empty job control state
+export const isNotEmptyJobItem = (jc) => {
+  return isJobItem(jc) && typeof jc.SubmitStamp === typeof 'string' && jc.SubmitStamp !== ''
 }

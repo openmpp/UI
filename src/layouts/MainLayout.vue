@@ -267,8 +267,8 @@
 
       <q-item
         clickable
-        disable
-        to="/"
+        :disable="!serverConfig.IsJobControl"
+        to="/service-state"
         exact
         >
         <q-item-section avatar>
@@ -443,8 +443,8 @@ export default {
         try {
           if (e.response) em = e.response.data || ''
         } finally {}
-        console.warn('Server offline or configuration retrive failed.', em)
-        this.$q.notify({ type: 'negative', message: this.$t('Server offline or configuration retrive failed.') })
+        console.warn('Server offline or configuration retrieve failed.', em)
+        this.$q.notify({ type: 'negative', message: this.$t('Server offline or configuration retrieve failed.') })
       }
 
       this.loadWait = false

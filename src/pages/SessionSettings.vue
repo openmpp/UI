@@ -431,8 +431,8 @@ export default {
           }
         }
       } catch (e) {
-        console.warn('Unable to retrive model settings', this.modelName, e)
-        this.$q.notify({ type: 'negative', message: this.$t('Unable to retrive model settings') + ': ' + this.modelName })
+        console.warn('Unable to retrieve model settings', this.modelName, e)
+        this.$q.notify({ type: 'negative', message: this.$t('Unable to retrieve model settings') + ': ' + this.modelName })
         return
       }
       if (!Mdf.isLength(this.dbRows)) return // no rows in model db or all rows are empty

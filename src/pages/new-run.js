@@ -628,10 +628,10 @@ export default {
         try {
           if (e.response) em = e.response.data || ''
         } finally {}
-        console.warn('Server offline or profile list retrive failed.', em)
+        console.warn('Server offline or profile list retrieve failed.', em)
       }
       if (!isOk) {
-        this.$q.notify({ type: 'negative', message: this.$t('Server offline or profile list retrive failed') + ': ' + this.digest })
+        this.$q.notify({ type: 'negative', message: this.$t('Server offline or profile list retrieve failed') + ': ' + this.digest })
       }
       this.loadWait = false
     }

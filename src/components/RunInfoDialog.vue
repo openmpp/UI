@@ -100,7 +100,7 @@ export default {
       // set basic run info
       this.title = Mdf.descrOfTxt(this.runText) || this.runText.Name
       this.isSucess = this.runText.Status === Mdf.RUN_SUCCESS
-      this.statusDescr = this.$t(Mdf.statusTextByCode(this.runText.Status))
+      this.statusDescr = this.$t(Mdf.statusText(this.runText.Status))
       this.createDateTime = Mdf.dtStr(this.runText.CreateDateTime)
       this.lastDateTime = Mdf.dtStr(this.runText.UpdateDateTime)
       this.duration = Mdf.toIntervalStr(this.createDateTime, this.lastDateTime)

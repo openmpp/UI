@@ -8,6 +8,7 @@ export const emptyConfig = () => {
     AllowUserHome: false,
     AllowDownload: false,
     AllowUpload: false,
+    IsJobControl: false,
     Env: {},
     ModelCatalog: {
       ModelDir: '',
@@ -28,7 +29,7 @@ export const emptyConfig = () => {
 export const isConfig = (c) => {
   if (!c) return false
   if (!c.hasOwnProperty('OmsName') || !c.hasOwnProperty('RowPageMaxSize') || !c.hasOwnProperty('AllowUserHome') ||
-    !c.hasOwnProperty('AllowDownload') || !c.hasOwnProperty('AllowUpload') ||
+    !c.hasOwnProperty('AllowDownload') || !c.hasOwnProperty('AllowUpload') || !c.hasOwnProperty('IsJobControl') ||
     !c.hasOwnProperty('Env') || !c.hasOwnProperty('ModelCatalog') || !c.hasOwnProperty('RunCatalog')) {
     return false
   }
@@ -108,6 +109,81 @@ export const configRunOptsPresets = (c, modelName, langCode) => {
   })
 
   return pLst
+}
+
+/*
+// Service state:
+{
+  IsJobControl: true,
+  UpdateDateTime: "2022-06-30 23:35:59.456",
+  Queue: [],
+  Active: [
+    {
+      "SubmitStamp": "2022_07_07_15_01_04_557",
+      "ModelName": "RiskPaths",
+      "ModelDigest": "d90e1e9a49a06d972ecf1d50e684c62b",
+      "RunStamp": "2022_07_07_15_01_04_558",
+      "Dir": "",
+      "Opts": {
+        "EN.RunDescription": "run desription in English",
+        "FR.RunDescription": "run desription in French",
+        "OpenM.BaseRunDigest": "bc5ada86d3f9ec460f4e3599fdcf398b",
+        "OpenM.RunName": "RiskPaths_Default_2022_07_07_14_58_29_850",
+        "OpenM.SetName": "Default",
+        "OpenM.SubValues": "16"
+      },
+      "Threads": 3,
+      "Mpi": {
+        "Np": 0
+      },
+      "Template": "",
+      "Tables": [
+        "TG03_Union_Tables"
+      ],
+      "RunNotes": [
+        {
+          "LangCode": "EN",
+          "Note": "Run notes (English)"
+        },
+        {
+          "LangCode": "FR",
+          "Note": "Run notes (French)"
+        }
+      ],
+      "LogFileName": "RiskPaths.2022_07_07_15_01_04_558.console.log"
+    }
+  ],
+  History: [
+    {
+      JobKey: "2022_07_04_20_08_21_158{_4040}",
+      SubmitStamp: "2022_07_04_20_08_21_158",
+      ModelName: "RiskPaths",
+      ModelDigest: "d90e1e9a49a06d972ecf1d50e684c62b",
+      RunStamp: "2022_07_04_20_08_21_159",
+      JobStatus: "success"
+    }
+  ]
+}
+*/
+// return empty service state
+export const emptyServiceState = () => {
+  return {
+    IsJobControl: false,
+    UpdateDateTime: '',
+    Queue: [],
+    Active: [],
+    History: []
+  }
+}
+
+// return true if this is service config (it can be empty)
+export const isServiceState = (st) => {
+  if (!st) return false
+  if (!st.hasOwnProperty('IsJobControl') || !st.hasOwnProperty('UpdateDateTime') ||
+      !st.hasOwnProperty('Queue') || !st.hasOwnProperty('Active') || !st.hasOwnProperty('History')) {
+    return false
+  }
+  return Array.isArray(st.Queue) && Array.isArray(st.Active) && Array.isArray(st.History)
 }
 
 /* eslint-disable no-multi-spaces */

@@ -197,7 +197,7 @@
             unelevated
             dense
             color="primary"
-            class="rounded-borders tab-switch-button q-pr-xs"
+            class="rounded-borders q-pr-xs"
             :class="isReady(uds.Status) || isProgress(uds.Status) ? 'bg-primary' : 'bg-warning'"
             >
             <q-icon :name="uds.isShowLog ? 'keyboard_arrow_up' : 'keyboard_arrow_down'" />
@@ -390,7 +390,7 @@
             unelevated
             dense
             color="primary"
-            class="rounded-borders tab-switch-button q-pr-xs"
+            class="rounded-borders q-pr-xs"
             :class="isReady(uds.Status) || isProgress(uds.Status) ? 'bg-primary' : 'bg-warning'"
             >
             <q-icon :name="uds.isShowLog ? 'keyboard_arrow_up' : 'keyboard_arrow_down'" />
@@ -578,12 +578,6 @@
     @extend .pt-cell;
   }
 
-  .tab-switch-container {
-    margin-right: 1px;
-  }
-  .tab-switch-button {
-    border-top-right-radius: 1rem;
-  }
   .file-link {
     text-decoration: none;
     // display: inline-block;

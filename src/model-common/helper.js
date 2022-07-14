@@ -30,6 +30,10 @@ export const tablePath = (model, runDigest, tableName) => {
     '/table/' + encodeURIComponent(tableName || '-')
 }
 
+// length of timestap string
+export const TIME_STAMP_LEN = '1234_67_90_23_56_89_123'.length
+export const TIME_STAMP_SEC_LEN = '1234_67_90_23_56_89'.length
+
 // return date-time string: truncate milliseconds from timestamp
 export const dtStr = (ts) => { return ((typeof ts === typeof 'string') ? (ts || '').substr(0, 19) : '') }
 
@@ -41,7 +45,7 @@ export const toUnderscoreTimeStamp = (ts) => {
 
 // format timestamp string to date-time string: 2021_07_16_13_40_53_882 into 2021-07-16 13:40:53.882
 export const fromUnderscoreTimeStamp = (ts) => {
-  if (!ts || typeof ts !== typeof 'string') return ''
+  if (!ts || typeof ts !== typeof 'string' || (ts.length !== TIME_STAMP_LEN && ts.length !== TIME_STAMP_SEC_LEN)) return ''
 
   const a = Array.from(ts, (c, i) => {
     if (i === 4 && c === '_') return '-'
@@ -53,6 +57,20 @@ export const fromUnderscoreTimeStamp = (ts) => {
     return c
   })
   return a.join('')
+}
+
+// retrun true if argument look like as date-time string: 1111_00_00_99_99_99_999
+export const isUnderscoreTimeStamp = (ts) => {
+  if (!ts || typeof ts !== typeof 'string' || (ts.length !== TIME_STAMP_LEN && ts.length !== TIME_STAMP_SEC_LEN)) return false
+
+  for (let i = 0; i < ts.length; i++) {
+    if (i === 4 || i === 7 || i === 10 || i === 13 || i === 16 || i === 19) {
+      if (ts[i] !== '_') return false
+    } else {
+      if (ts[i] < '0' || ts[i] > '9') return false
+    }
+  }
+  return true
 }
 
 // format date-time to timestamp string: YYYY-MM-DD hh:mm:ss.SSS

@@ -56,6 +56,7 @@ const routes = [
         component: () => import('pages/UpDownList'),
         props: true
       },
+      { path: 'service-state', component: () => import('pages/ServiceState') },
       { path: 'settings', component: () => import('pages/SessionSettings') },
       { path: 'license', component: () => import('pages/LicensePage') }
     ]

@@ -171,7 +171,7 @@
   <q-card
     v-if="isNewWorksetShow"
     bordered
-    class="border-025 q-ma-sm"
+    class="primary-border-025 q-ma-sm"
     >
     <new-workset
       @save-new-set="onNewWorksetSave"
@@ -212,7 +212,7 @@
   <q-card
     v-if="isShowNoteEditor"
     bordered
-    class="border-025 q-ma-sm"
+    class="primary-border-025 q-ma-sm"
     >
     <q-card-section class="q-pa-sm">
 
@@ -420,5 +420,8 @@
     border-width: 1px;
     border-style: solid;
     border-color: currentColor;
+  }
+  .primary-border-025 {
+    border: 0.25rem solid $primary;
   }
 </style>

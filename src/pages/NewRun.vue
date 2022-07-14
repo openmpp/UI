@@ -30,7 +30,7 @@
             class="full-width"
             >
             <q-icon :name="isRunOptsShow ? 'keyboard_arrow_up' : 'keyboard_arrow_down'" />
-            <span>{{ $t('Model Run Options') }}</span>
+            <span class="text-body1">{{ $t('Model Run Options') }}</span>
           </q-btn>
         </span>
 
@@ -188,7 +188,7 @@
       </q-card-section>
 
       <q-card-section
-        class="grey-border-025 shadow-up-1 q-pa-sm"
+        class="primary-border-025 shadow-up-1 q-pa-sm"
         >
         <table-list
           :run-digest="''"
@@ -548,7 +548,7 @@
   .tc-min-width-10 {
     min-width: 10rem;
   }
-  .grey-border-025 {
-    border: 0.25rem solid rgba(0, 0, 0, 0.12);
+  .primary-border-025 {
+    border: 0.25rem solid $primary;
   }
 </style>
