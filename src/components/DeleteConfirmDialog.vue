@@ -5,7 +5,7 @@
     <q-card-section v-if="dialogTitle" class="text-h6 bg-primary text-white">{{ dialogTitle }}</q-card-section>
 
     <q-card-section class="row items-center">
-      <q-avatar icon="mdi-delete" color="primary" text-color="white" />
+      <q-avatar v-if="iconName" :icon="iconName" color="primary" text-color="white" />
       <span class="q-ml-sm">{{ itemName }}</span>
     </q-card-section>
 
@@ -43,8 +43,9 @@ export default {
     itemName: { type: String, default: '', required: true },
     itemId: { type: String, default: '' },
     kind: { type: String, default: '' },
+    dialogTitle: { type: String, default: '' },
     bodyText: { type: String, default: '' },
-    dialogTitle: { type: String, default: '' }
+    iconName: { type: String, default: 'mdi-delete' }
   },
 
   watch: {

@@ -1,6 +1,7 @@
 import { mapState } from 'vuex'
 import * as Mdf from 'src/model-common'
 import JobInfoCard from 'components/JobInfoCard.vue'
+import DeleteConfirmDialog from 'components/DeleteConfirmDialog.vue'
 
 /* eslint-disable no-multi-spaces */
 const STATE_REFRESH_TIME = 1601       // msec, service state refresh interval
@@ -10,7 +11,7 @@ const MAX_NO_STATE_COUNT = 4          // max invalid response count
 
 export default {
   name: 'ServiceState',
-  components: { JobInfoCard },
+  components: { JobInfoCard, DeleteConfirmDialog },
 
   props: {
     refreshTickle: { type: Boolean, default: false }
@@ -30,7 +31,11 @@ export default {
       stateRefreshTickle: 0,
       stateSendCount: 0,
       stateNoDataCount: 0,
-      stateRefreshInt: ''
+      stateRefreshInt: '',
+      stopRunTitle: '',
+      stopSubmitStamp: '',
+      stopModelDigest: '',
+      showStopRunTickle: false
     }
   },
 
@@ -51,10 +56,18 @@ export default {
     isSuccess (status) { return status === 'success' },
     isInProgress (status) { return status === 'progress' || status === 'init' || status === 'wait' },
     runStatusDescr (status) { return Mdf.statusText(status) },
-
     isActiveJob (jKey) { return !!jKey && Mdf.isNotEmptyJobItem(this.activeJob[jKey]) },
     isQueueJob (jKey) { return !!jKey && Mdf.isNotEmptyJobItem(this.queueJob[jKey]) },
     isHistoryJob (jKey) { return !!jKey && Mdf.isNotEmptyJobItem(this.historyJob[jKey]) },
+
+    // return true if job is first in the queue
+    isTopQueue (jKey) {
+      return this.srvState.Queue.findIndex((jc) => jc.JobKey === jKey) <= 0
+    },
+    // return true if job is last in the queue
+    isBottomQueue (jKey) {
+      return this.srvState.Queue.findIndex((jc) => jc.JobKey === jKey) >= this.srvState.Queue.length - 1
+    },
 
     // update page view
     initView () {
@@ -71,8 +84,9 @@ export default {
 
     // refersh service state
     onStateRefresh () {
-      if (this.isRefreshPaused) return
-      //
+      if (this.isRefreshPaused) {
+        return
+      }
       this.stateRefreshTickle = !this.stateRefreshTickle
       if (this.stateSendCount < MAX_STATE_SEND_COUNT) {
         this.doStateRefresh()
@@ -151,11 +165,13 @@ export default {
       try {
         // send request to the server
         const response = await this.$axios.get(u)
-        if (Mdf.isServiceState(response.data)) { // if response is a server state
+        const std = response?.data
+        if (Mdf.isServiceState(std)) { // if response is a server state
           this.stateSendCount = 0
           this.stateNoDataCount = 0
           //
-          this.srvState = response.data
+          std.History.reverse() // display history in reverse order: latest runs first
+          this.srvState = std
           this.updateJobsState()
         } else {
           this.stateNoDataCount++
@@ -232,6 +248,41 @@ export default {
         console.warn('Unable to set job control state:', kind, jKey)
         this.$q.notify({ type: 'negative', message: this.$t('Unable to retrieve model run state') + ': ' + kind + ' ' + jKey })
       }
+    },
+
+    // stop model run: ask user confirmation to kill model run
+    onStopJobConfirm (jKey, mDigest, stamp, mName) {
+      if (!jKey || !mDigest || !stamp) {
+        const s = (mName || mDigest || '') + ' ' + (stamp || '') + ' '
+        this.$q.notify({ type: 'negative', message: this.$t('Unable to find active model run') + ': ' + s })
+        return
+      }
+      this.stopRunTitle = mName + ' ' + this.fromUnderscoreTs(stamp)
+      this.stopSubmitStamp = stamp
+      this.stopModelDigest = mDigest
+      this.showStopRunTickle = !this.showStopRunTickle
+    },
+    // user answer is Yes to stop model run
+    async onYesStopRun (title, stamp, mDgst) {
+      if (!mDgst || !stamp) {
+        console.warn('Unable to stop: model digest or submit stamp is empty', mDgst, stamp)
+        this.$q.notify({ type: 'negative', message: this.$t('Unable to stop: model digest or submit stamp is empty') })
+        return
+      }
+
+      const u = this.omsUrl +
+        '/api/run/stop/model/' + encodeURIComponent(mDgst) +
+        '/stamp/' + encodeURIComponent(stamp)
+      try {
+        await this.$axios.put(u) // ignore response on success
+      } catch (e) {
+        console.warn('Unable to stop model run', e)
+        this.$q.notify({ type: 'negative', message: this.$t('Unable to stop model run') + ': ' + title })
+        return // exit on error
+      }
+
+      // notify user on success, even run may not exist
+      this.$q.notify({ type: 'info', message: this.$t('Stopping model run') + ': ' + title })
     }
   },
 

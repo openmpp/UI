@@ -29,6 +29,10 @@
             <td class="pt-head-left text-weight-medium">{{ $t('Run Stamp') }}</td>
             <td class="pt-cell-left">{{ jobItem.RunStamp }}</td>
           </tr>
+          <tr>
+            <td class="pt-head-left text-weight-medium">{{ $t('Submit Stamp') }}</td>
+            <td class="pt-cell-left">{{ jobItem.SubmitStamp }}</td>
+          </tr>
           <tr v-if="jobInfo.OptSubValues && jobInfo.OptSubValues !== '0'">
             <td class="pt-head-left text-weight-medium">{{ $t('Sub-values Count') }}</td>
             <td class="pt-cell-left">{{ jobInfo.OptSubValues }}</td>

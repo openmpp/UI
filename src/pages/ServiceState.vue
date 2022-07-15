@@ -49,14 +49,25 @@
 
     <q-expansion-item
       v-for="aj in srvState.Active" :key="aj.JobKey"
-      switch-toggle-side
       :disable="!aj.ModelDigest || !aj.JobKey || !aj.SubmitStamp"
       @after-show="onActiveShow(aj.JobKey)"
       @after-hide="onActiveHide(aj.JobKey)"
-      header-class="job-hdr"
+      expand-icon-toggle
+      switch-toggle-side
+      expand-icon-class="job-expand-btn bg-primary text-white rounded-borders q-mr-sm"
       :title="$t('About') + ': ' + aj.SubmitStamp"
       >
       <template v-slot:header>
+        <q-item-section avatar class="job-hdr-action-bar q-pr-sm">
+          <q-btn
+            @click="onStopJobConfirm(aj.JobKey, aj.ModelDigest, aj.SubmitStamp, aj.ModelName)"
+            flat
+            dense
+            class="bg-primary text-white rounded-borders"
+            icon="mdi-alert-octagon-outline"
+            :title="$t('Stop model run') + ' ' + aj.SubmitStamp"
+            />
+        </q-item-section>
         <q-item-section>
           <q-item-label>
             {{ aj.ModelName }}
@@ -91,14 +102,59 @@
 
       <q-expansion-item
         v-for="qj in srvState.Queue" :key="qj.JobKey"
-        switch-toggle-side
         :disable="!qj.ModelDigest || !qj.JobKey || !qj.SubmitStamp"
         @after-show="onQueueShow(qj.JobKey)"
         @after-hide="onQueueHide(qj.JobKey)"
-        header-class="job-hdr"
+        expand-icon-toggle
+        switch-toggle-side
+        expand-icon-class="job-expand-btn bg-primary text-white rounded-borders q-mr-sm"
         :title="$t('About') + ': ' + qj.SubmitStamp"
         >
         <template v-slot:header>
+          <q-item-section avatar class="q-pr-xs">
+            <div class="row items-center">
+              <q-btn
+                :disable="isTopQueue(qj.JobKey)"
+                flat
+                dense
+                class="col-auto bg-primary text-white rounded-borders q-mr-xs"
+                icon="mdi-arrow-collapse-up"
+                :title="$t('Move to the top')"
+                />
+              <q-btn
+                :disable="isTopQueue(qj.JobKey)"
+                flat
+                dense
+                class="col-auto bg-primary text-white rounded-borders q-mr-xs"
+                icon="mdi-arrow-up"
+                :title="$t('Move up')"
+                />
+              <q-btn
+                :disable="isBottomQueue(qj.JobKey)"
+                flat
+                dense
+                class="col-auto bg-primary text-white rounded-borders q-mr-xs"
+                icon="mdi-arrow-down"
+                :title="$t('Move down')"
+                />
+              <q-btn
+                :disable="isBottomQueue(qj.JobKey)"
+                flat
+                dense
+                class="col-auto bg-primary text-white rounded-borders q-mr-xs"
+                icon="mdi-arrow-collapse-down"
+                :title="$t('Move to the bottom')"
+                />
+              <q-btn
+                @click="onStopJobConfirm(qj.JobKey, qj.ModelDigest, qj.SubmitStamp, qj.ModelName)"
+                flat
+                dense
+                class="col-auto bg-primary text-white rounded-borders q-mr-xs"
+                icon="mdi-delete"
+                :title="$t('Delete from the queue') + qj.SubmitStamp"
+                />
+            </div>
+          </q-item-section>
           <q-item-section>
             <q-item-label>
               {{ qj.ModelName }}
@@ -133,11 +189,12 @@
 
       <q-expansion-item
         v-for="hj in srvState.History" :key="hj.JobKey"
-        switch-toggle-side
         :disable="!hj.ModelDigest || !hj.JobKey || !hj.SubmitStamp"
         @after-show="onHistoryShow(hj.JobKey)"
         @after-hide="onHistoryHide(hj.JobKey)"
-        header-class="job-hdr"
+        expand-icon-toggle
+        switch-toggle-side
+        expand-icon-class="job-expand-btn bg-primary text-white rounded-borders q-mr-sm"
         :title="$t('About') + ': ' + hj.SubmitStamp"
         >
         <template v-slot:header>
@@ -163,6 +220,17 @@
     </q-list>
   </q-expansion-item>
 
+  <delete-confirm-dialog
+    @delete-yes="onYesStopRun"
+    :show-tickle="showStopRunTickle"
+    :item-name="stopRunTitle"
+    :item-id="stopSubmitStamp"
+    :kind="stopModelDigest"
+    :dialog-title="$t('Stop model run?')"
+    :icon-name="'mdi-alert-octagon'"
+    >
+  </delete-confirm-dialog>
+
 </q-page>
 </template>
 
@@ -173,7 +241,11 @@
   .q-expansion-item__content > div.job-card {
     box-shadow: $shadow-1;
   }
-  .job-hdr {
-    background-color: $grey-1;
+  .job-expand-btn {
+    padding-right: 0;
+    align-content: center;
+  }
+  .job-hdr-action-bar {
+    min-width: 2rem;
   }
 </style>

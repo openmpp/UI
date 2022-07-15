@@ -37,6 +37,8 @@ export default {
   props: {
     showTickle: { type: Boolean, default: false, required: true },
     itemName: { type: String, default: '', required: true },
+    itemId: { type: String, default: '' },
+    kind: { type: String, default: '' },
     dialogTitle: { type: String, default: '' },
     bodyText: { type: String, default: '' },
     iconName: { type: String, default: '' }
@@ -54,7 +56,7 @@ export default {
 
   methods: {
     onYesClick () {
-      this.$emit('confirm-yes', this.itemName)
+      this.$emit('confirm-yes', this.itemName, this.itemId, this.kind)
     }
   }
 }
