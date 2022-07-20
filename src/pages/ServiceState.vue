@@ -69,9 +69,7 @@
             />
         </q-item-section>
         <q-item-section>
-          <q-item-label>
-            {{ aj.ModelName }}
-          </q-item-label>
+          <q-item-label>{{ aj.ModelName }}</q-item-label>
           <q-item-label class="om-text-descr">
             {{ $t('Submitted') + ':' }} <span class="mono">{{ fromUnderscoreTs(aj.SubmitStamp) }}</span>
             <span class="q-ml-md">{{ $t('Run Stamp') + ':' }} <span class="mono">{{ fromUnderscoreTs(aj.RunStamp) }}</span></span>
@@ -101,7 +99,7 @@
     <q-list bordered>
 
       <q-expansion-item
-        v-for="qj in srvState.Queue" :key="qj.JobKey"
+        v-for="(qj, qPos) of srvState.Queue" :key="qj.JobKey"
         :disable="!qj.ModelDigest || !qj.JobKey || !qj.SubmitStamp"
         @after-show="onQueueShow(qj.JobKey)"
         @after-hide="onQueueHide(qj.JobKey)"
@@ -115,6 +113,7 @@
             <div class="row items-center">
               <q-btn
                 :disable="isTopQueue(qj.JobKey)"
+                @click="onJobMove(qj.JobKey, 0, qj.ModelDigest, qj.SubmitStamp, qj.ModelName)"
                 flat
                 dense
                 class="col-auto bg-primary text-white rounded-borders q-mr-xs"
@@ -123,6 +122,7 @@
                 />
               <q-btn
                 :disable="isTopQueue(qj.JobKey)"
+                @click="onJobMove(qj.JobKey, qPos - 1, qj.ModelDigest, qj.SubmitStamp, qj.ModelName)"
                 flat
                 dense
                 class="col-auto bg-primary text-white rounded-borders q-mr-xs"
@@ -131,6 +131,7 @@
                 />
               <q-btn
                 :disable="isBottomQueue(qj.JobKey)"
+                @click="onJobMove(qj.JobKey, qPos + 1, qj.ModelDigest, qj.SubmitStamp, qj.ModelName)"
                 flat
                 dense
                 class="col-auto bg-primary text-white rounded-borders q-mr-xs"
@@ -139,6 +140,7 @@
                 />
               <q-btn
                 :disable="isBottomQueue(qj.JobKey)"
+                @click="onJobMove(qj.JobKey, srvState.Queue.length + 1, qj.ModelDigest, qj.SubmitStamp, qj.ModelName)"
                 flat
                 dense
                 class="col-auto bg-primary text-white rounded-borders q-mr-xs"
@@ -156,9 +158,7 @@
             </div>
           </q-item-section>
           <q-item-section>
-            <q-item-label>
-              {{ qj.ModelName }}
-            </q-item-label>
+            <q-item-label>{{ qj.ModelName }}</q-item-label>
             <q-item-label class="om-text-descr">
               {{ $t('Submitted') + ':' }} <span class="mono">{{ fromUnderscoreTs(qj.SubmitStamp) }}</span>
             </q-item-label>
@@ -199,9 +199,7 @@
         >
         <template v-slot:header>
           <q-item-section>
-            <q-item-label>
-              {{ hj.ModelName }}: <span class="om-text-descr" :class="isSuccess(hj.JobStatus) ? 'text-primary' : 'text-negative'">{{ $t(runStatusDescr(hj.JobStatus)) }}</span>
-            </q-item-label>
+            <q-item-label>{{ hj.ModelName }}: <span class="om-text-descr" :class="isSuccess(hj.JobStatus) ? 'text-primary' : 'text-negative'">{{ $t(runStatusDescr(hj.JobStatus)) }}</span></q-item-label>
             <q-item-label class="om-text-descr">
               {{ $t('Submitted') + ':' }} <span class="mono">{{ fromUnderscoreTs(hj.SubmitStamp) }}</span>
               <span class="q-ml-md">{{ $t('Run Stamp') + ':' }} <span class="mono">{{ fromUnderscoreTs(hj.RunStamp) }}</span></span>

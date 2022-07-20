@@ -283,6 +283,27 @@ export default {
 
       // notify user on success, even run may not exist
       this.$q.notify({ type: 'info', message: this.$t('Stopping model run') + ': ' + title })
+    },
+
+    async onJobMove (jKey, pos, mDigest, stamp, mName) {
+      const title = (mName || mDigest || '') + ' ' + (this.fromUnderscoreTs(stamp) || '') + ' '
+      if (!jKey || typeof pos !== typeof 1) {
+        console.warn('Unable to move model run', pos, jKey)
+        this.$q.notify({ type: 'negative', message: this.$t('Unable to move model run') + ': ' + title })
+        return
+      }
+
+      const u = this.omsUrl + '/api/service/job/move/' + (pos.toString()) + '/' + encodeURIComponent(jKey)
+      try {
+        await this.$axios.put(u) // ignore response on success
+      } catch (e) {
+        console.warn('Unable to move model run', e)
+        this.$q.notify({ type: 'negative', message: this.$t('Unable to move model run') + ': ' + title })
+        return // exit on error
+      }
+
+      // notify user on success, even run may not exist
+      this.$q.notify({ type: 'info', message: this.$t('Moving model run') + ': ' + title })
     }
   },
 
