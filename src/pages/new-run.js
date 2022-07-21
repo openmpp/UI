@@ -592,16 +592,22 @@ export default {
         this.$q.notify({ type: 'negative', message: this.$t('Server offline or model run failed to start') })
         return
       }
+
       // model wait in the queue
       if (!runStamp) {
-        this.$q.notify({ type: 'info', message: this.$t('Model run queued' + ': ' + Mdf.fromUnderscoreTimeStamp(submitStamp)) })
-        this.$emit('run-job-select', submitStamp)
-        return
+        this.$q.notify({ type: 'info', message: this.$t('Model run wait in the queue' + ': ' + Mdf.fromUnderscoreTimeStamp(submitStamp)) })
+
+        if (this.serverConfig.IsJobControl) {
+          this.$emit('run-job-select', submitStamp) // show service state and job control page
+        } else {
+          this.$emit('run-log-select', submitStamp) // no job control: show run log page
+        }
+      } else {
+        // else: model started
+        this.$q.notify({ type: 'info', message: this.$t('Model run started' + ': ' + Mdf.fromUnderscoreTimeStamp(runStamp)) })
+        this.$emit('run-list-refresh')
+        this.$emit('run-log-select', runStamp)
       }
-      // else: model started
-      this.$q.notify({ type: 'info', message: this.$t('Model run started' + ': ' + Mdf.fromUnderscoreTimeStamp(runStamp)) })
-      this.$emit('run-list-refresh')
-      this.$emit('run-log-select', runStamp)
     },
 
     // receive profile list by model digest

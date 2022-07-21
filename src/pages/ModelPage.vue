@@ -110,6 +110,7 @@
     @set-update-readonly="onWorksetReadonlyUpdate"
     @edit-updated="onEditUpdated"
     @run-log-select="onRunLogSelect"
+    @run-job-select="onRunJobSelect"
     @new-run-select="onNewRunSelect"
     @download-select="onDownloadSelect"
     @upload-select="onUploadSelect"

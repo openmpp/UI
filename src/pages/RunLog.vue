@@ -51,7 +51,7 @@
         <div
           class="col-auto"
           >
-          <span>{{ $t('Progress of') }}: <span :title="$t('Run Stamp')" class="mono om-text-secondary">{{ runStamp }}</span></span><br />
+          <span>{{ $t('Progress of') }}: <span :title="$t('Run Stamp')" class="mono om-text-secondary">{{ stamp }}</span></span><br />
           <span class="mono om-text-descr">{{ lastProgressTimeStamp }}</span>
         </div>
 
@@ -123,7 +123,7 @@
 
   <refresh-run-log
     :model-digest="digest"
-    :run-stamp="runStamp"
+    :stamp="stamp"
     :refresh-tickle="isLogRefresh"
     :start="logStart"
     :count="logCount"
@@ -132,8 +132,9 @@
     >
   </refresh-run-log>
   <refresh-run-progress
+    v-if="(runState.RunStamp || '') !== ''"
     :model-digest="digest"
-    :run-stamp="runStamp"
+    :run-stamp="(runState.RunStamp || '')"
     :refresh-tickle="isProgressRefresh"
     @done="doneRunProgressRefresh"
     @wait="()=>{}"
@@ -179,7 +180,7 @@ export default {
 
   props: {
     digest: { type: String, default: '' },
-    runStamp: { type: String, default: '' },
+    stamp: { type: String, default: '' },
     refreshTickle: { type: Boolean, default: false }
   },
 
@@ -224,7 +225,7 @@ export default {
 
   watch: {
     refreshTickle () { this.initView() },
-    runStamp () { this.initView() }
+    stamp () { this.initView() }
   },
 
   methods: {
@@ -291,25 +292,25 @@ export default {
 
     // user answer is Yes to stop model run
     async onYesStopRun () {
-      if (!this.digest || !this.runStamp) {
-        console.warn('Unable to stop: model digest or run stamp is empty', this.digest, this.runStamp)
+      if (!this.digest || (this.runState.RunStamp || '') === '') {
+        console.warn('Unable to stop: model digest or run stamp is empty', this.digest, (this.runState.RunStamp || ''))
         this.$q.notify({ type: 'negative', message: this.$t('Unable to stop: model digest or run stamp is empty') })
         return
       }
 
       const u = this.omsUrl +
         '/api/run/stop/model/' + encodeURIComponent(this.digest) +
-        '/stamp/' + encodeURIComponent(this.runStamp)
+        '/stamp/' + encodeURIComponent(this.runState.RunStamp || '')
       try {
         await this.$axios.put(u) // ignore response on success
       } catch (e) {
         console.warn('Unable to stop model run', e)
-        this.$q.notify({ type: 'negative', message: this.$t('Unable to stop model run') + ': ' + this.runStamp })
+        this.$q.notify({ type: 'negative', message: this.$t('Unable to stop model run') + ': ' + (this.runState.RunStamp || '') })
         return // exit on error
       }
 
       // notify user on success, even run may not exist
-      this.$q.notify({ type: 'info', message: this.$t('Stopping model run') + ': ' + this.runStamp })
+      this.$q.notify({ type: 'info', message: this.$t('Stopping model run') + ': ' + (this.runState.RunStamp || '') })
     },
 
     // model current run log status and page: response from server
@@ -408,7 +409,7 @@ export default {
 
   mounted () {
     this.initView()
-    this.$emit('tab-mounted', 'run-log', { digest: this.digest, runStamp: this.runStamp })
+    this.$emit('tab-mounted', 'run-log', { digest: this.digest, runStamp: this.stamp })
   },
   beforeDestroy () {
     this.stopRefreshProgress()

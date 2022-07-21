@@ -337,6 +337,10 @@ export default {
       const p = this.doTabAdd('run-log', { digest: this.digest, runStamp: stamp })
       if (p) this.$router.push(p)
     },
+    // view service state and jobs control page
+    onRunJobSelect (stamp) {
+      this.$router.push('/service-state')
+    },
     // view downloads: add tab with open downloads page section
     onDownloadSelect () {
       const p = this.doTabAdd('updown-list', { digest: this.digest })

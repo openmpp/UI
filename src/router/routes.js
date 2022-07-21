@@ -40,7 +40,7 @@ const routes = [
             props: true
           },
           {
-            path: 'run-log/:runStamp',
+            path: 'run-log/:stamp',
             component: () => import('pages/RunLog'),
             props: true
           },

@@ -1,7 +1,6 @@
 <!-- reload run-text-list by digest -->
 <script>
 import { mapState, mapActions } from 'vuex'
-import * as Mdf from 'src/model-common'
 
 export default {
   name: 'RefreshRunList',
@@ -77,6 +76,7 @@ export default {
   },
 
   mounted () {
+    /*
     // if run list for current model already loaded then exit
     if (!!this.digest && Mdf.isLength(this.runTextList)) {
       if (this.runTextList[0].ModelDigest === this.digest) {
@@ -85,6 +85,7 @@ export default {
         return
       }
     }
+    */
     this.doRefresh() // else load run list
   }
 }

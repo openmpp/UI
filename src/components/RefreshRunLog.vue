@@ -8,7 +8,7 @@ export default {
 
   props: {
     modelDigest: { type: String, default: '' },
-    runStamp: { type: String, default: '' },
+    stamp: { type: String, default: '' },
     refreshTickle: { type: Boolean, default: false },
     start: { type: Number, default: 0 },
     count: { type: Number, default: 0 }
@@ -30,16 +30,16 @@ export default {
   },
 
   watch: {
-    runStamp () { this.doRefresh() },
+    stamp () { this.doRefresh() },
     refreshTickle () { this.doRefresh() }
   },
 
   methods: {
     // receive run state and log page from the server
     async doRefresh () {
-      if (!this.modelDigest || !this.runStamp) {
-        console.warn('Unable to refresh model run log: digest or run stamp is empty')
-        this.$q.notify({ type: 'negative', message: this.$t('Unable to refresh model run log: digest or run stamp is empty') })
+      if (!this.modelDigest || !this.stamp) {
+        console.warn('Unable to refresh model run log: digest or run-or-submit stamp is empty')
+        this.$q.notify({ type: 'negative', message: this.$t('Unable to refresh model run log: digest or stamp is empty') })
         return
       }
 
@@ -54,7 +54,7 @@ export default {
 
       const u = this.omsUrl +
         '/api/run/log/model/' + encodeURIComponent(this.modelDigest) +
-        '/stamp/' + encodeURIComponent(this.runStamp) +
+        '/stamp/' + encodeURIComponent(this.stamp) +
         '/start/' + nStart.toString() +
         '/count/' + nCount.toString()
       try {
@@ -67,7 +67,7 @@ export default {
           if (e.response) em = e.response.data || ''
         } finally {}
         console.warn('Server offline or model run log retrieval failed', em)
-        this.$q.notify({ type: 'negative', message: this.$t('Server offline or model run log retrieval failed') + ': ' + this.runStamp })
+        this.$q.notify({ type: 'negative', message: this.$t('Server offline or model run log retrieval failed') + ': ' + this.stamp })
       }
 
       // return state of run log progress
