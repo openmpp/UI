@@ -258,6 +258,7 @@ export default {
   'Parameters': 'Paramètres',
   'Pause': 'Pause',
   'Pause auto refresh': "Suspendre l'actualisation automatique",
+  'paused': 'en pause',
   'Path to parameters.csv directory': 'Chemin vers le répertoire parameters.csv',
   'Path to working directory to run the model': "Chemin d'accès au répertoire de travail pour exécuter le modèle",
   'Percent completed to log model progress': 'Pourcentage terminé pour consigner la progression du modèle',
