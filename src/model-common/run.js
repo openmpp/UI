@@ -345,8 +345,11 @@ export const isNotEmptyRunProgress = (rpi) => {
     Np: 0
   },
   Template: "",
-  Tables: [],
+  Res: {
+    Cpu: 1
+  },
   RunNotes: [],
+  Tables: [],
   LogFileName: "RiskPaths.2022_07_05_19_55_38_627.console.log",
   RunStatus: [],
   Lines: []
@@ -358,8 +361,6 @@ export const emptyJobItem = (jKey) => {
   return {
     JobKey: (!!jKey && typeof jKey === typeof 'string' && jKey !== '') ? jKey : 'none',
     JobStatus: '',
-    RunStatus: [],
-    Lines: [],
     SubmitStamp: '',
     ModelName: '',
     ModelDigest: '',
@@ -367,30 +368,37 @@ export const emptyJobItem = (jKey) => {
     Opts: {},
     RunNotes: [],
     Tables: [],
-    LogFileName: '',
     Threads: 1,
     Mpi: { Np: 0 },
-    Template: ''
+    Template: '',
+    Res: { Cpu: 1 },
+    LogFileName: '',
+    RunStatus: [],
+    Lines: []
   }
 }
 
 // return true if this is job control state
 export const isJobItem = (jc) => {
   if (!jc) return false
-  if (!jc.hasOwnProperty('JobKey') || !jc.hasOwnProperty('JobStatus') || !jc.hasOwnProperty('RunStatus') || !jc.hasOwnProperty('Lines')) {
-    return false
-  }
-  if (!Array.isArray(jc.RunStatus) || !Array.isArray(jc.Lines)) {
+  if (!jc.hasOwnProperty('JobKey') || !jc.hasOwnProperty('JobStatus')) {
     return false
   }
   if (!jc.hasOwnProperty('SubmitStamp') || !jc.hasOwnProperty('ModelName') || !jc.hasOwnProperty('ModelDigest') || !jc.hasOwnProperty('RunStamp') ||
-    !jc.hasOwnProperty('Opts') || !jc.hasOwnProperty('RunNotes') || !jc.hasOwnProperty('Tables') || !jc.hasOwnProperty('LogFileName') ||
-    !jc.hasOwnProperty('Threads') || !jc.hasOwnProperty('Mpi') || !jc.Mpi.hasOwnProperty('Np') || !jc.hasOwnProperty('Template')) {
+    !jc.hasOwnProperty('Opts') || !jc.hasOwnProperty('RunNotes') || !jc.hasOwnProperty('Tables') ||
+    !jc.hasOwnProperty('Threads') || !jc.hasOwnProperty('Mpi') || !jc.Mpi.hasOwnProperty('Np') || !jc.hasOwnProperty('Template') ||
+    !jc.hasOwnProperty('Res') || !jc.Res.hasOwnProperty('Cpu')) {
     return false
   }
-  if (typeof jc.Threads !== typeof 1 || typeof jc.Mpi.Np !== typeof 1) return false
+  if (!Array.isArray(jc.RunNotes) || !Array.isArray(jc.Tables)) {
+    return false
+  }
+  if (typeof jc.Threads !== typeof 1 || typeof jc.Mpi.Np !== typeof 1 || typeof jc.Res.Cpu !== typeof 1) return false
 
-  return Array.isArray(jc.Tables) && Array.isArray(jc.RunNotes)
+  if (!jc.hasOwnProperty('LogFileName') || !jc.hasOwnProperty('RunStatus') || !jc.hasOwnProperty('Lines')) {
+    return false
+  }
+  return Array.isArray(jc.RunStatus) && Array.isArray(jc.Lines)
 }
 
 // return true if this is not empty job control state

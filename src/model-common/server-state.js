@@ -151,6 +151,9 @@ export const configRunOptsPresets = (c, modelName, langCode) => {
           "Note": "Run notes (French)"
         }
       ],
+      Res: {
+        Cpu: 3
+      },
       "LogFileName": "RiskPaths.2022_07_07_15_01_04_558.console.log"
     }
   ],

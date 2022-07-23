@@ -49,13 +49,13 @@
             <td class="pt-head-left text-weight-medium">{{ $t('Output Tables') }}</td>
             <td class="pt-cell-left">{{ jobItem.Tables.join(', ') }}</td>
           </tr>
-          <tr v-if="jobItem.Threads > 1">
-            <td class="pt-head-left text-weight-medium">{{ $t('Modelling Threads') }}</td>
-            <td class="pt-cell-left">{{ jobItem.Threads }}</td>
+          <tr v-if="jobInfo.nProc > 1 || jobItem.Threads > 1">
+            <td class="pt-head-left text-weight-medium">{{ $t('Processes / Threads') }}</td>
+            <td class="pt-cell-left">{{ jobInfo.nProc }} / {{ jobItem.Threads }}</td>
           </tr>
-          <tr v-if="jobItem.Mpi.Np">
-            <td class="pt-head-left text-weight-medium">{{ $t('MPI Number of Processes') }}</td>
-            <td class="pt-cell-left">{{ jobItem.Mpi.Np }}</td>
+          <tr v-if="jobItem.Res.Cpu > 1">
+            <td class="pt-head-left text-weight-medium">{{ $t('CPU Cores') }}</td>
+            <td class="pt-cell-left">{{ jobItem.Res.Cpu }}</td>
           </tr>
           <tr v-if="jobItem.Template">
             <td class="pt-head-left text-weight-medium">{{ $t('Model Run Template') }}</td>
@@ -174,6 +174,7 @@ export default {
         OptSubValues: '',
         OptSetName: '',
         OptBaseRunDigest: '',
+        nProc: 1,
         RunNotes: []
       }
       if (!Mdf.isNotEmptyJobItem(this.jobItem)) return rji
@@ -198,8 +199,9 @@ export default {
         if (klc.endsWith('OpenM.SubValues'.toLowerCase())) rji.OptSubValues = v
         if (klc.endsWith('OpenM.SetName'.toLowerCase())) rji.OptSetName = v
         if (klc.endsWith('OpenM.BaseRunDigest'.toLowerCase())) rji.OptBaseRunDigest = v
-        if (klc.endsWith('OpenM.BaseRunDigest'.toLowerCase())) rji.OptBaseRunDigest = v
       }
+
+      if (this.jobItem.Mpi.Np > 1) rji.nProc = this.jobItem.Mpi.Np
 
       // run notes: sanitize and convert from markdown to html
       // rji.RunNotes = jc.RunNotes || []

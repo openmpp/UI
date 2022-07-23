@@ -55,18 +55,28 @@
       expand-icon-toggle
       switch-toggle-side
       expand-icon-class="job-expand-btn bg-primary text-white rounded-borders q-mr-sm"
-      :title="$t('About') + ': ' + aj.SubmitStamp"
+      :title="$t('About') + ' ' + aj.ModelName + ' ' + aj.SubmitStamp"
       >
       <template v-slot:header>
-        <q-item-section avatar class="job-hdr-action-bar q-pr-sm">
-          <q-btn
-            @click="onStopJobConfirm(aj.JobKey, aj.ModelDigest, aj.SubmitStamp, aj.ModelName)"
-            flat
-            dense
-            class="bg-primary text-white rounded-borders"
-            icon="mdi-alert-octagon-outline"
-            :title="$t('Stop model run') + ' ' + aj.SubmitStamp"
-            />
+        <q-item-section avatar class="job-hdr-action-bar q-pr-xs">
+          <div class="row items-center">
+            <q-btn
+              :to="'/model/' + encodeURIComponent(aj.ModelDigest) + '/run-log/' + encodeURIComponent(aj.RunStamp)"
+              flat
+              dense
+              class="col-auto bg-primary text-white rounded-borders q-mr-xs"
+              icon="mdi-text-long"
+              :title="$t('Run Log') + ': ' + aj.ModelName + ' ' + aj.RunStamp"
+              />
+            <q-btn
+              @click="onStopJobConfirm(aj.JobKey, aj.ModelDigest, aj.SubmitStamp, aj.ModelName)"
+              flat
+              dense
+              class="col-auto bg-primary text-white rounded-borders q-mr-xs"
+              icon="mdi-alert-octagon-outline"
+              :title="$t('Stop model run') + ' ' + aj.SubmitStamp"
+              />
+          </div>
         </q-item-section>
         <q-item-section>
           <q-item-label>{{ aj.ModelName }}</q-item-label>
@@ -92,7 +102,7 @@
     v-model="isQueueShow"
     switch-toggle-side
     expand-separator
-    :label="$t('Model Run Queue') + ': ' + (srvState.Queue.length || $t('None'))"
+    :label="$t('Model Run Queue') + (srvState.IsPaused ? ' (' + $t('paused') + ')' : '') + ': ' + (srvState.Queue.length || $t('None'))"
     header-class="bg-primary text-white"
     class="q-my-sm"
     >
@@ -106,7 +116,7 @@
         expand-icon-toggle
         switch-toggle-side
         expand-icon-class="job-expand-btn bg-primary text-white rounded-borders q-mr-sm"
-        :title="$t('About') + ': ' + qj.SubmitStamp"
+        :title="$t('About') + ' ' + qj.ModelName + ' ' + qj.SubmitStamp"
         >
         <template v-slot:header>
           <q-item-section avatar class="q-pr-xs">
@@ -195,7 +205,7 @@
         expand-icon-toggle
         switch-toggle-side
         expand-icon-class="job-expand-btn bg-primary text-white rounded-borders q-mr-sm"
-        :title="$t('About') + ': ' + hj.SubmitStamp"
+        :title="$t('About') + ' ' + hj.ModelName + ' '+ hj.SubmitStamp"
         >
         <template v-slot:header>
           <q-item-section>
