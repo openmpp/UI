@@ -333,9 +333,8 @@ export const isNotEmptyRunProgress = (rpi) => {
 // for queue jobs RunStatus, LogFileName and log Lines are always empty
 /*
 {
-  JobKey: "2022_07_04_20_08_21_158{_4040}",
-  JobStatus: "",
   SubmitStamp: "2022_07_04_20_08_21_158",
+  JobStatus: "",
   ModelName: "RiskPaths",
   ModelDigest: "d90e1e9a49a06d972ecf1d50e684c62b",
   RunStamp: "2022_07_04_20_08_21_159",
@@ -357,11 +356,10 @@ export const isNotEmptyRunProgress = (rpi) => {
 */
 
 // retrun empty job control item
-export const emptyJobItem = (jKey) => {
+export const emptyJobItem = (stamp) => {
   return {
-    JobKey: (!!jKey && typeof jKey === typeof 'string' && jKey !== '') ? jKey : 'none',
+    SubmitStamp: (!!stamp && typeof stamp === typeof 'string' && stamp !== '') ? stamp : 'none',
     JobStatus: '',
-    SubmitStamp: '',
     ModelName: '',
     ModelDigest: '',
     RunStamp: '',
@@ -381,10 +379,10 @@ export const emptyJobItem = (jKey) => {
 // return true if this is job control state
 export const isJobItem = (jc) => {
   if (!jc) return false
-  if (!jc.hasOwnProperty('JobKey') || !jc.hasOwnProperty('JobStatus')) {
+  if (!jc.hasOwnProperty('SubmitStamp') || typeof jc.SubmitStamp !== typeof 'string') {
     return false
   }
-  if (!jc.hasOwnProperty('SubmitStamp') || !jc.hasOwnProperty('ModelName') || !jc.hasOwnProperty('ModelDigest') || !jc.hasOwnProperty('RunStamp') ||
+  if (!jc.hasOwnProperty('JobStatus') || !jc.hasOwnProperty('ModelName') || !jc.hasOwnProperty('ModelDigest') || !jc.hasOwnProperty('RunStamp') ||
     !jc.hasOwnProperty('Opts') || !jc.hasOwnProperty('RunNotes') || !jc.hasOwnProperty('Tables') ||
     !jc.hasOwnProperty('Threads') || !jc.hasOwnProperty('Mpi') || !jc.Mpi.hasOwnProperty('Np') || !jc.hasOwnProperty('Template') ||
     !jc.hasOwnProperty('Res') || !jc.Res.hasOwnProperty('Cpu')) {
@@ -403,13 +401,13 @@ export const isJobItem = (jc) => {
 
 // return true if this is not empty job control state
 export const isNotEmptyJobItem = (jc) => {
-  return isJobItem(jc) && typeof jc.SubmitStamp === typeof 'string' && jc.SubmitStamp !== ''
+  return isJobItem(jc) && typeof jc.ModelDigest === typeof 'string' && jc.ModelDigest !== ''
 }
 
 // retrun model run name or workset name from job run options: from Opts['OpenM.RunName']
 export const getJobRunTitle = (jc) => {
   if (!jc) return ''
-  if ((jc?.JobKey || '') === '' || (jc?.SubmitStamp || '') === '') return ''
+  if ((jc?.SubmitStamp || '') === '') return ''
   if (!jc.hasOwnProperty('Opts') || typeof jc.Opts !== 'object') return ''
 
   const runNameKey = 'OpenM.RunName'.toLowerCase()

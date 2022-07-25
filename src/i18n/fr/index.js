@@ -155,7 +155,7 @@ export default {
   'Input scenarios list is empty or invalid': "La liste des scénarios d'entrée est vide ou invalide",
   'Invalid (empty) file name': 'Nom de fichier invalide (vide)',
   'Invalid (empty) input scenario name': "Nom de scénario d'entrée non valide (vide)",
-  'Invalid (empty) Job Key': 'Clé de tâche invalide (vide)',
+  'Invalid (empty) submission stamp': 'Tampon de soumission invalide (vide)',
   'Invalid (empty) model digest': 'Digest de modèle non valide (vide)',
   'Invalid (empty) model name': 'Nom de modèle non valide (vide)',
   'Invalid argument, it must be: active, queue or history': "Argument invalide, il doit être: actif, file d'attente ou historique",

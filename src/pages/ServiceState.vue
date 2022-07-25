@@ -48,10 +48,10 @@
     >
 
     <q-expansion-item
-      v-for="aj in srvState.Active" :key="aj.JobKey"
-      :disable="!aj.ModelDigest || !aj.JobKey || !aj.SubmitStamp"
-      @after-show="onActiveShow(aj.JobKey)"
-      @after-hide="onActiveHide(aj.JobKey)"
+      v-for="aj in srvState.Active" :key="aj.SubmitStamp"
+      :disable="!aj.ModelDigest || !aj.SubmitStamp"
+      @after-show="onActiveShow(aj.SubmitStamp)"
+      @after-hide="onActiveHide(aj.SubmitStamp)"
       expand-icon-toggle
       switch-toggle-side
       expand-icon-class="job-expand-btn bg-primary text-white rounded-borders q-mr-sm"
@@ -69,7 +69,7 @@
               :title="$t('Run Log') + ': ' + aj.ModelName + ' ' + aj.RunStamp"
               />
             <q-btn
-              @click="onStopJobConfirm(aj.JobKey, aj.ModelDigest, aj.SubmitStamp, aj.ModelName)"
+              @click="onStopJobConfirm(aj.SubmitStamp, aj.ModelDigest, aj.ModelName)"
               flat
               dense
               class="col-auto bg-primary text-white rounded-borders q-mr-xs"
@@ -88,7 +88,7 @@
       </template>
 
       <job-info-card
-        :job-item="activeJob[aj.JobKey]"
+        :job-item="activeJob[aj.SubmitStamp]"
         class="job-card q-mx-sm q-mb-md"
       >
       </job-info-card>
@@ -109,10 +109,10 @@
     <q-list bordered>
 
       <q-expansion-item
-        v-for="(qj, qPos) of srvState.Queue" :key="qj.JobKey"
-        :disable="!qj.ModelDigest || !qj.JobKey || !qj.SubmitStamp"
-        @after-show="onQueueShow(qj.JobKey)"
-        @after-hide="onQueueHide(qj.JobKey)"
+        v-for="(qj, qPos) of srvState.Queue" :key="qj.SubmitStamp"
+        :disable="!qj.ModelDigest || !qj.SubmitStamp"
+        @after-show="onQueueShow(qj.SubmitStamp)"
+        @after-hide="onQueueHide(qj.SubmitStamp)"
         expand-icon-toggle
         switch-toggle-side
         expand-icon-class="job-expand-btn bg-primary text-white rounded-borders q-mr-sm"
@@ -122,8 +122,8 @@
           <q-item-section avatar class="q-pr-xs">
             <div class="row items-center">
               <q-btn
-                :disable="isTopQueue(qj.JobKey)"
-                @click="onJobMove(qj.JobKey, 0, qj.ModelDigest, qj.SubmitStamp, qj.ModelName)"
+                :disable="isTopQueue(qj.SubmitStamp)"
+                @click="onJobMove(qj.SubmitStamp, 0, qj.ModelDigest, qj.ModelName)"
                 flat
                 dense
                 class="col-auto bg-primary text-white rounded-borders q-mr-xs"
@@ -131,8 +131,8 @@
                 :title="$t('Move to the top')"
                 />
               <q-btn
-                :disable="isTopQueue(qj.JobKey)"
-                @click="onJobMove(qj.JobKey, qPos - 1, qj.ModelDigest, qj.SubmitStamp, qj.ModelName)"
+                :disable="isTopQueue(qj.SubmitStamp)"
+                @click="onJobMove(qj.SubmitStamp, qPos - 1, qj.ModelDigest, qj.ModelName)"
                 flat
                 dense
                 class="col-auto bg-primary text-white rounded-borders q-mr-xs"
@@ -140,8 +140,8 @@
                 :title="$t('Move up')"
                 />
               <q-btn
-                :disable="isBottomQueue(qj.JobKey)"
-                @click="onJobMove(qj.JobKey, qPos + 1, qj.ModelDigest, qj.SubmitStamp, qj.ModelName)"
+                :disable="isBottomQueue(qj.SubmitStamp)"
+                @click="onJobMove(qj.SubmitStamp, qPos + 1, qj.ModelDigest, qj.ModelName)"
                 flat
                 dense
                 class="col-auto bg-primary text-white rounded-borders q-mr-xs"
@@ -149,8 +149,8 @@
                 :title="$t('Move down')"
                 />
               <q-btn
-                :disable="isBottomQueue(qj.JobKey)"
-                @click="onJobMove(qj.JobKey, srvState.Queue.length + 1, qj.ModelDigest, qj.SubmitStamp, qj.ModelName)"
+                :disable="isBottomQueue(qj.SubmitStamp)"
+                @click="onJobMove(qj.SubmitStamp, srvState.Queue.length + 1, qj.ModelDigest, qj.ModelName)"
                 flat
                 dense
                 class="col-auto bg-primary text-white rounded-borders q-mr-xs"
@@ -158,7 +158,7 @@
                 :title="$t('Move to the bottom')"
                 />
               <q-btn
-                @click="onStopJobConfirm(qj.JobKey, qj.ModelDigest, qj.SubmitStamp, qj.ModelName)"
+                @click="onStopJobConfirm(qj.SubmitStamp, qj.ModelDigest, qj.ModelName)"
                 flat
                 dense
                 class="col-auto bg-primary text-white rounded-borders q-mr-xs"
@@ -176,7 +176,7 @@
         </template>
 
         <job-info-card
-          :job-item="queueJob[qj.JobKey]"
+          :job-item="queueJob[qj.SubmitStamp]"
           class="job-card q-mx-sm q-mb-md"
         >
         </job-info-card>
@@ -198,10 +198,10 @@
     <q-list bordered>
 
       <q-expansion-item
-        v-for="hj in srvState.History" :key="hj.JobKey"
-        :disable="!hj.ModelDigest || !hj.JobKey || !hj.SubmitStamp"
-        @after-show="onHistoryShow(hj.JobKey)"
-        @after-hide="onHistoryHide(hj.JobKey)"
+        v-for="hj in srvState.History" :key="hj.SubmitStamp"
+        :disable="!hj.ModelDigest || !hj.SubmitStamp"
+        @after-show="onHistoryShow(hj.SubmitStamp)"
+        @after-hide="onHistoryHide(hj.SubmitStamp)"
         expand-icon-toggle
         switch-toggle-side
         expand-icon-class="job-expand-btn bg-primary text-white rounded-borders q-mr-sm"
@@ -218,7 +218,7 @@
         </template>
 
         <job-info-card
-          :job-item="historyJob[hj.JobKey]"
+          :job-item="historyJob[hj.SubmitStamp]"
           class="job-card q-mx-sm q-mb-md"
         >
         </job-info-card>

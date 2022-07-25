@@ -56,18 +56,18 @@ export default {
     isSuccess (status) { return status === 'success' },
     isInProgress (status) { return status === 'progress' || status === 'init' || status === 'wait' },
     runStatusDescr (status) { return Mdf.statusText(status) },
-    isActiveJob (jKey) { return !!jKey && Mdf.isNotEmptyJobItem(this.activeJob[jKey]) },
-    isQueueJob (jKey) { return !!jKey && Mdf.isNotEmptyJobItem(this.queueJob[jKey]) },
-    isHistoryJob (jKey) { return !!jKey && Mdf.isNotEmptyJobItem(this.historyJob[jKey]) },
+    isActiveJob (stamp) { return !!stamp && Mdf.isNotEmptyJobItem(this.activeJob[stamp]) },
+    isQueueJob (stamp) { return !!stamp && Mdf.isNotEmptyJobItem(this.queueJob[stamp]) },
+    isHistoryJob (stamp) { return !!stamp && Mdf.isNotEmptyJobItem(this.historyJob[stamp]) },
     getRunTitle (jobItem) { return Mdf.getJobRunTitle(jobItem) },
 
     // return true if job is first in the queue
-    isTopQueue (jKey) {
-      return this.srvState.Queue.findIndex((jc) => jc.JobKey === jKey) <= 0
+    isTopQueue (stamp) {
+      return this.srvState.Queue.findIndex((jc) => jc.SubmitStamp === stamp) <= 0
     },
     // return true if job is last in the queue
-    isBottomQueue (jKey) {
-      return this.srvState.Queue.findIndex((jc) => jc.JobKey === jKey) >= this.srvState.Queue.length - 1
+    isBottomQueue (stamp) {
+      return this.srvState.Queue.findIndex((jc) => jc.SubmitStamp === stamp) >= this.srvState.Queue.length - 1
     },
 
     // update page view
@@ -111,50 +111,50 @@ export default {
     },
 
     // show or hide active job item
-    onActiveShow (jKey) {
-      if (jKey) this.getJobState('active', jKey)
+    onActiveShow (stamp) {
+      if (stamp) this.getJobState('active', stamp)
     },
-    onActiveHide (jKey) {
-      if (jKey) this.activeJob[jKey] = Mdf.emptyJobItem(jKey)
+    onActiveHide (stamp) {
+      if (stamp) this.activeJob[stamp] = Mdf.emptyJobItem(stamp)
     },
     // show or hide queue job item
-    onQueueShow (jKey) {
-      this.getJobState('queue', jKey)
+    onQueueShow (stamp) {
+      this.getJobState('queue', stamp)
     },
-    onQueueHide (jKey) {
-      if (jKey) this.queueJob[jKey] = Mdf.emptyJobItem(jKey)
+    onQueueHide (stamp) {
+      if (stamp) this.queueJob[stamp] = Mdf.emptyJobItem(stamp)
     },
     // show or hide job history item
-    onHistoryShow (jKey) {
-      this.getJobState('history', jKey)
+    onHistoryShow (stamp) {
+      this.getJobState('history', stamp)
     },
-    onHistoryHide (jKey) {
-      if (jKey) this.historyJob[jKey] = Mdf.emptyJobItem(jKey)
+    onHistoryHide (stamp) {
+      if (stamp) this.historyJob[stamp] = Mdf.emptyJobItem(stamp)
     },
 
     // add new job control items into active, queue and history jobs
     // remove state of a job which is no longer exist in active or queue or history
     updateJobsState () {
       // remove state of a job which is no longer exist in active or queue or history
-      for (const jKey in this.activeJob) {
-        if (this.srvState.Active.findIndex((jc) => jc.JobKey === jKey) < 0) this.activeJob[jKey] = ''
+      for (const stamp in this.activeJob) {
+        if (this.srvState.Active.findIndex((jc) => jc.SubmitStamp === stamp) < 0) this.activeJob[stamp] = ''
       }
-      for (const jKey in this.queueJob) {
-        if (this.srvState.Queue.findIndex((jc) => jc.JobKey === jKey) < 0) this.queueJob[jKey] = ''
+      for (const stamp in this.queueJob) {
+        if (this.srvState.Queue.findIndex((jc) => jc.SubmitStamp === stamp) < 0) this.queueJob[stamp] = ''
       }
-      for (const jKey in this.historyJob) {
-        if (this.srvState.History.findIndex((jc) => jc.JobKey === jKey) < 0) this.historyJob[jKey] = ''
+      for (const stamp in this.historyJob) {
+        if (this.srvState.History.findIndex((jc) => jc.SubmitStamp === stamp) < 0) this.historyJob[stamp] = ''
       }
 
       // add new job control items into active, queue and history jobs
       for (const aj of this.srvState.Active) {
-        if ((this.activeJob[aj.JobKey] || '') === '') this.activeJob[aj.JobKey] = Mdf.isJobItem(aj) ? aj : Mdf.emptyJobItem(aj.JobKey)
+        if ((this.activeJob[aj.SubmitStamp] || '') === '') this.activeJob[aj.SubmitStamp] = Mdf.isJobItem(aj) ? aj : Mdf.emptyJobItem(aj.SubmitStamp)
       }
       for (const qj of this.srvState.Queue) {
-        if ((this.queueJob[qj.JobKey] || '') === '') this.queueJob[qj.JobKey] = Mdf.isJobItem(qj) ? qj : Mdf.emptyJobItem(qj.JobKey)
+        if ((this.queueJob[qj.SubmitStamp] || '') === '') this.queueJob[qj.SubmitStamp] = Mdf.isJobItem(qj) ? qj : Mdf.emptyJobItem(qj.SubmitStamp)
       }
       for (const hj of this.srvState.History) {
-        if ((this.historyJob[hj.JobKey] || '') === '') this.historyJob[hj.JobKey] = Mdf.isJobItem(hj) ? hj : Mdf.emptyJobItem(hj.JobKey)
+        if ((this.historyJob[hj.SubmitStamp] || '') === '') this.historyJob[hj.SubmitStamp] = Mdf.isJobItem(hj) ? hj : Mdf.emptyJobItem(hj.SubmitStamp)
       }
     },
 
@@ -194,28 +194,28 @@ export default {
 
       // refresh active jobs state
       if (this.isActiveShow) {
-        for (const jKey in this.activeJob) {
-          if (Mdf.isNotEmptyJobItem(this.activeJob[jKey])) this.getJobState('active', jKey)
+        for (const stamp in this.activeJob) {
+          if (Mdf.isNotEmptyJobItem(this.activeJob[stamp])) this.getJobState('active', stamp)
         }
       }
     },
 
-    // get active or queue or history job item by job key
-    async getJobState (kind, jKey) {
+    // get active or queue or history job item by submission stamp
+    async getJobState (kind, stamp) {
       if (!kind || typeof kind !== typeof 'string' || (kind !== 'active' && kind !== 'queue' && kind !== 'history')) {
         console.warn('Invalid argument, it must be: active, queue or history:', kind)
         this.$q.notify({ type: 'negative', message: this.$t('Invalid argument, it must be: active, queue or history') })
         return
       }
-      if (!jKey || typeof jKey !== typeof 'string' || (jKey || '') === '') {
-        console.warn('Invalid (empty) Job Key:', jKey)
-        this.$q.notify({ type: 'negative', message: this.$t('Invalid (empty) Job Key') })
+      if (!stamp || typeof stamp !== typeof 'string' || (stamp || '') === '') {
+        console.warn('Invalid (empty) submission stamp:', stamp)
+        this.$q.notify({ type: 'negative', message: this.$t('Invalid (empty) submission stamp') })
         return
       }
 
       let isOk = false
       let jc = {}
-      const u = this.omsUrl + '/api/service/job/' + kind + '/' + encodeURIComponent(jKey)
+      const u = this.omsUrl + '/api/service/job/' + kind + '/' + encodeURIComponent(stamp)
       try {
         // send request to the server
         const response = await this.$axios.get(u)
@@ -226,34 +226,33 @@ export default {
         try {
           if (e.response) em = e.response.data || ''
         } finally {}
-        console.warn('Unable to get job control state:', kind, jKey, em)
+        console.warn('Unable to get job control state:', kind, stamp, em)
       }
 
       if (isOk) {
         switch (kind) {
           case 'active':
-            this.activeJob[jKey] = Mdf.isJobItem(jc) ? jc : Mdf.emptyJobItem(jKey)
-            this.ajKey++
+            this.activeJob[stamp] = Mdf.isJobItem(jc) ? jc : Mdf.emptyJobItem(stamp)
             break
           case 'queue':
-            this.queueJob[jKey] = Mdf.isJobItem(jc) ? jc : Mdf.emptyJobItem(jKey)
+            this.queueJob[stamp] = Mdf.isJobItem(jc) ? jc : Mdf.emptyJobItem(stamp)
             break
           case 'history':
-            this.historyJob[jKey] = Mdf.isJobItem(jc) ? jc : Mdf.emptyJobItem(jKey)
+            this.historyJob[stamp] = Mdf.isJobItem(jc) ? jc : Mdf.emptyJobItem(stamp)
             break
           default:
             isOk = false
         }
       }
       if (!isOk) {
-        console.warn('Unable to set job control state:', kind, jKey)
-        this.$q.notify({ type: 'negative', message: this.$t('Unable to retrieve model run state') + ': ' + kind + ' ' + jKey })
+        console.warn('Unable to set job control state:', kind, stamp)
+        this.$q.notify({ type: 'negative', message: this.$t('Unable to retrieve model run state') + ': ' + kind + ' ' + stamp })
       }
     },
 
     // stop model run: ask user confirmation to kill model run
-    onStopJobConfirm (jKey, mDigest, stamp, mName) {
-      if (!jKey || !mDigest || !stamp) {
+    onStopJobConfirm (stamp, mDigest, mName) {
+      if (!mDigest || !stamp) {
         const s = (mName || mDigest || '') + ' ' + (stamp || '') + ' '
         this.$q.notify({ type: 'negative', message: this.$t('Unable to find active model run') + ': ' + s })
         return
@@ -286,15 +285,15 @@ export default {
       this.$q.notify({ type: 'info', message: this.$t('Stopping model run') + ': ' + title })
     },
 
-    async onJobMove (jKey, pos, mDigest, stamp, mName) {
+    async onJobMove (stamp, pos, mDigest, mName) {
       const title = (mName || mDigest || '') + ' ' + (this.fromUnderscoreTs(stamp) || '') + ' '
-      if (!jKey || typeof pos !== typeof 1) {
-        console.warn('Unable to move model run', pos, jKey)
+      if (!stamp || typeof pos !== typeof 1) {
+        console.warn('Unable to move model run', pos, stamp)
         this.$q.notify({ type: 'negative', message: this.$t('Unable to move model run') + ': ' + title })
         return
       }
 
-      const u = this.omsUrl + '/api/service/job/move/' + (pos.toString()) + '/' + encodeURIComponent(jKey)
+      const u = this.omsUrl + '/api/service/job/move/' + (pos.toString()) + '/' + encodeURIComponent(stamp)
       try {
         await this.$axios.put(u) // ignore response on success
       } catch (e) {

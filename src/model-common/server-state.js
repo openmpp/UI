@@ -159,7 +159,6 @@ export const configRunOptsPresets = (c, modelName, langCode) => {
   ],
   History: [
     {
-      JobKey: "2022_07_04_20_08_21_158{_4040}",
       SubmitStamp: "2022_07_04_20_08_21_158",
       ModelName: "RiskPaths",
       ModelDigest: "d90e1e9a49a06d972ecf1d50e684c62b",
