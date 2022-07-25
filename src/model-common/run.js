@@ -405,3 +405,26 @@ export const isJobItem = (jc) => {
 export const isNotEmptyJobItem = (jc) => {
   return isJobItem(jc) && typeof jc.SubmitStamp === typeof 'string' && jc.SubmitStamp !== ''
 }
+
+// retrun model run name or workset name from job run options: from Opts['OpenM.RunName']
+export const getJobRunTitle = (jc) => {
+  if (!jc) return ''
+  if ((jc?.JobKey || '') === '' || (jc?.SubmitStamp || '') === '') return ''
+  if (!jc.hasOwnProperty('Opts') || typeof jc.Opts !== 'object') return ''
+
+  const runNameKey = 'OpenM.RunName'.toLowerCase()
+  const wsNameKey = 'OpenM.SetName'.toLowerCase()
+  let wsName = ''
+
+  for (const key in jc.Opts) {
+    if (!key || (jc.Opts[key] || '') === '') continue
+
+    const v = jc.Opts[key]
+
+    const klc = key.toLowerCase()
+    if (klc.endsWith(runNameKey)) return v
+    if (klc.endsWith(wsNameKey)) wsName = v
+  }
+
+  return wsName // run name not found: retrun workset name
+}

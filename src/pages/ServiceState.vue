@@ -79,7 +79,7 @@
           </div>
         </q-item-section>
         <q-item-section>
-          <q-item-label>{{ aj.ModelName }}</q-item-label>
+          <q-item-label>{{ aj.ModelName }}:<span class="om-text-descr q-pl-sm">{{ getRunTitle(aj) }}</span></q-item-label>
           <q-item-label class="om-text-descr">
             {{ $t('Submitted') + ':' }} <span class="mono">{{ fromUnderscoreTs(aj.SubmitStamp) }}</span>
             <span class="q-ml-md">{{ $t('Run Stamp') + ':' }} <span class="mono">{{ fromUnderscoreTs(aj.RunStamp) }}</span></span>
@@ -168,7 +168,7 @@
             </div>
           </q-item-section>
           <q-item-section>
-            <q-item-label>{{ qj.ModelName }}</q-item-label>
+            <q-item-label>{{ qj.ModelName }}:<span class="om-text-descr q-pl-sm">{{ getRunTitle(qj) }}</span></q-item-label>
             <q-item-label class="om-text-descr">
               {{ $t('Submitted') + ':' }} <span class="mono">{{ fromUnderscoreTs(qj.SubmitStamp) }}</span>
             </q-item-label>

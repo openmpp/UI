@@ -59,6 +59,7 @@ export default {
     isActiveJob (jKey) { return !!jKey && Mdf.isNotEmptyJobItem(this.activeJob[jKey]) },
     isQueueJob (jKey) { return !!jKey && Mdf.isNotEmptyJobItem(this.queueJob[jKey]) },
     isHistoryJob (jKey) { return !!jKey && Mdf.isNotEmptyJobItem(this.historyJob[jKey]) },
+    getRunTitle (jobItem) { return Mdf.getJobRunTitle(jobItem) },
 
     // return true if job is first in the queue
     isTopQueue (jKey) {
