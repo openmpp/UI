@@ -117,6 +117,18 @@ export const configRunOptsPresets = (c, modelName, langCode) => {
   IsJobControl: true,
   UpdateDateTime: "2022-06-30 23:35:59.456",
   IsPaused: false,
+  ActiveTotalRes: {
+    Cpu: 32
+  },
+  ActiveOwnRes: {
+    Cpu: 8
+  },
+  QueueTotalRes: {
+    Cpu: 128
+  },
+  QueueOwnRes: {
+    Cpu: 64
+  },
   Queue: [],
   Active: [
     {
@@ -174,6 +186,10 @@ export const emptyServiceState = () => {
     IsJobControl: false,
     UpdateDateTime: '',
     IsPaused: false,
+    ActiveTotalRes: { Cpu: 0 },
+    ActiveOwnRes: { Cpu: 0 },
+    QueueTotalRes: { Cpu: 0 },
+    QueueOwnRes: { Cpu: 0 },
     Queue: [],
     Active: [],
     History: []
@@ -187,6 +203,11 @@ export const isServiceState = (st) => {
       !st.hasOwnProperty('Queue') || !st.hasOwnProperty('Active') || !st.hasOwnProperty('History')) {
     return false
   }
+  if (!st.hasOwnProperty('ActiveTotalRes') || !st.ActiveTotalRes.hasOwnProperty('Cpu') || typeof st.ActiveTotalRes.Cpu !== typeof 1) return false
+  if (!st.hasOwnProperty('ActiveOwnRes') || !st.ActiveOwnRes.hasOwnProperty('Cpu') || typeof st.ActiveOwnRes.Cpu !== typeof 1) return false
+  if (!st.hasOwnProperty('QueueTotalRes') || !st.QueueTotalRes.hasOwnProperty('Cpu') || typeof st.QueueTotalRes.Cpu !== typeof 1) return false
+  if (!st.hasOwnProperty('QueueOwnRes') || !st.QueueOwnRes.hasOwnProperty('Cpu') || typeof st.QueueOwnRes.Cpu !== typeof 1) return false
+
   return Array.isArray(st.Queue) && Array.isArray(st.Active) && Array.isArray(st.History)
 }
 

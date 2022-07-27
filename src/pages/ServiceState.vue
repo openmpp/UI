@@ -36,7 +36,7 @@
         class="full-width q-py-xs"
         >
         <q-icon :name="isActiveShow ? 'keyboard_arrow_up' : 'keyboard_arrow_down'" />
-        <span class="text-body1">{{ $t('Active Model Runs') + ': ' + (srvState.Active.length || $t('None')) }}</span>
+        <span class="text-body1">{{ $t('Active Model Runs') + ': ' + (srvState.Active.length || $t('None')) + (srvState.ActiveTotalRes.Cpu ? (', ' + $t('CPU Cores') +': ' + srvState.ActiveTotalRes.Cpu.toString()) : '') }}</span>
       </q-btn>
     </span>
 
@@ -88,7 +88,7 @@
       </template>
 
       <job-info-card
-        :job-item="activeJob[aj.SubmitStamp]"
+        :job-item="activeJobs[aj.SubmitStamp]"
         class="job-card q-mx-sm q-mb-md"
       >
       </job-info-card>
@@ -102,7 +102,7 @@
     v-model="isQueueShow"
     switch-toggle-side
     expand-separator
-    :label="$t('Model Run Queue') + (srvState.IsPaused ? ' (' + $t('paused') + ')' : '') + ': ' + (srvState.Queue.length || $t('None'))"
+    :label="$t('Model Run Queue') + (srvState.IsPaused ? ' (' + $t('paused') + ')' : '') + ': ' + (srvState.Queue.length || $t('None')) + (srvState.QueueTotalRes.Cpu ? (', ' + $t('CPU Cores') +': ' + srvState.QueueTotalRes.Cpu.toString()) : '')"
     header-class="bg-primary text-white"
     class="q-my-sm"
     >
@@ -176,7 +176,7 @@
         </template>
 
         <job-info-card
-          :job-item="queueJob[qj.SubmitStamp]"
+          :job-item="queueJobs[qj.SubmitStamp]"
           class="job-card q-mx-sm q-mb-md"
         >
         </job-info-card>
@@ -218,7 +218,7 @@
         </template>
 
         <job-info-card
-          :job-item="historyJob[hj.SubmitStamp]"
+          :job-item="historyJobs[hj.SubmitStamp]"
           class="job-card q-mx-sm q-mb-md"
         >
         </job-info-card>

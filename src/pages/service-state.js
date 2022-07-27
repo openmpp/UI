@@ -20,9 +20,9 @@ export default {
   data () {
     return {
       srvState: Mdf.emptyServiceState(),
-      activeJob: {},
-      queueJob: {},
-      historyJob: {},
+      activeJobs: {},
+      queueJobs: {},
+      historyJobs: {},
       isActiveShow: false,
       isQueueShow: false,
       isHistoryShow: false,
@@ -56,9 +56,9 @@ export default {
     isSuccess (status) { return status === 'success' },
     isInProgress (status) { return status === 'progress' || status === 'init' || status === 'wait' },
     runStatusDescr (status) { return Mdf.statusText(status) },
-    isActiveJob (stamp) { return !!stamp && Mdf.isNotEmptyJobItem(this.activeJob[stamp]) },
-    isQueueJob (stamp) { return !!stamp && Mdf.isNotEmptyJobItem(this.queueJob[stamp]) },
-    isHistoryJob (stamp) { return !!stamp && Mdf.isNotEmptyJobItem(this.historyJob[stamp]) },
+    isActiveJob (stamp) { return !!stamp && Mdf.isNotEmptyJobItem(this.activeJobs[stamp]) },
+    isQueueJob (stamp) { return !!stamp && Mdf.isNotEmptyJobItem(this.queueJobs[stamp]) },
+    isHistoryJob (stamp) { return !!stamp && Mdf.isNotEmptyJobItem(this.historyJobs[stamp]) },
     getRunTitle (jobItem) { return Mdf.getJobRunTitle(jobItem) },
 
     // return true if job is first in the queue
@@ -78,9 +78,9 @@ export default {
       this.isActiveShow = true
       this.isQueueShow = false
       this.isHistoryShow = false
-      this.activeJob = {}
-      this.queueJob = {}
-      this.historyJob = {}
+      this.activeJobs = {}
+      this.queueJobs = {}
+      this.historyJobs = {}
     },
 
     // refersh service state
@@ -115,46 +115,46 @@ export default {
       if (stamp) this.getJobState('active', stamp)
     },
     onActiveHide (stamp) {
-      if (stamp) this.activeJob[stamp] = Mdf.emptyJobItem(stamp)
+      if (stamp) this.activeJobs[stamp] = Mdf.emptyJobItem(stamp)
     },
     // show or hide queue job item
     onQueueShow (stamp) {
       this.getJobState('queue', stamp)
     },
     onQueueHide (stamp) {
-      if (stamp) this.queueJob[stamp] = Mdf.emptyJobItem(stamp)
+      if (stamp) this.queueJobs[stamp] = Mdf.emptyJobItem(stamp)
     },
     // show or hide job history item
     onHistoryShow (stamp) {
       this.getJobState('history', stamp)
     },
     onHistoryHide (stamp) {
-      if (stamp) this.historyJob[stamp] = Mdf.emptyJobItem(stamp)
+      if (stamp) this.historyJobs[stamp] = Mdf.emptyJobItem(stamp)
     },
 
     // add new job control items into active, queue and history jobs
     // remove state of a job which is no longer exist in active or queue or history
     updateJobsState () {
       // remove state of a job which is no longer exist in active or queue or history
-      for (const stamp in this.activeJob) {
-        if (this.srvState.Active.findIndex((jc) => jc.SubmitStamp === stamp) < 0) this.activeJob[stamp] = ''
+      for (const stamp in this.activeJobs) {
+        if (this.srvState.Active.findIndex((jc) => jc.SubmitStamp === stamp) < 0) this.activeJobs[stamp] = ''
       }
-      for (const stamp in this.queueJob) {
-        if (this.srvState.Queue.findIndex((jc) => jc.SubmitStamp === stamp) < 0) this.queueJob[stamp] = ''
+      for (const stamp in this.queueJobs) {
+        if (this.srvState.Queue.findIndex((jc) => jc.SubmitStamp === stamp) < 0) this.queueJobs[stamp] = ''
       }
-      for (const stamp in this.historyJob) {
-        if (this.srvState.History.findIndex((jc) => jc.SubmitStamp === stamp) < 0) this.historyJob[stamp] = ''
+      for (const stamp in this.historyJobs) {
+        if (this.srvState.History.findIndex((jc) => jc.SubmitStamp === stamp) < 0) this.historyJobs[stamp] = ''
       }
 
       // add new job control items into active, queue and history jobs
       for (const aj of this.srvState.Active) {
-        if ((this.activeJob[aj.SubmitStamp] || '') === '') this.activeJob[aj.SubmitStamp] = Mdf.isJobItem(aj) ? aj : Mdf.emptyJobItem(aj.SubmitStamp)
+        if ((this.activeJobs[aj.SubmitStamp] || '') === '') this.activeJobs[aj.SubmitStamp] = Mdf.isJobItem(aj) ? aj : Mdf.emptyJobItem(aj.SubmitStamp)
       }
       for (const qj of this.srvState.Queue) {
-        if ((this.queueJob[qj.SubmitStamp] || '') === '') this.queueJob[qj.SubmitStamp] = Mdf.isJobItem(qj) ? qj : Mdf.emptyJobItem(qj.SubmitStamp)
+        if ((this.queueJobs[qj.SubmitStamp] || '') === '') this.queueJobs[qj.SubmitStamp] = Mdf.isJobItem(qj) ? qj : Mdf.emptyJobItem(qj.SubmitStamp)
       }
       for (const hj of this.srvState.History) {
-        if ((this.historyJob[hj.SubmitStamp] || '') === '') this.historyJob[hj.SubmitStamp] = Mdf.isJobItem(hj) ? hj : Mdf.emptyJobItem(hj.SubmitStamp)
+        if ((this.historyJobs[hj.SubmitStamp] || '') === '') this.historyJobs[hj.SubmitStamp] = Mdf.isJobItem(hj) ? hj : Mdf.emptyJobItem(hj.SubmitStamp)
       }
     },
 
@@ -194,8 +194,8 @@ export default {
 
       // refresh active jobs state
       if (this.isActiveShow) {
-        for (const stamp in this.activeJob) {
-          if (Mdf.isNotEmptyJobItem(this.activeJob[stamp])) this.getJobState('active', stamp)
+        for (const stamp in this.activeJobs) {
+          if (Mdf.isNotEmptyJobItem(this.activeJobs[stamp])) this.getJobState('active', stamp)
         }
       }
     },
@@ -232,13 +232,13 @@ export default {
       if (isOk) {
         switch (kind) {
           case 'active':
-            this.activeJob[stamp] = Mdf.isJobItem(jc) ? jc : Mdf.emptyJobItem(stamp)
+            this.activeJobs[stamp] = Mdf.isJobItem(jc) ? jc : Mdf.emptyJobItem(stamp)
             break
           case 'queue':
-            this.queueJob[stamp] = Mdf.isJobItem(jc) ? jc : Mdf.emptyJobItem(stamp)
+            this.queueJobs[stamp] = Mdf.isJobItem(jc) ? jc : Mdf.emptyJobItem(stamp)
             break
           case 'history':
-            this.historyJob[stamp] = Mdf.isJobItem(jc) ? jc : Mdf.emptyJobItem(stamp)
+            this.historyJobs[stamp] = Mdf.isJobItem(jc) ? jc : Mdf.emptyJobItem(stamp)
             break
           default:
             isOk = false
