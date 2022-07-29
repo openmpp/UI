@@ -115,8 +115,8 @@ export const configRunOptsPresets = (c, modelName, langCode) => {
 // Service state:
 {
   IsJobControl: true,
-  UpdateDateTime: "2022-06-30 23:35:59.456",
-  IsPaused: false,
+  JobUpdateDateTime: "2022-06-30 23:35:59.456",
+  IsQueuePaused: false,
   ActiveTotalRes: {
     Cpu: 32
   },
@@ -127,6 +127,9 @@ export const configRunOptsPresets = (c, modelName, langCode) => {
     Cpu: 128
   },
   QueueOwnRes: {
+    Cpu: 64
+  },
+  LimitTotalRes: {
     Cpu: 64
   },
   Queue: [],
@@ -184,8 +187,8 @@ export const configRunOptsPresets = (c, modelName, langCode) => {
 export const emptyServiceState = () => {
   return {
     IsJobControl: false,
-    UpdateDateTime: '',
-    IsPaused: false,
+    JobUpdateDateTime: '',
+    IsQueuePaused: false,
     ActiveTotalRes: { Cpu: 0 },
     ActiveOwnRes: { Cpu: 0 },
     QueueTotalRes: { Cpu: 0 },
@@ -199,7 +202,7 @@ export const emptyServiceState = () => {
 // return true if this is service config (it can be empty)
 export const isServiceState = (st) => {
   if (!st) return false
-  if (!st.hasOwnProperty('IsJobControl') || !st.hasOwnProperty('UpdateDateTime') || !st.hasOwnProperty('IsPaused') ||
+  if (!st.hasOwnProperty('IsJobControl') || !st.hasOwnProperty('JobUpdateDateTime') || !st.hasOwnProperty('IsQueuePaused') ||
       !st.hasOwnProperty('Queue') || !st.hasOwnProperty('Active') || !st.hasOwnProperty('History')) {
     return false
   }

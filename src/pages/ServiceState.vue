@@ -22,7 +22,7 @@
         icon="mdi-autorenew"
         :title="$t('Refresh')"
         />
-        <span v-if="srvState.UpdateDateTime" class="mono om-text-secondary q-ml-xs">{{ srvState.UpdateDateTime }}</span>
+        <span v-if="srvState.JobUpdateDateTime" class="mono om-text-secondary q-ml-xs">{{ srvState.JobUpdateDateTime }}</span>
     </span>
 
     <span class="col-grow">
@@ -102,7 +102,7 @@
     v-model="isQueueShow"
     switch-toggle-side
     expand-separator
-    :label="$t('Model Run Queue') + (srvState.IsPaused ? ' (' + $t('paused') + ')' : '') + ': ' + (srvState.Queue.length || $t('None')) + (srvState.QueueTotalRes.Cpu ? (', ' + $t('CPU Cores') +': ' + srvState.QueueTotalRes.Cpu.toString()) : '')"
+    :label="$t('Model Run Queue') + (srvState.IsQueuePaused ? ' (' + $t('paused') + ')' : '') + ': ' + (srvState.Queue.length || $t('None')) + (srvState.QueueTotalRes.Cpu ? (', ' + $t('CPU Cores') +': ' + srvState.QueueTotalRes.Cpu.toString()) : '')"
     header-class="bg-primary text-white"
     class="q-my-sm"
     >
