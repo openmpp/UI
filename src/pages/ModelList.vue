@@ -261,12 +261,15 @@ export default {
 
           p = pp ? pp + '/' + fn : fn
 
-          if (fm?.[p]) continue // path already exist
+          if (fm?.[p]) {
+            pp = p
+            continue // path already exist
+          }
 
           const f = {
             key: 'mf-' + p + '-' + this.nextId++,
             digest: '',
-            label: p,
+            label: fn,
             descr: '',
             dir: pp,
             children: [],
