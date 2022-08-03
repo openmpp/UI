@@ -12,6 +12,11 @@ export const treeLabelKind = (state, labelKind) => {
   state.treeLabelKind = (labelKind === 'name-only' || labelKind === 'descr-only') ? labelKind : ''
 }
 
+// save expanded state of model list tree
+export const modelTreeExpandedKeys = (state, expandedKeys) => {
+  state.modelTreeExpandedKeys = (!!expandedKeys && Array.isArray(expandedKeys)) ? Array.from(expandedKeys) : []
+}
+
 // assign new value selected run digest
 export const runDigestSelected = (state, modelView) => {
   const mDgst = (typeof modelView?.digest === typeof 'string') ? modelView.digest : ''

@@ -7,6 +7,7 @@ export default function () {
     taskNameSelected: '',
     noAccDownload: true,
     treeLabelKind: '',
+    modelTreeExpandedKeys: [],
     paramViews: {},
     tableViews: {},
     modelView: {}

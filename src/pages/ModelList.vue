@@ -35,6 +35,7 @@
       :nodes="treeData"
       node-key="key"
       default-expand-all
+      :expanded.sync="expandedKeys"
       :filter="treeFilter"
       :filter-method="doModelFilter"
       :no-results-label="$t('No models found')"
@@ -119,6 +120,7 @@ export default {
       isAnyModelGroup: false,
       nextId: 100,
       treeData: [],
+      expandedKeys: [],
       treeWalk: {
         isAnyFound: false,
         prevFilter: '',
@@ -134,7 +136,6 @@ export default {
   },
 
   computed: {
-    // isShowSearch () { return Mdf.lengthOf(this.treeData) > 10 },
     theModelDigest () { return Mdf.modelDigest(this.theModel) },
 
     ...mapState('model', {
@@ -146,6 +147,7 @@ export default {
     }),
     ...mapState('uiState', {
       uiLang: state => state.uiLang,
+      modelTreeExpandedKeys: state => state.modelTreeExpandedKeys,
       noAccDownload: state => state.noAccDownload
     }),
     ...mapState('serverState', {
@@ -167,6 +169,9 @@ export default {
         this.$refs.theTree.expandAll()
       }
       this.isAllExpanded = !this.isAllExpanded
+
+      // remove duplicates if expand is result of search
+      this.expandedKeys = this.expandedKeys.filter((key, idx, arr) => arr.indexOf(key) === idx)
     },
     // filter by model name (label) or model description
     doModelFilter (node, filter) {
@@ -177,7 +182,7 @@ export default {
       isFound = this.updateTreeWalk(isFound, node, filter)
 
       // if this is a last node and any match found then expand tree
-      if (this.treeWalk.count >= this.treeWalk.size && this.treeWalk.isAnyFound && !this.isAllExpanded) {
+      if (this.treeWalk.count === this.treeWalk.size && this.treeWalk.isAnyFound && !this.isAllExpanded) {
         this.$nextTick(() => { this.doToogleExpandTree() })
       }
       return isFound
@@ -234,10 +239,12 @@ export default {
     },
 
     // return tree of models
-    makeTreeData (mLst) {
+    makeTreeData (mLst, ekArr) {
       this.isAnyModelGroup = false
       this.resetTreeWalk()
       this.treeWalk.size = 0
+      this.expandedKeys = []
+      const expKeys = (!!ekArr && Array.isArray(ekArr)) ? ekArr : []
 
       if (!Mdf.isLength(mLst)) return [] // empty model list
       if (!Mdf.isModelList(mLst)) {
@@ -280,6 +287,9 @@ export default {
           if (fm?.[pp]) fm[pp].children.push(f)
           if (!pp) {
             td.push(f) // add new top-level folder
+          }
+          if (expKeys.indexOf(f.key) >= 0 && this.expandedKeys.indexOf(f.key) < 0) {
+            this.expandedKeys.push(f.key)
           }
           pp = p
         }
@@ -327,7 +337,7 @@ export default {
       try {
         const response = await this.$axios.get(u)
         this.dispatchModelList(response.data) // update model list in store
-        this.treeData = this.makeTreeData(response.data) // update model list tree
+        this.treeData = this.makeTreeData(response.data, []) // update model list tree
         this.loadDone = true
       } catch (e) {
         let em = ''
@@ -376,15 +386,23 @@ export default {
 
     ...mapActions('model', {
       dispatchModelList: 'modelList'
+    }),
+    ...mapActions('uiState', {
+      dispatchModelTreeExpandedKeys: 'modelTreeExpandedKeys'
     })
+  },
+
+  // route leave guard: on leaving save model tree expanded state
+  beforeRouteLeave (to, from, next) {
+    this.dispatchModelTreeExpandedKeys(this.expandedKeys)
+    next()
   },
 
   mounted () {
     // if model list already loaded then exit
     if (this.modelCount > 0) {
       this.loadDone = true
-      this.treeData = this.makeTreeData(this.modelList) // update model list tree
-      this.$nextTick(() => { this.doToogleExpandTree() })
+      this.treeData = this.makeTreeData(this.modelList, this.modelTreeExpandedKeys) // update model list tree
       return
     }
     this.doRefresh() // load new model list

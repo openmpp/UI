@@ -17,6 +17,11 @@ export const treeLabelKind = ({ commit }, labelKind) => {
   commit('treeLabelKind', labelKind)
 }
 
+// save expanded state of model list tree
+export const modelTreeExpandedKeys = ({ commit }, expandedKeys) => {
+  commit('modelTreeExpandedKeys', expandedKeys)
+}
+
 // update or clear selected run digest
 export const runDigestSelected = ({ commit }, modelView) => {
   commit('runDigestSelected', modelView)

@@ -355,7 +355,7 @@ export default {
       }
 
       // if this is last node then clean matched key list and detect new filter condition
-      if (this.treeWalk.count >= this.treeWalk.size) {
+      if (this.treeWalk.count === this.treeWalk.size) {
         this.treeWalk.isNewFilter = filter !== this.treeWalk.prevFilter
         this.treeWalk.prevFilter = filter
       }
