@@ -103,6 +103,7 @@ export default {
   'error': 'erreur',
   'Error: input scenario already exist': "Erreur: le scénario d'entrée existe déjà",
   'Error: input scenario name must be unique': "Erreur: le nom du scénario d'entrée doit être unique",
+  'Exceed resource limit': 'Dépasser la limite des ressources',
   'exit (not completed)': 'sortie (non terminé)',
   'Expand all': 'Agrandir Tout',
   'Expressions': 'Expressions',

@@ -169,7 +169,8 @@ export const configRunOptsPresets = (c, modelName, langCode) => {
       Res: {
         Cpu: 3
       },
-      "LogFileName": "RiskPaths.2022_07_07_15_01_04_558.console.log"
+      IsOverLimit: false,
+      LogFileName: "RiskPaths.2022_07_07_15_01_04_558.console.log"
     }
   ],
   History: [

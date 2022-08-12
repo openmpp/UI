@@ -170,7 +170,7 @@
           <q-item-section>
             <q-item-label>{{ qj.ModelName }}:<span class="om-text-descr q-pl-sm">{{ getRunTitle(qj) }}</span></q-item-label>
             <q-item-label class="om-text-descr">
-              {{ $t('Submitted') + ':' }} <span class="mono">{{ fromUnderscoreTs(qj.SubmitStamp) }}</span>
+              {{ $t('Submitted') + ':' }} <span class="mono">{{ fromUnderscoreTs(qj.SubmitStamp) }}</span> <span v-if="qj.IsOverLimit" class="text-negative q-ml-md">{{ $t('Exceed resource limit') }}</span>
             </q-item-label>
           </q-item-section>
         </template>
