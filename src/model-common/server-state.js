@@ -132,6 +132,9 @@ export const configRunOptsPresets = (c, modelName, langCode) => {
   LimitTotalRes: {
     Cpu: 64
   },
+  ComputeErrorRes: {
+    Cpu: 8
+  },
   Queue: [],
   Active: [
     {
@@ -194,6 +197,8 @@ export const emptyServiceState = () => {
     ActiveOwnRes: { Cpu: 0 },
     QueueTotalRes: { Cpu: 0 },
     QueueOwnRes: { Cpu: 0 },
+    LimitTotalRes: { Cpu: 0 },
+    ComputeErrorRes: { Cpu: 0 },
     Queue: [],
     Active: [],
     History: []
@@ -211,6 +216,8 @@ export const isServiceState = (st) => {
   if (!st.hasOwnProperty('ActiveOwnRes') || !st.ActiveOwnRes.hasOwnProperty('Cpu') || typeof st.ActiveOwnRes.Cpu !== typeof 1) return false
   if (!st.hasOwnProperty('QueueTotalRes') || !st.QueueTotalRes.hasOwnProperty('Cpu') || typeof st.QueueTotalRes.Cpu !== typeof 1) return false
   if (!st.hasOwnProperty('QueueOwnRes') || !st.QueueOwnRes.hasOwnProperty('Cpu') || typeof st.QueueOwnRes.Cpu !== typeof 1) return false
+  if (!st.hasOwnProperty('LimitTotalRes') || !st.LimitTotalRes.hasOwnProperty('Cpu') || typeof st.LimitTotalRes.Cpu !== typeof 1) return false
+  if (!st.hasOwnProperty('ComputeErrorRes') || !st.ComputeErrorRes.hasOwnProperty('Cpu') || typeof st.ComputeErrorRes.Cpu !== typeof 1) return false
 
   return Array.isArray(st.Queue) && Array.isArray(st.Active) && Array.isArray(st.History)
 }

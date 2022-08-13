@@ -40,6 +40,8 @@ export default {
   'Copy parameters from scenario': 'Copier les paramètres du scénario',
   'Copy tab separated values to clipboard': 'Copier les valeurs séparées par des tabulations dans le presse-papiers',
   'CPU Cores': 'Cœurs de processeur',
+  'CPU Cores Active': 'Cœurs de processeur actifs',
+  'CPU Cores Failed': 'Les cœurs du processeur ont échoué',
   'Create new input scenario': "Créer un nouveau scénario d'entrée",
   'Create new input scenario with {count} parameter(s)': "Créer un nouveau scénario d'entrée avec {count} paramètre(s) à partir de",
   'Created': 'Créé',

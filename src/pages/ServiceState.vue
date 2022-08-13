@@ -3,7 +3,7 @@
 
   <div class="row items-center full-width">
 
-    <span class="col-auto shadow-1 q-pa-xs q-mr-xs">
+    <span class="col-auto q-pa-xs q-mr-xs">
       <q-btn
         v-if="!isRefreshDisabled && serverConfig.IsJobControl"
         @click="refreshPauseToggle"
@@ -25,77 +25,75 @@
         <span v-if="srvState.JobUpdateDateTime" class="mono om-text-secondary q-ml-xs">{{ srvState.JobUpdateDateTime }}</span>
     </span>
 
-    <span class="col-grow">
-      <q-btn
-        @click="isActiveShow = !isActiveShow"
-        no-caps
-        unelevated
-        :ripple="false"
-        color="primary"
-        align="left"
-        class="full-width q-py-xs"
-        >
-        <q-icon :name="isActiveShow ? 'keyboard_arrow_up' : 'keyboard_arrow_down'" />
-        <span class="text-body1">{{ $t('Active Model Runs') + ': ' + (srvState.Active.length || $t('None')) + (srvState.ActiveTotalRes.Cpu ? (', ' + $t('CPU Cores') +': ' + srvState.ActiveTotalRes.Cpu.toString()) : '') }}</span>
-      </q-btn>
+    <span class="col-grow q-pl-sm q-py-sm bg-primary text-white">
+      <span>{{ $t('CPU Cores') }}: {{ srvState.LimitTotalRes.Cpu }}</span>
+      <span class="q-pl-md">{{ $t('CPU Cores Active') }}: {{ srvState.ActiveTotalRes.Cpu }}</span>
+      <span v-show="srvState.ComputeErrorRes.Cpu" class="q-pl-md">{{ $t('CPU Cores Failed') }}: {{ srvState.ComputeErrorRes.Cpu }}</span>
     </span>
 
   </div>
 
-  <q-list
-    v-show="isActiveShow"
-    bordered
+  <q-expansion-item
+    :disable="!serverConfig.IsJobControl"
+    v-model="isActiveShow"
+    switch-toggle-side
+    expand-separator
+    :label="$t('Active Model Runs') + ': ' + (srvState.Active.length || $t('None')) + (srvState.ActiveTotalRes.Cpu ? (', ' + $t('CPU Cores') +': ' + srvState.ActiveTotalRes.Cpu.toString()) : '')"
+    header-class="bg-primary text-white"
+    class="q-my-sm"
     >
+    <q-list bordered>
 
-    <q-expansion-item
-      v-for="aj in srvState.Active" :key="aj.SubmitStamp"
-      :disable="!aj.ModelDigest || !aj.SubmitStamp"
-      @after-show="onActiveShow(aj.SubmitStamp)"
-      @after-hide="onActiveHide(aj.SubmitStamp)"
-      expand-icon-toggle
-      switch-toggle-side
-      expand-icon-class="job-expand-btn bg-primary text-white rounded-borders q-mr-sm"
-      :title="$t('About') + ' ' + aj.ModelName + ' ' + aj.SubmitStamp"
-      >
-      <template v-slot:header>
-        <q-item-section avatar class="job-hdr-action-bar q-pr-xs">
-          <div class="row items-center">
-            <q-btn
-              :to="'/model/' + encodeURIComponent(aj.ModelDigest) + '/run-log/' + encodeURIComponent(aj.RunStamp)"
-              flat
-              dense
-              class="col-auto bg-primary text-white rounded-borders q-mr-xs"
-              icon="mdi-text-long"
-              :title="$t('Run Log') + ': ' + aj.ModelName + ' ' + aj.RunStamp"
-              />
-            <q-btn
-              @click="onStopJobConfirm(aj.SubmitStamp, aj.ModelDigest, aj.ModelName)"
-              flat
-              dense
-              class="col-auto bg-primary text-white rounded-borders q-mr-xs"
-              icon="mdi-alert-octagon-outline"
-              :title="$t('Stop model run') + ' ' + aj.SubmitStamp"
-              />
-          </div>
-        </q-item-section>
-        <q-item-section>
-          <q-item-label>{{ aj.ModelName }}:<span class="om-text-descr q-pl-sm">{{ getRunTitle(aj) }}</span></q-item-label>
-          <q-item-label class="om-text-descr">
-            {{ $t('Submitted') + ':' }} <span class="mono">{{ fromUnderscoreTs(aj.SubmitStamp) }}</span>
-            <span class="q-ml-md">{{ $t('Run Stamp') + ':' }} <span class="mono">{{ fromUnderscoreTs(aj.RunStamp) }}</span></span>
-          </q-item-label>
-        </q-item-section>
-      </template>
+      <q-expansion-item
+        v-for="aj in srvState.Active" :key="aj.SubmitStamp"
+        :disable="!aj.ModelDigest || !aj.SubmitStamp"
+        @after-show="onActiveShow(aj.SubmitStamp)"
+        @after-hide="onActiveHide(aj.SubmitStamp)"
+        expand-icon-toggle
+        switch-toggle-side
+        expand-icon-class="job-expand-btn bg-primary text-white rounded-borders q-mr-sm"
+        :title="$t('About') + ' ' + aj.ModelName + ' ' + aj.SubmitStamp"
+        >
+        <template v-slot:header>
+          <q-item-section avatar class="job-hdr-action-bar q-pr-xs">
+            <div class="row items-center">
+              <q-btn
+                :to="'/model/' + encodeURIComponent(aj.ModelDigest) + '/run-log/' + encodeURIComponent(aj.RunStamp)"
+                flat
+                dense
+                class="col-auto bg-primary text-white rounded-borders q-mr-xs"
+                icon="mdi-text-long"
+                :title="$t('Run Log') + ': ' + aj.ModelName + ' ' + aj.RunStamp"
+                />
+              <q-btn
+                @click="onStopJobConfirm(aj.SubmitStamp, aj.ModelDigest, aj.ModelName)"
+                flat
+                dense
+                class="col-auto bg-primary text-white rounded-borders q-mr-xs"
+                icon="mdi-alert-octagon-outline"
+                :title="$t('Stop model run') + ' ' + aj.SubmitStamp"
+                />
+            </div>
+          </q-item-section>
+          <q-item-section>
+            <q-item-label>{{ aj.ModelName }}:<span class="om-text-descr q-pl-sm">{{ getRunTitle(aj) }}</span></q-item-label>
+            <q-item-label class="om-text-descr">
+              {{ $t('Submitted') + ':' }} <span class="mono">{{ fromUnderscoreTs(aj.SubmitStamp) }}</span>
+              <span class="q-ml-md">{{ $t('Run Stamp') + ':' }} <span class="mono">{{ fromUnderscoreTs(aj.RunStamp) }}</span></span>
+            </q-item-label>
+          </q-item-section>
+        </template>
 
-      <job-info-card
-        :job-item="activeJobs[aj.SubmitStamp]"
-        class="job-card q-mx-sm q-mb-md"
-      >
-      </job-info-card>
+        <job-info-card
+          :job-item="activeJobs[aj.SubmitStamp]"
+          class="job-card q-mx-sm q-mb-md"
+        >
+        </job-info-card>
 
-    </q-expansion-item>
+        </q-expansion-item>
 
-  </q-list>
+    </q-list>
+  </q-expansion-item>
 
   <q-expansion-item
     :disable="!serverConfig.IsJobControl"
