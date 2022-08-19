@@ -76,7 +76,7 @@ export default {
       this.stopRefresh()
       this.startRefresh()
       this.isActiveShow = true
-      this.isQueueShow = false
+      this.isQueueShow = true
       this.isHistoryShow = false
       this.activeJobs = {}
       this.queueJobs = {}

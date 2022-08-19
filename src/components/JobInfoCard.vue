@@ -53,7 +53,7 @@
             <td class="pt-head-left text-weight-medium">{{ $t('Processes / Threads') }}</td>
             <td class="pt-cell-left">{{ jobInfo.nProc }} / {{ jobItem.Threads }}</td>
           </tr>
-          <tr v-if="jobItem.Res.Cpu > 1">
+          <tr v-if="jobItem.Res.Cpu >= 1">
             <td class="pt-head-left text-weight-medium">{{ $t('CPU Cores') }}</td>
             <td class="pt-cell-left">{{ jobItem.Res.Cpu }}</td>
           </tr>

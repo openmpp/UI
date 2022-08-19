@@ -119,6 +119,7 @@
         <template v-slot:header>
           <q-item-section avatar class="q-pr-xs">
             <div class="row items-center">
+              <q-badge outline color="primary" class="col-auto q-mr-xs">{{ qj.QueuePos > 0 ? qj.QueuePos : '-' }}</q-badge>
               <q-btn
                 :disable="isTopQueue(qj.SubmitStamp)"
                 @click="onJobMove(qj.SubmitStamp, 0, qj.ModelDigest, qj.ModelName)"

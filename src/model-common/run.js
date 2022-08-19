@@ -371,6 +371,7 @@ export const emptyJobItem = (stamp) => {
     Template: '',
     Res: { Cpu: 1 },
     IsOverLimit: false,
+    QueuePos: 0,
     LogFileName: '',
     RunStatus: [],
     Lines: []
@@ -386,13 +387,13 @@ export const isJobItem = (jc) => {
   if (!jc.hasOwnProperty('JobStatus') || !jc.hasOwnProperty('ModelName') || !jc.hasOwnProperty('ModelDigest') || !jc.hasOwnProperty('RunStamp') ||
     !jc.hasOwnProperty('Opts') || !jc.hasOwnProperty('RunNotes') || !jc.hasOwnProperty('Tables') ||
     !jc.hasOwnProperty('Threads') || !jc.hasOwnProperty('Mpi') || !jc.Mpi.hasOwnProperty('Np') || !jc.hasOwnProperty('Template') ||
-    !jc.hasOwnProperty('Res') || !jc.Res.hasOwnProperty('Cpu') || !jc.hasOwnProperty('IsOverLimit')) {
+    !jc.hasOwnProperty('Res') || !jc.Res.hasOwnProperty('Cpu') || !jc.hasOwnProperty('IsOverLimit') || !jc.hasOwnProperty('QueuePos')) {
     return false
   }
   if (!Array.isArray(jc.RunNotes) || !Array.isArray(jc.Tables)) {
     return false
   }
-  if (typeof jc.Threads !== typeof 1 || typeof jc.Mpi.Np !== typeof 1 || typeof jc.Res.Cpu !== typeof 1) return false
+  if (typeof jc.Threads !== typeof 1 || typeof jc.Mpi.Np !== typeof 1 || typeof jc.Res.Cpu !== typeof 1 || typeof jc.QueuePos !== typeof 1) return false
 
   if (!jc.hasOwnProperty('LogFileName') || !jc.hasOwnProperty('RunStatus') || !jc.hasOwnProperty('Lines')) {
     return false
