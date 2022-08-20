@@ -25,11 +25,18 @@
         <span v-if="srvState.JobUpdateDateTime" class="mono om-text-secondary q-ml-xs">{{ srvState.JobUpdateDateTime }}</span>
     </span>
 
-    <span class="col-grow q-pl-sm q-py-sm bg-primary text-white">
-      <span>{{ $t('CPU Cores') }}: {{ srvState.LimitTotalRes.Cpu }}</span>
-      <span class="q-pl-md">{{ $t('CPU Cores Active') }}: {{ srvState.ActiveTotalRes.Cpu }}</span>
-      <span v-show="srvState.ComputeErrorRes.Cpu" class="q-pl-md">{{ $t('CPU Cores Failed') }}: {{ srvState.ComputeErrorRes.Cpu }}</span>
-    </span>
+    <div class="col-grow q-pl-sm q-py-sm bg-primary text-white">
+      <template v-if="srvState.MpiRes.Cpu">
+        <span>{{ $t('MPI cluster CPU Cores') }}: {{ srvState.MpiRes.Cpu }}</span>
+        <span class="q-pl-md">{{ $t('Used') }}: {{ srvState.ActiveTotalRes.Cpu }}</span>
+        <span v-show="srvState.ComputeErrorRes.Cpu" class="q-pl-md">{{ $t('Failed') }}: {{ srvState.ComputeErrorRes.Cpu }}</span>
+      </template>
+      <span v-if="srvState.MpiRes.Cpu > 0 && srvState.LocalRes.Cpu > 0" class="q-mx-md">&#124;</span>
+      <template v-if="srvState.LocalRes.Cpu">
+        <span>{{ $t('Local host CPU Cores') }}: {{ srvState.LocalRes.Cpu }}</span>
+        <span class="q-pl-md">{{ $t('Used') }}: {{ srvState.ActiveTotalRes.Cpu }}</span>
+      </template>
+    </div>
 
   </div>
 
@@ -119,9 +126,9 @@
         <template v-slot:header>
           <q-item-section avatar class="q-pr-xs">
             <div class="row items-center">
-              <q-badge outline color="primary" class="col-auto q-mr-xs">{{ qj.QueuePos > 0 ? qj.QueuePos : '-' }}</q-badge>
+              <q-badge outline color="primary" class="col-auto q-mr-xs">{{ qj.QueuePos > 0 ? qj.QueuePos : '&#8211;' }}</q-badge>
               <q-btn
-                :disable="isTopQueue(qj.SubmitStamp)"
+                :disable="!qj.IsMpi || isTopQueue(qj.SubmitStamp)"
                 @click="onJobMove(qj.SubmitStamp, 0, qj.ModelDigest, qj.ModelName)"
                 flat
                 dense
@@ -130,7 +137,7 @@
                 :title="$t('Move to the top')"
                 />
               <q-btn
-                :disable="isTopQueue(qj.SubmitStamp)"
+                :disable="!qj.IsMpi || isTopQueue(qj.SubmitStamp)"
                 @click="onJobMove(qj.SubmitStamp, qPos - 1, qj.ModelDigest, qj.ModelName)"
                 flat
                 dense
@@ -139,7 +146,7 @@
                 :title="$t('Move up')"
                 />
               <q-btn
-                :disable="isBottomQueue(qj.SubmitStamp)"
+                :disable="!qj.IsMpi || isBottomQueue(qj.SubmitStamp)"
                 @click="onJobMove(qj.SubmitStamp, qPos + 1, qj.ModelDigest, qj.ModelName)"
                 flat
                 dense
@@ -148,7 +155,7 @@
                 :title="$t('Move down')"
                 />
               <q-btn
-                :disable="isBottomQueue(qj.SubmitStamp)"
+                :disable="!qj.IsMpi || isBottomQueue(qj.SubmitStamp)"
                 @click="onJobMove(qj.SubmitStamp, srvState.Queue.length + 1, qj.ModelDigest, qj.ModelName)"
                 flat
                 dense

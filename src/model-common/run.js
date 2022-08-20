@@ -368,6 +368,7 @@ export const emptyJobItem = (stamp) => {
     Tables: [],
     Threads: 1,
     Mpi: { Np: 0 },
+    IsMpi: false,
     Template: '',
     Res: { Cpu: 1 },
     IsOverLimit: false,
@@ -387,9 +388,12 @@ export const isJobItem = (jc) => {
   if (!jc.hasOwnProperty('JobStatus') || !jc.hasOwnProperty('ModelName') || !jc.hasOwnProperty('ModelDigest') || !jc.hasOwnProperty('RunStamp') ||
     !jc.hasOwnProperty('Opts') || !jc.hasOwnProperty('RunNotes') || !jc.hasOwnProperty('Tables') ||
     !jc.hasOwnProperty('Threads') || !jc.hasOwnProperty('Mpi') || !jc.Mpi.hasOwnProperty('Np') || !jc.hasOwnProperty('Template') ||
-    !jc.hasOwnProperty('Res') || !jc.Res.hasOwnProperty('Cpu') || !jc.hasOwnProperty('IsOverLimit') || !jc.hasOwnProperty('QueuePos')) {
+    !jc.hasOwnProperty('Res') || !jc.Res.hasOwnProperty('Cpu') || !jc.hasOwnProperty('QueuePos')) {
     return false
   }
+  if (!jc.hasOwnProperty('IsMpi') || typeof jc.IsMpi !== typeof true) return false
+  if (!jc.hasOwnProperty('IsOverLimit') || typeof jc.IsOverLimit !== typeof true) return false
+
   if (!Array.isArray(jc.RunNotes) || !Array.isArray(jc.Tables)) {
     return false
   }

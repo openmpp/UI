@@ -129,10 +129,19 @@ export const configRunOptsPresets = (c, modelName, langCode) => {
   QueueOwnRes: {
     Cpu: 64
   },
-  LimitTotalRes: {
+  MpiRes: {
     Cpu: 64
   },
   ComputeErrorRes: {
+    Cpu: 8
+  },
+  LocalRes: {
+    Cpu: 2
+  },
+  LocalUsedRes {
+    Cpu: 1
+  },
+  LocalQueueRes {
     Cpu: 8
   },
   Queue: [],
@@ -155,6 +164,7 @@ export const configRunOptsPresets = (c, modelName, langCode) => {
       "Mpi": {
         "Np": 0
       },
+      IsMpi: false,
       "Template": "",
       "Tables": [
         "TG03_Union_Tables"
@@ -197,8 +207,11 @@ export const emptyServiceState = () => {
     ActiveOwnRes: { Cpu: 0 },
     QueueTotalRes: { Cpu: 0 },
     QueueOwnRes: { Cpu: 0 },
-    LimitTotalRes: { Cpu: 0 },
+    MpiRes: { Cpu: 0 },
     ComputeErrorRes: { Cpu: 0 },
+    LocalRes: { Cpu: 0 },
+    LocalUsedRes: { Cpu: 0 },
+    LocalQueueRes: { Cpu: 0 },
     Queue: [],
     Active: [],
     History: []
@@ -216,8 +229,11 @@ export const isServiceState = (st) => {
   if (!st.hasOwnProperty('ActiveOwnRes') || !st.ActiveOwnRes.hasOwnProperty('Cpu') || typeof st.ActiveOwnRes.Cpu !== typeof 1) return false
   if (!st.hasOwnProperty('QueueTotalRes') || !st.QueueTotalRes.hasOwnProperty('Cpu') || typeof st.QueueTotalRes.Cpu !== typeof 1) return false
   if (!st.hasOwnProperty('QueueOwnRes') || !st.QueueOwnRes.hasOwnProperty('Cpu') || typeof st.QueueOwnRes.Cpu !== typeof 1) return false
-  if (!st.hasOwnProperty('LimitTotalRes') || !st.LimitTotalRes.hasOwnProperty('Cpu') || typeof st.LimitTotalRes.Cpu !== typeof 1) return false
+  if (!st.hasOwnProperty('MpiRes') || !st.MpiRes.hasOwnProperty('Cpu') || typeof st.MpiRes.Cpu !== typeof 1) return false
   if (!st.hasOwnProperty('ComputeErrorRes') || !st.ComputeErrorRes.hasOwnProperty('Cpu') || typeof st.ComputeErrorRes.Cpu !== typeof 1) return false
+  if (!st.hasOwnProperty('LocalRes') || !st.LocalRes.hasOwnProperty('Cpu') || typeof st.LocalRes.Cpu !== typeof 1) return false
+  if (!st.hasOwnProperty('LocalUsedRes') || !st.LocalUsedRes.hasOwnProperty('Cpu') || typeof st.LocalUsedRes.Cpu !== typeof 1) return false
+  if (!st.hasOwnProperty('LocalQueueRes') || !st.LocalQueueRes.hasOwnProperty('Cpu') || typeof st.LocalQueueRes.Cpu !== typeof 1) return false
 
   return Array.isArray(st.Queue) && Array.isArray(st.Active) && Array.isArray(st.History)
 }
