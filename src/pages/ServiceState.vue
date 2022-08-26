@@ -25,17 +25,17 @@
         <span v-if="srvState.JobUpdateDateTime" class="mono om-text-secondary q-ml-xs">{{ srvState.JobUpdateDateTime }}</span>
     </span>
 
-    <div class="col-grow q-pl-sm q-py-sm bg-primary text-white">
+    <div class="col-grow res-title q-pl-sm q-py-sm bg-primary text-white">
       <template v-if="srvState.MpiRes.Cpu">
-        <span>{{ $t('MPI cluster CPU Cores') }}: {{ srvState.MpiRes.Cpu }}</span>
+        <span>{{ $t('MPI CPU Cores') }}: {{ srvState.MpiRes.Cpu }}</span>
         <span class="q-pl-md">{{ $t('Used') }}: {{ srvState.ActiveTotalRes.Cpu }}</span>
         <span v-show="srvState.ComputeErrorRes.Cpu" class="q-pl-md">{{ $t('Failed') }}: {{ srvState.ComputeErrorRes.Cpu }}</span>
       </template>
       <span v-if="srvState.MpiRes.Cpu > 0 && srvState.LocalRes.Cpu > 0" class="q-mx-md">&#124;</span>
       <template v-if="srvState.LocalRes.Cpu">
-        <span>{{ $t('Local host CPU Cores') }}: {{ srvState.LocalRes.Cpu }}</span>
-        <span class="q-pl-md">{{ $t('Used') }}: {{ srvState.ActiveTotalRes.Cpu }}</span>
-      </template>
+        <span>{{ $t('Local CPU Cores') }}: {{ srvState.LocalRes.Cpu }}</span>
+        <span class="q-pl-md">{{ $t('Used') }}: {{ srvState.LocalActiveRes.Cpu }}</span>
+      </template>&nbsp;
     </div>
 
   </div>
@@ -45,10 +45,20 @@
     v-model="isActiveShow"
     switch-toggle-side
     expand-separator
-    :label="$t('Active Model Runs') + ': ' + (srvState.Active.length || $t('None')) + (srvState.ActiveTotalRes.Cpu ? (', ' + $t('CPU Cores') +': ' + srvState.ActiveTotalRes.Cpu.toString()) : '')"
-    header-class="bg-primary text-white"
     class="q-my-sm"
+    header-class="bg-primary text-white"
     >
+      <template v-slot:header>
+        <q-item-section>
+          <q-item-label>
+            <span>{{ $t('Active Model Runs') }}: {{ srvState.Active.length || $t('None') }}</span>
+            <span v-if="srvState.ActiveTotalRes.Cpu > 0" class="q-mx-md">&#124;</span>
+            <span v-if="srvState.ActiveTotalRes.Cpu">{{ $t('MPI CPU Cores') }}: {{ srvState.ActiveTotalRes.Cpu }}</span>
+            <span v-if="srvState.LocalActiveRes.Cpu > 0" class="q-mx-md">&#124;</span>
+            <span v-if="srvState.LocalActiveRes.Cpu" class="q-pr-sm">{{ $t('Local CPU Cores') }}: {{ srvState.LocalActiveRes.Cpu }}</span>
+          </q-item-label>
+        </q-item-section>
+      </template>
     <q-list bordered>
 
       <q-expansion-item
@@ -107,10 +117,20 @@
     v-model="isQueueShow"
     switch-toggle-side
     expand-separator
-    :label="$t('Model Run Queue') + (srvState.IsQueuePaused ? ' (' + $t('paused') + ')' : '') + ': ' + (srvState.Queue.length || $t('None')) + (srvState.QueueTotalRes.Cpu ? (', ' + $t('CPU Cores') +': ' + srvState.QueueTotalRes.Cpu.toString()) : '')"
     header-class="bg-primary text-white"
     class="q-my-sm"
     >
+      <template v-slot:header>
+        <q-item-section>
+          <q-item-label>
+            <span>{{ $t('Model Run Queue') }} </span><span v-if="srvState.IsQueuePaused">({{ $t('paused') }})</span>: <span>{{ srvState.Queue.length || $t('None') }}</span>
+            <span v-if="srvState.QueueTotalRes.Cpu > 0" class="q-mx-md">&#124;</span>
+            <span v-if="srvState.QueueTotalRes.Cpu">{{ $t('MPI CPU Cores') }}: {{ srvState.QueueTotalRes.Cpu }}</span>
+            <span v-if="srvState.LocalQueueRes.Cpu > 0" class="q-mx-md">&#124;</span>
+            <span v-if="srvState.LocalQueueRes.Cpu" class="q-pr-sm">{{ $t('Local CPU Cores') }}: {{ srvState.LocalQueueRes.Cpu }}</span>
+          </q-item-label>
+        </q-item-section>
+      </template>
     <q-list bordered>
 
       <q-expansion-item
@@ -261,5 +281,8 @@
   }
   .job-hdr-action-bar {
     min-width: 2rem;
+  }
+  .res-title {
+    min-height: 1.5rem;
   }
 </style>

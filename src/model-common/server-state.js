@@ -138,7 +138,7 @@ export const configRunOptsPresets = (c, modelName, langCode) => {
   LocalRes: {
     Cpu: 2
   },
-  LocalUsedRes {
+  LocalActiveRes {
     Cpu: 1
   },
   LocalQueueRes {
@@ -210,7 +210,7 @@ export const emptyServiceState = () => {
     MpiRes: { Cpu: 0 },
     ComputeErrorRes: { Cpu: 0 },
     LocalRes: { Cpu: 0 },
-    LocalUsedRes: { Cpu: 0 },
+    LocalActiveRes: { Cpu: 0 },
     LocalQueueRes: { Cpu: 0 },
     Queue: [],
     Active: [],
@@ -232,7 +232,7 @@ export const isServiceState = (st) => {
   if (!st.hasOwnProperty('MpiRes') || !st.MpiRes.hasOwnProperty('Cpu') || typeof st.MpiRes.Cpu !== typeof 1) return false
   if (!st.hasOwnProperty('ComputeErrorRes') || !st.ComputeErrorRes.hasOwnProperty('Cpu') || typeof st.ComputeErrorRes.Cpu !== typeof 1) return false
   if (!st.hasOwnProperty('LocalRes') || !st.LocalRes.hasOwnProperty('Cpu') || typeof st.LocalRes.Cpu !== typeof 1) return false
-  if (!st.hasOwnProperty('LocalUsedRes') || !st.LocalUsedRes.hasOwnProperty('Cpu') || typeof st.LocalUsedRes.Cpu !== typeof 1) return false
+  if (!st.hasOwnProperty('LocalActiveRes') || !st.LocalActiveRes.hasOwnProperty('Cpu') || typeof st.LocalActiveRes.Cpu !== typeof 1) return false
   if (!st.hasOwnProperty('LocalQueueRes') || !st.LocalQueueRes.hasOwnProperty('Cpu') || typeof st.LocalQueueRes.Cpu !== typeof 1) return false
 
   return Array.isArray(st.Queue) && Array.isArray(st.Active) && Array.isArray(st.History)

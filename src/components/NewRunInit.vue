@@ -30,6 +30,7 @@ export default {
         runTmpl: '',
         mpiNpCount: 0,
         mpiOnRoot: false,
+        mpiUseJobs: false,
         mpiTmpl: ''
       })
     },
@@ -54,7 +55,8 @@ export default {
       uiLang: state => state.uiLang
     }),
     ...mapState('serverState', {
-      omsUrl: state => state.omsUrl
+      omsUrl: state => state.omsUrl,
+      serverConfig: state => state.config
     })
   },
 
@@ -84,7 +86,9 @@ export default {
         Tables: [],
         Threads: 1,
         Mpi: {
-          Np: 0
+          Np: 0,
+          IsNotOnRoot: false,
+          IsNotByJob: !this.serverConfig.IsJobControl
         },
         Template: '',
         RunNotes: []
@@ -104,7 +108,10 @@ export default {
       if (this.runOpts.sparseOutput) rv.Opts['OpenM.SparseOutput'] = 'true'
       if (this.uiLang) rv.Opts['OpenM.MessageLanguage'] = this.uiLang
 
-      if ((this.runOpts.threadCount || 1) >= 1) rv.Threads = this.runOpts.threadCount
+      if ((this.runOpts.threadCount || 1) >= 1) {
+        rv.Threads = this.runOpts.threadCount
+        rv.Opts['OpenM.Threads'] = this.runOpts.threadCount.toString() // for backward compatibility only
+      }
 
       rv.Tables = Array.from(this.tablesRetain)
 
@@ -113,8 +120,15 @@ export default {
         if (this.runOpts.runTmpl) rv.Template = this.runOpts.runTmpl
       } else {
         rv.Mpi.Np = this.runOpts.mpiNpCount
-        if (!this.runOpts.mpiOnRoot) rv.Opts['OpenM.NotOnRoot'] = 'true'
-        if (this.runOpts.mpiTmpl) rv.Template = this.runOpts.mpiTmpl
+        rv.IsMpi = true
+        if (!this.runOpts.mpiOnRoot) {
+          rv.Mpi.IsNotOnRoot = true
+          rv.Opts['OpenM.NotOnRoot'] = 'true' // for backward compatibility only
+        }
+        if (this.runOpts.mpiTmpl) {
+          rv.Template = this.runOpts.mpiTmpl
+        }
+        rv.Mpi.IsNotByJob = !this.serverConfig.IsJobControl || !this.runOpts.mpiUseJobs
         rv.Opts['OpenM.LogRank'] = 'true'
       }
 

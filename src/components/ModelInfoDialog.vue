@@ -26,6 +26,10 @@
         </div>
       </div>
 
+      <div v-if="docLink" class="q-pb-md">
+        <a target="blank" :href="docLink">{{ $t('Model Documentation') }}</a>
+      </div>
+
       <div v-if="notes" v-html="notes" />
     </q-card-section>
 
@@ -60,7 +64,8 @@ export default {
       modelName: '',
       createDateTime: '',
       version: '',
-      dir: ''
+      dir: '',
+      docLink: ''
     }
   },
 
@@ -89,6 +94,8 @@ export default {
       this.createDateTime = Mdf.dtStr(m.Model.CreateDateTime)
       this.version = m.Model.Version || ''
       this.dir = Mdf.modelDirByDigest(this.digest, this.modelList)
+      const me = Mdf.modelExtraByDigest(this.digest, this.modelList)
+      this.docLink = me?.DocLink || ''
 
       // model notes: convert from markdown to html
       marked.setOptions({

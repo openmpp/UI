@@ -250,7 +250,7 @@
         <table>
 
           <tr>
-            <td class="q-pr-xs">{{ $t('Modelling Threads') }}:</td>
+            <td class="q-pr-xs">{{ $t('Modelling Threads max') }}:</td>
             <td>
               <q-input
                 v-model="runOpts.threadCount"
@@ -267,7 +267,7 @@
                 hide-bottom-space
                 class="tc-max-width-10"
                 input-class="tc-right"
-                :title="$t('Number of modelling threads')"
+                :title="$t('Maximum number of modelling threads')"
                 />
             </td>
           </tr>
@@ -467,6 +467,20 @@
                 class="tc-max-width-10"
                 input-class="tc-right"
                 :title="$t('Number of parallel processes to run')"
+                />
+            </td>
+          </tr>
+
+          <tr
+            :disabled="!serverConfig.IsJobControl || runOpts.mpiNpCount <= 0"
+            >
+            <td class="q-pr-xs">{{ $t('Use Jobs Service') }}:</td>
+            <td class="tc-max-width-10 row panel-border rounded-borders">
+              <q-space />
+              <q-toggle
+                v-model="runOpts.mpiUseJobs"
+                :disable="!serverConfig.IsJobControl || runOpts.mpiNpCount <= 0"
+                :title="runOpts.mpiUseJobs ? $t('Use jobs service to run the model') : $t('Do not use jobs service to run the model')"
                 />
             </td>
           </tr>

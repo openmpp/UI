@@ -55,7 +55,7 @@
           </tr>
           <tr v-if="jobItem.Res.Cpu >= 1">
             <td class="pt-head-left text-weight-medium">{{ $t('CPU Cores') }}</td>
-            <td class="pt-cell-left">{{ jobItem.Res.Cpu }}</td>
+            <td class="pt-cell-left">{{ jobItem.Res.Cpu }} {{ jobItem.IsMpi ? 'MPI' : '' }}</td>
           </tr>
           <tr v-if="jobItem.Template">
             <td class="pt-head-left text-weight-medium">{{ $t('Model Run Template') }}</td>

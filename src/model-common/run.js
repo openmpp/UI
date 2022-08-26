@@ -341,7 +341,9 @@ export const isNotEmptyRunProgress = (rpi) => {
   Opts: {},
   Threads: 1,
   Mpi: {
-    Np: 0
+    Np: 0,
+    IsNotOnRoot: false,
+    IsNotByJob: false
   },
   Template: "",
   Res: {
@@ -367,7 +369,10 @@ export const emptyJobItem = (stamp) => {
     RunNotes: [],
     Tables: [],
     Threads: 1,
-    Mpi: { Np: 0 },
+    Mpi: {
+      Np: 0,
+      IsNotOnRoot: false
+    },
     IsMpi: false,
     Template: '',
     Res: { Cpu: 1 },
@@ -387,17 +392,20 @@ export const isJobItem = (jc) => {
   }
   if (!jc.hasOwnProperty('JobStatus') || !jc.hasOwnProperty('ModelName') || !jc.hasOwnProperty('ModelDigest') || !jc.hasOwnProperty('RunStamp') ||
     !jc.hasOwnProperty('Opts') || !jc.hasOwnProperty('RunNotes') || !jc.hasOwnProperty('Tables') ||
-    !jc.hasOwnProperty('Threads') || !jc.hasOwnProperty('Mpi') || !jc.Mpi.hasOwnProperty('Np') || !jc.hasOwnProperty('Template') ||
+    !jc.hasOwnProperty('Threads') || !jc.hasOwnProperty('Template') || !jc.hasOwnProperty('Mpi') ||
     !jc.hasOwnProperty('Res') || !jc.Res.hasOwnProperty('Cpu') || !jc.hasOwnProperty('QueuePos')) {
     return false
   }
   if (!jc.hasOwnProperty('IsMpi') || typeof jc.IsMpi !== typeof true) return false
+  if (!jc.Mpi.hasOwnProperty('Np') || typeof jc.Mpi.Np !== typeof 1) return false
+  if (!jc.Mpi.hasOwnProperty('IsNotOnRoot') || typeof jc.Mpi.IsNotOnRoot !== typeof true) return false
+  if (!jc.Mpi.hasOwnProperty('IsNotByJob') || typeof jc.Mpi.IsNotByJob !== typeof true) return false
   if (!jc.hasOwnProperty('IsOverLimit') || typeof jc.IsOverLimit !== typeof true) return false
 
   if (!Array.isArray(jc.RunNotes) || !Array.isArray(jc.Tables)) {
     return false
   }
-  if (typeof jc.Threads !== typeof 1 || typeof jc.Mpi.Np !== typeof 1 || typeof jc.Res.Cpu !== typeof 1 || typeof jc.QueuePos !== typeof 1) return false
+  if (typeof jc.Threads !== typeof 1 || typeof jc.Res.Cpu !== typeof 1 || typeof jc.QueuePos !== typeof 1) return false
 
   if (!jc.hasOwnProperty('LogFileName') || !jc.hasOwnProperty('RunStatus') || !jc.hasOwnProperty('Lines')) {
     return false

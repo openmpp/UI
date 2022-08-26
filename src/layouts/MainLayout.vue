@@ -142,6 +142,17 @@
               <q-item-section avatar>
                 <q-icon name="link" />
               </q-item-section>
+              <q-item-section>{{ $t('Create Scenario') }}</q-item-section>
+            </q-item>
+            <q-item
+              clickable
+              tag="a"
+              target="_blank"
+              href="//github.com/openmpp/openmpp.github.io/wiki"
+              >
+              <q-item-section avatar>
+                <q-icon name="link" />
+              </q-item-section>
               <q-item-section>OpenM++ {{ $t('wiki') }}</q-item-section>
             </q-item>
             <q-item

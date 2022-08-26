@@ -25,6 +25,19 @@ export const modelDirByDigest = (dgst, ml) => {
   return ''
 }
 
+// return model extra properties by digest: find first in model list
+export const modelExtraByDigest = (dgst, ml) => {
+  if (!dgst || typeof dgst !== typeof 'string') return {}
+  if (!ml || !Array.isArray(ml)) return {}
+  for (const m of ml) {
+    if (modelDigest(m) === dgst) {
+      if (!m.hasOwnProperty('Extra') || typeof m.Extra !== 'object' || !m.Extra) return {}
+      return m.Extra
+    }
+  }
+  return {}
+}
+
 // return empty Model
 export const emptyModel = () => {
   return {

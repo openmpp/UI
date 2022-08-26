@@ -51,6 +51,18 @@ export const theModel = (state, model) => {
 // assign new value to model list, if (ml) is a model list
 export const modelList = (state, ml) => {
   if (Mdf.isModelList(ml)) {
+    // parse model extra properties
+    for (const m of ml) {
+      let me = {}
+      try {
+        const ms = m?.Extra || ''
+        if (ms && typeof ms === typeof 'string') me = JSON.parse(ms)
+      } catch {
+        me = {}
+      }
+      m.Extra = me
+    }
+
     state.modelList = ml
     state.modelListUpdated++
   }

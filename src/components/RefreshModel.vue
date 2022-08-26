@@ -87,7 +87,7 @@ export default {
       const ul = this.omsUrl + '/api/model/' + udgst + '/lang-list'
       try {
         const response = await this.$axios.get(ul)
-        this.dispatchLangList(response.data) // update list of maodel languages in store
+        this.dispatchLangList(response.data) // update list of model languages in store
       } catch (e) {
         let em = ''
         try {

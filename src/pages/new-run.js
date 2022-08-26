@@ -53,6 +53,7 @@ export default {
         runTmpl: '',
         mpiNpCount: 0,
         mpiOnRoot: false,
+        mpiUseJobs: false,
         mpiTmpl: ''
       },
       advOptsExpanded: false,
@@ -138,6 +139,7 @@ export default {
       this.runOpts.sparseOutput = false
       this.mpiNpCount = 0
       this.runOpts.mpiOnRoot = false
+      this.runOpts.mpiUseJobs = this.serverConfig.IsJobControl
 
       // get model run template list
       // append empty '' string first to allow model run without template
@@ -215,7 +217,7 @@ export default {
         }
       }
 
-      // get run options presets as array of { name, descr, opts{....} }
+      // get run options presets as array of { name, label, descr, opts{....} }
       // if first preset starts with "current-model-name." then apply it
       this.presetLst = Mdf.configRunOptsPresets(this.serverConfig, this.theModel.Model.Name, this.modelLanguage.LangCode)
 
@@ -451,6 +453,7 @@ export default {
         this.runOpts.mpiNpCount = 0
       }
       this.runOpts.mpiOnRoot = ps.mpiOnRoot ?? this.runOpts.mpiOnRoot
+      this.runOpts.mpiUseJobs = this.serverConfig.IsJobControl && (ps.mpiUseJobs ?? this.runOpts.mpiUseJobs)
       this.runOpts.mpiTmpl = ps.mpiTmpl ?? this.runOpts.mpiTmpl
       this.runOpts.progressPercent = ps.progressPercent ?? this.runOpts.progressPercent
       if (this.runOpts.progressPercent < 1) {
@@ -516,6 +519,7 @@ export default {
       this.runOpts.runTmpl = Mdf.cleanTextInput(this.runOpts.runTmpl)
       this.runOpts.mpiNpCount = Mdf.cleanIntNonNegativeInput(this.runOpts.mpiNpCount, 0)
       this.runOpts.mpiOnRoot = this.runOpts.mpiOnRoot || false
+      this.runOpts.mpiUseJobs = this.serverConfig.IsJobControl && (this.runOpts.mpiUseJobs || false)
       this.runOpts.mpiTmpl = Mdf.cleanTextInput(this.runOpts.mpiTmpl)
       this.runOpts.progressPercent = Mdf.cleanIntNonNegativeInput(this.runOpts.progressPercent, 1)
 
