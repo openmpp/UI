@@ -234,8 +234,31 @@
         :title="$t('About') + ' ' + hj.ModelName + ' '+ hj.SubmitStamp"
         >
         <template v-slot:header>
+          <q-item-section avatar class="job-hdr-action-bar q-pr-xs">
+            <div class="row items-center">
+              <q-btn
+                :to="'/model/' + encodeURIComponent(hj.ModelDigest) + '/run-log/' + encodeURIComponent(hj.RunStamp)"
+                flat
+                dense
+                class="col-auto bg-primary text-white rounded-borders q-mr-xs"
+                icon="mdi-text-long"
+                :title="$t('Run Log') + ': ' + hj.ModelName + ' ' + hj.RunStamp"
+                />
+              <q-btn
+                @click="onDeleteJobHistoryConfirm(hj.SubmitStamp, hj.ModelName, getHistoryTitle(hj))"
+                flat
+                dense
+                class="col-auto bg-primary text-white rounded-borders q-mr-xs"
+                icon="mdi-delete-outline"
+                :title="$t('Delete') + ' ' + hj.SubmitStamp"
+                />
+            </div>
+          </q-item-section>
           <q-item-section>
-            <q-item-label>{{ hj.ModelName }}: <span class="om-text-descr" :class="isSuccess(hj.JobStatus) ? 'text-primary' : 'text-negative'">{{ $t(runStatusDescr(hj.JobStatus)) }}</span></q-item-label>
+            <q-item-label>
+              <span class="om-text-descr" :class="isSuccess(hj.JobStatus) ? 'text-primary' : 'text-negative'">{{ $t(runStatusDescr(hj.JobStatus)) }}</span>
+              <span> {{ hj.ModelName }}<span class="om-text-descr" v-if="getHistoryTitle(hj)">: {{ getHistoryTitle(hj) }}</span></span>
+            </q-item-label>
             <q-item-label class="om-text-descr">
               {{ $t('Submitted') + ':' }} <span class="mono">{{ fromUnderscoreTs(hj.SubmitStamp) }}</span>
               <span class="q-ml-md">{{ $t('Run Stamp') + ':' }} <span class="mono">{{ fromUnderscoreTs(hj.RunStamp) }}</span></span>
@@ -262,6 +285,14 @@
     :kind="stopModelDigest"
     :dialog-title="$t('Stop model run?')"
     :icon-name="'mdi-alert-octagon'"
+    >
+  </delete-confirm-dialog>
+  <delete-confirm-dialog
+    @delete-yes="onYesDeleteJobHistory"
+    :show-tickle="showDeleteHistoryTickle"
+    :item-name="deleteHistoryTitle"
+    :item-id="deleteSubmitStamp"
+    :dialog-title="$t('Delete model run history?')"
     >
   </delete-confirm-dialog>
 

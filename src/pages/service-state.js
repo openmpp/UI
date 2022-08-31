@@ -32,10 +32,13 @@ export default {
       stateSendCount: 0,
       stateNoDataCount: 0,
       stateRefreshInt: '',
+      showStopRunTickle: false,
       stopRunTitle: '',
       stopSubmitStamp: '',
       stopModelDigest: '',
-      showStopRunTickle: false
+      showDeleteHistoryTickle: false,
+      deleteHistoryTitle: '',
+      deleteSubmitStamp: ''
     }
   },
 
@@ -60,6 +63,7 @@ export default {
     isQueueJob (stamp) { return !!stamp && Mdf.isNotEmptyJobItem(this.queueJobs[stamp]) },
     isHistoryJob (stamp) { return !!stamp && Mdf.isNotEmptyJobItem(this.historyJobs[stamp]) },
     getRunTitle (jobItem) { return Mdf.getJobRunTitle(jobItem) },
+    getHistoryTitle (hJob) { return hJob?.RunTitle || '' },
 
     // return true if job is first in the queue
     isTopQueue (stamp) {
@@ -285,6 +289,7 @@ export default {
       this.$q.notify({ type: 'info', message: this.$t('Stopping model run') + ': ' + title })
     },
 
+    // move job queue to specified postion
     async onJobMove (stamp, pos, mDigest, mName) {
       const title = (mName || mDigest || '') + ' ' + (this.fromUnderscoreTs(stamp) || '') + ' '
       if (!stamp || typeof pos !== typeof 1) {
@@ -304,6 +309,34 @@ export default {
 
       // notify user on success, even run may not exist
       this.$q.notify({ type: 'info', message: this.$t('Moving model run') + ': ' + title })
+    },
+
+    // delete job history: ask user confirmation
+    onDeleteJobHistoryConfirm (stamp, mName, title) {
+      this.deleteHistoryTitle = mName + ' ' + (title || this.fromUnderscoreTs(stamp))
+      this.deleteSubmitStamp = stamp
+      this.showDeleteHistoryTickle = !this.showDeleteHistoryTickle
+    },
+    // user answer is Yes to delete job history
+    async onYesDeleteJobHistory (title, stamp) {
+      if (!stamp) {
+        console.warn('Unable to delete job history: submit stamp is empty', stamp)
+        this.$q.notify({ type: 'negative', message: this.$t('Unable to delete job history: submit stamp is empty') })
+        return
+      }
+
+      const u = this.omsUrl +
+        '/api/service/job/delete/history/' + encodeURIComponent(stamp)
+      try {
+        await this.$axios.delete(u) // ignore response on success
+      } catch (e) {
+        console.warn('Unable to delete job history', e)
+        this.$q.notify({ type: 'negative', message: this.$t('Unable to delete job history') + ': ' + title })
+        return // exit on error
+      }
+
+      // notify user on success, history item will be deleted from the list after next files refersh
+      this.$q.notify({ type: 'info', message: this.$t('Deleting job history') + ': ' + title })
     }
   },
 
