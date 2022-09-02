@@ -23,9 +23,12 @@ export default {
       activeJobs: {},
       queueJobs: {},
       historyJobs: {},
+      doneHistory: [], // successfully completed jobs from history
+      otherHistory: [], // jobs from history where run status is not 'success'
       isActiveShow: false,
       isQueueShow: false,
-      isHistoryShow: false,
+      isDoneHistoryShow: false,
+      isOtherHistoryShow: false,
       isRefreshPaused: false,
       isRefreshDisabled: false,
       stateRefreshTickle: 0,
@@ -81,10 +84,13 @@ export default {
       this.startRefresh()
       this.isActiveShow = true
       this.isQueueShow = true
-      this.isHistoryShow = false
+      this.isDoneHistoryShow = false
+      this.isOtherHistoryShow = true
       this.activeJobs = {}
       this.queueJobs = {}
       this.historyJobs = {}
+      this.doneHistory = []
+      this.otherHistory = []
     },
 
     // refersh service state
@@ -160,6 +166,19 @@ export default {
       for (const hj of this.srvState.History) {
         if ((this.historyJobs[hj.SubmitStamp] || '') === '') this.historyJobs[hj.SubmitStamp] = Mdf.isJobItem(hj) ? hj : Mdf.emptyJobItem(hj.SubmitStamp)
       }
+
+      // split history jobs into success and other status
+      const dh = []
+      const th = []
+      for (const hj of this.srvState.History) {
+        if (this.isSuccess(hj.JobStatus)) {
+          dh.push(hj)
+        } else {
+          th.push(hj)
+        }
+      }
+      this.doneHistory = dh
+      this.otherHistory = th
     },
 
     // receive server configuration, including configuration of model catalog and run catalog
@@ -266,6 +285,7 @@ export default {
       this.stopModelDigest = mDigest
       this.showStopRunTickle = !this.showStopRunTickle
     },
+
     // user answer is Yes to stop model run
     async onYesStopRun (title, stamp, mDgst) {
       if (!mDgst || !stamp) {
@@ -317,6 +337,7 @@ export default {
       this.deleteSubmitStamp = stamp
       this.showDeleteHistoryTickle = !this.showDeleteHistoryTickle
     },
+
     // user answer is Yes to delete job history
     async onYesDeleteJobHistory (title, stamp) {
       if (!stamp) {

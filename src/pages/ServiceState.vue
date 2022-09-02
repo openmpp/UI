@@ -62,7 +62,7 @@
     <q-list bordered>
 
       <q-expansion-item
-        v-for="aj in srvState.Active" :key="aj.SubmitStamp"
+        v-for="aj of srvState.Active" :key="aj.SubmitStamp"
         :disable="!aj.ModelDigest || !aj.SubmitStamp"
         @after-show="onActiveShow(aj.SubmitStamp)"
         @after-hide="onActiveHide(aj.SubmitStamp)"
@@ -214,17 +214,17 @@
 
   <q-expansion-item
     :disable="!serverConfig.IsJobControl"
-    v-model="isHistoryShow"
+    v-model="isOtherHistoryShow"
     switch-toggle-side
     expand-separator
-    :label="$t('History of Model Runs') + ': ' + (srvState.History.length || $t('None'))"
+    :label="$t('Failed Model Runs') + ': ' + (otherHistory.length || $t('None'))"
     header-class="bg-primary text-white"
     class="q-my-sm"
     >
     <q-list bordered>
 
       <q-expansion-item
-        v-for="hj in srvState.History" :key="hj.SubmitStamp"
+        v-for="hj of otherHistory" :key="hj.SubmitStamp"
         :disable="!hj.ModelDigest || !hj.SubmitStamp"
         @after-show="onHistoryShow(hj.SubmitStamp)"
         @after-hide="onHistoryHide(hj.SubmitStamp)"
@@ -256,7 +256,72 @@
           </q-item-section>
           <q-item-section>
             <q-item-label>
-              <span class="om-text-descr" :class="isSuccess(hj.JobStatus) ? 'text-primary' : 'text-negative'">{{ $t(runStatusDescr(hj.JobStatus)) }}</span>
+              <span class="om-text-descr text-negative">{{ $t(runStatusDescr(hj.JobStatus)) }}</span>
+              <span> {{ hj.ModelName }}<span class="om-text-descr" v-if="getHistoryTitle(hj)">: {{ getHistoryTitle(hj) }}</span></span>
+            </q-item-label>
+            <q-item-label class="om-text-descr">
+              {{ $t('Submitted') + ':' }} <span class="mono">{{ fromUnderscoreTs(hj.SubmitStamp) }}</span>
+              <span class="q-ml-md">{{ $t('Run Stamp') + ':' }} <span class="mono">{{ fromUnderscoreTs(hj.RunStamp) }}</span></span>
+            </q-item-label>
+          </q-item-section>
+        </template>
+
+        <job-info-card
+          :job-item="historyJobs[hj.SubmitStamp]"
+          class="job-card q-mx-sm q-mb-md"
+        >
+        </job-info-card>
+
+      </q-expansion-item>
+
+    </q-list>
+  </q-expansion-item>
+
+  <q-expansion-item
+    :disable="!serverConfig.IsJobControl"
+    v-model="isDoneHistoryShow"
+    switch-toggle-side
+    expand-separator
+    :label="$t('Completed Model Runs') + ': ' + (doneHistory.length || $t('None'))"
+    header-class="bg-primary text-white"
+    class="q-my-sm"
+    >
+    <q-list bordered>
+
+      <q-expansion-item
+        v-for="hj of doneHistory" :key="hj.SubmitStamp"
+        :disable="!hj.ModelDigest || !hj.SubmitStamp"
+        @after-show="onHistoryShow(hj.SubmitStamp)"
+        @after-hide="onHistoryHide(hj.SubmitStamp)"
+        expand-icon-toggle
+        switch-toggle-side
+        expand-icon-class="job-expand-btn bg-primary text-white rounded-borders q-mr-sm"
+        :title="$t('About') + ' ' + hj.ModelName + ' '+ hj.SubmitStamp"
+        >
+        <template v-slot:header>
+          <q-item-section avatar class="job-hdr-action-bar q-pr-xs">
+            <div class="row items-center">
+              <q-btn
+                :to="'/model/' + encodeURIComponent(hj.ModelDigest) + '/run-log/' + encodeURIComponent(hj.RunStamp)"
+                flat
+                dense
+                class="col-auto bg-primary text-white rounded-borders q-mr-xs"
+                icon="mdi-text-long"
+                :title="$t('Run Log') + ': ' + hj.ModelName + ' ' + hj.RunStamp"
+                />
+              <q-btn
+                @click="onDeleteJobHistoryConfirm(hj.SubmitStamp, hj.ModelName, getHistoryTitle(hj))"
+                flat
+                dense
+                class="col-auto bg-primary text-white rounded-borders q-mr-xs"
+                icon="mdi-delete-outline"
+                :title="$t('Delete') + ' ' + hj.SubmitStamp"
+                />
+            </div>
+          </q-item-section>
+          <q-item-section>
+            <q-item-label>
+              <span class="om-text-descr text-primary">{{ $t(runStatusDescr(hj.JobStatus)) }}</span>
               <span> {{ hj.ModelName }}<span class="om-text-descr" v-if="getHistoryTitle(hj)">: {{ getHistoryTitle(hj) }}</span></span>
             </q-item-label>
             <q-item-label class="om-text-descr">
