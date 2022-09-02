@@ -29,7 +29,7 @@
       <template v-if="srvState.MpiRes.Cpu">
         <span>{{ $t('MPI CPU Cores') }}: {{ srvState.MpiRes.Cpu }}</span>
         <span class="q-pl-md">{{ $t('Used') }}: {{ srvState.ActiveTotalRes.Cpu }}</span>
-        <span v-show="srvState.ComputeErrorRes.Cpu" class="q-pl-md">{{ $t('Failed') }}: {{ srvState.ComputeErrorRes.Cpu }}</span>
+        <span v-show="srvState.MpiErrorRes.Cpu" class="q-pl-md">{{ $t('Failed') }}: {{ srvState.MpiErrorRes.Cpu }}</span>
       </template>
       <span v-if="srvState.MpiRes.Cpu > 0 && srvState.LocalRes.Cpu > 0" class="q-mx-md">&#124;</span>
       <template v-if="srvState.LocalRes.Cpu">

@@ -132,7 +132,7 @@ export const configRunOptsPresets = (c, modelName, langCode) => {
   MpiRes: {
     Cpu: 64
   },
-  ComputeErrorRes: {
+  MpiErrorRes: {
     Cpu: 8
   },
   LocalRes: {
@@ -208,7 +208,7 @@ export const emptyServiceState = () => {
     QueueTotalRes: { Cpu: 0 },
     QueueOwnRes: { Cpu: 0 },
     MpiRes: { Cpu: 0 },
-    ComputeErrorRes: { Cpu: 0 },
+    MpiErrorRes: { Cpu: 0 },
     LocalRes: { Cpu: 0 },
     LocalActiveRes: { Cpu: 0 },
     LocalQueueRes: { Cpu: 0 },
@@ -230,7 +230,7 @@ export const isServiceState = (st) => {
   if (!st.hasOwnProperty('QueueTotalRes') || !st.QueueTotalRes.hasOwnProperty('Cpu') || typeof st.QueueTotalRes.Cpu !== typeof 1) return false
   if (!st.hasOwnProperty('QueueOwnRes') || !st.QueueOwnRes.hasOwnProperty('Cpu') || typeof st.QueueOwnRes.Cpu !== typeof 1) return false
   if (!st.hasOwnProperty('MpiRes') || !st.MpiRes.hasOwnProperty('Cpu') || typeof st.MpiRes.Cpu !== typeof 1) return false
-  if (!st.hasOwnProperty('ComputeErrorRes') || !st.ComputeErrorRes.hasOwnProperty('Cpu') || typeof st.ComputeErrorRes.Cpu !== typeof 1) return false
+  if (!st.hasOwnProperty('MpiErrorRes') || !st.MpiErrorRes.hasOwnProperty('Cpu') || typeof st.MpiErrorRes.Cpu !== typeof 1) return false
   if (!st.hasOwnProperty('LocalRes') || !st.LocalRes.hasOwnProperty('Cpu') || typeof st.LocalRes.Cpu !== typeof 1) return false
   if (!st.hasOwnProperty('LocalActiveRes') || !st.LocalActiveRes.hasOwnProperty('Cpu') || typeof st.LocalActiveRes.Cpu !== typeof 1) return false
   if (!st.hasOwnProperty('LocalQueueRes') || !st.LocalQueueRes.hasOwnProperty('Cpu') || typeof st.LocalQueueRes.Cpu !== typeof 1) return false
