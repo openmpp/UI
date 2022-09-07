@@ -93,7 +93,7 @@
           <td>
             <workset-bar
               :model-digest="digest"
-              :workset-name="worksetNameSelected"
+              :workset-name="worksetCurrent.Name"
               @set-info-click="doShowWorksetNote"
               >
             </workset-bar>
@@ -114,7 +114,7 @@
           <td>
             <run-bar
               :model-digest="digest"
-              :run-digest="runDigestSelected"
+              :run-digest="runCurrent.RunDigest"
               @run-info-click="doShowRunNote"
               >
             </run-bar>
@@ -211,6 +211,7 @@
   <q-card class="q-ma-sm">
 
     <q-expansion-item
+      v-model="langOptsExpanded"
       switch-toggle-side
       expand-separator
       header-class="bg-primary text-white"
@@ -533,8 +534,8 @@
     @wait="()=>{}">
   </new-run-init>
 
-  <run-info-dialog :show-tickle="runInfoTickle" :model-digest="digest" :run-digest="runDigestSelected"></run-info-dialog>
-  <workset-info-dialog :show-tickle="worksetInfoTickle" :model-digest="digest" :workset-name="worksetNameSelected"></workset-info-dialog>
+  <run-info-dialog :show-tickle="runInfoTickle" :model-digest="digest" :run-digest="runCurrent.RunDigest"></run-info-dialog>
+  <workset-info-dialog :show-tickle="worksetInfoTickle" :model-digest="digest" :workset-name="worksetCurrent.Name"></workset-info-dialog>
   <table-info-dialog :show-tickle="tableInfoTickle" :table-name="tableInfoName" :run-digest="''"></table-info-dialog>
   <group-info-dialog :show-tickle="groupInfoTickle" :group-name="groupInfoName"></group-info-dialog>
 

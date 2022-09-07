@@ -237,6 +237,14 @@
           <q-item-section avatar class="job-hdr-action-bar q-pr-xs">
             <div class="row items-center">
               <q-btn
+                @click="onRunAgain(hj.SubmitStamp, hj.ModelName, getHistoryTitle(hj))"
+                flat
+                dense
+                class="col-auto bg-primary text-white rounded-borders q-mr-xs"
+                icon="mdi-run"
+                :title="$t('Run again') + ' ' + hj.SubmitStamp"
+                />
+              <q-btn
                 :to="'/model/' + encodeURIComponent(hj.ModelDigest) + '/run-log/' + encodeURIComponent(hj.RunStamp)"
                 flat
                 dense

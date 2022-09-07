@@ -225,7 +225,7 @@ export default {
       for (let k = 0; k < gLst.length; k++) {
         if (!gLst[k].Group.IsParam) continue // skip output tables group
         if (!this.isNoHidden && !this.isShowHidden && gLst[k].Group.IsHidden) continue // skip hidden group
-        if (isGflt && !this.isShowFiltered && !fgLst[gLst.Group.Name]) continue // skip filtered out group
+        if (isGflt && !this.isShowFiltered && !fgLst[gLst[k].Group.Name]) continue // skip filtered out group
 
         const gId = gLst[k].Group.GroupId
 
@@ -261,7 +261,7 @@ export default {
             const gChildUse = gUse[pc.ChildGroupId]
             if (gChildUse) {
               if (!this.isNoHidden && !this.isShowHidden && gChildUse.group.Group.IsHidden) continue // skip hidden group
-              if (isGflt && !this.isShowFiltered && !fgLst[gLst.Group.Name]) continue // skip filtered out group
+              if (isGflt && !this.isShowFiltered && !fgLst[gChildUse.group.Group.Name]) continue // skip filtered out group
 
               // check for circular reference
               if (gpNow.path.indexOf(pc.ChildGroupId) >= 0) {

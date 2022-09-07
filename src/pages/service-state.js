@@ -122,21 +122,21 @@ export default {
 
     // show or hide active job item
     onActiveShow (stamp) {
-      if (stamp) this.getJobState('active', stamp)
+      if (stamp) this.getJobState('active', stamp, false, '')
     },
     onActiveHide (stamp) {
       if (stamp) this.activeJobs[stamp] = Mdf.emptyJobItem(stamp)
     },
     // show or hide queue job item
     onQueueShow (stamp) {
-      this.getJobState('queue', stamp)
+      this.getJobState('queue', stamp, false, '')
     },
     onQueueHide (stamp) {
       if (stamp) this.queueJobs[stamp] = Mdf.emptyJobItem(stamp)
     },
     // show or hide job history item
     onHistoryShow (stamp) {
-      this.getJobState('history', stamp)
+      this.getJobState('history', stamp, false, '')
     },
     onHistoryHide (stamp) {
       if (stamp) this.historyJobs[stamp] = Mdf.emptyJobItem(stamp)
@@ -218,13 +218,21 @@ export default {
       // refresh active jobs state
       if (this.isActiveShow) {
         for (const stamp in this.activeJobs) {
-          if (Mdf.isNotEmptyJobItem(this.activeJobs[stamp])) this.getJobState('active', stamp)
+          if (Mdf.isNotEmptyJobItem(this.activeJobs[stamp])) this.getJobState('active', stamp, false, '')
         }
       }
     },
 
+    // resubmit model run
+    onRunAgain (stamp, mName, title) {
+      const mrt = (mName || '') + (title ? ': ' + title : '')
+      this.$q.notify({ type: 'info', message: this.$t('Run again') + ' ' + mrt })
+
+      this.getJobState('history', stamp, true, mrt)
+    },
+
     // get active or queue or history job item by submission stamp
-    async getJobState (kind, stamp) {
+    async getJobState (kind, stamp, isReRun, mRunTitle) {
       if (!kind || typeof kind !== typeof 'string' || (kind !== 'active' && kind !== 'queue' && kind !== 'history')) {
         console.warn('Invalid argument, it must be: active, queue or history:', kind)
         this.$q.notify({ type: 'negative', message: this.$t('Invalid argument, it must be: active, queue or history') })
@@ -261,7 +269,19 @@ export default {
             this.queueJobs[stamp] = Mdf.isJobItem(jc) ? jc : Mdf.emptyJobItem(stamp)
             break
           case 'history':
-            this.historyJobs[stamp] = Mdf.isJobItem(jc) ? jc : Mdf.emptyJobItem(stamp)
+            // show model run history job details or re-submit model run
+            if (!isReRun) {
+              this.historyJobs[stamp] = Mdf.isJobItem(jc) ? jc : Mdf.emptyJobItem(stamp)
+            } else {
+              if (!Mdf.isJobItem(jc)) {
+                this.$q.notify({ type: 'negative', message: this.$t('Unable to find model run' + ' ' + mRunTitle) })
+                return
+              }
+              // re-submit model run request, clear run stamp
+              const rReq = Mdf.runRequestFromJob(jc)
+              rReq.RunStamp = ''
+              this.$router.push({ name: 'new-model-run', params: { digest: jc.ModelDigest, runRequest: rReq } })
+            }
             break
           default:
             isOk = false

@@ -340,6 +340,7 @@ export const isNotEmptyRunProgress = (rpi) => {
   RunStamp: "2022_07_04_20_08_21_159",
   Opts: {},
   Threads: 1,
+  IsMpi: false,
   Mpi: {
     Np: 0,
     IsNotOnRoot: false,
@@ -369,11 +370,11 @@ export const emptyJobItem = (stamp) => {
     RunNotes: [],
     Tables: [],
     Threads: 1,
+    IsMpi: false,
     Mpi: {
       Np: 0,
       IsNotOnRoot: false
     },
-    IsMpi: false,
     Template: '',
     Res: { Cpu: 1 },
     IsOverLimit: false,
@@ -390,22 +391,13 @@ export const isJobItem = (jc) => {
   if (!jc.hasOwnProperty('SubmitStamp') || typeof jc.SubmitStamp !== typeof 'string') {
     return false
   }
-  if (!jc.hasOwnProperty('JobStatus') || !jc.hasOwnProperty('ModelName') || !jc.hasOwnProperty('ModelDigest') || !jc.hasOwnProperty('RunStamp') ||
-    !jc.hasOwnProperty('Opts') || !jc.hasOwnProperty('RunNotes') || !jc.hasOwnProperty('Tables') ||
-    !jc.hasOwnProperty('Threads') || !jc.hasOwnProperty('Template') || !jc.hasOwnProperty('Mpi') ||
-    !jc.hasOwnProperty('Res') || !jc.Res.hasOwnProperty('Cpu') || !jc.hasOwnProperty('QueuePos')) {
-    return false
-  }
-  if (!jc.hasOwnProperty('IsMpi') || typeof jc.IsMpi !== typeof true) return false
-  if (!jc.Mpi.hasOwnProperty('Np') || typeof jc.Mpi.Np !== typeof 1) return false
-  if (!jc.Mpi.hasOwnProperty('IsNotOnRoot') || typeof jc.Mpi.IsNotOnRoot !== typeof true) return false
+  if (!isRunRequest(jc)) return false
+  if (!jc.hasOwnProperty('JobStatus')) return false
+
   if (!jc.Mpi.hasOwnProperty('IsNotByJob') || typeof jc.Mpi.IsNotByJob !== typeof true) return false
   if (!jc.hasOwnProperty('IsOverLimit') || typeof jc.IsOverLimit !== typeof true) return false
-
-  if (!Array.isArray(jc.RunNotes) || !Array.isArray(jc.Tables)) {
-    return false
-  }
-  if (typeof jc.Threads !== typeof 1 || typeof jc.Res.Cpu !== typeof 1 || typeof jc.QueuePos !== typeof 1) return false
+  if (!jc.hasOwnProperty('Res') || !jc.Res.hasOwnProperty('Cpu') || typeof jc.Res.Cpu !== typeof 1) return false
+  if (!jc.hasOwnProperty('QueuePos') || typeof jc.QueuePos !== typeof 1) return false
 
   if (!jc.hasOwnProperty('LogFileName') || !jc.hasOwnProperty('RunStatus') || !jc.hasOwnProperty('Lines')) {
     return false
@@ -418,25 +410,141 @@ export const isNotEmptyJobItem = (jc) => {
   return isJobItem(jc) && typeof jc.ModelDigest === typeof 'string' && jc.ModelDigest !== ''
 }
 
+// model run request, if request submitted from UI then RunStamp expected to be empty '' string
+/*
+{
+  ModelName: "RiskPaths",
+  ModelDigest: "d90e1e9a49a06d972ecf1d50e684c62b",
+  RunStamp: "",
+  Dir: "",
+  Opts: {},
+  Threads: 1,
+  IsMpi: false,
+  Mpi: {
+    Np: 0,
+    IsNotOnRoot: false,
+    IsNotByJob: false
+  },
+  Template: "",
+  Tables: [],
+  RunNotes: []
+}
+*/
+
+// retrun empty run request
+export const emptyRunRequest = () => {
+  return {
+    ModelName: '',
+    ModelDigest: '',
+    RunStamp: '',
+    Opts: {},
+    Threads: 1,
+    IsMpi: false,
+    Mpi: {
+      Np: 0,
+      IsNotOnRoot: false
+    },
+    Template: '',
+    RunNotes: [],
+    Tables: []
+  }
+}
+
+// return true if this is model run request
+export const isRunRequest = (rReq) => {
+  if (!rReq) return false
+  if (!rReq.hasOwnProperty('ModelName') || !rReq.hasOwnProperty('ModelDigest') || !rReq.hasOwnProperty('RunStamp') ||
+    !rReq.hasOwnProperty('Opts') || !rReq.hasOwnProperty('Template') || !rReq.hasOwnProperty('Mpi') ||
+    !rReq.hasOwnProperty('RunNotes') || !rReq.hasOwnProperty('Tables')) {
+    return false
+  }
+  if (!rReq.hasOwnProperty('Threads') || typeof rReq.Threads !== typeof 1) return false
+  if (!rReq.hasOwnProperty('IsMpi') || typeof rReq.IsMpi !== typeof true) return false
+  if (!rReq.Mpi.hasOwnProperty('Np') || typeof rReq.Mpi.Np !== typeof 1) return false
+  if (!rReq.Mpi.hasOwnProperty('IsNotOnRoot') || typeof rReq.Mpi.IsNotOnRoot !== typeof true) return false
+
+  return Array.isArray(rReq.RunNotes) && Array.isArray(rReq.Tables)
+}
+
+// return true if this is not empty run request
+export const isNotEmptyRunRequest = (rReq) => {
+  return isRunRequest(rReq) && typeof rReq.ModelDigest === typeof 'string' && rReq.ModelDigest !== ''
+}
+
+// return true run request part of the job
+export const runRequestFromJob = (jc) => {
+  const rReq = emptyRunRequest()
+
+  if (!isNotEmptyJobItem(jc)) return rReq // job item is empty: return empty run request
+
+  rReq.ModelName = jc.ModelName || ''
+  rReq.ModelDigest = jc.ModelDigest || ''
+  rReq.RunStamp = jc.RunStamp || ''
+  rReq.Opts = {}
+  rReq.Threads = jc.Threads || 1
+  rReq.IsMpi = jc.IsMpi
+  rReq.Mpi.Np = jc.Mpi.Np
+  rReq.Mpi.IsNotOnRoot = jc.Mpi.IsNotOnRoot
+  rReq.Template = jc.Template || ''
+  rReq.RunNotes = Array.from(jc.RunNotes)
+  rReq.Tables = Array.from(jc.Tables)
+
+  for (const key in jc.Opts) {
+    if (!!key && (jc.Opts[key] || '') !== '') rReq.Opts[key] = jc.Opts[key]
+  }
+
+  return rReq
+}
+
 // retrun model run name or workset name from job run options: from Opts['OpenM.RunName']
 export const getJobRunTitle = (jc) => {
   if (!jc) return ''
   if ((jc?.SubmitStamp || '') === '') return ''
   if (!jc.hasOwnProperty('Opts') || typeof jc.Opts !== 'object') return ''
 
-  const runNameKey = 'OpenM.RunName'.toLowerCase()
-  const wsNameKey = 'OpenM.SetName'.toLowerCase()
-  let wsName = ''
+  const runName = getRunOption(jc.opts, 'OpenM.RunName')
+  if (runName !== '') return runName
 
-  for (const key in jc.Opts) {
-    if (!key || (jc.Opts[key] || '') === '') continue
+  return getRunOption(jc.opts, 'OpenM.SetName')
+}
 
-    const v = jc.Opts[key]
+// retrun model run option value by name or empty '' string if not found
+export const getRunOption = (opts, name) => {
+  if (!opts || typeof opts !== 'object') return ''
 
-    const klc = key.toLowerCase()
-    if (klc.endsWith(runNameKey)) return v
-    if (klc.endsWith(wsNameKey)) wsName = v
+  const src = name.toLowerCase()
+
+  for (const key in opts) {
+    if (!!key && (opts[key] || '') !== '' && key.toLowerCase().endsWith(src)) return opts[key]
   }
+  return '' // option not found
+}
 
-  return wsName // run name not found: retrun workset name
+// retrun integer model run option value by name or default value if not found
+export const getIntRunOption = (opts, name, defaultValue) => {
+  if (!opts || typeof opts !== 'object') return defaultValue
+
+  const src = name.toLowerCase()
+
+  for (const key in opts) {
+    if (!!key && (opts[key] || '') !== '' && key.toLowerCase().endsWith(src)) {
+      const v = parseInt(opts[key], 10)
+      return !isNaN(v) ? v : defaultValue
+    }
+  }
+  return defaultValue // option not found
+}
+
+// retrun true if boolean model run option value is 'true', return false if not found
+export const getBoolRunOption = (opts, name) => {
+  if (!opts || typeof opts !== 'object') return false
+
+  const src = name.toLowerCase()
+
+  for (const key in opts) {
+    if (!!key && (opts[key] || '') !== '' && key.toLowerCase().endsWith(src)) {
+      return opts[key] === 'true'
+    }
+  }
+  return false // option not found
 }

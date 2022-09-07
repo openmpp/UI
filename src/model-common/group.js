@@ -72,13 +72,25 @@ export const groupTextByName = (md, name) => {
   return emptyGroupText() // not found
 }
 
+// return true if name is a group name
+export const isGroupName = (md, name) => {
+  if (!Mdl.isModel(md) || (name || '') === '') return false // model empty or name empty
+
+  for (let k = 0; k < md.GroupTxt.length; k++) {
+    if (!isGroup(md.GroupTxt[k].Group)) continue
+    if (md.GroupTxt[k].Group.Name === name) return true
+  }
+  return false // not found
+}
+
 // return groups map to leafs:
 //  {aGroupName: {
 //    groupId: 123,
 //    isHidden: true,
-//    leafs: {leafName: true, otherLeafName: true,....}
+//    size: 2,
+//    leafs: {leafName: true, otherLeafName: true}
 //    },
-//  nextGroupName: ....}
+//  nextGroupName: {....}
 export const groupLeafs = (md, isParam) => {
   if (!Mdl.isModel(md)) { // model is empty: return empty result
     return {}

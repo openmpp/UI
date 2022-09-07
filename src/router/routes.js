@@ -35,6 +35,7 @@ const routes = [
             props: true
           },
           {
+            name: 'new-model-run',
             path: 'new-run',
             component: () => import('pages/NewRun'),
             props: true

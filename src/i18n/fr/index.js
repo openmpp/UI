@@ -304,6 +304,7 @@ export default {
   'Retain output table': 'Conserver la tableau de résultat',
   'Required': 'Obligatoire',
   'Run': 'Exécuter',
+  'Run again': 'Exécutez à nouveau',
   'Run Description': "Description de l'exécution",
   'Run Digest': 'Exécution Digest',
   'Run Log': 'Exécuter le journal',

@@ -16,7 +16,8 @@ export default {
 
   props: {
     digest: { type: String, default: '' },
-    refreshTickle: { type: Boolean, default: false }
+    refreshTickle: { type: Boolean, default: false },
+    runRequest: { type: Object, default: () => { return Mdf.emptyRunRequest() } }
   },
 
   data () {
@@ -58,6 +59,7 @@ export default {
       },
       advOptsExpanded: false,
       mpiOptsExpanded: false,
+      langOptsExpanded: false,
       retainTablesGroups: [], // if not empty then names of tables and groups to retain
       tablesRetain: [],
       refreshTableTreeTickle: false,
@@ -86,12 +88,12 @@ export default {
     isEmptyRunTemplateList () { return !Mdf.isLength(this.runTemplateLst) },
     // return true if current can be used for model run: if workset in read-only state
     isReadonlyWorksetCurrent () {
-      return this.worksetNameSelected && this.worksetCurrent?.IsReadonly
+      return this.worksetCurrent?.Name && this.worksetCurrent?.IsReadonly
     },
     // retrun true if current run is completed: success, error or exit
     // if run not successfully completed then it we don't know is it possible to use as base run
     isCompletedRunCurrent () {
-      return this.runDigestSelected && Mdf.isRunCompleted(this.runCurrent)
+      return this.runCurrent?.RunDigest && Mdf.isRunCompleted(this.runCurrent)
     },
     isNoTables () { return !this.tablesRetain || this.tablesRetain.length <= 0 },
 
@@ -124,8 +126,16 @@ export default {
   methods: {
     // update page view
     doRefresh () {
-      this.runCurrent = this.runTextByDigest({ ModelDigest: this.digest, RunDigest: this.runDigestSelected })
-      this.worksetCurrent = this.worksetTextByName({ ModelDigest: this.digest, Name: this.worksetNameSelected })
+      // use selected run digest as base run digest or previous run digest if user resubmitting the run
+      // use selected workset name or previous run workset name if user resubmitting the run
+      let rDgst = this.runDigestSelected
+      let wsName = this.worksetNameSelected
+      if (Mdf.isNotEmptyRunRequest(this.runRequest)) {
+        wsName = Mdf.getRunOption(this.runRequest.Opts, 'OpenM.SetName') || wsName
+        rDgst = Mdf.getRunOption(this.runRequest.Opts, 'OpenM.BaseRunDigest') || rDgst
+      }
+      this.runCurrent = this.runTextByDigest({ ModelDigest: this.digest, RunDigest: rDgst })
+      this.worksetCurrent = this.worksetTextByName({ ModelDigest: this.digest, Name: wsName })
       this.tableCount = Mdf.tableCount(this.theModel)
 
       // reset run options and state
@@ -171,12 +181,12 @@ export default {
       }
 
       // check if usage of ini-file options allowed by server
-      let cfgIni = Mdf.configEnvValue(this.serverConfig, 'OM_CFG_INI_ALLOW').toLowerCase()
+      const cfgIni = Mdf.configEnvValue(this.serverConfig, 'OM_CFG_INI_ALLOW').toLowerCase()
       this.enableIni = cfgIni === 'true' || cfgIni === '1' || cfgIni === 'yes'
       this.runOpts.iniName = this.enableIni ? this.theModel.Model.Name + '.ini' : ''
 
-      cfgIni = Mdf.configEnvValue(this.serverConfig, 'OM_CFG_INI_ANY_KEY').toLowerCase()
-      this.enableIniAnyKey = this.enableIni && (cfgIni === 'true' || cfgIni === '1' || cfgIni === 'yes')
+      const cfgAnyIni = Mdf.configEnvValue(this.serverConfig, 'OM_CFG_INI_ANY_KEY').toLowerCase()
+      this.enableIniAnyKey = this.enableIni && (cfgAnyIni === 'true' || cfgAnyIni === '1' || cfgAnyIni === 'yes')
 
       if (!this.enableIni) this.runOpts.useIni = false
       if (!this.enableIniAnyKey) this.runOpts.iniAnyKey = false
@@ -218,11 +228,16 @@ export default {
       }
 
       // get run options presets as array of { name, label, descr, opts{....} }
-      // if first preset starts with "current-model-name." then apply it
       this.presetLst = Mdf.configRunOptsPresets(this.serverConfig, this.theModel.Model.Name, this.modelLanguage.LangCode)
 
-      if (Array.isArray(this.presetLst) && this.presetLst.length > 0) {
-        if (this.presetLst[0].name?.startsWith(this.theModel.Model.Name + '.')) this.doPresetSelected(0)
+      // if previous run request resubmitted then apply settings from run request
+      // else if first preset starts with "current-model-name." then apply preset
+      if (Mdf.isNotEmptyRunRequest(this.runRequest)) {
+        this.applyRunRequest(this.runRequest)
+      } else {
+        if (Array.isArray(this.presetLst) && this.presetLst.length > 0) {
+          if (this.presetLst[0].name?.startsWith(this.theModel.Model.Name + '.')) this.doPresetSelected(0)
+        }
       }
     },
 
@@ -247,7 +262,7 @@ export default {
 
     // show current run info dialog
     doShowRunNote (modelDgst, runDgst) {
-      if (modelDgst !== this.digest || runDgst !== this.runDigestSelected) {
+      if (modelDgst !== this.digest || runDgst !== this.runCurrent?.RunDigest) {
         console.warn('invlaid model digest or run digest:', modelDgst, runDgst)
         return
       }
@@ -255,7 +270,7 @@ export default {
     },
     // show current workset notes dialog
     doShowWorksetNote (modelDgst, name) {
-      if (modelDgst !== this.digest || name !== this.worksetNameSelected) {
+      if (modelDgst !== this.digest || name !== this.worksetCurrent?.Name) {
         console.warn('invlaid model digest or workset name:', modelDgst, name)
         return
       }
@@ -368,7 +383,7 @@ export default {
     // set default name of new model run
     onRunNameFocus (e) {
       if (typeof this.runOpts.runName !== typeof 'string' || (this.runOpts.runName || '') === '') {
-        this.runOpts.runName = this.theModel.Model.Name + '_' + (this.isReadonlyWorksetCurrent ? this.worksetNameSelected + '_' : '') + Mdf.dtToUnderscoreTimeStamp(new Date())
+        this.runOpts.runName = this.theModel.Model.Name + '_' + (this.isReadonlyWorksetCurrent ? this.worksetCurrent?.Name + '_' : '') + Mdf.dtToUnderscoreTimeStamp(new Date())
       }
     },
     // check if run name entered and cleanup input to be compatible with file name rules
@@ -438,6 +453,14 @@ export default {
       if (this.runOpts.threadCount < 1) {
         this.runOpts.threadCount = 1
       }
+      this.runOpts.progressPercent = ps.progressPercent ?? this.runOpts.progressPercent
+      if (this.runOpts.progressPercent < 1) {
+        this.runOpts.progressPercent = 1
+      }
+      this.runOpts.progressStep = ps.progressStep ?? this.runOpts.progressStep
+      if (this.runOpts.progressStep < 0) {
+        this.runOpts.progressStep = 0
+      }
       this.runOpts.workDir = ps.workDir ?? this.runOpts.workDir
       this.runOpts.csvDir = ps.csvDir ?? this.runOpts.csvDir
       this.csvCodeId = ps.csvCodeId ?? this.csvCodeId
@@ -455,15 +478,6 @@ export default {
       this.runOpts.mpiOnRoot = ps.mpiOnRoot ?? this.runOpts.mpiOnRoot
       this.runOpts.mpiUseJobs = this.serverConfig.IsJobControl && (ps.mpiUseJobs ?? this.runOpts.mpiUseJobs)
       this.runOpts.mpiTmpl = ps.mpiTmpl ?? this.runOpts.mpiTmpl
-      this.runOpts.progressPercent = ps.progressPercent ?? this.runOpts.progressPercent
-      if (this.runOpts.progressPercent < 1) {
-        this.runOpts.progressPercent = 1
-      }
-      this.runOpts.progressStep = ps.progressStep ?? this.runOpts.progressStep
-      if (this.runOpts.progressStep < 0) {
-        this.runOpts.progressStep = 0
-      }
-
       // expand sections if preset options supplied with non-default values
       this.mpiOptsExpanded = (ps.mpiNpCount || 0) !== 0 || (ps.mpiTmpl || '') !== ''
 
@@ -484,10 +498,125 @@ export default {
       })
     },
 
+    // if previous run request resubmitted then apply settings from run request
+    applyRunRequest (rReq) {
+      if (!Mdf.isNotEmptyRunRequest(rReq)) {
+        console.warn('Invalid (empty) run request', rReq)
+        return
+      }
+
+      // merge preset with run options
+
+      this.runOpts.runName = Mdf.getRunOption(rReq.Opts, 'OpenM.RunName') || this.runOpts.runName
+      this.runOpts.worksetName = Mdf.getRunOption(rReq.Opts, 'OpenM.SetName') || this.runOpts.worksetName
+      this.runOpts.baseRunDigest = Mdf.getRunOption(rReq.Opts, 'OpenM.BaseRunDigest') || this.runOpts.baseRunDigest
+
+      this.runOpts.subCount = Mdf.getIntRunOption(rReq.Opts, 'OpenM.SubValues', 0) || this.runOpts.subCount
+      if (this.runOpts.subCount < 1) {
+        this.runOpts.subCount = 1
+      }
+      this.runOpts.threadCount = rReq.Threads ?? this.runOpts.threadCount
+      if (this.runOpts.threadCount < 1) {
+        this.runOpts.threadCount = 1
+      }
+      this.runOpts.progressPercent = Mdf.getIntRunOption(rReq.Opts, 'OpenM.ProgressPercent', 0) || this.runOpts.progressPercent
+      if (this.runOpts.progressPercent < 1) {
+        this.runOpts.progressPercent = 1
+      }
+      this.runOpts.progressStep = Mdf.getIntRunOption(rReq.Opts, 'OpenM.ProgressStep', 0) || this.runOpts.progressStep
+      if (this.runOpts.progressStep < 0) {
+        this.runOpts.progressStep = 0
+      }
+
+      this.runOpts.workDir = rReq.Dir ?? this.runOpts.workDir
+      this.runOpts.csvDir = Mdf.getRunOption(rReq.Opts, 'OpenM.ParamDir') || this.runOpts.csvDir
+      this.runOpts.csvId = Mdf.getBoolRunOption(rReq.Opts, 'OpenM.IdCsv')
+      if (this.runOpts.csvId) {
+        this.csvCodeId = 'enumId'
+      }
+
+      if (this.enableIni) {
+        this.runOpts.iniName = Mdf.getRunOption(rReq.Opts, 'OpenM.IniFile')
+        this.runOpts.useIni = this.runOpts.iniName !== ''
+        if (this.enableIniAnyKey && this.runOpts.useIni) {
+          this.runOpts.iniAnyKey = Mdf.getBoolRunOption(rReq.Opts, 'OpenM.IniAnyKey') || this.runOpts.iniAnyKey
+        }
+      }
+
+      this.runOpts.profile = Mdf.getRunOption(rReq.Opts, 'OpenM.Profile') || this.runOpts.profile
+      this.runOpts.sparseOutput = Mdf.getBoolRunOption(rReq.Opts, 'OpenM.SparseOutput') || this.runOpts.sparseOutput
+
+      if (!rReq.IsMpi) {
+        this.runOpts.runTmpl = rReq.Template ?? this.runOpts.runTmpl
+      } else {
+        this.runOpts.mpiNpCount = rReq.Mpi.Np ?? this.runOpts.mpiNpCount
+        if (this.runOpts.mpiNpCount < 0) {
+          this.runOpts.mpiNpCount = 0
+        }
+        this.runOpts.mpiOnRoot = !rReq.Mpi.IsNotOnRoot ?? this.runOpts.mpiOnRoot
+        this.runOpts.mpiUseJobs = this.serverConfig.IsJobControl && (!rReq.Mpi.IsNotByJob ?? this.runOpts.mpiUseJobs)
+        this.runOpts.mpiTmpl = rReq.Template ?? this.runOpts.mpiTmpl
+      }
+
+      // expand tables retained groups into leafs
+      if (rReq.Tables.length > 0) {
+        this.tablesRetain = [] // clear existing tables retain
+
+        for (const name of rReq.Tables) {
+          if (!name) continue
+
+          // if this is not a group then add table name
+          if (!Mdf.isGroupName(this.theModel, name)) {
+            if (this.tablesRetain.indexOf(name) < 0) this.tablesRetain.push(name)
+          } else {
+            // expand group into leafs retained
+            const gt = this.groupTableLeafs[name]
+            if (gt) {
+              for (const tn in gt?.leafs) {
+                if (this.tablesRetain.indexOf(tn) < 0) {
+                  this.tablesRetain.push(tn)
+                }
+              }
+            }
+          }
+        }
+      }
+
+      // use existing run description and notes
+      for (let k = 0; k < this.txtNewRun.length; k++) {
+        const descr = Mdf.getRunOption(rReq.Opts, this.txtNewRun[k].LangCode + '.RunDescription')
+        if (descr !== '') this.txtNewRun[k].Descr = descr
+
+        for (let j = 0; j < rReq.RunNotes.length; j++) {
+          if ((rReq.RunNotes[j]?.LangCode || '') === this.txtNewRun[k].LangCode) {
+            const note = (rReq.RunNotes[j]?.Note || '')
+            if (note !== '') this.txtNewRun[k].Note = note
+          }
+        }
+      }
+
+      // expand sections if run options supplied with non-default values
+      this.mpiOptsExpanded = (this.runOpts.mpiNpCount || 0) !== 0 || !!rReq.IsMpi
+
+      this.advOptsExpanded = (rReq.Threads || 0) > 1 ||
+        (rReq.Dir || '') !== '' ||
+        (this.runOpts.csvDir || '') !== '' ||
+        (this.csvCodeId || 'enumCode') !== 'enumCode' ||
+        !!this.runOpts.useIni ||
+        !!this.runOpts.iniAnyKey ||
+        (this.runOpts.profile || '') !== '' ||
+        !!this.runOpts.sparseOutput ||
+        (this.runOpts.runTmpl || '') !== ''
+
+      for (let k = 0; !this.langOptsExpanded && k < this.txtNewRun.length; k++) {
+        this.langOptsExpanded = this.txtNewRun[k].Descr !== '' || this.txtNewRun[k].Note !== ''
+      }
+    },
+
     // on model run click: if workset partial and no base run and no csv directory then do not run the model
     onModelRunClick () {
-      const dgst = (this.useBaseRun && this.isCompletedRunCurrent) ? this.runDigestSelected || '' : ''
-      const wsName = (this.useWorkset && this.isReadonlyWorksetCurrent) ? this.worksetNameSelected || '' : ''
+      const dgst = (this.useBaseRun && this.isCompletedRunCurrent) ? this.runCurrent?.RunDigest || '' : ''
+      const wsName = (this.useWorkset && this.isReadonlyWorksetCurrent) ? this.worksetCurrent?.Name || '' : ''
 
       if (!dgst && !this.runOpts.csvDir) {
         if (!wsName) {
@@ -526,8 +655,8 @@ export default {
       this.runOpts.progressStep = Mdf.cleanFloatInput(this.runOpts.progressStep, 0.0)
       if (this.runOpts.progressStep < 0) this.runOpts.progressStep = 0.0
 
-      this.runOpts.worksetName = (this.useWorkset && this.isReadonlyWorksetCurrent) ? this.worksetNameSelected || '' : ''
-      this.runOpts.baseRunDigest = (this.useBaseRun && this.isCompletedRunCurrent) ? this.runDigestSelected || '' : ''
+      this.runOpts.worksetName = (this.useWorkset && this.isReadonlyWorksetCurrent) ? this.worksetCurrent?.Name || '' : ''
+      this.runOpts.baseRunDigest = (this.useBaseRun && this.isCompletedRunCurrent) ? this.runCurrent?.RunDigest || '' : ''
 
       // reduce tables retain list by using table groups
       this.retainTablesGroups = [] // retain all tables
