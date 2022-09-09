@@ -59,7 +59,7 @@ export const fromUnderscoreTimeStamp = (ts) => {
   return a.join('')
 }
 
-// retrun true if argument look like as date-time string: 1111_00_00_99_99_99_999
+// return true if argument look like as date-time string: 1111_00_00_99_99_99_999
 export const isUnderscoreTimeStamp = (ts) => {
   if (!ts || typeof ts !== typeof 'string' || (ts.length !== TIME_STAMP_LEN && ts.length !== TIME_STAMP_SEC_LEN)) return false
 

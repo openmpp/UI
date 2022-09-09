@@ -29,6 +29,7 @@ export default {
       isQueueShow: false,
       isDoneHistoryShow: false,
       isOtherHistoryShow: false,
+      isShowServers: false,
       isRefreshPaused: false,
       isRefreshDisabled: false,
       stateRefreshTickle: 0,
@@ -75,6 +76,11 @@ export default {
     // return true if job is last in the queue
     isBottomQueue (stamp) {
       return this.srvState.Queue.findIndex((jc) => jc.SubmitStamp === stamp) >= this.srvState.Queue.length - 1
+    },
+    // convert last used milliseconds date-time to timestamp string
+    // return empty '' string if it is before 2022-08-17 23:45:59
+    lastUsedDt (ts) {
+      return (!!ts && ts > Date.UTC(2022, 7, 17, 23, 45, 59)) ? Mdf.dtToTimeStamp(new Date(ts)) : ''
     },
 
     // update page view

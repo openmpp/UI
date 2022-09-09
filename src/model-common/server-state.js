@@ -194,6 +194,25 @@ export const configRunOptsPresets = (c, modelName, langCode) => {
       RunStamp: "2022_07_04_20_08_21_159",
       JobStatus: "success"
     }
+  ],
+  ComputeState: [{
+          Name: "cpc-1",
+          State: "off",
+          TotalRes: {
+              Cpu: 2,
+              Mem: 0
+          },
+          UsedRes: {
+              Cpu: 0,
+              Mem: 0
+          },
+          OwnRes: {
+              Cpu: 0,
+              Mem: 0
+          },
+          ErrorCount: 0,
+          LastUsedTs: 1662747792365
+      }
   ]
 }
 */
@@ -214,7 +233,8 @@ export const emptyServiceState = () => {
     LocalQueueRes: { Cpu: 0 },
     Queue: [],
     Active: [],
-    History: []
+    History: [],
+    ComputeState: []
   }
 }
 
@@ -222,7 +242,7 @@ export const emptyServiceState = () => {
 export const isServiceState = (st) => {
   if (!st) return false
   if (!st.hasOwnProperty('IsJobControl') || !st.hasOwnProperty('JobUpdateDateTime') || !st.hasOwnProperty('IsQueuePaused') ||
-      !st.hasOwnProperty('Queue') || !st.hasOwnProperty('Active') || !st.hasOwnProperty('History')) {
+      !st.hasOwnProperty('Queue') || !st.hasOwnProperty('Active') || !st.hasOwnProperty('History') || !st.hasOwnProperty('ComputeState')) {
     return false
   }
   if (!st.hasOwnProperty('ActiveTotalRes') || !st.ActiveTotalRes.hasOwnProperty('Cpu') || typeof st.ActiveTotalRes.Cpu !== typeof 1) return false
@@ -235,7 +255,7 @@ export const isServiceState = (st) => {
   if (!st.hasOwnProperty('LocalActiveRes') || !st.LocalActiveRes.hasOwnProperty('Cpu') || typeof st.LocalActiveRes.Cpu !== typeof 1) return false
   if (!st.hasOwnProperty('LocalQueueRes') || !st.LocalQueueRes.hasOwnProperty('Cpu') || typeof st.LocalQueueRes.Cpu !== typeof 1) return false
 
-  return Array.isArray(st.Queue) && Array.isArray(st.Active) && Array.isArray(st.History)
+  return Array.isArray(st.Queue) && Array.isArray(st.Active) && Array.isArray(st.History) && Array.isArray(st.ComputeState)
 }
 
 /* eslint-disable no-multi-spaces */

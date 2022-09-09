@@ -78,7 +78,7 @@ export const lastRunDigest = (rtl) => {
   return lastCompleted || lastDg
 }
 
-// retrun true if table included in run text: find table name in run tables array
+// return true if table included in run text: find table name in run tables array
 export const isRunTextHasTable = (rt, name) => {
   if (!name || !isNotEmptyRunText(rt)) return false
 
@@ -123,22 +123,22 @@ export const RUN_FAILED = 'e'       // run falied (comleted with error)
 export const RUN_EXIT = 'x'         // run exit and not completed
 /* eslint-enable no-multi-spaces */
 
-// retrun true if run completed successfuly
+// return true if run completed successfuly
 export const isRunSuccess = (rt) => {
   return isRunText(rt) && rt.Status === RUN_SUCCESS
 }
 
-// retrun true if run in progress
+// return true if run in progress
 export const isRunInProgress = (rt) => {
   return isRunText(rt) && (rt.Status === RUN_IN_PROGRESS || rt.Status === RUN_INITIAL)
 }
 
-// retrun true if run completed, status is one of: s=success, x=exit, e=error
+// return true if run completed, status is one of: s=success, x=exit, e=error
 export const isRunCompleted = (rt) => {
   return isRunText(rt) && isRunCompletedStatus(rt.Status)
 }
 
-// retrun true if run completed, status is one of: s=success, x=exit, e=error
+// return true if run completed, status is one of: s=success, x=exit, e=error
 export const isRunCompletedStatus = (code) => {
   return code === RUN_SUCCESS || code === RUN_EXIT || code === RUN_FAILED
 }
@@ -358,7 +358,7 @@ export const isNotEmptyRunProgress = (rpi) => {
 }
 */
 
-// retrun empty job control item
+// return empty job control item
 export const emptyJobItem = (stamp) => {
   return {
     SubmitStamp: (!!stamp && typeof stamp === typeof 'string' && stamp !== '') ? stamp : 'none',
@@ -431,7 +431,7 @@ export const isNotEmptyJobItem = (jc) => {
 }
 */
 
-// retrun empty run request
+// return empty run request
 export const emptyRunRequest = () => {
   return {
     ModelName: '',
@@ -497,7 +497,7 @@ export const runRequestFromJob = (jc) => {
   return rReq
 }
 
-// retrun model run name or workset name from job run options: from Opts['OpenM.RunName']
+// return model run name or workset name from job run options: from Opts['OpenM.RunName']
 export const getJobRunTitle = (jc) => {
   if (!jc) return ''
   if ((jc?.SubmitStamp || '') === '') return ''
@@ -509,7 +509,7 @@ export const getJobRunTitle = (jc) => {
   return getRunOption(jc.opts, 'OpenM.SetName')
 }
 
-// retrun model run option value by name or empty '' string if not found
+// return model run option value by name or empty '' string if not found
 export const getRunOption = (opts, name) => {
   if (!opts || typeof opts !== 'object') return ''
 
@@ -521,7 +521,7 @@ export const getRunOption = (opts, name) => {
   return '' // option not found
 }
 
-// retrun integer model run option value by name or default value if not found
+// return integer model run option value by name or default value if not found
 export const getIntRunOption = (opts, name, defaultValue) => {
   if (!opts || typeof opts !== 'object') return defaultValue
 
@@ -536,7 +536,7 @@ export const getIntRunOption = (opts, name, defaultValue) => {
   return defaultValue // option not found
 }
 
-// retrun true if boolean model run option value is 'true', return false if not found
+// return true if boolean model run option value is 'true', return false if not found
 export const getBoolRunOption = (opts, name) => {
   if (!opts || typeof opts !== 'object') return false
 

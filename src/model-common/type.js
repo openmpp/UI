@@ -214,7 +214,7 @@ export const enumDescrOrCodeById = (typeTxt, enumId) => {
   return '' // not found
 }
 
-// find enum id by description or code retrun null if not found
+// find enum id by description or code return null if not found
 export const enumIdByDescrOrCode = (typeTxt, enumDc) => {
   if (!typeTxt || !typeTxt.hasOwnProperty('TypeEnumTxt') || !Hlpr.isLength(typeTxt.TypeEnumTxt)) return null
   for (let k = 0; k < typeTxt.TypeEnumTxt.length; k++) {
@@ -226,7 +226,7 @@ export const enumIdByDescrOrCode = (typeTxt, enumDc) => {
   return null // not found
 }
 
-// return enum by index, retrun null if index out of range
+// return enum by index, return null if index out of range
 export const enumByIdx = (typeTxt, idx) => {
   if (!typeTxt || !typeTxt.hasOwnProperty('TypeEnumTxt') || !Hlpr.isLength(typeTxt.TypeEnumTxt)) return null
   if (idx < 0 || idx >= typeTxt.TypeEnumTxt.length) return null

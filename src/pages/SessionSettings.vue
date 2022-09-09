@@ -293,7 +293,7 @@ export default {
     onWorksetTextListClear () { this.dispatchWorksetTextList([]) },
     onUiLanguageClear () { this.dispatchUiLang('') },
 
-    // retrun parameter description by name
+    // return parameter description by name
     parameterDescr (pName) { return Mdf.descrOfDescrNote(Mdf.paramTextByName(this.theModel, pName)) },
 
     // download parameters views

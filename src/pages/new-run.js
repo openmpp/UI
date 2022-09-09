@@ -90,7 +90,7 @@ export default {
     isReadonlyWorksetCurrent () {
       return this.worksetCurrent?.Name && this.worksetCurrent?.IsReadonly
     },
-    // retrun true if current run is completed: success, error or exit
+    // return true if current run is completed: success, error or exit
     // if run not successfully completed then it we don't know is it possible to use as base run
     isCompletedRunCurrent () {
       return this.runCurrent?.RunDigest && Mdf.isRunCompleted(this.runCurrent)
