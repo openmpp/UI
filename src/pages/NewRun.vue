@@ -454,6 +454,7 @@
             <td>
               <q-input
                 v-model.number="runOpts.mpiNpCount"
+                @change="onMpiNpCount"
                 type="number"
                 maxlength="5"
                 min="0"
@@ -473,42 +474,43 @@
           </tr>
 
           <tr
-            :disabled="!serverConfig.IsJobControl || runOpts.mpiNpCount <= 0"
+            :disabled="!serverConfig.IsJobControl"
             >
             <td class="q-pr-xs">{{ $t('Use Jobs Service') }}:</td>
             <td class="tc-max-width-10 row panel-border rounded-borders">
               <q-space />
               <q-toggle
+                @click.native="onMpiUseJobs"
                 v-model="runOpts.mpiUseJobs"
-                :disable="!serverConfig.IsJobControl || runOpts.mpiNpCount <= 0"
+                :disable="!serverConfig.IsJobControl"
                 :title="runOpts.mpiUseJobs ? $t('Use jobs service to run the model') : $t('Do not use jobs service to run the model')"
                 />
             </td>
           </tr>
 
           <tr
-            :disabled="runOpts.mpiNpCount <= 0"
+            :disabled="runOpts.mpiNpCount <= 0 && !runOpts.mpiUseJobs"
             >
             <td class="q-pr-xs">{{ $t('Use MPI Root for Modelling') }}:</td>
             <td class="tc-max-width-10 row panel-border rounded-borders">
               <q-space />
               <q-toggle
                 v-model="runOpts.mpiOnRoot"
-                :disable="runOpts.mpiNpCount <= 0"
+                :disable="runOpts.mpiNpCount <= 0 && !runOpts.mpiUseJobs"
                 :title="runOpts.mpiOnRoot ? $t('Use MPI root process to run the model') : $t('Do not use MPI root process to run the model')"
                 />
             </td>
           </tr>
 
           <tr
-            :disabled="runOpts.mpiNpCount <= 0"
+            :disabled="runOpts.mpiNpCount <= 0 && !runOpts.mpiUseJobs"
             >
             <td class="q-pr-xs">{{ $t('MPI Model Run Template') }}:</td>
             <td>
               <q-select
                 v-model="runOpts.mpiTmpl"
                 :options="mpiTemplateLst"
-                :disable="runOpts.mpiNpCount <= 0"
+                :disable="runOpts.mpiNpCount <= 0 && !runOpts.mpiUseJobs"
                 outlined
                 dense
                 clearable

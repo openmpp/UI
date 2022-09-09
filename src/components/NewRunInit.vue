@@ -29,8 +29,8 @@ export default {
         sparseOutput: false,
         runTmpl: '',
         mpiNpCount: 0,
-        mpiOnRoot: false,
         mpiUseJobs: false,
+        mpiOnRoot: false,
         mpiTmpl: ''
       })
     },
@@ -85,6 +85,7 @@ export default {
         Opts: { },
         Tables: [],
         Threads: 1,
+        IsMpi: false,
         Mpi: {
           Np: 0,
           IsNotOnRoot: false,
@@ -115,12 +116,11 @@ export default {
 
       rv.Tables = Array.from(this.tablesRetain)
 
-      const isMpi = (this.runOpts.mpiNpCount || 0) > 0
-      if (!isMpi) {
+      if ((this.runOpts.mpiNpCount || 0) <= 0) {
         if (this.runOpts.runTmpl) rv.Template = this.runOpts.runTmpl
       } else {
-        rv.Mpi.Np = this.runOpts.mpiNpCount
         rv.IsMpi = true
+        rv.Mpi.Np = this.runOpts.mpiNpCount
         if (!this.runOpts.mpiOnRoot) {
           rv.Mpi.IsNotOnRoot = true
           rv.Opts['OpenM.NotOnRoot'] = 'true' // for backward compatibility only

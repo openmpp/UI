@@ -485,6 +485,7 @@ export const runRequestFromJob = (jc) => {
   rReq.IsMpi = jc.IsMpi
   rReq.Mpi.Np = jc.Mpi.Np
   rReq.Mpi.IsNotOnRoot = jc.Mpi.IsNotOnRoot
+  rReq.Mpi.IsNotByJob = jc.Mpi.IsNotByJob
   rReq.Template = jc.Template || ''
   rReq.RunNotes = Array.from(jc.RunNotes)
   rReq.Tables = Array.from(jc.Tables)

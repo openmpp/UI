@@ -53,8 +53,8 @@ export default {
         sparseOutput: false,
         runTmpl: '',
         mpiNpCount: 0,
-        mpiOnRoot: false,
         mpiUseJobs: false,
+        mpiOnRoot: false,
         mpiTmpl: ''
       },
       advOptsExpanded: false,
@@ -148,8 +148,8 @@ export default {
       this.useBaseRun = this.isUseCurrentAsBaseRun()
       this.runOpts.sparseOutput = false
       this.mpiNpCount = 0
+      this.runOpts.mpiUseJobs = false // this.serverConfig.IsJobControl
       this.runOpts.mpiOnRoot = false
-      this.runOpts.mpiUseJobs = this.serverConfig.IsJobControl
 
       // get model run template list
       // append empty '' string first to allow model run without template
@@ -257,6 +257,23 @@ export default {
     onUseBaseRunClick () {
       if (!this.useBaseRun && !this.runOpts.csvDir && this.isUseCurrentAsBaseRun()) {
         this.$q.notify({ type: 'warning', message: this.$t('Input scenario should include all parameters otherwise model run may fail') })
+      }
+    },
+
+    // click on MPI use job control: set number of processes at least 1
+    onMpiUseJobs () {
+      if (!this.serverConfig.IsJobControl) {
+        this.$q.notify({ type: 'warning', message: this.$t('Model run Jobs disabled on the server') })
+        return
+      }
+      if (this.runOpts.mpiUseJobs && this.runOpts.mpiNpCount <= 0) this.runOpts.mpiNpCount = 1
+    },
+    // change MPI number of processes: set job control usage flag as it is on the server
+    onMpiNpCount () {
+      if (this.runOpts.mpiNpCount <= 0) {
+        this.runOpts.mpiUseJobs = false
+      } else {
+        this.runOpts.mpiUseJobs = this.serverConfig.IsJobControl
       }
     },
 
@@ -546,15 +563,16 @@ export default {
       this.runOpts.profile = Mdf.getRunOption(rReq.Opts, 'OpenM.Profile') || this.runOpts.profile
       this.runOpts.sparseOutput = Mdf.getBoolRunOption(rReq.Opts, 'OpenM.SparseOutput') || this.runOpts.sparseOutput
 
-      if (!rReq.IsMpi) {
+      if (!rReq?.IsMpi && (rReq?.Mpi?.Np || 0) <= 0) {
+        this.runOpts.mpiNpCount = 0
         this.runOpts.runTmpl = rReq.Template ?? this.runOpts.runTmpl
       } else {
         this.runOpts.mpiNpCount = rReq.Mpi.Np ?? this.runOpts.mpiNpCount
-        if (this.runOpts.mpiNpCount < 0) {
-          this.runOpts.mpiNpCount = 0
+        if (this.runOpts.mpiNpCount <= 0) {
+          this.runOpts.mpiNpCount = 1
         }
-        this.runOpts.mpiOnRoot = !rReq.Mpi.IsNotOnRoot ?? this.runOpts.mpiOnRoot
         this.runOpts.mpiUseJobs = this.serverConfig.IsJobControl && (!rReq.Mpi.IsNotByJob ?? this.runOpts.mpiUseJobs)
+        this.runOpts.mpiOnRoot = !rReq.Mpi.IsNotOnRoot ?? this.runOpts.mpiOnRoot
         this.runOpts.mpiTmpl = rReq.Template ?? this.runOpts.mpiTmpl
       }
 
@@ -647,8 +665,8 @@ export default {
       this.runOpts.sparseOutput = this.runOpts.sparseOutput || false
       this.runOpts.runTmpl = Mdf.cleanTextInput(this.runOpts.runTmpl)
       this.runOpts.mpiNpCount = Mdf.cleanIntNonNegativeInput(this.runOpts.mpiNpCount, 0)
-      this.runOpts.mpiOnRoot = this.runOpts.mpiOnRoot || false
       this.runOpts.mpiUseJobs = this.serverConfig.IsJobControl && (this.runOpts.mpiUseJobs || false)
+      this.runOpts.mpiOnRoot = this.runOpts.mpiOnRoot || false
       this.runOpts.mpiTmpl = Mdf.cleanTextInput(this.runOpts.mpiTmpl)
       this.runOpts.progressPercent = Mdf.cleanIntNonNegativeInput(this.runOpts.progressPercent, 1)
 
