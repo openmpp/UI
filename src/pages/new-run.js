@@ -495,6 +495,7 @@ export default {
       this.runOpts.mpiOnRoot = ps.mpiOnRoot ?? this.runOpts.mpiOnRoot
       this.runOpts.mpiUseJobs = this.serverConfig.IsJobControl && (ps.mpiUseJobs ?? (this.serverConfig.IsJobControl && this.runOpts.mpiNpCount > 0))
       this.runOpts.mpiTmpl = ps.mpiTmpl ?? this.runOpts.mpiTmpl
+
       // expand sections if preset options supplied with non-default values
       this.mpiOptsExpanded = (ps.mpiNpCount || 0) !== 0 || (ps.mpiTmpl || '') !== ''
 
@@ -510,7 +511,6 @@ export default {
 
       this.$q.notify({
         type: 'info',
-        // type: 'info',
         message: this.presetLst[idx].descr || this.presetLst[idx].label || (this.$t('Using Run Options') + ': ' + this.presetLst[idx].name || '')
       })
     },
