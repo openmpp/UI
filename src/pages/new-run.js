@@ -493,7 +493,7 @@ export default {
         this.runOpts.mpiNpCount = 0
       }
       this.runOpts.mpiOnRoot = ps.mpiOnRoot ?? this.runOpts.mpiOnRoot
-      this.runOpts.mpiUseJobs = this.serverConfig.IsJobControl && (ps.mpiUseJobs ?? this.runOpts.mpiUseJobs)
+      this.runOpts.mpiUseJobs = this.serverConfig.IsJobControl && (ps.mpiUseJobs ?? (this.serverConfig.IsJobControl && this.runOpts.mpiNpCount > 0))
       this.runOpts.mpiTmpl = ps.mpiTmpl ?? this.runOpts.mpiTmpl
       // expand sections if preset options supplied with non-default values
       this.mpiOptsExpanded = (ps.mpiNpCount || 0) !== 0 || (ps.mpiTmpl || '') !== ''
@@ -571,7 +571,7 @@ export default {
         if (this.runOpts.mpiNpCount <= 0) {
           this.runOpts.mpiNpCount = 1
         }
-        this.runOpts.mpiUseJobs = this.serverConfig.IsJobControl && (!rReq.Mpi.IsNotByJob ?? this.runOpts.mpiUseJobs)
+        this.runOpts.mpiUseJobs = this.serverConfig.IsJobControl && (!rReq.Mpi.IsNotByJob ?? this.serverConfig.IsJobControl)
         this.runOpts.mpiOnRoot = !rReq.Mpi.IsNotOnRoot ?? this.runOpts.mpiOnRoot
         this.runOpts.mpiTmpl = rReq.Template ?? this.runOpts.mpiTmpl
       }
