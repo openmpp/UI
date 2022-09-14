@@ -336,11 +336,11 @@ export default {
     },
 
     // move job queue to specified postion
-    async onJobMove (stamp, pos, mDigest, mName) {
-      const title = (mName || mDigest || '') + ' ' + (this.fromUnderscoreTs(stamp) || '') + ' '
+    async onJobMove (stamp, pos, mName, title) {
+      const mt = (mName || '') + ' ' + (title || this.fromUnderscoreTs(stamp) || '')
       if (!stamp || typeof pos !== typeof 1) {
         console.warn('Unable to move model run', pos, stamp)
-        this.$q.notify({ type: 'negative', message: this.$t('Unable to move model run') + ': ' + title })
+        this.$q.notify({ type: 'negative', message: this.$t('Unable to move model run') + ': ' + mt })
         return
       }
 
@@ -349,7 +349,7 @@ export default {
         await this.$axios.put(u) // ignore response on success
       } catch (e) {
         console.warn('Unable to move model run', e)
-        this.$q.notify({ type: 'negative', message: this.$t('Unable to move model run') + ': ' + title })
+        this.$q.notify({ type: 'negative', message: this.$t('Unable to move model run') + ': ' + mt })
         return // exit on error
       }
 
@@ -382,7 +382,13 @@ export default {
         return // exit on error
       }
 
-      // notify user on success, history item will be deleted from the list after next files refersh
+      // remove from the page view
+      // it may briefly show up again because it is not actually deleted from server History[] until next files refresh
+      this.historyJobs[stamp] = ''
+      this.doneHistory = this.doneHistory.filter(hj => hj?.SubmitStamp !== stamp)
+      this.otherHistory = this.otherHistory.filter(hj => hj?.SubmitStamp !== stamp)
+
+      // notify user on success
       this.$q.notify({ type: 'info', message: this.$t('Deleting job history') + ': ' + title })
     }
   },

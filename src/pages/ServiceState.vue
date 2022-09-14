@@ -195,7 +195,7 @@
               <q-badge outline color="primary" class="col-auto q-mr-xs">{{ qj.QueuePos > 0 ? qj.QueuePos : '&#8211;' }}</q-badge>
               <q-btn
                 :disable="!qj.IsMpi || isTopQueue(qj.SubmitStamp)"
-                @click="onJobMove(qj.SubmitStamp, 0, qj.ModelDigest, qj.ModelName)"
+                @click="onJobMove(qj.SubmitStamp, 0, qj.ModelName, getRunTitle(qj))"
                 flat
                 dense
                 class="col-auto bg-primary text-white rounded-borders q-mr-xs"
@@ -204,7 +204,7 @@
                 />
               <q-btn
                 :disable="!qj.IsMpi || isTopQueue(qj.SubmitStamp)"
-                @click="onJobMove(qj.SubmitStamp, qPos - 1, qj.ModelDigest, qj.ModelName)"
+                @click="onJobMove(qj.SubmitStamp, qPos - 1, qj.ModelName, getRunTitle(qj))"
                 flat
                 dense
                 class="col-auto bg-primary text-white rounded-borders q-mr-xs"
@@ -213,7 +213,7 @@
                 />
               <q-btn
                 :disable="!qj.IsMpi || isBottomQueue(qj.SubmitStamp)"
-                @click="onJobMove(qj.SubmitStamp, qPos + 1, qj.ModelDigest, qj.ModelName)"
+                @click="onJobMove(qj.SubmitStamp, qPos + 1, qj.ModelName, getRunTitle(qj))"
                 flat
                 dense
                 class="col-auto bg-primary text-white rounded-borders q-mr-xs"
@@ -222,7 +222,7 @@
                 />
               <q-btn
                 :disable="!qj.IsMpi || isBottomQueue(qj.SubmitStamp)"
-                @click="onJobMove(qj.SubmitStamp, srvState.Queue.length + 1, qj.ModelDigest, qj.ModelName)"
+                @click="onJobMove(qj.SubmitStamp, srvState.Queue.length + 1, qj.ModelName, getRunTitle(qj))"
                 flat
                 dense
                 class="col-auto bg-primary text-white rounded-borders q-mr-xs"
@@ -230,7 +230,7 @@
                 :title="$t('Move to the bottom')"
                 />
               <q-btn
-                @click="onStopJobConfirm(qj.SubmitStamp, qj.ModelDigest, qj.ModelName)"
+                @click="onStopJobConfirm(qj.SubmitStamp, qj.ModelDigest, qj.ModelName, getRunTitle(qj))"
                 flat
                 dense
                 class="col-auto bg-primary text-white rounded-borders q-mr-xs"
