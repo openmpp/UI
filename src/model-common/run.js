@@ -503,10 +503,10 @@ export const getJobRunTitle = (jc) => {
   if ((jc?.SubmitStamp || '') === '') return ''
   if (!jc.hasOwnProperty('Opts') || typeof jc.Opts !== 'object') return ''
 
-  const runName = getRunOption(jc.opts, 'OpenM.RunName')
+  const runName = getRunOption(jc.Opts, 'OpenM.RunName')
   if (runName !== '') return runName
 
-  return getRunOption(jc.opts, 'OpenM.SetName')
+  return getRunOption(jc.Opts, 'OpenM.SetName')
 }
 
 // return model run option value by name or empty '' string if not found
