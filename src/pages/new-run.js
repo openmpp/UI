@@ -153,7 +153,7 @@ export default {
 
       // get model run template list
       // append empty '' string first to allow model run without template
-      // if default run template exist the select it
+      // if default run template exist then select it
       this.runTemplateLst = []
       if (Mdf.isLength(this.serverConfig.RunCatalog.RunTemplates)) {
         const runDefaultTmpl = Mdf.configEnvValue(this.serverConfig, 'OM_CFG_DEFAULT_RUN_TMPL')
@@ -236,7 +236,7 @@ export default {
         this.applyRunRequest(this.runRequest)
       } else {
         if (Array.isArray(this.presetLst) && this.presetLst.length > 0) {
-          if (this.presetLst[0].name?.startsWith(this.theModel.Model.Name + '.')) this.doPresetSelected(0)
+          if (this.presetLst[0].name?.startsWith(this.theModel.Model.Name + '.')) this.doPresetSelected(this.presetLst[0])
         }
       }
     },
@@ -453,14 +453,14 @@ export default {
     },
 
     // apply preset to run options
-    doPresetSelected (idx) {
-      if (!Array.isArray(this.presetLst) || idx < 0 || idx >= this.presetLst.length) {
+    doPresetSelected (preset) {
+      if (!preset || !preset?.opts) {
         this.$q.notify({ type: 'warning', message: this.$t('Invalid run options') })
-        console.warn('Invalid run options', idx)
+        console.warn('Invalid run options:', preset)
         return
       }
       // merge preset with run options
-      const ps = this.presetLst[idx].opts
+      const ps = preset.opts
 
       this.runOpts.subCount = ps.subCount ?? this.runOpts.subCount
       if (this.runOpts.subCount < 1) {
@@ -511,7 +511,7 @@ export default {
 
       this.$q.notify({
         type: 'info',
-        message: this.presetLst[idx].descr || this.presetLst[idx].label || (this.$t('Using Run Options') + ': ' + this.presetLst[idx].name || '')
+        message: preset?.descr || preset?.label || (this.$t('Using Run Options') + ': ' + preset?.name || '')
       })
     },
 
