@@ -385,26 +385,32 @@ export default {
     },
 
     // on click tab close button: close taband route to the next tab
-    onTabCloseClick (tabPath) {
+    onTabCloseClick (tabPath, evt) {
       const nPos = this.tabItems.findIndex(t => t.path === tabPath)
+
       if (nPos < 0) {
         console.warn('onTabCloseClick error: not found tab key:', tabPath)
-        return
-      }
-      const kind = this.tabItems[nPos].kind
-      this.tabItems = this.tabItems.filter((ti, idx) => idx !== nPos)
+      } else {
+        const kind = this.tabItems[nPos].kind
+        this.tabItems = this.tabItems.filter((ti, idx) => idx !== nPos)
 
-      // if tab was active then focus on the next tab
-      if (tabPath === this.activeTabKey || tabPath === this.$route.path) {
-        const len = Mdf.lengthOf(this.tabItems)
-        const n = (nPos < len) ? nPos : nPos - 1
-        this.activeTabKey = (n >= 0) ? this.tabItems[n].path : ''
-        if (this.activeTabKey !== '') {
-          this.$router.push(this.activeTabKey)
+        // if tab was active then focus on the next tab
+        if (tabPath === this.activeTabKey || tabPath === this.$route.path) {
+          const len = Mdf.lengthOf(this.tabItems)
+          const n = (nPos < len) ? nPos : nPos - 1
+          this.activeTabKey = (n >= 0) ? this.tabItems[n].path : ''
+          if (this.activeTabKey !== '') {
+            this.$router.push(this.activeTabKey)
+          }
         }
+
+        // if parameter or table tab closed then save list of tab item in state store
+        if (kind === 'run-parameter' || kind === 'set-parameter' || kind === 'table') this.storeTabItems()
       }
-      // if parameter or table tab closed then save list of tab item in state store
-      if (kind === 'run-parameter' || kind === 'set-parameter' || kind === 'table') this.storeTabItems()
+
+      // cancel event to avoid bubbling up to the tab router link
+      evt.stopPropagation()
+      evt.preventDefault()
     },
 
     // save list of parameters or tables tabs in store state

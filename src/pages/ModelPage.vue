@@ -40,18 +40,14 @@
             <q-badge v-if="t.kind === 'run-list'" transparent outline class="q-ml-xs">{{ runTextCount }}</q-badge>
             <q-badge v-if="t.kind === 'set-list'" transparent outline class="q-ml-xs">{{ worksetTextCount }}</q-badge>
           </span>
+          <q-icon
+            v-if="!t.updated && !!tabItems && tabItems.length > 1"
+            @click="onTabCloseClick(t.path, $event)"
+            name="mdi-close"
+            class="q-ml-md"
+            :title="$t('close')"
+            />
         </q-route-tab>
-        <q-btn
-          v-if="!t.updated"
-          icon="mdi-close"
-          :disable="!tabItems || tabItems.length <= 1"
-          @click.stop="onTabCloseClick(t.path)"
-          flat
-          round
-          size="xs"
-          class="self-center"
-          :title="$t('close')"
-          />
       </span>
 
     </q-tabs>
