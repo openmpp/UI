@@ -322,6 +322,7 @@ export default {
   'Run Started': 'Exécution commencée',
   'Run Submitted': 'Exécuter soumis',
   'Run the Model': 'Exécutez le modèle',
+  'Run the Model using Scenario': "Exécuter le modèle à l'aide du scénario",
   'Save': 'Enregistrer',
   'Save description and notes': 'Enregistrer la description et les notes',
   'Save notes for': 'Enregistrer des notes pour',

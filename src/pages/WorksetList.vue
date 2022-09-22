@@ -7,17 +7,157 @@
       class="row reverse-wrap items-center"
       >
 
+      <!-- menu -->
       <q-btn
-        :disable="isEdit()"
+        outline
+        round
+        dense
+        class="col-auto text-primary q-ml-sm"
+        icon="menu"
+        :title="$t('Menu')"
+        :aria-label="$t('Menu')"
+        >
+        <q-menu auto-close>
+          <q-list>
+
+            <q-item
+              @click="doShowWorksetNote(worksetNameSelected)"
+              clickable
+              >
+              <q-item-section avatar>
+                <q-icon color="primary" name="mdi-information-outline" />
+              </q-item-section>
+              <q-item-section>{{ $t('About') + ' ' + worksetNameSelected }}</q-item-section>
+            </q-item>
+            <q-separator />
+
+            <q-item
+              :disable="uploadFileSelect || isReadonlyWorksetCurrent || isEdit()"
+              @click="onShowNoteEditor"
+              clickable
+              >
+              <q-item-section avatar>
+                <q-icon color="primary" name="mdi-file-document-edit-outline" />
+              </q-item-section>
+              <q-item-section>{{ $t('Edit notes for') + ' ' + worksetNameSelected }}</q-item-section>
+            </q-item>
+            <q-item
+              :disable="uploadFileSelect || isEdit()"
+              @click="onNewWorksetClick"
+              clickable
+              >
+              <q-item-section avatar>
+                <q-icon color="primary" name="mdi-notebook-plus-outline" />
+              </q-item-section>
+              <q-item-section>{{ $t('Create new input scenario') }}</q-item-section>
+            </q-item>
+
+            <template v-if="serverConfig.AllowUpload">
+              <q-item
+                :disable="isNewWorksetShow || isShowNoteEditor"
+                @click="doShowFileSelect()"
+                v-show="!uploadFileSelect"
+                clickable
+                >
+                <q-item-section avatar>
+                  <q-icon color="primary" name="mdi-cloud-upload-outline" />
+                </q-item-section>
+                <q-item-section>{{ $t('Upload scenario .zip') }}</q-item-section>
+              </q-item>
+              <q-item
+                @click="doCancelFileSelect()"
+                v-show="uploadFileSelect"
+                clickable
+                >
+                <q-item-section avatar>
+                  <q-icon color="primary" name="mdi-close-circle-outline" />
+                </q-item-section>
+                <q-item-section>{{ $t('Cancel upload') }}</q-item-section>
+              </q-item>
+            </template>
+            <q-separator />
+
+            <q-item
+              :disable="isEdit() || isReadonlyWorksetCurrent || !isRunSuccess"
+              @click="onFromRunShow"
+              clickable
+              >
+              <q-item-section avatar>
+                <q-icon color="primary" name="mdi-table-arrow-left" />
+              </q-item-section>
+              <q-item-section>{{ $t('Copy parameters from model run') + (isRunSuccess ? ': ' + runCurrent.Name : '') }}</q-item-section>
+            </q-item>
+            <q-item
+              :disable="isEdit() || isReadonlyWorksetCurrent || !isNotEmptyFrom || !isReadonlyFrom"
+              @click="onFromWorksetShow"
+              clickable
+              >
+              <q-item-section avatar>
+                <q-icon color="primary" name="mdi-table-plus" />
+              </q-item-section>
+              <q-item-section>{{ $t('Copy parameters from scenario') + ': ' + ((worksetNameFrom && worksetNameFrom !== worksetNameSelected) ? worksetNameFrom : $t('Source scenario not selected')) }}</q-item-section>
+            </q-item>
+            <q-separator />
+
+            <q-item
+              @click="onNewRunClick(worksetNameSelected)"
+              :disable="!isReadonlyWorksetCurrent"
+              clickable
+              >
+              <q-item-section avatar>
+                <q-icon color="primary" name="mdi-run" />
+              </q-item-section>
+              <q-item-section>{{ $t('Run the Model using Scenario') + ' ' +  worksetNameSelected }}</q-item-section>
+            </q-item>
+            <q-item
+              @click="onWorksetReadonlyToggle"
+              :disable="isEdit() || !isNotEmptyWorksetCurrent"
+              clickable
+              >
+              <q-item-section avatar>
+                <q-icon color="primary" :name="(!isNotEmptyWorksetCurrent || isReadonlyWorksetCurrent) ? 'mdi-lock' : 'mdi-lock-open-variant'" />
+              </q-item-section>
+              <q-item-section>{{ ((!isNotEmptyWorksetCurrent || isReadonlyWorksetCurrent) ? $t('Open to edit scenario') : $t('Close to run scenario')) + ' ' + worksetCurrent.Name }}</q-item-section>
+            </q-item>
+
+          </q-list>
+        </q-menu>
+      </q-btn>
+      <!-- end of menu -->
+
+      <q-btn
+        @click="doShowWorksetNote(worksetNameSelected)"
+        flat
+        dense
+        class="col-auto bg-primary text-white rounded-borders q-ml-xs"
+        icon="mdi-information"
+        :title="$t('About') + ' ' + worksetNameSelected"
+        />
+      <q-separator vertical inset spaced="sm" color="secondary" />
+
+      <q-btn
+        :disable="uploadFileSelect || isReadonlyWorksetCurrent || isEdit()"
+        @click="onShowNoteEditor"
+        flat
+        dense
+        class="col-auto bg-primary text-white rounded-borders"
+        icon="mdi-file-document-edit-outline"
+        :title="$t('Edit notes for') + ' ' + worksetNameSelected"
+        />
+
+      <q-btn
+        :disable="uploadFileSelect || isEdit()"
         @click="onNewWorksetClick"
         flat
         dense
-        class="col-auto bg-primary text-white rounded-borders q-ml-sm"
+        class="col-auto bg-primary text-white rounded-borders q-ml-xs"
         icon="mdi-notebook-plus"
         :title="$t('Create new input scenario')"
        />
+
       <template v-if="serverConfig.AllowUpload">
         <q-btn
+          :disable="isNewWorksetShow || isShowNoteEditor"
           @click="doShowFileSelect()"
           v-show="!uploadFileSelect"
           flat
@@ -38,7 +178,46 @@
       </template>
       <q-separator vertical inset spaced="sm" color="secondary" />
 
-      <span class="col-auto no-wrap q-mr-xs">
+      <q-btn
+        :disable="isEdit() || isReadonlyWorksetCurrent || !isRunSuccess"
+        @click="onFromRunShow"
+        flat
+        dense
+        class="col-auto bg-primary text-white rounded-borders"
+        icon="mdi-table-arrow-left"
+        :title="$t('Copy parameters from model run') + (isRunSuccess ? ': ' + runCurrent.Name : '')"
+       />
+      <q-btn
+        :disable="isEdit() || isReadonlyWorksetCurrent || !isNotEmptyFrom || !isReadonlyFrom"
+        @click="onFromWorksetShow"
+        flat
+        dense
+        class="col-auto bg-primary text-white rounded-borders q-ml-xs"
+        icon="mdi-table-plus"
+        :title="$t('Copy parameters from scenario') + ': ' + ((worksetNameFrom && worksetNameFrom !== worksetNameSelected) ? worksetNameFrom : $t('Source scenario not selected'))"
+       />
+      <q-separator vertical inset spaced="sm" color="secondary" />
+
+      <q-btn
+        @click="onNewRunClick(worksetNameSelected)"
+        :disable="!isReadonlyWorksetCurrent"
+        flat
+        dense
+        class="col-auto bg-primary text-white rounded-borders"
+        icon="mdi-run"
+        :title="$t('Run the Model using Scenario') + ' ' +  worksetNameSelected"
+        />
+      <q-btn
+        @click="onWorksetReadonlyToggle"
+        :disable="isEdit() || !isNotEmptyWorksetCurrent"
+        flat
+        dense
+        class="col-auto bg-primary text-white rounded-borders q-ml-xs"
+        :icon="(!isNotEmptyWorksetCurrent || isReadonlyWorksetCurrent) ? 'mdi-lock' : 'mdi-lock-open-variant'"
+        :title="((!isNotEmptyWorksetCurrent || isReadonlyWorksetCurrent) ? $t('Open to edit scenario') : $t('Close to run scenario')) + ' ' + worksetCurrent.Name"
+        />
+
+      <span class="col-auto no-wrap q-ma-xs">
         <q-btn
           :disable="isShowNoteEditor || isNewWorksetShow"
           @click="onToogleShowParamTree"
@@ -54,64 +233,6 @@
           <q-badge outline class="q-ml-sm q-mr-xs">{{ paramTreeCount }}</q-badge>
         </q-btn>
       </span>
-
-      <q-btn
-        @click="doShowWorksetNote(worksetNameSelected)"
-        flat
-        dense
-        class="col-auto bg-primary text-white rounded-borders q-mr-xs"
-        icon="mdi-information"
-        :title="$t('About') + ' ' + worksetNameSelected"
-        />
-      <q-btn
-        :disable="isReadonlyWorksetCurrent || isEdit()"
-        @click="onShowNoteEditor"
-        flat
-        dense
-        class="col-auto bg-primary text-white rounded-borders"
-        icon="mdi-file-document-edit-outline"
-        :title="$t('Edit notes for') + ' ' + worksetNameSelected"
-        />
-      <q-separator vertical inset spaced="sm" color="secondary" />
-
-      <q-btn
-        :disable="isEdit() || isReadonlyWorksetCurrent || !isRunSuccess"
-        @click="onFromRunShow"
-        flat
-        dense
-        class="col-auto bg-primary text-white rounded-borders q-mr-xs"
-        icon="mdi-table-arrow-left"
-        :title="$t('Copy parameters from model run') + (isRunSuccess ? ': ' + runCurrent.Name : '')"
-       />
-      <q-btn
-        :disable="isEdit() || isReadonlyWorksetCurrent || !isNotEmptyFrom || !isReadonlyFrom"
-        @click="onFromWorksetShow"
-        flat
-        dense
-        class="col-auto bg-primary text-white rounded-borders"
-        icon="mdi-table-plus"
-        :title="$t('Copy parameters from scenario') + ': ' + ((worksetNameFrom && worksetNameFrom !== worksetNameSelected) ? worksetNameFrom : $t('Source scenario not selected'))"
-       />
-      <q-separator vertical inset spaced="sm" color="secondary" />
-
-      <q-btn
-        @click="onNewRunClick(worksetNameSelected)"
-        :disable="!isReadonlyWorksetCurrent"
-        flat
-        dense
-        class="col-auto bg-primary text-white rounded-borders q-mr-xs"
-        icon="mdi-run"
-        :title="$t('Run the Model')"
-        />
-      <q-btn
-        @click="onWorksetReadonlyToggle"
-        :disable="isEdit() || !isNotEmptyWorksetCurrent"
-        flat
-        dense
-        class="col-auto bg-primary text-white rounded-borders q-mr-xs"
-        :icon="(!isNotEmptyWorksetCurrent || isReadonlyWorksetCurrent) ? 'mdi-lock' : 'mdi-lock-open-variant'"
-        :title="((!isNotEmptyWorksetCurrent || isReadonlyWorksetCurrent) ? $t('Open to edit scenario') : $t('Close to run scenario')) + ' ' + worksetCurrent.Name"
-        />
 
       <transition
         enter-active-class="animated fadeIn"
@@ -406,7 +527,7 @@
               :color="(prop.node.isReadonly && !isEdit())? 'primary' : 'secondary'"
               class="col-auto"
               icon="mdi-run"
-              :title="$t('Run the Model')"
+              :title="$t('Run the Model using Scenario') + ' ' +  prop.node.label"
               />
             <q-btn
               v-if="prop.node.label"

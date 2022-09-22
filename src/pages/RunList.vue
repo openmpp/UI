@@ -8,20 +8,114 @@
       class="row reverse-wrap items-center"
       >
 
-      <template v-if="isCompare">
-        <q-btn
-          :disable="isNewWorksetDisabled()"
-          @click="onNewWorksetClick"
-          flat
-          dense
-          class="col-auto bg-primary text-white rounded-borders q-ml-xs"
-          icon="mdi-notebook-plus"
-          :title="paramDiff.length > 0 ? ($t('Create new input scenario with {count} parameter(s) from', { count: paramDiff.length }) + ': ' + runCompare.Name) : $t('Create new input scenario')"
-          />
-      </template>
+      <q-btn
+        outline
+        round
+        dense
+        class="col-auto text-primary q-ml-sm"
+        icon="menu"
+        :title="$t('Menu')"
+        :aria-label="$t('Menu')"
+        >
+        <q-menu auto-close>
+          <q-list>
+
+            <q-item
+              @click="doShowRunNote(runDigestSelected)"
+              clickable
+              >
+              <q-item-section avatar>
+                <q-icon color="primary" :name="isSuccess(runCurrent.Status) ? 'mdi-information-outline' : (isInProgress(runCurrent.Status) ? 'mdi-run' : 'mdi-alert-circle-outline')" />
+              </q-item-section>
+              <q-item-section>{{ $t('About') + ' ' + runCurrent.Name }}</q-item-section>
+            </q-item>
+            <q-separator />
+
+            <q-item
+              :disable="isShowNoteEditor || isCompare || uploadFileSelect"
+              @click="onEditRunNote(runDigestSelected)"
+              clickable
+              >
+              <q-item-section avatar>
+                <q-icon color="primary" name="mdi-file-document-edit-outline" />
+              </q-item-section>
+              <q-item-section>{{ $t('Edit notes for') + ' ' + runCurrent.Name }}</q-item-section>
+            </q-item>
+
+            <q-item
+              :disable="isNewWorksetDisabled()"
+              @click="onNewWorksetClick"
+              clickable
+              >
+              <q-item-section avatar>
+                <q-icon color="primary" name="mdi-notebook-plus-outline" />
+              </q-item-section>
+              <q-item-section>{{ paramDiff.length > 0 ? ($t('Create new input scenario with {count} parameter(s) from', { count: paramDiff.length }) + ': ' + runCompare.Name) : $t('Create new input scenario') }}</q-item-section>
+            </q-item>
+
+            <template v-if="serverConfig.AllowUpload">
+              <q-item
+                :disable="isShowNoteEditor"
+                @click="doShowFileSelect()"
+                v-show="!uploadFileSelect"
+                clickable
+                >
+                <q-item-section avatar>
+                  <q-icon color="primary" name="mdi-cloud-upload-outline" />
+                </q-item-section>
+                <q-item-section>{{ $t('Upload model run .zip') }}</q-item-section>
+              </q-item>
+              <q-item
+                :disable="isShowNoteEditor"
+                @click="doCancelFileSelect()"
+                v-show="uploadFileSelect"
+                clickable
+                >
+                <q-item-section avatar>
+                  <q-icon color="primary" name="mdi-close-circle-outline" />
+                </q-item-section>
+                <q-item-section>{{ $t('Cancel upload') }}</q-item-section>
+              </q-item>
+            </template>
+
+          </q-list>
+        </q-menu>
+      </q-btn>
+
+      <q-btn
+        @click="doShowRunNote(runDigestSelected)"
+        flat
+        dense
+        class="col-auto text-white rounded-borders q-ml-xs"
+        :class="(isSuccess(runCurrent.Status) || isInProgress(runCurrent.Status)) ? 'bg-primary' : 'bg-warning'"
+        :icon="isSuccess(runCurrent.Status) ? 'mdi-information' : (isInProgress(runCurrent.Status) ? 'mdi-run' : 'mdi-alert-circle-outline')"
+        :title="$t('About') + ' ' + runCurrent.Name"
+        />
+      <q-separator vertical inset spaced="sm" color="secondary" />
+
+      <q-btn
+        :disable="isShowNoteEditor || isCompare || uploadFileSelect"
+        @click="onEditRunNote(runDigestSelected)"
+        flat
+        dense
+        class="col-auto text-white rounded-borders"
+        :class="(isSuccess(runCurrent.Status) || isInProgress(runCurrent.Status)) ? 'bg-primary' : 'bg-warning'"
+        icon="mdi-file-document-edit-outline"
+        :title="$t('Edit notes for') + ' ' + runCurrent.Name"
+        />
+      <q-btn
+        :disable="isNewWorksetDisabled()"
+        @click="onNewWorksetClick"
+        flat
+        dense
+        class="col-auto bg-primary text-white rounded-borders q-ml-xs"
+        icon="mdi-notebook-plus"
+        :title="paramDiff.length > 0 ? ($t('Create new input scenario with {count} parameter(s) from', { count: paramDiff.length }) + ': ' + runCompare.Name) : $t('Create new input scenario')"
+        />
 
       <template v-if="serverConfig.AllowUpload">
         <q-btn
+          :disable="isShowNoteEditor"
           @click="doShowFileSelect()"
           v-show="!uploadFileSelect"
           flat
@@ -40,7 +134,6 @@
           :title="$t('Cancel upload')"
           />
       </template>
-      <q-separator v-if="serverConfig.AllowUpload || isCompare" vertical inset color="secondary" class="q-ml-xs" />
 
       <span class="col-auto no-wrap tab-switch-container q-ml-xs">
         <q-btn
@@ -90,27 +183,6 @@
           </span>
         </q-btn>
       </span>
-
-      <q-btn
-        @click="doShowRunNote(runDigestSelected)"
-        flat
-        dense
-        class="col-auto text-white rounded-borders q-mr-xs"
-        :class="(isSuccess(runCurrent.Status) || isInProgress(runCurrent.Status)) ? 'bg-primary' : 'bg-warning'"
-        :icon="isSuccess(runCurrent.Status) ? 'mdi-information' : (isInProgress(runCurrent.Status) ? 'mdi-run' : 'mdi-alert-circle-outline')"
-        :title="$t('About') + ' ' + runCurrent.Name"
-        />
-
-      <q-btn
-        :disable="isShowNoteEditor || isCompare"
-        @click="onEditRunNote(runDigestSelected)"
-        flat
-        dense
-        class="col-auto text-white rounded-borders q-mr-xs"
-        :class="(isSuccess(runCurrent.Status) || isInProgress(runCurrent.Status)) ? 'bg-primary' : 'bg-warning'"
-        icon="mdi-file-document-edit-outline"
-        :title="$t('Edit notes for') + ' ' + runCurrent.Name"
-        />
 
       <transition
         enter-active-class="animated fadeIn"

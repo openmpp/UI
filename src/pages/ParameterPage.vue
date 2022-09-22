@@ -19,6 +19,7 @@
           :workset-name="worksetName"
           :is-readonly-button="true"
           :is-new-run-button="true"
+          :is-show-menu="true"
           @set-info-click="doShowWorksetNote"
           @set-update-readonly="onWorksetReadonlyToggle"
           @new-run-select="onNewRunClick"
@@ -33,14 +34,254 @@
   <div class="q-mx-sm q-mb-sm">
     <q-toolbar class="row reverse-wrap items-center shadow-1 rounded-borders">
 
+    <!-- menu -->
+    <q-btn
+      outline
+      round
+      dense
+      class="col-auto text-primary"
+      icon="menu"
+      :title="$t('Menu')"
+      :aria-label="$t('Menu')"
+      >
+      <q-menu auto-close>
+        <q-list>
+
+          <q-item
+            @click="doShowParamNote"
+            clickable
+            >
+            <q-item-section avatar>
+              <q-icon color="primary" name="mdi-information-outline" />
+            </q-item-section>
+            <q-item-section>{{ $t('About') + ' ' + parameterName }}</q-item-section>
+          </q-item>
+          <q-separator />
+
+          <template v-if="!isFromRun">
+            <q-item
+              @click="doEditToogle"
+              :disable="!edt.isEnabled"
+              clickable
+              >
+              <q-item-section avatar>
+                <q-icon color="primary" :name="edt.isEdit ? 'mdi-close-circle-outline' : 'mdi-table-edit'" />
+              </q-item-section>
+              <q-item-section>{{ (edt.isEdit ? $t('Discard changes of') : $t('Edit')) + ' ' + parameterName }}</q-item-section>
+            </q-item>
+            <q-item
+              @click="onEditSave"
+              :disable="!edt.isEnabled || !edt.isUpdated"
+              clickable
+              >
+              <q-item-section avatar>
+                <q-icon color="primary" name="mdi-content-save-edit" />
+              </q-item-section>
+              <q-item-section>{{ $t('Save') + ' ' + parameterName }}</q-item-section>
+            </q-item>
+            <q-item
+              @click="onUndo"
+              :disable="!edt.isEnabled || edt.lastHistory <= 0"
+              clickable
+              >
+              <q-item-section avatar>
+                <q-icon color="primary" name="mdi-undo-variant" />
+              </q-item-section>
+              <q-item-section>{{ $t('Undo') + ': Ctrl+Z' }}</q-item-section>
+            </q-item>
+            <q-item
+              @click="onRedo"
+              :disable="!edt.isEnabled || edt.lastHistory >= edt.history.length"
+              clickable
+              >
+              <q-item-section avatar>
+                <q-icon color="primary" name="mdi-redo-variant" />
+              </q-item-section>
+              <q-item-section>{{ $t('Redo') + ': Ctrl+Y' }}</q-item-section>
+            </q-item>
+            <q-separator />
+          </template>
+
+          <q-item
+            v-if="!noteEditorShow"
+            @click="onEditParamNote()"
+            :disable="!isFromRun && !edt.isEnabled"
+            clickable
+            >
+            <q-item-section avatar>
+              <q-icon color="primary" name="mdi-file-document-edit-outline" />
+            </q-item-section>
+            <q-item-section>{{ $t('Edit notes for') + ' ' + parameterName }}</q-item-section>
+          </q-item>
+          <q-item
+            v-if="noteEditorShow"
+            @click="onCancelParamNote()"
+            clickable
+            >
+            <q-item-section avatar>
+              <q-icon color="primary" name="mdi-close-circle-outline" />
+            </q-item-section>
+            <q-item-section>{{ $t('Discard changes to notes for') + ' ' + parameterName }}</q-item-section>
+          </q-item>
+          <q-item
+            @click="onSaveParamNote()"
+            :disable="!noteEditorShow || (!isFromRun && !edt.isEnabled)"
+            clickable
+            >
+            <q-item-section avatar>
+              <q-icon color="primary" name="mdi-content-save-edit" />
+            </q-item-section>
+            <q-item-section>{{ $t('Save notes for') + ' ' + parameterName }}</q-item-section>
+          </q-item>
+          <q-separator />
+
+          <q-item
+            @click="onCopyToClipboard"
+            clickable
+            >
+            <q-item-section avatar>
+              <q-icon color="primary" name="mdi-content-copy" />
+            </q-item-section>
+            <q-item-section>{{ $t('Copy tab separated values to clipboard') + ': Ctrl+C' }}</q-item-section>
+          </q-item>
+          <q-item
+            @click="onDownload"
+            :disable="!isFromRun && edt.isEdit"
+            clickable
+            >
+            <q-item-section avatar>
+              <q-icon color="primary" name="mdi-download" />
+            </q-item-section>
+            <q-item-section>{{ $t('Download') + ' '  + parameterName + ' ' + $t('as CSV') }}</q-item-section>
+          </q-item>
+          <q-item
+            v-if="!isFromRun"
+            @click="doShowFileSelect()"
+            v-show="!uploadFileSelect"
+            :disable="!isUploadEnabled"
+            clickable
+            >
+            <q-item-section avatar>
+              <q-icon color="primary" name="mdi-upload" />
+            </q-item-section>
+            <q-item-section>{{ $t('Upload') + ' ' + parameterName + '.csv' }}</q-item-section>
+          </q-item>
+          <q-item
+            @click="doCancelFileSelect()"
+            v-show="uploadFileSelect"
+            clickable
+            >
+            <q-item-section avatar>
+              <q-icon color="primary" name="mdi-close-circle-outline" />
+            </q-item-section>
+            <q-item-section>{{ $t('Cancel upload') }}</q-item-section>
+          </q-item>
+          <q-separator />
+
+          <q-item
+            @click="onToggleRowColControls"
+            :disable="!ctrl.isRowColModeToggle"
+            clickable
+            >
+            <q-item-section avatar>
+              <q-icon color="primary" :name="ctrl.isRowColControls ? 'mdi-tune' : 'mdi-tune-vertical'" />
+            </q-item-section>
+            <q-item-section>{{ ctrl.isRowColControls ? $t('Hide rows and columns bars') : $t('Show rows and columns bars') }}</q-item-section>
+          </q-item>
+
+          <template v-if="ctrl.isRowColModeToggle">
+            <q-item
+              @click="onSetRowColMode(2)"
+              :disable="pvc.rowColMode === 2"
+              clickable
+              >
+              <q-item-section avatar>
+                <q-icon color="primary" name="mdi-view-quilt-outline" />
+              </q-item-section>
+              <q-item-section>{{ $t('Switch to default pivot view') }}</q-item-section>
+            </q-item>
+            <q-item
+              @click="onSetRowColMode(1)"
+              :disable="pvc.rowColMode === 1"
+              clickable
+              >
+              <q-item-section avatar>
+                <q-icon color="primary" name="mdi-view-list-outline" />
+              </q-item-section>
+              <q-item-section>{{ $t('Table view: hide rows and columns name') }}</q-item-section>
+            </q-item>
+            <q-item
+              @click="onSetRowColMode(0)"
+              :disable="pvc.rowColMode === 0"
+              clickable
+              >
+              <q-item-section avatar>
+                <q-icon color="primary" name="mdi-view-module-outline" />
+              </q-item-section>
+              <q-item-section>{{ $t('Table view: always show rows and columns item') }}</q-item-section>
+            </q-item>
+          </template>
+
+          <template v-if="ctrl.formatOpts">
+            <q-item
+              @click="onShowMoreFormat"
+              :disable="!ctrl.formatOpts.isDoMore"
+              clickable
+              >
+              <q-item-section avatar>
+                <q-icon color="primary" name="mdi-decimal-increase" />
+              </q-item-section>
+              <q-item-section>{{ $t('Increase precision or show source value') }}</q-item-section>
+            </q-item>
+            <q-item
+              @click="onShowLessFormat"
+              :disable="!ctrl.formatOpts.isDoLess"
+              clickable
+              >
+              <q-item-section avatar>
+                <q-icon color="primary" name="mdi-decimal-decrease" />
+              </q-item-section>
+              <q-item-section>{{ $t('Decrease precision') }}</q-item-section>
+            </q-item>
+          </template>
+          <q-separator />
+
+          <q-item
+            @click="onSaveDefaultView"
+            :disable="edt.isEdit"
+            clickable
+            >
+            <q-item-section avatar>
+              <q-icon color="primary" name="mdi-content-save-cog" />
+            </q-item-section>
+            <q-item-section>{{ $t('Save table view as default view of') + ' ' + parameterName }}</q-item-section>
+          </q-item>
+          <q-item
+            @click="onReloadDefaultView"
+            :disable="edt.isEdit"
+            clickable
+            >
+            <q-item-section avatar>
+              <q-icon color="primary" name="mdi-cog-refresh-outline" />
+            </q-item-section>
+            <q-item-section>{{ $t('Reset table view to default and reload') + ' ' + parameterName }}</q-item-section>
+          </q-item>
+
+        </q-list>
+      </q-menu>
+    </q-btn>
+    <!-- end of menu -->
+
     <q-btn
       @click="doShowParamNote"
       flat
       dense
-      class="col-auto bg-primary text-white rounded-borders q-mr-xs"
+      class="col-auto bg-primary text-white rounded-borders q-ml-xs"
       icon="mdi-information"
       :title="$t('About') + ' ' + parameterName"
       />
+
+    <q-separator vertical inset spaced="sm" color="secondary" />
 
     <template v-if="!isFromRun">
       <q-btn
@@ -48,7 +289,7 @@
         :disable="!edt.isEnabled"
         flat
         dense
-        class="col-auto bg-primary text-white rounded-borders q-mr-xs"
+        class="col-auto bg-primary text-white rounded-borders"
         :icon="edt.isEdit ? 'cancel' : 'mdi-table-edit'"
         :title="(edt.isEdit ? $t('Discard changes of') : $t('Edit')) + ' ' + parameterName"
         />
@@ -57,7 +298,7 @@
         :disable="!edt.isEnabled || !edt.isUpdated"
         flat
         dense
-        class="col-auto bg-primary text-white rounded-borders q-mr-xs"
+        class="col-auto bg-primary text-white rounded-borders q-ml-xs"
         icon="mdi-content-save-edit"
         :title="$t('Save') + ' ' + parameterName"
         />
@@ -66,7 +307,7 @@
         :disable="!edt.isEnabled || edt.lastHistory <= 0"
         flat
         dense
-        class="col-auto bg-primary text-white rounded-borders q-mr-xs"
+        class="col-auto bg-primary text-white rounded-borders q-ml-xs"
         icon="mdi-undo-variant"
         :title="$t('Undo') + ': Ctrl+Z'"
         />
@@ -75,13 +316,13 @@
         :disable="!edt.isEnabled || edt.lastHistory >= edt.history.length"
         flat
         dense
-        class="col-auto bg-primary text-white rounded-borders q-mr-xs"
+        class="col-auto bg-primary text-white rounded-borders q-ml-xs"
         icon="mdi-redo-variant"
         :title="$t('Redo') + ': Ctrl+Y'"
         />
-    </template>
 
-    <q-separator vertical inset spaced="sm" color="secondary" />
+      <q-separator vertical inset spaced="sm" color="secondary" />
+    </template>
 
     <q-btn
       v-if="!noteEditorShow"
@@ -89,7 +330,7 @@
       :disable="!isFromRun && !edt.isEnabled"
       flat
       dense
-      class="col-auto bg-primary text-white rounded-borders q-mr-xs"
+      class="col-auto bg-primary text-white rounded-borders"
       icon="mdi-file-document-edit-outline"
       :title="$t('Edit notes for') + ' ' + parameterName"
       />
@@ -98,7 +339,7 @@
       @click="onCancelParamNote()"
       flat
       dense
-      class="col-auto bg-primary text-white rounded-borders q-mr-xs"
+      class="col-auto bg-primary text-white rounded-borders q-ml-xs"
       icon="cancel"
       :title="$t('Discard changes to notes for') + ' ' + parameterName"
       />
@@ -107,7 +348,7 @@
       :disable="!noteEditorShow || (!isFromRun && !edt.isEnabled)"
       flat
       dense
-      class="col-auto bg-primary text-white rounded-borders q-mr-xs"
+      class="col-auto bg-primary text-white rounded-borders q-ml-xs"
       icon="mdi-content-save-edit"
       :title="$t('Save notes for') + ' ' + parameterName"
       />
@@ -118,7 +359,7 @@
       @click="onCopyToClipboard"
       flat
       dense
-      class="col-auto bg-primary text-white rounded-borders q-mr-xs"
+      class="col-auto bg-primary text-white rounded-borders"
       icon="mdi-content-copy"
       :title="$t('Copy tab separated values to clipboard') + ': Ctrl+C'"
       />
@@ -127,7 +368,7 @@
       :disable="!isFromRun && edt.isEdit"
       flat
       dense
-      class="col-auto bg-primary text-white rounded-borders"
+      class="col-auto bg-primary text-white rounded-borders q-ml-xs"
       icon="mdi-download"
       :title="$t('Download') + ' '  + parameterName + ' ' + $t('as CSV')"
       />

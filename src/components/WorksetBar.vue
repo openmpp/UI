@@ -5,21 +5,75 @@
     >
 
     <q-btn
+      v-if="isShowMenu"
+      outline
+      round
+      dense
+      class="col-auto text-primary q-mr-xs"
+      icon="menu"
+      :title="$t('Menu')"
+      :aria-label="$t('Menu')"
+      >
+      <q-menu auto-close>
+        <q-list>
+
+          <q-item
+            @click="onShowWorksetNote"
+            :disable="!isNotEmptyWorkset"
+            clickable
+            >
+            <q-item-section avatar>
+              <q-icon color="primary" name="mdi-information-outline" />
+            </q-item-section>
+            <q-item-section>{{ $t('About') + ' ' + worksetName }}</q-item-section>
+          </q-item>
+          <q-separator />
+
+          <q-item
+            v-if="isNewRunButton"
+            @click="onNewRunClick"
+            :disable="!isNotEmptyWorkset || !isReadonlyWorkset"
+            clickable
+            >
+            <q-item-section avatar>
+              <q-icon color="primary" name="mdi-run" />
+            </q-item-section>
+            <q-item-section>{{ $t('Run the Model') }}</q-item-section>
+          </q-item>
+          <q-item
+            v-if="isReadonlyButton"
+            :disable="!isNotEmptyWorkset || isReadonlyDisabled"
+            @click="onWorksetReadonlyToggle"
+            clickable
+            >
+            <q-item-section avatar>
+              <q-icon color="primary" :name="(!isNotEmptyWorkset || isReadonlyWorkset) ? 'mdi-lock' : 'mdi-lock-open-variant'" />
+            </q-item-section>
+            <q-item-section>{{ ((!isNotEmptyWorkset || isReadonlyWorkset) ? $t('Open to edit scenario') : $t('Close to run scenario')) + ' ' + worksetName }}</q-item-section>
+          </q-item>
+
+        </q-list>
+      </q-menu>
+    </q-btn>
+
+    <q-btn
       @click="onShowWorksetNote"
       :disable="!isNotEmptyWorkset"
       flat
       dense
-      class="col-auto bg-primary text-white rounded-borders q-mr-xs"
+      class="col-auto bg-primary text-white rounded-borders"
       icon="mdi-information"
       :title="$t('About') + ' ' + worksetName"
       />
+    <q-separator v-if="isShowMenu" vertical inset spaced="sm" color="secondary" />
+
     <q-btn
       v-if="isNewRunButton"
       @click="onNewRunClick"
       :disable="!isNotEmptyWorkset || !isReadonlyWorkset"
       flat
       dense
-      class="col-auto bg-primary text-white rounded-borders q-mr-xs"
+      class="col-auto bg-primary text-white rounded-borders"
       icon="mdi-run"
       :title="$t('Run the Model')"
       />
@@ -29,13 +83,13 @@
       @click="onWorksetReadonlyToggle"
       flat
       dense
-      class="col-auto bg-primary text-white rounded-borders q-mr-xs"
+      class="col-auto bg-primary text-white rounded-borders q-ml-xs"
       :icon="(!isNotEmptyWorkset || isReadonlyWorkset) ? 'mdi-lock' : 'mdi-lock-open-variant'"
       :title="((!isNotEmptyWorkset || isReadonlyWorkset) ? $t('Open to edit scenario') : $t('Close to run scenario')) + ' ' + worksetName"
       />
 
     <div
-      class="col-auto"
+      class="col-auto q-ml-xs"
       >
       <span>{{ worksetName }}<br />
       <span class="om-text-descr"><span class="mono">{{ lastDateTimeStr }} </span>{{ descrOfWorkset }}</span></span>
@@ -56,7 +110,8 @@ export default {
     worksetName: { type: String, default: '' },
     isNewRunButton: { type: Boolean, default: false },
     isReadonlyButton: { type: Boolean, default: false },
-    isReadonlyDisabled: { type: Boolean, default: false }
+    isReadonlyDisabled: { type: Boolean, default: false },
+    isShowMenu: { type: Boolean, default: false }
   },
 
   data () {
