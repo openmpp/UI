@@ -37,9 +37,8 @@
     <!-- menu -->
     <q-btn
       outline
-      round
       dense
-      class="col-auto text-primary"
+      class="col-auto text-primary rounded-borders"
       icon="menu"
       :title="$t('Menu')"
       :aria-label="$t('Menu')"

@@ -7,9 +7,8 @@
     <q-btn
       v-if="isShowMenu"
       outline
-      round
       dense
-      class="col-auto text-primary q-mr-xs"
+      class="col-auto text-primary rounded-borders q-mr-xs"
       icon="menu"
       :title="$t('Menu')"
       :aria-label="$t('Menu')"

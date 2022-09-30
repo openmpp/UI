@@ -10,9 +10,8 @@
 
       <q-btn
         outline
-        round
         dense
-        class="col-auto text-primary q-ml-sm"
+        class="col-auto text-primary rounded-borders q-ml-sm"
         icon="menu"
         :title="$t('Menu')"
         :aria-label="$t('Menu')"
