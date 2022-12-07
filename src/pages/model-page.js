@@ -126,7 +126,7 @@ export default {
 
       for (const t of tv) {
         if (t?.kind && t?.routeParts?.digest) {
-          this.doTabAdd(t.kind, t.routeParts)
+          this.doTabAdd(t.kind, t.routeParts, true)
 
           const rd = t.routeParts?.runDigest || ''
           if (rd && !this.runViewsArray.includes(rd)) this.runViewsArray.push(rd)
@@ -429,14 +429,9 @@ export default {
       const p = this.doTabAdd(kind, routeParts)
       if (p === this.$route.path) this.activeTabKey = p
     },
-    // tab select: add to the tab list and make this tab active
-    onTabSelect (kind, routeParts) {
-      const p = this.doTabAdd(kind, routeParts)
-      if (p) this.$router.push(p)
-    },
 
     // if tab not exist then add new tab
-    doTabAdd (kind, routeParts) {
+    doTabAdd (kind, routeParts, isRestore = false) {
       // make tab path and title
       const ti = this.makeTabInfo(kind, routeParts)
       if ((ti.path || '') === '') {
@@ -455,6 +450,14 @@ export default {
         while (nPos < this.tabItems.length) {
           if (this.tabItems[nPos].pos > ti.pos) break
           nPos++
+        }
+      } else {
+        if (!isRestore) {
+          nPos = 0
+          while (nPos < this.tabItems.length) {
+            if (this.tabItems[nPos].pos >= FREE_TAB_POS) break
+            nPos++
+          }
         }
       }
       if (nPos >= 0 && nPos < this.tabItems.length) {

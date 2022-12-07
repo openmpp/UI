@@ -97,7 +97,6 @@
     :refresh-tickle="refreshTickle"
     :to-up-down-section="toUpDownSection"
     @tab-mounted="onTabMounted"
-    @tab-select="onTabSelect"
     @run-select="onRunSelect"
     @set-select="onWorksetSelect"
     @run-parameter-select="onRunParamSelect"
