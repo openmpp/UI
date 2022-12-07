@@ -38,7 +38,7 @@
   },
   "devDependencies": {
     "@babel/preset-react": "^7.12.7",
-    "@quasar/app": "^2.0.0",
+    "@quasar/app": "^2.4.3",
     "@types/sanitize-html": "^2.3.1",
     "babel-eslint": "^10.0.1",
     "eslint": "^6.8.0",
