@@ -365,6 +365,8 @@ export default {
   'Show all output tables': 'Afficher toutes les tableaux de résultats',
   'Show all parameters': 'Afficher tous les paramètres',
   'Show filtered out items': 'Afficher les éléments filtrés',
+  'Show labels': 'Afficher les libellés',
+  'Show names': 'Afficher les noms',
   'Show less decimals': 'Afficher moins de décimales',
   'Show more decimals': 'Afficher plus de décimales',
   'Show source value': 'Afficher la valeur source',

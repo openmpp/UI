@@ -49,7 +49,8 @@ export default {
       loadWait: false,
       saveStarted: false,
       saveWait: false,
-      isNullable: false,  // if true then parameter value can be NULL
+      isNullable: false,    // if true then parameter value can be NULL
+      isScalar: false,      // if true then it is scalar parameter with single sub-value
       paramText: Mdf.emptyParamText(),
       paramSize: Mdf.emptyParamSize(),
       paramType: Mdf.emptyTypeText(),
@@ -69,11 +70,12 @@ export default {
         formatOpts: void 0      // hide format controls by default
       },
       pvc: {
-        rowColMode: Pcvt.SPANS_AND_DIMS_PVT, // rows and columns mode: 2 = use spans and show dim names, 1 = use spans and hide dim names, 0 = no spans and hide dim names
+        rowColMode: Pcvt.SPANS_AND_DIMS_PVT,  // rows and columns mode: 2 = use spans and show dim names, 1 = use spans and hide dim names, 0 = no spans and hide dim names
+        isShowNames: false,                   // if true then show dimension names and item names instead of labels
         readValue: (r) => (!r.IsNull ? r.Value : (void 0)),
-        processValue: Pcvt.asIsPval,    // default value processing: return as is
-        formatter: Pcvt.formatDefault,  // disable format(), parse() and validation by default
-        cellClass: 'pv-cell-right'      // default cell value style: right justified number
+        processValue: Pcvt.asIsPval,          // default value processing: return as is
+        formatter: Pcvt.formatDefault,        // disable format(), parse() and validation by default
+        cellClass: 'pv-cell-right'            // default cell value style: right justified number
       },
       pvKeyPos: [],           // position of each dimension item in cell key
       edt: Pcvt.emptyEdit(),  // editor options and state shared with child
@@ -181,6 +183,11 @@ export default {
     onSetRowColMode (mode) {
       this.pvc.rowColMode = (3 + mode) % 3
       this.dispatchParamView({ key: this.routeKey, rowColMode: this.pvc.rowColMode })
+    },
+    // switch between show dimension names and item names or labels
+    onShowItemNames () {
+      this.pvc.isShowNames = !this.pvc.isShowNames
+      this.ctrl.isPvDimsTickle = !this.ctrl.isPvDimsTickle
     },
     // show more decimals (or more details) in table body
     onShowMoreFormat () {
@@ -567,12 +574,13 @@ export default {
 
       this.isNullable = this.paramText.Param?.IsExtendable || false
       this.subCount = this.paramRunSet.SubCount || 0
+      this.isScalar = this.paramSize.rank <= 0 && this.subCount <= 1
 
       // adjust controls
       this.edt.isEnabled = this.isUploadEnabled = !this.isFromRun && Mdf.isNotEmptyWorksetText(src) && !src.IsReadonly
       Pcvt.resetEdit(this.edt) // clear editor state
 
-      const isRc = this.paramSize.rank > 0 || this.subCount > 1
+      const isRc = !this.isScalar
       this.pvc.rowColMode = isRc ? Pcvt.SPANS_AND_DIMS_PVT : Pcvt.NO_SPANS_NO_DIMS_PVT
       this.ctrl.isRowColModeToggle = isRc
       this.ctrl.isRowColControls = isRc
@@ -604,6 +612,7 @@ export default {
           const eId = t.TypeEnumTxt[j].Enum.EnumId
           eLst[j] = {
             value: eId,
+            name: t.TypeEnumTxt[j].Enum.Name || eId.toString(),
             label: Mdf.enumDescrOrCodeById(t, eId) || t.TypeEnumTxt[j].Enum.Name || eId.toString()
           }
         }
@@ -631,7 +640,7 @@ export default {
 
         const eLst = Array(this.subCount)
         for (let k = 0; k < this.subCount; k++) {
-          eLst[k] = { value: k, label: k.toString() }
+          eLst[k] = { value: k, name: k.toString(), label: k.toString() }
         }
         f.enums = Object.freeze(eLst)
         f.options = f.enums
@@ -672,7 +681,7 @@ export default {
         if (Mdf.isBool(this.paramType.Type)) {
           this.pvc.processValue = Pcvt.asBoolPval
           this.pvc.cellClass = 'pv-cell-center'
-          this.pvc.formatter = Pcvt.formatBool()
+          this.pvc.formatter = Pcvt.formatBool({})
           this.edt.kind = Pcvt.EDIT_BOOL
         }
         if (Mdf.isString(this.paramType.Type)) {
@@ -801,8 +810,8 @@ export default {
       this.colFields = cf
       this.otherFields = tf
 
-      // default row-column mode: no row-column headers for scalar parameters
-      this.pvc.rowColMode = (this.paramSize.rank > 0 || this.subCount > 1) ? Pcvt.SPANS_AND_DIMS_PVT : Pcvt.NO_SPANS_NO_DIMS_PVT
+      // default row-column mode: no row-column headers for scalar parameters without sub-values
+      this.pvc.rowColMode = !this.isScalar ? Pcvt.SPANS_AND_DIMS_PVT : Pcvt.NO_SPANS_NO_DIMS_PVT
 
       Pcvt.resetEdit(this.edt) // clear editor state
 

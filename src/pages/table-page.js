@@ -187,13 +187,13 @@ export default {
       this.doRefreshDataPage()
     },
 
-    // initialize table properties: dimensions type and lables, measure lables
+    // initialize table properties: dimensions type and labels, measure labels
     initTableProps () {
       // find table and table size, including run sub-values count
       this.tableText = Mdf.tableTextByName(this.theModel, this.tableName)
       this.tableSize = Mdf.tableSizeByName(this.theModel, this.tableName)
 
-      // find dimension type for each dimension and collect dimension lables
+      // find dimension type for each dimension and collect dimension labels
       this.dimProp = []
       for (let j = 0; j < this.tableSize.rank; j++) {
         if (!this.tableText.TableDimsTxt[j].hasOwnProperty('Dim')) continue
@@ -321,7 +321,7 @@ export default {
         }
       }
 
-      // sort order: same as enum lables for dimensions
+      // sort order: same as enum labels for dimensions
       this.pvtState.sortDefs = []
       const vs = []
 
@@ -338,7 +338,7 @@ export default {
         if (vl.length > 0) vs.push({ name: attr, vals: vl })
       }
 
-      // sort order for measure column: same as expression or accumulator lables
+      // sort order for measure column: same as expression or accumulator labels
       const mAttr = this.colLabels[this.tableSize.rank]
       if (mAttr) {
         const vl = []
@@ -378,7 +378,7 @@ export default {
 
     // setup make colunm labels (attributes in react-pivottable terms)
     makeColLabels () {
-      // add dimension(s) lables
+      // add dimension(s) labels
       const mAttr = this.tableText.ExprDescr || 'Measure'
       this.colLabels = []
       for (let j = 0; j < this.tableSize.rank; j++) {

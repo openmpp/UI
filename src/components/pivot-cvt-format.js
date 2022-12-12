@@ -34,7 +34,7 @@ export const formatFloat = (options) => {
   // adjust format options and more-less options
   if (opts.maxDecimal < 0) opts.maxDecimal = 0
   if (opts.nDecimal > opts.maxDecimal) opts.nDecimal = opts.maxDecimal
-  if (opts.nDecimal < 0) opts.nDecimal = -1
+  if (opts.isSrcValue || opts.nDecimal < 0) opts.nDecimal = -1
 
   const adjustMoreLess = () => {
     opts.isSrcValue = opts.nDecimal < 0
@@ -100,7 +100,11 @@ export const formatFloat = (options) => {
 
 // format number as integer
 export const formatInt = (options) => {
-  const opts = Object.assign({}, formatNumber.makeOpts(options), { nDecimal: 0, maxDecimal: 0 }, moreOrLess.makeDefault())
+  const opts = Object.assign({},
+    moreOrLess.makeDefault(),
+    formatNumber.makeOpts(options),
+    { nDecimal: 0, maxDecimal: 0, isDoMore: !options.isSrcValue, isDoLess: !!options.isSrcValue }
+  )
   return {
     format: (val) => {
       if (opts.isSrcValue) return val // return source value
@@ -130,7 +134,12 @@ export const formatInt = (options) => {
 
 // format enum value: return enum label by enum id
 export const formatEnum = (options) => {
-  const opts = Object.assign({}, moreOrLess.makeDefault(), { enums: [] }, options)
+  const opts = Object.assign({},
+    moreOrLess.makeDefault(),
+    { enums: [] },
+    options,
+    { isDoMore: !options.isSrcValue, isDoLess: !!options.isSrcValue }
+  )
 
   const labels = {} // enums as map of id to label
   for (const e of opts.enums) {
@@ -176,8 +185,11 @@ export const formatEnum = (options) => {
 
 // format boolean value
 export const formatBool = (options) => {
-  const opts = Object.assign({}, moreOrLess.makeDefault(), options)
-
+  const opts = Object.assign({},
+    moreOrLess.makeDefault(),
+    options,
+    { isDoMore: !options.isSrcValue, isDoLess: !!options.isSrcValue }
+  )
   return {
     format: (val) => {
       if (opts.isSrcValue) return val // return source value
@@ -203,11 +215,11 @@ export const formatBool = (options) => {
 /* eslint-disable no-multi-spaces */
 const moreOrLess = {
   makeDefault: () => ({
-    isNullable: false,  // if true then allow empty (NULL) value
-    isSrcValue: false,  // if true then show "source" value, do not apply format(), this is final "more" state
-    isSrcShow: true,    // if true then show "source value" as "more" button
-    isDoMore: true,     // if true then "more" button enabled
-    isDoLess: false     // if true then "less" button enabled
+    isNullable: false,    // if true then allow empty (NULL) value
+    isSrcValue: false,    // if true then show "source" value, do not apply format(), this is final "more" state
+    isSrcShow: true,      // if true then show "source value" as "more" button
+    isDoMore: true,       // if true then "more" button enabled
+    isDoLess: false       // if true then "less" button enabled
   }),
   reset: (opts) => {
     return Object.assign(opts, moreOrLess.makeDefault())

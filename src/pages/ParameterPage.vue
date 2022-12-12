@@ -221,6 +221,16 @@
             </q-item>
           </template>
 
+          <q-item
+            @click="onShowItemNames"
+            :disable="isScalar"
+            clickable
+            >
+            <q-item-section avatar>
+              <q-icon color="primary" name="mdi-decimal-increase" />
+            </q-item-section>
+            <q-item-section>{{ pvc.isShowNames ? $t('Show labels') : $t('Show names') }}</q-item-section>
+          </q-item>
           <template v-if="ctrl.formatOpts">
             <q-item
               @click="onShowMoreFormat"
@@ -437,6 +447,15 @@
         />
     </template>
 
+    <q-btn
+      @click="onShowItemNames"
+      :disable="isScalar"
+      flat
+      dense
+      class="col-auto bg-primary text-white rounded-borders q-mr-xs"
+      :icon="pvc.isShowNames ? 'mdi-label-outline' : 'mdi-label-off-outline'"
+      :title="pvc.isShowNames ? $t('Show labels') : $t('Show names')"
+      />
     <template v-if="ctrl.formatOpts">
       <q-btn
         @click="onShowMoreFormat"

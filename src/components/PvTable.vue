@@ -14,7 +14,7 @@
           :rowspan="colFields.length"
           class="pv-rc-pad"></th>
         <th
-          class="pv-rc-cell">{{cf.label}}</th>
+          class="pv-rc-cell">{{!pvControl.isShowNames ? cf.label : cf.name}}</th>
         <template v-for="(col, nCol) in pvt.cols">
           <th
             :key="pvt.colKeys[nCol]"
@@ -30,7 +30,7 @@
         <th v-for="rf in rowFields"
           :key="rf.name"
           class="pv-rc-cell">
-            {{rf.label}}
+            {{!pvControl.isShowNames ? rf.label : rf.name}}
         </th>
         <th class="pv-rc-pad"></th>
       </tr>

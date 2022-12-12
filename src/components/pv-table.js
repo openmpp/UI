@@ -88,7 +88,8 @@ export default {
     pvControl: {
       type: Object,
       default: () => ({
-        rowColMode: Pcvt.NO_SPANS_NO_DIMS_PVT, // rows and columns mode: 2 = use spans and show dim names, 1 = use spans and hide dim names, 0 = no spans and hide dim names
+        rowColMode: Pcvt.NO_SPANS_NO_DIMS_PVT,  // rows and columns mode: 2 = use spans and show dim names, 1 = use spans and hide dim names, 0 = no spans and hide dim names
+        isShowNames: false,                     // if true then show dimension names and item names instead of labels
         readValue: (r) => (!r.IsNull ? r.Value : (void 0)),
         processValue: Pcvt.asIsPval,    // default value processing: return as is
         formatter: Pcvt.formatDefault,  // disable format(), parse() and validation by default
@@ -584,7 +585,7 @@ export default {
 
           // make enum labels
           for (const e of f.enums) {
-            ls[e.value] = e.label
+            ls[e.value] = !this.pvControl.isShowNames ? e.label : e.name
           }
           this.pvt.labels[f.name] = ls
         }
