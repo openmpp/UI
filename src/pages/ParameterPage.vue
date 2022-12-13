@@ -612,18 +612,19 @@
           <q-select
             v-model="f.singleSelection"
             :options="f.options"
+            :option-label="pvc.isShowNames ? 'name' : 'label'"
             @input="onSelectInput('other', f.name, f.singleSelection)"
             use-input
             hide-selected
             @filter="f.filter"
-            :label="f.selectLabel()"
+            :label="selectLabel(pvc.isShowNames, f)"
             outlined
             dense
             options-dense
             bottom-slots
             class="other-select"
             options-selected-class="option-selected"
-            :title="$t('Select') + ' ' + f.label"
+            :title="$t('Select') + ' ' + (pvc.isShowNames ? f.name : f.label)"
             >
             <template v-slot:before>
               <q-icon
@@ -649,7 +650,7 @@
             </template>
             <template v-slot:hint>
               <div class="row">
-                <span class="col ellipsis">{{ f.label }}</span>
+                <span class="col ellipsis">{{ pvc.isShowNames ? f.name : f.label }}</span>
                 <span class="col-auto text-no-wrap">{{ f.selection ? f.selection.length : 0 }} / {{ f.enums ? f.enums.length : 0 }}</span>
               </div>
             </template>
@@ -674,11 +675,12 @@
           <q-select
             v-model="f.selection"
             :options="f.options"
+            :option-label="pvc.isShowNames ? 'name' : 'label'"
             @input="onSelectInput('col', f.name, f.selection)"
             use-input
             hide-selected
             @filter="f.filter"
-            :label="f.selectLabel()"
+            :label="selectLabel(pvc.isShowNames, f)"
             multiple
             outlined
             dense
@@ -686,7 +688,7 @@
             bottom-slots
             class="col-select"
             options-selected-class="option-selected"
-            :title="$t('Select') + ' ' + f.label"
+            :title="$t('Select') + ' ' + (pvc.isShowNames ? f.name : f.label)"
             >
             <template v-slot:before>
               <q-icon
@@ -718,7 +720,7 @@
             </template>
             <template v-slot:hint>
               <div class="row">
-                <span class="col ellipsis">{{ f.label }}</span>
+                <span class="col ellipsis">{{ pvc.isShowNames ? f.name : f.label }}</span>
                 <span class="col-auto text-no-wrap">{{ f.selection ? f.selection.length : 0 }} / {{ f.enums ? f.enums.length : 0 }}</span>
               </div>
             </template>
@@ -743,11 +745,12 @@
             v-model="f.selection"
             :name="f.name"
             :options="f.options"
+            :option-label="pvc.isShowNames ? 'name' : 'label'"
             @input="onSelectInput('row', f.name, f.selection)"
             use-input
             hide-selected
             @filter="f.filter"
-            :label="f.selectLabel()"
+            :label="selectLabel(pvc.isShowNames, f)"
             multiple
             outlined
             dense
@@ -755,7 +758,7 @@
             bottom-slots
             class="row-select"
             options-selected-class="option-selected"
-            :title="$t('Select') + ' ' + f.label"
+            :title="$t('Select') + ' ' + (pvc.isShowNames ? f.name : f.label)"
             >
             <template v-slot:before>
               <q-icon
@@ -787,7 +790,7 @@
             </template>
             <template v-slot:hint>
               <div class="row">
-                <span class="col ellipsis">{{ f.label }}</span>
+                <span class="col ellipsis">{{ pvc.isShowNames ? f.name : f.label }}</span>
                 <span class="col-auto text-no-wrap">{{ f.selection ? f.selection.length : 0 }} / {{ f.enums ? f.enums.length : 0 }}</span>
               </div>
             </template>

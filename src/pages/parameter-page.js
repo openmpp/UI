@@ -590,7 +590,6 @@ export default {
       //  [rank] of enum-based dimensions
       //  sub-value id dimension, if parameter has sub-values
       this.dimProp = []
-      const dsl = this.$t('Select')
 
       for (let n = 0; n < this.paramText.ParamDimsTxt.length; n++) {
         const dt = this.paramText.ParamDimsTxt[n]
@@ -598,7 +597,6 @@ export default {
         const f = {
           name: dt.Dim.Name || '',
           label: Mdf.descrOfDescrNote(dt) || dt.Dim.Name || '',
-          selectLabel: () => dsl + '\u2026',
           read: (r) => (r.DimIds.length > n ? r.DimIds[n] : void 0),
           enums: [],
           options: [],
@@ -619,7 +617,6 @@ export default {
         f.enums = Object.freeze(eLst)
         f.options = f.enums
         f.filter = Puih.makeFilter(f)
-        f.selectLabel = Puih.makeSelectLabel(f, dsl)
 
         this.dimProp.push(f)
       }
@@ -629,7 +626,6 @@ export default {
         const f = {
           name: SUB_ID_DIM,
           label: this.$t('Sub #'),
-          selectLabel: () => dsl + '\u2026',
           read: (r) => (r.SubId),
           enums: [],
           options: [],
@@ -645,7 +641,6 @@ export default {
         f.enums = Object.freeze(eLst)
         f.options = f.enums
         f.filter = Puih.makeFilter(f)
-        f.selectLabel = Puih.makeSelectLabel(f, dsl)
 
         this.dimProp.push(f)
       }
@@ -709,6 +704,19 @@ export default {
 
       // set columns layout and refresh the data
       this.setPageView()
+    },
+
+    // make a label for dimension item(s) select
+    selectLabel (isNames, f) {
+      const dsl = this.$t('Select')
+
+      if (!f) return dsl + '\u2026'
+      //
+      switch (f.selection.length) {
+        case 0: return dsl + ' ' + (isNames ? f.name : f.label) + '\u2026'
+        case 1: return (isNames ? f.selection[0].name : f.selection[0].label)
+      }
+      return (isNames ? f.selection[0].name : f.selection[0].label) + ', ' + '\u2026'
     },
 
     // set page view: use previous page view from store or default

@@ -129,17 +129,6 @@ export const makePageForSave = (dimProp, keyPos, rank, subIdName, isNullable, up
   return pv
 }
 
-// make a label for dimension item(s) select
-export const makeSelectLabel = (f, defaultSelectLabel) => () => {
-  if (!f) return
-  //
-  switch (f.selection.length) {
-    case 0: return defaultSelectLabel + ' ' + f.label + '\u2026'
-    case 1: return f.selection[0].label
-  }
-  return f.selection[0].label + ', ' + '\u2026'
-}
-
 // filter handler: update options list on user input
 export const makeFilter = (f) => (val, update, abort) => {
   update(

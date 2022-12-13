@@ -8,9 +8,9 @@ rowFields[], colFields[], otherFields[]: array of dimensions, example of each el
     read: (r) => (r.DimIds.length > 0 ? r.DimIds[0] : void 0),
     selection: [],
     enums: [
-      { value: 100, label: 'Low' },
-      { value: 200, label: 'Medium' },
-      { value: 300, label: 'High' }
+      { value: 100, name: 'low',    label: 'Low Value' },
+      { value: 200, name: 'medium', label: 'Medium Value' },
+      { value: 300, name: 'high',   label: 'High Value' }
     ]
   }
 
@@ -24,6 +24,7 @@ pvData: // array of table rows, for example:
 
 pvControl: {
   rowColMode:   rows and columns mode: 2 = use spans, show dim names, 1 = use spans, hide dim names, 0 = no spans, hide dim names
+  isShowNames:  if true then show item names (enums[k].name) instead of labels (enums[k].label) by default
   readValue():  function expected to return table cell value
   processValue: functions are used to aggregate cell value(s)
   formatter: {
