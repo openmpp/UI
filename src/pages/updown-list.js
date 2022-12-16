@@ -94,7 +94,8 @@ export default {
       runTextByDigest: 'runTextByDigest'
     }),
     ...mapState('uiState', {
-      noAccDownload: state => state.noAccDownload
+      noAccDownload: state => state.noAccDownload,
+      noMicrodataDownload: state => state.noMicrodataDownload
     }),
     ...mapState('serverState', {
       omsUrl: state => state.omsUrl,
@@ -107,6 +108,7 @@ export default {
     digest () { this.initView() },
     fastDownload (val) {
       this.dispatchNoAccDownload(val === 'yes')
+      this.dispatchNoMicrodataDownload(val === 'yes')
     }
   },
 
@@ -248,7 +250,7 @@ export default {
       this.folderTreeData = []
       this.isAnyFolderDir = false
       this.folderTreeFilter = ''
-      this.fastDownload = this.noAccDownload ? 'yes' : 'no'
+      this.fastDownload = (this.noAccDownload && this.noMicrodataDownload) ? 'yes' : 'no'
       this.stopLogRefresh()
       this.startLogRefresh()
     },
@@ -712,7 +714,8 @@ export default {
     },
 
     ...mapActions('uiState', {
-      dispatchNoAccDownload: 'noAccDownload'
+      dispatchNoAccDownload: 'noAccDownload',
+      dispatchNoMicrodataDownload: 'noMicrodataDownload'
     })
   },
 

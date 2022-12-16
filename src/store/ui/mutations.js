@@ -7,6 +7,9 @@ export const uiLang = (state, lang) => { state.uiLang = (lang || '') }
 // set fast or full download: use accumulators or not
 export const noAccDownload = (state, noAcc) => { state.noAccDownload = !!noAcc }
 
+// set fast or full download: use microdata or not
+export const noMicrodataDownload = (state, noMd) => { state.noMicrodataDownload = !!noMd }
+
 // set tree label kind (parameter and table tree): name only, description only or both by default
 export const treeLabelKind = (state, labelKind) => {
   state.treeLabelKind = (labelKind === 'name-only' || labelKind === 'descr-only') ? labelKind : ''

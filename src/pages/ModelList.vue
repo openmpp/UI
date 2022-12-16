@@ -148,7 +148,8 @@ export default {
     ...mapState('uiState', {
       uiLang: state => state.uiLang,
       modelTreeExpandedKeys: state => state.modelTreeExpandedKeys,
-      noAccDownload: state => state.noAccDownload
+      noAccDownload: state => state.noAccDownload,
+      noMicrodataDownload: state => state.noMicrodataDownload
     }),
     ...mapState('serverState', {
       omsUrl: state => state.omsUrl,
@@ -362,6 +363,7 @@ export default {
 
       const opts = {
         NoAccumulatorsCsv: this.noAccDownload,
+        NoMicrodataCsv: this.NoMicrodataDownload,
         Utf8BomIntoCsv: this.$q.platform.is.win
       }
       const u = this.omsUrl + '/api/download/model/' + encodeURIComponent((dgst || ''))

@@ -12,6 +12,11 @@ export const noAccDownload = ({ commit }, noAcc) => {
   commit('noAccDownload', noAcc)
 }
 
+// set fast or full download: use microdata or not
+export const noMicrodataDownload = ({ commit }, noMd) => {
+  commit('noMicrodataDownload', noMd)
+}
+
 // set tree label kind (parameter and table tree): name only, description only or both by default
 export const treeLabelKind = ({ commit }, labelKind) => {
   commit('treeLabelKind', labelKind)

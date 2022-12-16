@@ -98,7 +98,8 @@ export default {
     ...mapState('uiState', {
       runDigestSelected: state => state.runDigestSelected,
       uiLang: state => state.uiLang,
-      noAccDownload: state => state.noAccDownload
+      noAccDownload: state => state.noAccDownload,
+      noMicrodataDownload: state => state.noMicrodataDownload
     }),
     ...mapGetters('uiState', {
       modelViewSelected: 'modelViewSelected'
@@ -496,6 +497,7 @@ export default {
 
       const opts = {
         NoAccumulatorsCsv: this.noAccDownload,
+        NoMicrodataCsv: this.noMicrodataDownload,
         Utf8BomIntoCsv: this.$q.platform.is.win
       }
       const u = this.omsUrl +

@@ -6,6 +6,7 @@ export default function () {
     worksetNameSelected: '',
     taskNameSelected: '',
     noAccDownload: true,
+    noMicrodataDownload: true,
     treeLabelKind: '',
     modelTreeExpandedKeys: [],
     paramViews: {},

@@ -249,13 +249,15 @@ export default {
     ...mapState('uiState', {
       uiLang: state => state.uiLang,
       treeLabelKind: state => state.treeLabelKind,
-      noAccDownload: state => state.noAccDownload
+      noAccDownload: state => state.noAccDownload,
+      noMicrodataDownload: state => state.noMicrodataDownload
     })
   },
 
   watch: {
     fastDownload (val) {
       this.dispatchNoAccDownload(val === 'yes')
+      this.dispatchNoMicrodataDownload(val === 'yes')
     },
     labelKind (val) {
       this.dispatchTreeLabelKind((val === 'name-only' || val === 'descr-only') ? val : '')
@@ -266,7 +268,7 @@ export default {
     // refresh model settings: select from indexed db
     doRefresh () {
       this.clearState()
-      this.fastDownload = this.noAccDownload ? 'yes' : 'no'
+      this.fastDownload = (this.noAccDownload && this.noMicrodataDownload) ? 'yes' : 'no'
       this.labelKind = (this.treeLabelKind === 'name-only' || this.treeLabelKind === 'descr-only') ? this.treeLabelKind : 'default'
 
       if (this.modelName) this.doReadParameterViews()
@@ -453,6 +455,7 @@ export default {
     ...mapActions('uiState', {
       dispatchUiLang: 'uiLang',
       dispatchNoAccDownload: 'noAccDownload',
+      dispatchNoMicrodataDownload: 'noMicrodataDownload',
       dispatchTreeLabelKind: 'treeLabelKind',
       dispatchViewDeleteByModel: 'viewDeleteByModel'
     })
