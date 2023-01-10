@@ -56,7 +56,7 @@ export const makeSelectLayout = (paramName, otherFields, skipDimName) => {
     if (f.name === skipDimName) continue // do not filter by "measure" dimension
 
     const flt = {
-      DimName: f.name,
+      Name: f.name,
       Op: 'IN_AUTO',
       EnumIds: []
     }
