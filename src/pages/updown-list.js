@@ -468,12 +468,12 @@ export default {
 
       // make files (and folders) map: map file path to folder name and item name (file name or sub-folder name)
       const fPath = {}
-      let isAnyDir = false
+      let isAny = false
 
       for (let k = 0; k < fLst.length; k++) {
         if (!fLst[k].Path || fLst[k].Path === '.' || fLst[k].Path === '..') continue
 
-        isAnyDir = isAnyDir || fLst[k].IsDir
+        isAny = isAny || fLst[k].IsDir
 
         // if root folder
         if (fLst[k].Path === '/') {
@@ -573,7 +573,7 @@ export default {
       // push top level files after top level folders
       fTree.push(...fTopFiles)
 
-      return { isAnyDir: isAnyDir, tree: fTree }
+      return { isAnyDir: isAny, tree: fTree }
     },
 
     // upload model run zip file

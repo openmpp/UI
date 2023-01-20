@@ -253,23 +253,23 @@ export default {
         if (!this.isNoHidden && !this.isShowHidden && gLst[k].Group.IsHidden) continue // skip hidden group
         if (isGflt && !this.isShowFiltered && !fgLst[gLst[k].Group.Name]) continue // skip filtered out group
 
-        const gId = gLst[k].Group.GroupId
+        const iGId = gLst[k].Group.GroupId
 
-        if (!gUse[gId]) continue // skip this group: it is empty group
+        if (!gUse[iGId]) continue // skip this group: it is empty group
 
         const isNotTop = gLst.findIndex((gt) => {
           if (gt.Group.IsParam) return false
-          if (gt.Group.GroupId === gId) return false
+          if (gt.Group.GroupId === iGId) return false
           if (gt.Group.GroupPc.length <= 0) return false
-          return gt.Group.GroupPc.findIndex((pc) => pc.ChildGroupId === gId) >= 0
+          return gt.Group.GroupPc.findIndex((pc) => pc.ChildGroupId === iGId) >= 0
         }) >= 0
         if (isNotTop) continue // not a top level group
 
-        const g = Mdf._cloneDeep(gUse[gId].item)
+        const g = Mdf._cloneDeep(gUse[iGId].item)
         gTree.push(g)
         gProc.push({
-          gId: gId,
-          path: [gId],
+          gId: iGId,
+          path: [iGId],
           item: g
         })
       }
@@ -342,7 +342,7 @@ export default {
         }
       }
 
-      let leafCount = 0
+      let nLeaf = 0
       for (const t of this.theModel.TableTxt) {
         if (!tUse[t.Table.TableId]) continue // skip: table suppressed or hidden
         if (isTflt && !this.isShowFiltered && !ftLst[t.Table.Name]) continue // skip filtered out table
@@ -359,10 +359,10 @@ export default {
           })
           tUse[t.Table.TableId].isLeaf = true
         }
-        if (tUse[t.Table.TableId].isLeaf) leafCount++
+        if (tUse[t.Table.TableId].isLeaf) nLeaf++
       }
 
-      return { tree: gTree, leafCount: leafCount }
+      return { tree: gTree, leafCount: nLeaf }
     }
   },
 

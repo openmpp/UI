@@ -350,7 +350,7 @@ export default {
       }
 
       // write parameter views into indexed db
-      let count = 0
+      let nViews = 0
       if (Array.isArray(vs.model?.parameterViews) && vs.model?.parameterViews?.length) {
         let name = ''
         try {
@@ -360,7 +360,7 @@ export default {
             if (!v?.name || !v?.view) continue
             name = v.name
             await rw.put(v.name, v.view)
-            count++
+            nViews++
           }
         } catch (e) {
           console.warn('Unable to save default parameter view:', name, e)
@@ -369,9 +369,9 @@ export default {
         }
       }
       // refresh parameter views: read new version of views from database
-      if (count) {
+      if (nViews) {
         this.doReadParameterViews()
-        this.$q.notify({ type: 'info', message: this.$t('Updated {count} parameter view(s)', { count: count }) })
+        this.$q.notify({ type: 'info', message: this.$t('Updated {count} parameter view(s)', { count: nViews }) })
       } else {
         this.$q.notify({ type: 'info', message: this.$t('No parameter views found') + ': ' + this.modelName })
       }
@@ -381,10 +381,10 @@ export default {
     },
 
     // upload of parameter views completed
-    doneUserViewsUpload (isSuccess, count) {
+    doneUserViewsUpload (isSuccess, nViews) {
       this.uploadUserViewsDone = true
-      if (isSuccess && count > 0) {
-        this.$q.notify({ type: 'info', message: this.$t('Uploaded {count} parameter view(s)', { count: count }) })
+      if (isSuccess && nViews > 0) {
+        this.$q.notify({ type: 'info', message: this.$t('Uploaded {count} parameter view(s)', { count: nViews }) })
       }
     },
 

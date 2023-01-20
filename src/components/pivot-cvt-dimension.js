@@ -4,14 +4,14 @@
 //  read dimension items from input record
 //  check if item is in dropdown filter values
 //  comparator to sort items in the order of dimension enums
-export const dimField = (field, isRow = false, isCol = false) => {
+export const dimField = (field, isOnRow = false, isOnCol = false) => {
   //
   const selectedIdsIndex = {}
   for (let k = 0; k < field.selection.length; k++) {
     selectedIdsIndex[field.selection[k].value] = k
   }
-  const isSingleKey = field.selection.length === 1
-  const singleKey = isSingleKey ? field.selection[0].value : void 0
+  const isSingle = field.selection.length === 1
+  const singleKey = isSingle ? field.selection[0].value : void 0
 
   const enumIdsIndex = {}
   for (let k = 0; k < field.enums.length; k++) {
@@ -20,17 +20,17 @@ export const dimField = (field, isRow = false, isCol = false) => {
 
   /* eslint-disable no-multi-spaces */
   return {
-    isRow: isRow,     // if true then this is row dimension field
-    isCol: isCol,     // if true then this is column dimension field
+    isRow: isOnRow,   // if true then this is row dimension field
+    isCol: isOnCol,   // if true then this is column dimension field
     name: field.name, // dimension field name
     //
     read: field.read,                                   // read field item function to return dimension item from source record
     filter: (v) => selectedIdsIndex.hasOwnProperty(v),  // return true if field item is selected by dimension filters
     //
-    keyPos: 0,                                    // position of field item in body cell key
-    isCellKey: isRow || isCol || isSingleKey,     // use field item as body cell key
-    isSingleKey: isSingleKey,                     // if true then only single item selected
-    singleKey: isSingleKey ? singleKey : void 0,  // if only single item selected then use it as body cell key
+    keyPos: 0,                                  // position of field item in body cell key
+    isCellKey: isOnRow || isOnCol || isSingle,  // use field item as body cell key
+    isSingleKey: isSingle,                      // if true then only single item selected
+    singleKey: isSingle ? singleKey : void 0,   // if only single item selected then use it as body cell key
     //
     // default comparator to sort dimension in same order as original dimension enums
     compareEnumIdByIndex: (left, right) => {

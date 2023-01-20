@@ -1,4 +1,5 @@
-// babel.config.js
+/* eslint-env node */
+
 module.exports = {
   plugins: [
     '@babel/plugin-proposal-nullish-coalescing-operator',

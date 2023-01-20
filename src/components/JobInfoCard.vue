@@ -184,16 +184,16 @@ export default {
         rji.ModelCreateDateTime = this.jobItem.RunStatus[0]?.ModelCreateDateTime || ''
       }
 
-      for (const key in this.jobItem.Opts) {
-        if (!key || (this.jobItem.Opts[key] || '') === '') continue
+      for (const iKey in this.jobItem.Opts) {
+        if (!iKey || (this.jobItem.Opts[iKey] || '') === '') continue
 
-        const v = this.jobItem.Opts[key]
-        rji.opts.push({ key: key, val: v })
+        const v = this.jobItem.Opts[iKey]
+        rji.opts.push({ key: iKey, val: v })
 
-        const klc = key.toLowerCase()
+        const klc = iKey.toLowerCase()
 
         if (klc.endsWith('.RunDescription'.toLowerCase())) {
-          rji.runDescr.push({ key: 'rd-' + key, descr: v })
+          rji.runDescr.push({ key: 'rd-' + iKey, descr: v })
         }
         if (klc.endsWith('OpenM.RunName'.toLowerCase())) rji.OptRunName = v
         if (klc.endsWith('OpenM.SubValues'.toLowerCase())) rji.OptSubValues = v

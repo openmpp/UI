@@ -220,22 +220,22 @@ export default {
       const gProc = []
 
       for (const g of this.theModel.GroupTxt) {
-        const gId = g.Group.GroupId
-        if (!gUse[gId]) continue // skip: this is not a workset group
+        const iGid = g.Group.GroupId
+        if (!gUse[iGid]) continue // skip: this is not a workset group
 
         const isNotTop = this.theModel.GroupTxt.findIndex((gt) => {
           if (!gt.Group.IsParam) return false
-          if (gt.Group.GroupId === gId) return false
+          if (gt.Group.GroupId === iGid) return false
           if (gt.Group.GroupPc.length <= 0) return false
-          return gt.Group.GroupPc.findIndex((pc) => pc.ChildGroupId === gId) >= 0
+          return gt.Group.GroupPc.findIndex((pc) => pc.ChildGroupId === iGid) >= 0
         }) >= 0
         if (isNotTop) continue // not a top level group
 
-        const cg = Mdf._cloneDeep(gUse[gId].item)
+        const cg = Mdf._cloneDeep(gUse[iGid].item)
         gTree.push(cg)
         gProc.push({
-          gId: gId,
-          path: [gId],
+          gId: iGid,
+          path: [iGid],
           item: cg
         })
       }
@@ -300,7 +300,7 @@ export default {
         }
       }
 
-      let leafCount = 0
+      let nLeaf = 0
       for (const p of this.theModel.ParamTxt) {
         const pId = p.Param.ParamId
         const pw = pUse[pId]
@@ -310,10 +310,10 @@ export default {
           gTree.push(pw.item)
           pw.isLeaf = true
         }
-        if (pw.isLeaf) leafCount++
+        if (pw.isLeaf) nLeaf++
       }
 
-      return { tree: gTree, leafCount: leafCount }
+      return { tree: gTree, leafCount: nLeaf }
     }
   },
 

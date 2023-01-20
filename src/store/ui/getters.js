@@ -6,11 +6,11 @@ export const modelViewSelected = (state) => (modelDigest) => {
   return (typeof modelDigest !== typeof 'string' || !state.modelView[modelDigest])
     ? Mdf.emptyModelView()
     : {
-      runDigest: state.modelView[modelDigest]?.runDigest || '',
-      runCompare: state.modelView[modelDigest]?.runCompare || '',
-      worksetName: state.modelView[modelDigest]?.worksetName || '',
-      taskName: state.modelView[modelDigest]?.taskName || ''
-    }
+        runDigest: state.modelView[modelDigest]?.runDigest || '',
+        runCompare: state.modelView[modelDigest]?.runCompare || '',
+        worksetName: state.modelView[modelDigest]?.worksetName || '',
+        taskName: state.modelView[modelDigest]?.taskName || ''
+      }
 }
 
 // return copy tab items by model digest

@@ -333,7 +333,7 @@ export default {
       modelInfoTickle: false,
       toUpDownSection: 'down',
       langCode: this.$q.lang.getLocale(),
-      appLanguages: languages.filter(lang => ['fr', 'en-us'].includes(lang.isoName))
+      appLanguages: languages.filter(lang => ['fr', 'en-US'].includes(lang.isoName))
     }
   },
 
@@ -376,8 +376,8 @@ export default {
     uiLang () {
       if (!this.uiLang) {
         let lc = this.$q.lang.getLocale()
-        if (this.appLanguages.findIndex((ln) => ln.isoName === lc) < 0) { // language not included in translation pack, use default en-us
-          lc = 'en-us'
+        if (this.appLanguages.findIndex((ln) => ln.isoName === lc) < 0) { // language not included in translation pack, use default en-US
+          lc = 'en-US'
         }
         this.langCode = lc
         this.$i18n.locale = lc
@@ -387,7 +387,7 @@ export default {
     langCode (lc) {
       // dynamic import, so loading on demand only
       import(
-        /* webpackInclude: /(fr|en-us)\.js$/ */
+        /* webpackInclude: /(fr|en-US)\.js$/ */
         'quasar/lang/' + lc
       ).then(lang => {
         this.$q.lang.set(lang.default) // switch quasar language

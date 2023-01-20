@@ -269,7 +269,7 @@ export default {
     },
 
     // confirm input edit: validate and save changes in edit history
-    cellInputConfirm (val, key) {
+    cellInputConfirm (val, iKey) {
       // validate input
       if (!this.pvControl.formatter.isValid(val)) {
         this.$q.notify({ type: 'negative', message: this.$t('Invalid (or empty) value entered') })
@@ -277,27 +277,27 @@ export default {
       }
 
       // compare input value with previous
-      const now = this.pvControl.formatter.parse(val)
-      const prev = this.pvEdit.updated.hasOwnProperty(key) ? this.pvEdit.updated[key] : this.pvt.cells[key]
+      const iNow = this.pvControl.formatter.parse(val)
+      const iPrev = this.pvEdit.updated.hasOwnProperty(iKey) ? this.pvEdit.updated[iKey] : this.pvt.cells[iKey]
 
-      if (now === prev || (now === '' && prev === void 0)) return true // exit if value not changed
+      if (iNow === iPrev || (iNow === '' && iPrev === void 0)) return true // exit if value not changed
 
       // store updated value and append it change history
-      this.pvEdit.updated[key] = now
+      this.pvEdit.updated[iKey] = iNow
       this.pvEdit.isUpdated = true
 
       if (this.pvEdit.lastHistory < this.pvEdit.history.length) {
         this.pvEdit.history.splice(this.pvEdit.lastHistory)
       }
       this.pvEdit.history.push({
-        key: key,
-        now: now,
-        prev: prev
+        key: iKey,
+        now: iNow,
+        prev: iPrev
       })
       this.pvEdit.lastHistory = this.pvEdit.history.length
 
-      this.changeRenderKey(key)
-      this.updateValueLenByValue(now)
+      this.changeRenderKey(iKey)
+      this.updateValueLenByValue(iNow)
       return true
     },
 

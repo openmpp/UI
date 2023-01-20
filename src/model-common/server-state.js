@@ -67,23 +67,23 @@ export const configRunOptsPresets = (c, modelName, langCode) => {
     if (!p.Name.startsWith(mnDot) && !p.Name.startsWith(amDot)) continue // must start from model name or 'any_model.'
 
     // parse options json string
-    let opts = {}
+    let iOpts = {}
     try {
-      opts = JSON.parse(p.Options)
+      iOpts = JSON.parse(p.Options)
     } catch {
       continue // skip incorrect options
     }
-    if (!opts || !(opts instanceof Object) || Array.isArray(opts)) continue // must be an object with properties
+    if (!iOpts || !(iOpts instanceof Object) || Array.isArray(iOpts)) continue // must be an object with properties
 
     // find preset description in current model language or use first description or preset name
     let descr = ''
     let label
 
-    if (Array.isArray(opts?.Text)) {
-      for (let j = 0; j < opts.Text.length; j++) {
-        const lc = opts.Text[j]?.LangCode || ''
-        const lb = opts.Text[j]?.ShortLabel || ''
-        const td = opts.Text[j]?.Descr || ''
+    if (Array.isArray(iOpts?.Text)) {
+      for (let j = 0; j < iOpts.Text.length; j++) {
+        const lc = iOpts.Text[j]?.LangCode || ''
+        const lb = iOpts.Text[j]?.ShortLabel || ''
+        const td = iOpts.Text[j]?.Descr || ''
 
         if (j === 0 || lc === langCode) {
           label = label || lb
@@ -93,7 +93,7 @@ export const configRunOptsPresets = (c, modelName, langCode) => {
       }
     }
 
-    pLst.push({ name: p.Name, label: (label || p.Name), descr: (descr || label || p.Name), opts: opts })
+    pLst.push({ name: p.Name, label: (label || p.Name), descr: (descr || label || p.Name), opts: iOpts })
   }
 
   // sort result by name and put model name before 'any_model.'

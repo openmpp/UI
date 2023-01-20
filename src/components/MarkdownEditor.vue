@@ -171,7 +171,7 @@ export default {
           'unordered-list', 'ordered-list', 'table', '|',
           'side-by-side', '|',
           'guide'],
-        spellChecker: (this.langCode || '').toLocaleLowerCase().startsWith('en'), // EasyMDE spell checker is EN-US only
+        spellChecker: (this.langCode || '').toLocaleLowerCase().startsWith('en'), // EasyMDE spell checker is en-US only
         renderingConfig: {
           codeSyntaxHighlighting: true,
           sanitizerFunction: (renderedHTML) => { return sanitizeHtml(renderedHTML) },
