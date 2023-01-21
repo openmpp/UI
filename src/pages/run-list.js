@@ -497,7 +497,7 @@ export default {
 
       const opts = {
         NoAccumulatorsCsv: this.noAccDownload,
-        NoMicrodataCsv: this.noMicrodataDownload,
+        NoMicrodata: this.noMicrodataDownload,
         Utf8BomIntoCsv: this.$q.platform.is.win
       }
       const u = this.omsUrl +

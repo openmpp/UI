@@ -363,7 +363,7 @@ export default {
 
       const opts = {
         NoAccumulatorsCsv: this.noAccDownload,
-        NoMicrodataCsv: this.NoMicrodataDownload,
+        NoMicrodata: this.noMicrodataDownload,
         Utf8BomIntoCsv: this.$q.platform.is.win
       }
       const u = this.omsUrl + '/api/download/model/' + encodeURIComponent((dgst || ''))

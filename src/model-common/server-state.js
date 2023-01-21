@@ -8,6 +8,7 @@ export const emptyConfig = () => {
     AllowUserHome: false,
     AllowDownload: false,
     AllowUpload: false,
+    AllowMicrodata: false,
     IsJobControl: false,
     Env: {},
     ModelCatalog: {
@@ -29,8 +30,9 @@ export const emptyConfig = () => {
 export const isConfig = (c) => {
   if (!c) return false
   if (!c.hasOwnProperty('OmsName') || !c.hasOwnProperty('RowPageMaxSize') || !c.hasOwnProperty('AllowUserHome') ||
-    !c.hasOwnProperty('AllowDownload') || !c.hasOwnProperty('AllowUpload') || !c.hasOwnProperty('IsJobControl') ||
-    !c.hasOwnProperty('Env') || !c.hasOwnProperty('ModelCatalog') || !c.hasOwnProperty('RunCatalog')) {
+    !c.hasOwnProperty('AllowDownload') || !c.hasOwnProperty('AllowUpload') || !c.hasOwnProperty('AllowMicrodata') ||
+    !c.hasOwnProperty('IsJobControl') || !c.hasOwnProperty('Env') || !c.hasOwnProperty('ModelCatalog') ||
+    !c.hasOwnProperty('RunCatalog')) {
     return false
   }
   if (!c.ModelCatalog.hasOwnProperty('ModelDir') || !c.ModelCatalog.hasOwnProperty('ModelLogDir') || !c.ModelCatalog.hasOwnProperty('IsLogDirEnabled')) return false

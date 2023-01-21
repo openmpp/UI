@@ -108,7 +108,7 @@ export default {
     digest () { this.initView() },
     fastDownload (val) {
       this.dispatchNoAccDownload(val === 'yes')
-      this.dispatchNoMicrodataDownload(val === 'yes')
+      this.dispatchNoMicrodataDownload(val === 'yes' || !this.serverConfig.AllowMicrodata)
     }
   },
 
@@ -250,7 +250,7 @@ export default {
       this.folderTreeData = []
       this.isAnyFolderDir = false
       this.folderTreeFilter = ''
-      this.fastDownload = (this.noAccDownload && this.noMicrodataDownload) ? 'yes' : 'no'
+      this.fastDownload = (this.noAccDownload && (this.noMicrodataDownload || !this.serverConfig.AllowMicrodata)) ? 'yes' : 'no'
       this.stopLogRefresh()
       this.startLogRefresh()
     },

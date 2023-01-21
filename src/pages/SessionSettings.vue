@@ -257,7 +257,7 @@ export default {
   watch: {
     fastDownload (val) {
       this.dispatchNoAccDownload(val === 'yes')
-      this.dispatchNoMicrodataDownload(val === 'yes')
+      this.dispatchNoMicrodataDownload(val === 'yes' || !this.serverConfig.AllowMicrodata)
     },
     labelKind (val) {
       this.dispatchTreeLabelKind((val === 'name-only' || val === 'descr-only') ? val : '')
