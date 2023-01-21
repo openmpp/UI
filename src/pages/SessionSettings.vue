@@ -94,9 +94,11 @@
         <tr>
           <td colspan="2" class="settings-cell q-pa-sm om-text-secondary">{{ $t('Model Downloads') }}:</td>
           <td class="settings-cell q-pa-sm">
-            <q-radio :disable="!serverConfig.AllowDownload" v-model="fastDownload" val="no"  :label="$t('Full, compatible with desktop model')" />
+            <q-radio v-model="fastDownload" val="yes" :disable="!serverConfig.AllowDownload" :label="$t('Fast, only to analyze output values')" />
             <br />
-            <q-radio :disable="!serverConfig.AllowDownload" v-model="fastDownload" val="yes" :label="$t('Fast, only to analyze output values')" />
+            <q-radio v-model="fastDownload" val="no" :disable="!serverConfig.AllowDownload" :label="$t('Full, compatible with desktop model')" />
+            <br />
+            <q-checkbox v-model="isMicroDownload" :disable="!serverConfig.AllowDownload || fastDownload === 'yes' || !serverConfig.AllowMicrodata" :label="$t('Do full downloads, including microdata')"/>
           </td>
         </tr>
         <tr>
@@ -220,6 +222,7 @@ export default {
       uploadUserViewsTickle: false,
       uploadUserViewsDone: false,
       fastDownload: 'yes',
+      isMicroDownload: false,
       labelKind: 'default'
     }
   },
@@ -257,7 +260,13 @@ export default {
   watch: {
     fastDownload (val) {
       this.dispatchNoAccDownload(val === 'yes')
-      this.dispatchNoMicrodataDownload(val === 'yes' || !this.serverConfig.AllowMicrodata)
+      if (val === 'yes' || !this.serverConfig.AllowMicrodata) {
+        this.isMicroDownload = false
+        this.dispatchNoMicrodataDownload(!this.isMicroDownload)
+      }
+    },
+    isMicroDownload (isMicro) {
+      this.dispatchNoMicrodataDownload(!this.isMicroDownload)
     },
     labelKind (val) {
       this.dispatchTreeLabelKind((val === 'name-only' || val === 'descr-only') ? val : '')
@@ -268,7 +277,8 @@ export default {
     // refresh model settings: select from indexed db
     doRefresh () {
       this.clearState()
-      this.fastDownload = (this.noAccDownload && this.noMicrodataDownload) ? 'yes' : 'no'
+      this.fastDownload = this.noAccDownload ? 'yes' : 'no'
+      this.isMicroDownload = !this.noAccDownload && !this.noMicrodataDownload && !!this.serverConfig.AllowMicrodata
       this.labelKind = (this.treeLabelKind === 'name-only' || this.treeLabelKind === 'descr-only') ? this.treeLabelKind : 'default'
 
       if (this.modelName) this.doReadParameterViews()

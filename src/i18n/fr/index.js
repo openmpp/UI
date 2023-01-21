@@ -85,6 +85,7 @@ export default {
   'Discard changes of': 'Annuler les modifications de',
   'Discard changes to notes for': 'Ignorer les modifications apportées aux notes pour',
   'Do full downloads, compatible with desktop model': 'Faites des téléchargements complets, compatibles avec le modèle de bureau',
+  'Do full downloads, including microdata': 'Effectuez des téléchargements complets, y compris des microdonnées',
   'Do fast downloads, only to analyze output values': 'Faites des téléchargements rapides, uniquement pour analyser les valeurs de résultats',
   'Do not copy': 'Ne pas copier',
   'Do not use jobs service to run the model': 'Ne pas utiliser le service de travaux pour exécuter le modèle',

@@ -71,6 +71,7 @@ export default {
       isFolderTreeExpanded: false,
       fastDownload: 'yes',
       isNoDigestCheck: false,
+      isMicroDownload: false,
       wsUploadFile: null,
       runUploadFile: null
     }
@@ -108,7 +109,13 @@ export default {
     digest () { this.initView() },
     fastDownload (val) {
       this.dispatchNoAccDownload(val === 'yes')
-      this.dispatchNoMicrodataDownload(val === 'yes' || !this.serverConfig.AllowMicrodata)
+      if (val === 'yes' || !this.serverConfig.AllowMicrodata) {
+        this.isMicroDownload = false
+        this.dispatchNoMicrodataDownload(!this.isMicroDownload)
+      }
+    },
+    isMicroDownload (isMicro) {
+      this.dispatchNoMicrodataDownload(!this.isMicroDownload)
     }
   },
 
@@ -250,7 +257,8 @@ export default {
       this.folderTreeData = []
       this.isAnyFolderDir = false
       this.folderTreeFilter = ''
-      this.fastDownload = (this.noAccDownload && (this.noMicrodataDownload || !this.serverConfig.AllowMicrodata)) ? 'yes' : 'no'
+      this.fastDownload = this.noAccDownload ? 'yes' : 'no'
+      this.isMicroDownload = !this.noAccDownload && !this.noMicrodataDownload && !!this.serverConfig.AllowMicrodata
       this.stopLogRefresh()
       this.startLogRefresh()
     },

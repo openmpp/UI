@@ -54,9 +54,11 @@
 
           <tr>
             <td colspan="6" class="pt-cell">
+              <q-radio v-model="fastDownload" val="yes" :label="$t('Do fast downloads, only to analyze output values')" />
+              <br />
               <q-radio v-model="fastDownload" val="no"  :label="$t('Do full downloads, compatible with desktop model')" />
               <br />
-              <q-radio v-model="fastDownload" val="yes" :label="$t('Do fast downloads, only to analyze output values')" />
+              <q-checkbox v-model="isMicroDownload" :disable="fastDownload === 'yes' || !serverConfig.AllowMicrodata" :label="$t('Do full downloads, including microdata')"/>
             </td>
           </tr>
 
