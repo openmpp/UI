@@ -101,32 +101,32 @@ export default {
       this.doRefresh()
     },
     // click on parameter: open current workset parameter values tab
-    onParamLeafClick (name) {
-      this.$emit('set-parameter-select', name)
+    onParamLeafClick (name, parts) {
+      this.$emit('set-parameter-select', name, parts)
     },
     // click on add parameter: add current workset parameter
-    onAddClick (name) {
-      this.$emit('set-parameter-add', name)
+    onAddClick (name, parts) {
+      this.$emit('set-parameter-add', name, parts)
     },
     // click on add group: add group from current workset
-    onGroupAddClick (name) {
-      this.$emit('set-parameter-group-add', name)
+    onGroupAddClick (name, parts) {
+      this.$emit('set-parameter-group-add', name, parts)
     },
     // click on remove parameter: remove current workset parameter
-    onRemoveClick (name) {
-      this.$emit('set-parameter-remove', name)
+    onRemoveClick (name, parts) {
+      this.$emit('set-parameter-remove', name, parts)
     },
     // click on remove group: remove group from current workset
-    onGroupRemoveClick (name) {
-      this.$emit('set-parameter-group-remove', name)
+    onGroupRemoveClick (name, parts) {
+      this.$emit('set-parameter-group-remove', name, parts)
     },
     // click on show parameter notes dialog button
-    onShowParamNote (name) {
-      this.$emit('set-parameter-info-show', name)
+    onShowParamNote (name, parts) {
+      this.$emit('set-parameter-info-show', name, parts)
     },
     // click on show group notes dialog button
-    onShowGroupNote (name) {
-      this.$emit('set-parameter-group-info-show', name)
+    onShowGroupNote (name, parts) {
+      this.$emit('set-parameter-group-info-show', name, parts)
     },
 
     // return tree of model parameters
@@ -162,6 +162,7 @@ export default {
             label: p.Param.Name,
             descr: Mdf.descrOfDescrNote(p),
             children: [],
+            parts: '',
             isGroup: false,
             isAbout: true,
             isAboutEmpty: false
@@ -206,6 +207,7 @@ export default {
               label: g.Group.Name,
               descr: Mdf.descrOfDescrNote(g),
               children: [],
+              parts: '',
               isGroup: true,
               isAbout: isNote,
               isAboutEmpty: !isNote

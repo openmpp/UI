@@ -19,7 +19,8 @@
     :no-results-label="$t('No output tables found')"
     :no-nodes-label="$t('No output tables found or server offline')"
     :is-any-in-list="isAnyFiltered"
-    :is-show-in-list="isShowFiltered"
+    :is-on-off-not-in-list="isOnOffNotInList"
+    :is-show-not-in-list="isShowFiltered"
     :in-list-on-label="inListOnLabel"
     :in-list-off-label="inListOffLabel"
     :in-list-icon="inListIcon"
@@ -27,7 +28,7 @@
     :in-list-clear-label="inListClearLabel"
     :in-list-clear-icon="inListClearIcon"
     @om-table-tree-show-hidden="onToogleHiddenNodes"
-    @om-table-tree-show-in-list="onToogleInListFilter"
+    @om-table-tree-show-not-in-list="onToogleInListFilter"
     @om-table-tree-clear-in-list="onClearInListFilter"
     @om-table-tree-leaf-select="onTableLeafClick"
     @om-table-tree-leaf-add="onAddClick"
@@ -53,7 +54,6 @@ export default {
 
   props: {
     runDigest: { type: String, required: true },
-    isAllTables: { type: Boolean, default: false },
     refreshTickle: { type: Boolean, default: false },
     refreshTableTreeTickle: { type: Boolean, default: false },
     isNoHidden: { type: Boolean, default: false },
@@ -64,6 +64,7 @@ export default {
     isRemoveGroup: { type: Boolean, default: false },
     isRemoveDisabled: { type: Boolean, default: false },
     nameFilter: { type: Array, default: () => [] }, // if not empty then use only tables and groups included in the name list
+    isOnOffNotInList: { type: Boolean, default: false },
     inListOnLabel: { type: String, default: '' },
     inListOffLabel: { type: String, default: '' },
     inListIcon: { type: String, default: '' },
@@ -111,7 +112,7 @@ export default {
   methods: {
     // update output tables tree data and refresh tree view
     doRefresh () {
-      if (!this.isAllTables) {
+      if (this.runDigest) {
         this.runCurrent = this.runTextByDigest({ ModelDigest: Mdf.modelDigest(this.theModel), RunDigest: this.runDigest })
       }
       const td = this.makeTableTreeData()
@@ -122,8 +123,9 @@ export default {
 
     // show or hide hidden output tables and groups
     onToogleHiddenNodes (isShow) {
+      const isNow = this.isShowHidden
       this.isShowHidden = isShow || this.isNoHidden
-      this.doRefresh()
+      if (this.isShowHidden !== isNow) this.doRefresh()
     },
     // show or hide filtered out tables and groups
     onToogleInListFilter (isShow) {
@@ -135,32 +137,32 @@ export default {
       this.$emit('table-clear-in-list')
     },
     // click on output table: open current run output table values tab
-    onTableLeafClick (name) {
-      this.$emit('table-select', name)
+    onTableLeafClick (name, parts) {
+      this.$emit('table-select', name, parts)
     },
     // click on add output table: add output table from current run
-    onAddClick (name) {
-      this.$emit('table-add', name)
+    onAddClick (name, parts) {
+      this.$emit('table-add', name, parts)
     },
     // click on add group: add output tables group from current run
-    onGroupAddClick (name) {
-      this.$emit('table-group-add', name)
+    onGroupAddClick (name, parts) {
+      this.$emit('table-group-add', name, parts)
     },
     // click on remove output table: remove output table from current run
-    onRemoveClick (name) {
-      this.$emit('table-remove', name)
+    onRemoveClick (name, parts) {
+      this.$emit('table-remove', name, parts)
     },
     // click on remove group: remove output tables group from current run
-    onGroupRemoveClick (name) {
-      this.$emit('table-group-remove', name)
+    onGroupRemoveClick (name, parts) {
+      this.$emit('table-group-remove', name, parts)
     },
     // click on show output table notes dialog button
-    onShowTableNote (name) {
-      this.$emit('table-info-show', name)
+    onShowTableNote (name, parts) {
+      this.$emit('table-info-show', name, parts)
     },
     // click on show group notes dialog button
-    onShowGroupNote (name) {
-      this.$emit('table-group-info-show', name)
+    onShowGroupNote (name, parts) {
+      this.$emit('table-group-info-show', name, parts)
     },
 
     // return tree of output tables
@@ -197,7 +199,7 @@ export default {
         }
 
         for (const t of this.theModel.TableTxt) {
-          if (!this.isAllTables && !Mdf.isRunTextHasTable(this.runCurrent, t.Table.Name)) continue // skip suppressed table
+          if (this.runDigest && !Mdf.isRunTextHasTable(this.runCurrent, t.Table.Name)) continue // skip suppressed table
 
           if (this.nameFilter.findIndex((name) => { return name === t.Table.Name }) >= 0) {
             isTflt = true
@@ -210,7 +212,7 @@ export default {
       // skip hidden tables if show hidden tables disabled
       const tUse = {}
       for (const t of this.theModel.TableTxt) {
-        if (!this.isAllTables && !Mdf.isRunTextHasTable(this.runCurrent, t.Table.Name)) continue // skip suppressed table
+        if (this.runDigest && !Mdf.isRunTextHasTable(this.runCurrent, t.Table.Name)) continue // skip suppressed table
 
         this.isAnyFiltered = this.isAnyFiltered || (isTflt && !ftLst[t.Table.Name])
         this.isAnyHidden = !this.isNoHidden && (this.isAnyHidden || t.Table.IsHidden)
@@ -237,6 +239,7 @@ export default {
             label: gLst[k].Group.Name,
             descr: Mdf.descrOfDescrNote(gLst[k]),
             children: [],
+            parts: '',
             isGroup: true,
             isAbout: isNote,
             isAboutEmpty: !isNote
@@ -319,6 +322,7 @@ export default {
               label: t.Table.Name,
               descr: (t.TableDescr || ''),
               children: [],
+              parts: '',
               isGroup: false,
               isAbout: true,
               isAboutEmpty: false
@@ -353,6 +357,7 @@ export default {
             label: t.Table.Name,
             descr: (t.TableDescr || ''),
             children: [],
+            parts: '',
             isGroup: false,
             isAbout: true,
             isAboutEmpty: false

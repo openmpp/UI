@@ -6,7 +6,7 @@
 
     <q-btn
       @click="onShowModelNote"
-      :disable="isEmptyModel"
+      :disable="isNoModel"
       flat
       dense
       class="col-auto bg-primary text-white rounded-borders q-mr-xs"
@@ -42,7 +42,7 @@ export default {
   },
 
   computed: {
-    isEmptyModel () { return Mdf.isEmptyModel(this.model) },
+    isNoModel () { return !Mdf.isModel(this.model) || Mdf.isEmptyModel(this.model) },
     createDateTimeStr () { return Mdf.dtStr(this.model.Model.CreateDateTime) },
     descrOfModel () { return (this.model?.Model?.Version ? this.model?.Model?.Version + ' ' : '') + Mdf.modelTitle(this.model) },
 

@@ -167,14 +167,11 @@
         <template v-else>
           <table-list
             :run-digest="''"
-            :is-all-tables="true"
             :refresh-tickle="refreshTickle"
             :refresh-table-tree-tickle="refreshTableTreeTickle"
             :name-filter="tablesRetain"
             :is-in-list-clear="true"
-            in-list-on-label="Show only retained output tables"
-            in-list-off-label="Show all output tables"
-            in-list-clear-label="Retain all output tables"
+            :in-list-clear-label="$t('Retain all output tables')"
             :is-remove="true"
             :is-remove-group="true"
             @table-remove="onTableRemove"
@@ -192,7 +189,6 @@
         >
         <table-list
           :run-digest="''"
-          :is-all-tables="true"
           :refresh-tickle="refreshTickle"
           :is-add="true"
           :is-add-group="true"
@@ -202,6 +198,68 @@
           @table-group-info-show="doShowGroupNote"
           >
         </table-list>
+      </q-card-section>
+
+    </q-expansion-item>
+
+  </q-card>
+
+  <q-card v-if="entityAttrCount > 0" class="q-ma-sm">
+
+    <q-expansion-item
+      switch-toggle-side
+      expand-separator
+      header-class="bg-primary text-white"
+      >
+      <template v-slot:header>
+        <span>{{ $t('Entities microdata') + ': ' + (entityAttrsUse.length !== entityAttrCount ? (entityAttrsUse.length.toString() + ' / ' + entityAttrCount.toString()) : $t('All')) }}</span>
+        <span v-if="entityAttrsUse.length > 16">
+          <q-icon name="mdi-exclamation-thick" color="red" class="bg-white q-pa-xs q-ml-md q-mr-xs"/><span>{{ $t('Excessive use of microdata may slow down model run or lead to failure') }}</span>
+        </span>
+      </template>
+
+      <q-card-section
+        class="q-pa-sm"
+        >
+        <template v-if="isNoEntityAttrsUse">
+          <span>{{ $t('No entity microdata included into model run results') }}</span>
+        </template>
+        <template v-else>
+          <entity-list
+            :run-digest="''"
+            :refresh-tickle="refreshTickle"
+            :refresh-entity-tree-tickle="refreshEntityTreeTickle"
+            :name-filter="entityAttrsUse"
+            :is-in-list-enable="true"
+            :is-in-list-clear="true"
+            :in-list-clear-label="$t('Do not use entity microdata')"
+            in-list-clear-icon="mdi-close-circle"
+            :is-remove-entity-attr="true"
+            :is-remove-entity="true"
+            @entity-attr-remove="onAttrRemove"
+            @entity-remove="onEntityRemove"
+            @entity-attr-info-show="doShowAttrNote"
+            @entity-info-show="doShowEntityNote"
+            @entity-clear-in-list="onClearEntityAttrs"
+            >
+          </entity-list>
+        </template>
+      </q-card-section>
+
+      <q-card-section
+        class="primary-border-025 shadow-up-1 q-pa-sm"
+        >
+        <entity-list
+          :run-digest="''"
+          :refresh-tickle="refreshTickle"
+          :is-add-entity-attr="true"
+          :is-add-entity="true"
+          @entity-attr-add="onAttrAdd"
+          @entity-add="onEntityAdd"
+          @entity-attr-info-show="doShowAttrNote"
+          @entity-info-show="doShowEntityNote"
+          >
+        </entity-list>
       </q-card-section>
 
     </q-expansion-item>
@@ -540,6 +598,8 @@
   <workset-info-dialog :show-tickle="worksetInfoTickle" :model-digest="digest" :workset-name="worksetCurrent.Name"></workset-info-dialog>
   <table-info-dialog :show-tickle="tableInfoTickle" :table-name="tableInfoName" :run-digest="''"></table-info-dialog>
   <group-info-dialog :show-tickle="groupInfoTickle" :group-name="groupInfoName"></group-info-dialog>
+  <entity-info-dialog :show-tickle="entityInfoTickle" :entity-name="entityInfoName"></entity-info-dialog>
+  <entity-attr-info-dialog :show-tickle="attrInfoTickle" :entity-name="entityInfoName" :attr-name="attrInfoName"></entity-attr-info-dialog>
 
   <q-inner-loading :showing="loadWait">
     <q-spinner-gears size="md" color="primary" />

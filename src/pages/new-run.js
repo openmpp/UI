@@ -4,15 +4,31 @@ import NewRunInit from 'components/NewRunInit.vue'
 import RunBar from 'components/RunBar.vue'
 import WorksetBar from 'components/WorksetBar.vue'
 import TableList from 'components/TableList.vue'
+import EntityList from 'components/EntityList.vue'
 import RunInfoDialog from 'components/RunInfoDialog.vue'
 import WorksetInfoDialog from 'components/WorksetInfoDialog.vue'
 import TableInfoDialog from 'components/TableInfoDialog.vue'
 import GroupInfoDialog from 'components/GroupInfoDialog.vue'
+import EntityInfoDialog from 'components/EntityInfoDialog.vue'
+import EntityAttrInfoDialog from 'components/EntityAttrInfoDialog.vue'
 import MarkdownEditor from 'components/MarkdownEditor.vue'
 
 export default {
   name: 'NewRun',
-  components: { NewRunInit, RunBar, WorksetBar, TableList, RunInfoDialog, WorksetInfoDialog, TableInfoDialog, GroupInfoDialog, MarkdownEditor },
+  components: {
+    NewRunInit,
+    RunBar,
+    WorksetBar,
+    TableList,
+    EntityList,
+    RunInfoDialog,
+    WorksetInfoDialog,
+    TableInfoDialog,
+    GroupInfoDialog,
+    EntityInfoDialog,
+    EntityAttrInfoDialog,
+    MarkdownEditor
+  },
 
   props: {
     digest: { type: String, default: '' },
@@ -68,6 +84,13 @@ export default {
       tableInfoTickle: false,
       groupInfoName: '',
       groupInfoTickle: false,
+      entityAttrCount: 0, // total number of attributes of all entities
+      entityAttrsUse: [], // entity.attribute names included selected for model run
+      refreshEntityTreeTickle: false,
+      entityInfoName: '',
+      attrInfoName: '',
+      entityInfoTickle: false,
+      attrInfoTickle: false,
       newRunNotes: {
         type: Object,
         default: () => ({})
@@ -96,6 +119,8 @@ export default {
       return this.runCurrent?.RunDigest && Mdf.isRunCompleted(this.runCurrent)
     },
     isNoTables () { return !this.tablesRetain || this.tablesRetain.length <= 0 },
+    isMicrodata () { return !!this.serverConfig.AllowMicrodata && Mdf.entityCount(this.theModel) > 0 },
+    isNoEntityAttrsUse () { return !this.entityAttrsUse || this.entityAttrsUse.length <= 0 },
 
     ...mapState('model', {
       theModel: state => state.theModel,
@@ -227,6 +252,16 @@ export default {
         }
       }
 
+      // entities microdata for that model run
+      this.entityAttrCount = 0
+      this.entityAttrsUse = []
+
+      if (this.isMicrodata) {
+        for (const et of this.theModel.EntityTxt) {
+          this.entityAttrCount += Mdf.entityAttrCount(et)
+        }
+      }
+
       // get run options presets as array of { name, label, descr, opts{....} }
       this.presetLst = Mdf.configRunOptsPresets(this.serverConfig, this.theModel.Model.Name, this.modelLanguage.LangCode)
 
@@ -303,6 +338,17 @@ export default {
       this.groupInfoName = name
       this.groupInfoTickle = !this.groupInfoTickle
     },
+    // show entity attribute notes dialog
+    doShowAttrNote (attrName, entName) {
+      this.attrInfoName = attrName
+      this.entityInfoName = entName
+      this.attrInfoTickle = !this.attrInfoTickle
+    },
+    // show entity attribute notes dialog
+    doShowEntityNote (entName) {
+      this.entityInfoName = entName
+      this.entityInfoTickle = !this.entityInfoTickle
+    },
 
     // click on clear filter: retain all output tables and groups
     onRetainAllTables () {
@@ -333,7 +379,7 @@ export default {
       if (isAdded) {
         this.$q.notify({
           type: 'info',
-          message: (this.tablesRetain.length < this.tableCount) ? this.$t('Retain output table') + ':' + name : this.$t('Retain all output tables')
+          message: (this.tablesRetain.length < this.tableCount) ? this.$t('Retain output table') + ': ' + name : this.$t('Retain all output tables')
         })
         this.refreshTableTreeTickle = !this.refreshTableTreeTickle
       }
@@ -361,7 +407,7 @@ export default {
       if (isAdded) {
         this.$q.notify({
           type: 'info',
-          message: (this.tablesRetain.length < this.tableCount) ? this.$t('Retain group of output tables') + ':' + groupName : this.$t('Retain all output tables')
+          message: (this.tablesRetain.length < this.tableCount) ? this.$t('Retain group of output tables') + ': ' + groupName : this.$t('Retain all output tables')
         })
         this.refreshTableTreeTickle = !this.refreshTableTreeTickle
       }
@@ -369,12 +415,12 @@ export default {
 
     // remove output table from the retain tables list
     onTableRemove (name) {
-      if (this.tablesRetain.length <= 0) return // retain tables list alredy empty
+      if (this.tablesRetain.length <= 0) return // retain tables list already empty
       if (!name) {
         console.warn('Unable to remove table from retain list, table name is empty')
         return
       }
-      this.$q.notify({ type: 'info', message: this.$t('Suppress output table') + ':' + name })
+      this.$q.notify({ type: 'info', message: this.$t('Suppress output table') + ': ' + name })
 
       this.tablesRetain = this.tablesRetain.filter(tn => tn !== name)
       this.refreshTableTreeTickle = !this.refreshTableTreeTickle
@@ -382,12 +428,12 @@ export default {
 
     // remove group of output tables from the retain tables list
     onTableGroupRemove (groupName) {
-      if (this.tablesRetain.length <= 0) return // retain tables list alredy empty
+      if (this.tablesRetain.length <= 0) return // retain tables list already empty
       if (!groupName) {
         console.warn('Unable to remove table group from retain list, group name is empty')
         return
       }
-      this.$q.notify({ type: 'info', message: this.$t('Suppress group of output tables') + ':' + groupName })
+      this.$q.notify({ type: 'info', message: this.$t('Suppress group of output tables') + ': ' + groupName })
 
       // remove tables group from the list
       const gt = this.groupTableLeafs[groupName]
@@ -395,6 +441,104 @@ export default {
         this.tablesRetain = this.tablesRetain.filter(tn => !gt?.leafs[tn])
         this.refreshTableTreeTickle = !this.refreshTableTreeTickle
       }
+    },
+
+    // click on clear microdata attributes list: do not use any microdata for that model run
+    onClearEntityAttrs () {
+      this.entityAttrsUse = []
+      this.refreshEntityTreeTickle = !this.refreshEntityTreeTickle
+    },
+
+    // add entity attribute into the microdata list
+    onAttrAdd (attrName, entName, isAllowHidden) {
+      if (this.entityAttrsUse.length >= this.entityAttrCount) return // all attributes already in microdata list
+      if (!attrName || !entName) {
+        console.warn('Unable to add microdata, attribute or entity name is empty:', attrName, entName)
+        return
+      }
+
+      // add into microdata list if entity.attribute not in the list already
+      const name = entName + '.' + attrName
+      let isAdded = false
+      if (this.entityAttrsUse.indexOf(name) < 0) {
+        this.entityAttrsUse.push(name)
+        isAdded = true
+      }
+
+      if (isAdded) {
+        this.$q.notify({
+          type: 'info',
+          message: this.entityAttrsUse.length < this.entityAttrCount ? this.$t('Include') + ': ' + name : this.$t('All entity attributes included into microdata')
+        })
+        this.refreshEntityTreeTickle = !this.refreshEntityTreeTickle
+      }
+    },
+
+    // add all entity attributes into the microdata list
+    onEntityAdd (entName, parts, isAllowHidden) {
+      if (this.entityAttrsUse.length >= this.entityAttrCount) return // all attributes already in microdata list
+      if (!entName) {
+        console.warn('Unable to add microdata, entity name is empty:', entName)
+        return
+      }
+
+      // add each attribute of the entity into microdata if not already in the list
+      const ent = Mdf.entityTextByName(this.theModel, entName)
+      let isAdded = false
+
+      if (Mdf.isNotEmptyEntityText(ent)) {
+        for (const ea of ent.EntityAttrTxt) {
+          if (!isAllowHidden && ea.Attr.IsInternal) continue // internal attributes disabled
+
+          const name = entName + '.' + ea.Attr.Name
+          if (this.entityAttrsUse.indexOf(name) < 0) {
+            this.entityAttrsUse.push(name)
+            isAdded = true
+          }
+        }
+      }
+
+      if (isAdded) {
+        this.$q.notify({
+          type: 'info',
+          message: (this.entityAttrsUse.length < this.entityAttrCount) ? this.$t('Include all attributes of') + ': ' + entName : this.$t('All entity attributes included into microdata')
+        })
+        this.refreshEntityTreeTickle = !this.refreshEntityTreeTickle
+      }
+    },
+
+    // remove entity attribute from microdata list
+    onAttrRemove (attrName, entName) {
+      if (this.entityAttrsUse.length <= 0) return // microdata list already empty
+      if (!attrName || !entName) {
+        console.warn('Unable to remove from microdata list, attribute or entity name is empty:', attrName, entName)
+        return
+      }
+      const name = entName + '.' + attrName
+      this.$q.notify({ type: 'info', message: this.$t('Exclude from microdata') + ': ' + name })
+
+      this.entityAttrsUse = this.entityAttrsUse.filter(ean => ean !== name)
+      this.refreshEntityTreeTickle = !this.refreshEntityTreeTickle
+    },
+
+    // remove all attributes of the entity from microdata list
+    onEntityRemove (entName) {
+      if (this.entityAttrsUse.length <= 0) return // microdata list already empty
+      if (!entName) {
+        console.warn('Unable to remove entity form microdata, entity name is empty:', entName)
+        return
+      }
+      this.$q.notify({ type: 'info', message: this.$t('Exclude from microdata') + ': ' + entName })
+
+      // remove each entity.attribute from microdata list
+      const ent = Mdf.entityTextByName(this.theModel, entName)
+      if (Mdf.isNotEmptyEntityText(ent)) {
+        for (const ea of ent.EntityAttrTxt) {
+          const name = entName + '.' + ea.Attr.Name
+          this.entityAttrsUse = this.entityAttrsUse.filter(ean => ean !== name)
+        }
+      }
+      this.refreshEntityTreeTickle = !this.refreshEntityTreeTickle
     },
 
     // set default name of new model run

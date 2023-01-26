@@ -23,7 +23,9 @@ export const isParamTextList = (md) => {
 // return true if this is non empty Param
 export const isParam = (p) => {
   if (!p) return false
-  return (p?.ParamId || -1) >= 0 || (p?.Name || '') !== '' || (p?.Digest || '') !== ''
+  if (!p.hasOwnProperty('ParamId') || !p.hasOwnProperty('Name') || !p.hasOwnProperty('Digest')) return false
+
+  return p.ParamId >= 0 && (p?.Name || '') !== '' && (p?.Digest || '') !== ''
 }
 
 // if this is not empty ParamTxt: parameter id, parameter name, parameter digest

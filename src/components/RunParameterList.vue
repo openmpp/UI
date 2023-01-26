@@ -19,7 +19,8 @@
     :no-results-label="$t('No model parameters found')"
     :no-nodes-label="$t('No model parameters found or server offline')"
     :is-any-in-list="isAnyFiltered"
-    :is-show-in-list="isShowFiltered"
+    :is-on-off-not-in-list="isOnOffNotInList"
+    :is-show-not-in-list="isShowFiltered"
     :in-list-on-label="inListOnLabel"
     :in-list-off-label="inListOffLabel"
     :in-list-icon="inListIcon"
@@ -27,7 +28,7 @@
     :in-list-clear-label="inListClearLabel"
     :in-list-clear-icon="inListClearIcon"
     @om-table-tree-show-hidden="onToogleHiddenNodes"
-    @om-table-tree-show-in-list="onToogleInListFilter"
+    @om-table-tree-show-not-in-list="onToogleInListFilter"
     @om-table-tree-leaf-select="onParamLeafClick"
     @om-table-tree-leaf-add="onAddClick"
     @om-table-tree-group-add="onGroupAddClick"
@@ -62,6 +63,7 @@ export default {
     isRemoveGroup: { type: Boolean, default: false },
     isRemoveDisabled: { type: Boolean, default: false },
     nameFilter: { type: Array, default: () => [] }, // if not empty then use only parameters and groups included in the name list
+    isOnOffNotInList: { type: Boolean, default: false },
     inListOnLabel: { type: String, default: '' },
     inListOffLabel: { type: String, default: '' },
     inListIcon: { type: String, default: '' },
@@ -111,8 +113,9 @@ export default {
 
     // show or hide hidden parameters and groups
     onToogleHiddenNodes (isShow) {
+      const isNow = this.isShowHidden
       this.isShowHidden = isShow || this.isNoHidden
-      this.doRefresh()
+      if (this.isShowHidden !== isNow) this.doRefresh()
     },
     // show or hide filtered out parameters and groups
     onToogleInListFilter (isShow) {
@@ -124,32 +127,32 @@ export default {
       this.$emit('run-parameter-clear-in-list')
     },
     // click on parameter: open current run parameter values tab
-    onParamLeafClick (name) {
-      this.$emit('run-parameter-select', name)
+    onParamLeafClick (name, parts) {
+      this.$emit('run-parameter-select', name, parts)
     },
     // click on add parameter: add parameter from current run
-    onAddClick (name) {
-      this.$emit('run-parameter-add', name)
+    onAddClick (name, parts) {
+      this.$emit('run-parameter-add', name, parts)
     },
     // click on add group: add group from current run
-    onGroupAddClick (name) {
-      this.$emit('run-parameter-group-add', name)
+    onGroupAddClick (name, parts) {
+      this.$emit('run-parameter-group-add', name, parts)
     },
     // click on remove parameter: remove parameter from current run
-    onRemoveClick (name) {
-      this.$emit('run-parameter-remove', name)
+    onRemoveClick (name, parts) {
+      this.$emit('run-parameter-remove', name, parts)
     },
     // click on remove group: remove group from current run
-    onGroupRemoveClick (name) {
-      this.$emit('run-parameter-group-remove', name)
+    onGroupRemoveClick (name, parts) {
+      this.$emit('run-parameter-group-remove', name, parts)
     },
     // click on show parameter notes dialog button
-    onShowParamNote (name) {
-      this.$emit('run-parameter-info-show', name)
+    onShowParamNote (name, parts) {
+      this.$emit('run-parameter-info-show', name, parts)
     },
     // click on show group notes dialog button
-    onShowGroupNote (name) {
-      this.$emit('run-parameter-group-info-show', name)
+    onShowGroupNote (name, parts) {
+      this.$emit('run-parameter-group-info-show', name, parts)
     },
 
     // return tree of model parameters
@@ -211,6 +214,7 @@ export default {
             label: gLst[k].Group.Name,
             descr: Mdf.descrOfDescrNote(gLst[k]),
             children: [],
+            parts: '',
             isGroup: true,
             isAbout: isNote,
             isAboutEmpty: !isNote
@@ -299,6 +303,7 @@ export default {
                 label: p.Param.Name,
                 descr: Mdf.descrOfDescrNote(p),
                 children: [],
+                parts: '',
                 isGroup: false,
                 isAbout: true,
                 isAboutEmpty: false
@@ -340,6 +345,7 @@ export default {
             label: p.Param.Name,
             descr: Mdf.descrOfDescrNote(p),
             children: [],
+            parts: '',
             isGroup: false,
             isAbout: true,
             isAboutEmpty: false

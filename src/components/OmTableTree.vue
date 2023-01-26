@@ -15,6 +15,7 @@ Expected array of tree items as:
   label:         'item name to display',
   descr:         'item description',
   children:      [array of child items],  // folder children
+  parts:         '',                      // any payload
   isGroup:       false,                   // if true then item is a folder even there are no children
   isAbout:       false,                   // if true then show about button to item
   isAboutEmpty:  false,                   // if true then disable about button
@@ -48,15 +49,15 @@ Expected array of tree items as:
       :title="!isShowHidden ? $t('Do not show hidden items') : $t('Show all hidden items')"
       />
     <q-btn
-      v-if="isAnyInList"
-      @click="$emit('om-table-tree-show-in-list', !isShowInList)"
+      v-if="isOnOffNotInList && isAnyInList"
+      @click="$emit('om-table-tree-show-not-in-list', !isShowNotInList)"
       dense
-      :unelevated="!isShowInList"
-      :outline="isShowInList"
+      :unelevated="!isShowNotInList"
+      :outline="isShowNotInList"
       color="primary"
       class="col-auto q-mr-xs om-tree-control-button"
       :icon="inListIcon || 'mdi-filter-outline'"
-      :title="isShowInList ? $t(inListOffLabel || 'Show filtered out items') : $t(inListOnLabel || 'Do not show filtered out items')"
+      :title="isShowNotInList ? $t(inListOffLabel || 'Show filtered out items') : $t(inListOnLabel || 'Do not show filtered out items')"
       />
     <q-btn
       v-if="isInListClear"
@@ -103,7 +104,7 @@ Expected array of tree items as:
           >
           <q-btn
             v-if="prop.node.isAbout"
-            @click.stop="$emit('om-table-tree-group-note', prop.node.label)"
+            @click.stop="$emit('om-table-tree-group-note', prop.node.label, prop.node.parts)"
             flat
             round
             dense
@@ -115,7 +116,7 @@ Expected array of tree items as:
             />
           <q-btn
             v-if="isAddGroup"
-            @click.stop="$emit('om-table-tree-group-add', prop.node.label)"
+            @click.stop="$emit('om-table-tree-group-add', prop.node.label, prop.node.parts)"
             :disable="isAddDisabled"
             flat
             round
@@ -127,7 +128,7 @@ Expected array of tree items as:
             />
           <q-btn
             v-if="isRemoveGroup"
-            @click.stop="$emit('om-table-tree-group-remove', prop.node.label)"
+            @click.stop="$emit('om-table-tree-group-remove', prop.node.label, prop.node.parts)"
             :disable="isRemoveDisabled"
             flat
             round
@@ -150,13 +151,13 @@ Expected array of tree items as:
         </div>
 
         <div v-else
-          @click="$emit('om-table-tree-leaf-select', prop.node.label)"
+          @click="$emit('om-table-tree-leaf-select', prop.node.label, prop.node.parts)"
           :class="{'om-tree-found-node': treeWalk.keysFound[prop.node.key]}"
           class="row no-wrap items-center full-width cursor-pointer om-tree-leaf"
           >
           <q-btn
             v-if="prop.node.isAbout"
-            @click.stop="$emit('om-table-tree-leaf-note', prop.node.label)"
+            @click.stop="$emit('om-table-tree-leaf-note', prop.node.label, prop.node.parts)"
             flat
             round
             dense
@@ -168,7 +169,7 @@ Expected array of tree items as:
             />
           <q-btn
             v-if="isAdd"
-            @click.stop="$emit('om-table-tree-leaf-add', prop.node.label)"
+            @click.stop="$emit('om-table-tree-leaf-add', prop.node.label, prop.node.parts)"
             :disable="isAddDisabled"
             flat
             round
@@ -180,7 +181,7 @@ Expected array of tree items as:
             />
           <q-btn
             v-if="isRemove"
-            @click.stop="$emit('om-table-tree-leaf-remove', prop.node.label)"
+            @click.stop="$emit('om-table-tree-leaf-remove', prop.node.label, prop.node.parts)"
             :disable="isRemoveDisabled"
             flat
             round
@@ -232,7 +233,8 @@ export default {
     noResultsLabel: { type: String, default: '' },
     noNodesLabel: { type: String, default: '' },
     isAnyInList: { type: Boolean, default: false },
-    isShowInList: { type: Boolean, default: false },
+    isOnOffNotInList: { type: Boolean, default: false },
+    isShowNotInList: { type: Boolean, default: false },
     inListOnLabel: { type: String, default: '' },
     inListOffLabel: { type: String, default: '' },
     inListIcon: { type: String, default: '' },
