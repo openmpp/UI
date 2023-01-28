@@ -116,7 +116,6 @@ export default {
   'Empty': 'Vide',
   'Empty (or invalid) paste: tab separated values expected': 'Collage vide (ou non valide): valeurs attendues séparées par des tabulations',
   'Entity': 'Entité',
-  'Entities microdata': 'Microdonnées des entités',
   'Enum Code': 'Code énumération',
   'Enum Id': 'Id énumération',
   'Erase default view of parameter': 'Effacer la vue par défaut du paramètre',

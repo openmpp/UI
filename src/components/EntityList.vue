@@ -107,7 +107,7 @@ export default {
       const td = this.makeEntityTreeData()
       this.entityTreeData = td.tree
       this.refreshTreeTickle = !this.refreshTreeTickle
-      this.$emit('entity-tree-updated', td.leafCount)
+      this.$emit('entity-tree-updated', td.entityCount, td.leafCount)
     },
 
     // show or hide internal entity attributes
@@ -162,12 +162,35 @@ export default {
         return { tree: [], leafCount: 0 } // invalid list of entity attributes
       }
 
+      // if run specified then include only entity.attribute from this model run
+      const eUse = {}
+      const aUse = {}
+      const isRun = this.runDigest && Mdf.isNotEmptyRunText(this.runCurrent)
+
+      if (isRun) {
+        for (const e of this.runCurrent.Entity) {
+          if (e?.Name && Array.isArray(e?.Attr)) {
+            let na = 0
+            for (const a of e.Attr) {
+              const name = e.Name + '.' + a
+              aUse[name] = true
+              na++
+            }
+            if (na > 0) {
+              eUse[e.Name] = true
+            }
+          }
+        }
+      }
+
       // if filter names not empty then display only attributes from that name list
       // use entity as a group and attributes as leafs
       const gTree = []
       let nLeaf = 0
 
       for (const ent of this.theModel.EntityTxt) {
+        if (isRun && !eUse[ent.Entity.Name]) continue // skip: this entity does not exist in that run
+
         // make group of attributes from entity
         let isAny = false
 
@@ -185,9 +208,12 @@ export default {
 
         // add attributes as leafs of the entity group
         for (const ea of ent.EntityAttrTxt) {
+          const name = ent.Entity.Name + '.' + ea.Attr.Name
+          if (isRun && !aUse[name]) continue // skip: this entity.attribute does not exist in that run
+
           // if in-list filter enabled then use only entity.attribute from the list
           if (this.isInListEnable) {
-            const n = this.nameFilter.indexOf(ent.Entity.Name + '.' + ea.Attr.Name)
+            const n = this.nameFilter.indexOf(name)
             if (n < 0) {
               this.isAnyFiltered = true
               continue // skip filtered out entity
@@ -218,7 +244,7 @@ export default {
       }
       this.isAnyEntity = gTree.length > 0
 
-      return { tree: gTree, leafCount: nLeaf }
+      return { tree: gTree, entityCount: gTree.length, leafCount: nLeaf }
     }
   },
 

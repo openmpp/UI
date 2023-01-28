@@ -2,11 +2,14 @@ import { mapState, mapGetters, mapActions } from 'vuex'
 import * as Mdf from 'src/model-common'
 import RunParameterList from 'components/RunParameterList.vue'
 import TableList from 'components/TableList.vue'
+import EntityList from 'components/EntityList.vue'
 import RefreshRun from 'components/RefreshRun.vue'
 import RunInfoDialog from 'components/RunInfoDialog.vue'
 import ParameterInfoDialog from 'components/ParameterInfoDialog.vue'
 import TableInfoDialog from 'components/TableInfoDialog.vue'
 import GroupInfoDialog from 'components/GroupInfoDialog.vue'
+import EntityInfoDialog from 'components/EntityInfoDialog.vue'
+import EntityAttrInfoDialog from 'components/EntityAttrInfoDialog.vue'
 import DeleteConfirmDialog from 'components/DeleteConfirmDialog.vue'
 import NewWorkset from 'components/NewWorkset.vue'
 import CreateWorkset from 'components/CreateWorkset.vue'
@@ -17,11 +20,14 @@ export default {
   components: {
     RunParameterList,
     TableList,
+    EntityList,
     RefreshRun,
     RunInfoDialog,
     ParameterInfoDialog,
     TableInfoDialog,
     GroupInfoDialog,
+    EntityInfoDialog,
+    EntityAttrInfoDialog,
     DeleteConfirmDialog,
     NewWorkset,
     CreateWorkset,
@@ -51,16 +57,20 @@ export default {
       nameOfNewWorkset: '',
       copyParamNewWorkset: [],
       newDescrNotes: [], // new workset description and notes
-      refreshParamTreeTickle: false,
-      refreshTableTreeTickle: false,
       runDigestRefresh: '',
       refreshRunTickle: false,
       isParamTreeShow: false,
       paramTreeCount: 0,
       paramVisibleCount: 0,
+      refreshParamTreeTickle: false,
       isTableTreeShow: false,
       tableTreeCount: 0,
       tableVisibleCount: 0,
+      refreshTableTreeTickle: false,
+      isEntityTreeShow: false,
+      entityTreeCount: 0,
+      entityVisibleCount: 0,
+      refreshEntityTreeTickle: false,
       runInfoTickle: false,
       runInfoDigest: '',
       groupInfoTickle: false,
@@ -69,6 +79,10 @@ export default {
       paramInfoName: '',
       tableInfoTickle: false,
       tableInfoName: '',
+      attrInfoName: '',
+      entityInfoName: '',
+      attrInfoTickle: false,
+      entityInfoTickle: false,
       nextId: 100,
       runNameToDelete: '',
       runDigestToDelete: '',
@@ -86,6 +100,7 @@ export default {
     descrRunCurrent () { return Mdf.descrOfTxt(this.runCurrent) },
     isCompare () { return !!this.runCompare && (this.runCompare?.RunDigest || '') !== '' },
     fileSelected () { return !(this.uploadFile === null) },
+    isMicrodata () { return !!this.serverConfig.AllowMicrodata && Mdf.entityCount(this.theModel) > 0 },
 
     ...mapState('model', {
       theModel: state => state.theModel,
@@ -187,17 +202,6 @@ export default {
         return
       }
       this.$emit('run-log-select', stamp)
-    },
-
-    // parameters tree updated and leafs counted
-    // tables tree updated and leafs counted
-    onParamTreeUpdated  (cnt) {
-      this.paramTreeCount = cnt || 0
-      this.paramVisibleCount = !this.isCompare ? this.paramTreeCount : Mdf.paramCount(this.theModel)
-    },
-    onTableTreeUpdated (cnt) {
-      this.tableTreeCount = cnt || 0
-      this.tableVisibleCount = !this.isCompare ? this.tableTreeCount : Mdf.tableCount(this.theModel)
     },
 
     // show run description and notes dialog
@@ -395,12 +399,18 @@ export default {
     onToogleShowParamTree () {
       this.isParamTreeShow = !this.isParamTreeShow
       this.isTableTreeShow = false
+      this.isEntityTreeShow = false
     },
     // click on parameter: open current run parameter values tab
     onRunParamClick (name) {
       this.$emit('run-parameter-select', name)
     },
     // show run parameter notes dialog
+    // parameters tree updated and leafs counted
+    onParamTreeUpdated  (cnt) {
+      this.paramTreeCount = cnt || 0
+      this.paramVisibleCount = !this.isCompare ? this.paramTreeCount : Mdf.paramCount(this.theModel)
+    },
     doShowParamNote (name) {
       this.paramInfoName = name
       this.paramInfoTickle = !this.paramInfoTickle
@@ -415,15 +425,44 @@ export default {
     onToogleShowTableTree () {
       this.isTableTreeShow = !this.isTableTreeShow
       this.isParamTreeShow = false
+      this.isEntityTreeShow = false
     },
     // click on output table: open current run output table values tab
     onTableLeafClick (name) {
       this.$emit('table-select', name)
     },
+    // tables tree updated and leafs counted
+    onTableTreeUpdated (cnt) {
+      this.tableTreeCount = cnt || 0
+      this.tableVisibleCount = !this.isCompare ? this.tableTreeCount : Mdf.tableCount(this.theModel)
+    },
     // show run output table notes dialog
     doShowTableNote (name) {
       this.tableInfoName = name
       this.tableInfoTickle = !this.tableInfoTickle
+    },
+
+    // show or hide output microdata entity tree
+    onToogleShowEntityTree () {
+      this.isEntityTreeShow = !this.isEntityTreeShow
+      this.isParamTreeShow = false
+      this.isTableTreeShow = false
+    },
+    // entity tree updated and leafs counted
+    onEntityTreeUpdated  (entCount, leafCount) {
+      this.entityTreeCount = entCount || 0
+      this.entityVisibleCount = this.entityTreeCount
+    },
+    // show entity attribute notes dialog
+    doShowEntityAttrNote (attrName, entName) {
+      this.attrInfoName = attrName
+      this.entityInfoName = entName
+      this.attrInfoTickle = !this.attrInfoTickle
+    },
+    // show entity attribute notes dialog
+    doShowEntityNote (entName) {
+      this.entityInfoName = entName
+      this.entityInfoTickle = !this.entityInfoTickle
     },
 
     // return tree of model runs

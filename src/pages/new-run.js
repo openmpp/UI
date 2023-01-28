@@ -352,7 +352,7 @@ export default {
       this.groupInfoTickle = !this.groupInfoTickle
     },
     // show entity attribute notes dialog
-    doShowAttrNote (attrName, entName) {
+    doShowEntityAttrNote (attrName, entName) {
       this.attrInfoName = attrName
       this.entityInfoName = entName
       this.attrInfoTickle = !this.attrInfoTickle

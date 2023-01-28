@@ -158,7 +158,7 @@
         </q-btn>
       </span>
 
-      <span class="col-auto no-wrap q-mr-xs">
+      <span class="col-auto no-wrap tab-switch-container">
         <q-btn
           :disable="!isSuccess(runCurrent.Status)"
           @click="onToogleShowTableTree"
@@ -183,6 +183,23 @@
         </q-btn>
       </span>
 
+      <span v-if="isMicrodata" v-show="entityVisibleCount > 0" class="col-auto no-wrap tab-switch-container">
+        <q-btn
+          :disable="!isSuccess(runCurrent.Status)"
+          @click="onToogleShowEntityTree"
+          no-caps
+          unelevated
+          dense
+          color="primary"
+          class="rounded-borders tab-switch-button"
+          :class="{ 'om-bg-inactive' : !isEntityTreeShow }"
+          >
+          <q-icon :name="isEntityTreeShow ? 'keyboard_arrow_up' : 'keyboard_arrow_down'" />
+          <span>{{ $t('Microdata') }}</span>
+          <q-badge outline class="q-ml-sm q-mr-xs">{{ entityVisibleCount }}</q-badge>
+        </q-btn>
+      </span>
+
       <transition
         enter-active-class="animated fadeIn"
         leave-active-class="animated fadeOut"
@@ -190,7 +207,7 @@
         >
         <div
           :key="runDigestSelected"
-          class="col-auto"
+          class="col-auto q-ml-xs"
           >
           <span>{{ runCurrent.Name }}<br />
           <span class="om-text-descr"><span class="mono">{{ dateTimeStr(runCurrent.UpdateDateTime) }} </span>{{ descrRunCurrent }}</span></span>
@@ -236,6 +253,20 @@
         @table-tree-updated="onTableTreeUpdated"
         >
       </table-list>
+
+    </q-card-section>
+
+    <q-card-section v-if="isMicrodata" v-show="isEntityTreeShow" class="q-px-sm q-pt-none">
+
+      <entity-list
+        :run-digest="runDigestSelected"
+        :refresh-tickle="refreshTickle"
+        :refresh-param-tree-tickle="refreshEntityTreeTickle"
+        @entity-attr-info-show="doShowEntityAttrNote"
+        @entity-info-show="doShowEntityNote"
+        @entity-tree-updated="onEntityTreeUpdated"
+        >
+      </entity-list>
 
     </q-card-section>
 
@@ -442,6 +473,9 @@
   <parameter-info-dialog :show-tickle="paramInfoTickle" :param-name="paramInfoName" :run-digest="runDigestSelected"></parameter-info-dialog>
   <table-info-dialog :show-tickle="tableInfoTickle" :table-name="tableInfoName" :run-digest="runDigestSelected"></table-info-dialog>
   <group-info-dialog :show-tickle="groupInfoTickle" :group-name="groupInfoName"></group-info-dialog>
+  <entity-info-dialog :show-tickle="entityInfoTickle" :entity-name="entityInfoName"></entity-info-dialog>
+  <entity-attr-info-dialog :show-tickle="attrInfoTickle" :entity-name="entityInfoName" :attr-name="attrInfoName"></entity-attr-info-dialog>
+
   <refresh-run v-if="(digest || '') !== '' && (runDigestRefresh || '') !== ''"
     :model-digest="digest"
     :run-digest="this.runDigestRefresh"

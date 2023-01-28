@@ -212,7 +212,7 @@
       header-class="bg-primary text-white"
       >
       <template v-slot:header>
-        <span>{{ $t('Entities microdata') + ': ' + (entityAttrsUse.length !== entityAttrCount ? (entityAttrsUse.length.toString() + ' / ' + entityAttrCount.toString()) : $t('All')) }}</span>
+        <span>{{ $t('Microdata') + ': ' + (entityAttrsUse.length !== entityAttrCount ? (entityAttrsUse.length.toString() + ' / ' + entityAttrCount.toString()) : $t('All')) }}</span>
         <span v-if="entityAttrsUse.length > 16">
           <q-icon name="mdi-exclamation-thick" color="red" class="bg-white q-pa-xs q-ml-md q-mr-xs"/><span>{{ $t('Excessive use of microdata may slow down model run or lead to failure') }}</span>
         </span>
@@ -238,7 +238,7 @@
             :is-remove-entity="true"
             @entity-attr-remove="onAttrRemove"
             @entity-remove="onEntityRemove"
-            @entity-attr-info-show="doShowAttrNote"
+            @entity-attr-info-show="doShowEntityAttrNote"
             @entity-info-show="doShowEntityNote"
             @entity-clear-in-list="onClearEntityAttrs"
             >
@@ -256,7 +256,7 @@
           :is-add-entity="true"
           @entity-attr-add="onAttrAdd"
           @entity-add="onEntityAdd"
-          @entity-attr-info-show="doShowAttrNote"
+          @entity-attr-info-show="doShowEntityAttrNote"
           @entity-info-show="doShowEntityNote"
           >
         </entity-list>
