@@ -24,7 +24,7 @@ export const isRunText = (rt) => {
   if (!rt.hasOwnProperty('Name') || !rt.hasOwnProperty('RunDigest') || !rt.hasOwnProperty('ValueDigest')) return false
   if (!rt.hasOwnProperty('RunStamp') || !rt.hasOwnProperty('SubCount') || !rt.hasOwnProperty('Status')) return false
   if (!rt.hasOwnProperty('CreateDateTime') || !rt.hasOwnProperty('UpdateDateTime')) return false
-  if (!Array.isArray(rt.Param) || !Array.isArray(rt.Table) || !Array.isArray(rt.Txt)) return false
+  if (!Array.isArray(rt.Param) || !Array.isArray(rt.Table) || !Array.isArray(rt.Entity) || !Array.isArray(rt.Txt)) return false
   return true
 }
 
@@ -51,6 +51,7 @@ export const emptyRunText = () => {
     UpdateDateTime: '',
     Param: [],
     Table: [],
+    Entity: [],
     Txt: []
   }
 }
@@ -350,8 +351,18 @@ export const isNotEmptyRunProgress = (rpi) => {
   Res: {
     Cpu: 1
   },
-  RunNotes: [],
   Tables: [],
+  Microdata: {
+    IsToDb:     true,
+    IsInternal: false,
+    Entity: [
+      {
+        Name: "Person"
+        Attr: ["Age", "Income"]
+      }
+    ]
+  },
+  RunNotes: [],
   LogFileName: "RiskPaths.2022_07_05_19_55_38_627.console.log",
   RunStatus: [],
   Lines: []
@@ -367,8 +378,6 @@ export const emptyJobItem = (stamp) => {
     ModelDigest: '',
     RunStamp: '',
     Opts: {},
-    RunNotes: [],
-    Tables: [],
     Threads: 1,
     IsMpi: false,
     Mpi: {
@@ -376,6 +385,13 @@ export const emptyJobItem = (stamp) => {
       IsNotOnRoot: false
     },
     Template: '',
+    Tables: [],
+    Microdata: {
+      IsToDb: false,
+      IsInternal: false,
+      Entity: []
+    },
+    RunNotes: [],
     Res: { Cpu: 1 },
     IsOverLimit: false,
     QueuePos: 0,
@@ -423,10 +439,20 @@ export const isNotEmptyJobItem = (jc) => {
   Mpi: {
     Np: 0,
     IsNotOnRoot: false,
-    IsNotByJob: false
+    IsNotByJob:  false
   },
   Template: "",
   Tables: [],
+  Microdata: {
+    IsToDb:     true,
+    IsInternal: false,
+    Entity: [
+      {
+        Name: "Person"
+        Attr: ["Age", "Income"]
+      }
+    ]
+  },
   RunNotes: []
 }
 */
@@ -445,9 +471,33 @@ export const emptyRunRequest = () => {
       IsNotOnRoot: false
     },
     Template: '',
-    RunNotes: [],
-    Tables: []
+    Tables: [],
+    Microdata: {
+      IsToDb: false,
+      IsInternal: false,
+      Entity: []
+    },
+    RunNotes: []
   }
+}
+
+// return empty microdata part of run request
+export const emptyRunRequestMicrodata = () => {
+  return {
+    IsToDb: false,
+    IsInternal: false,
+    Entity: []
+  }
+}
+
+// return true if this is Microdata part of run request
+export const isRunRequestMicrodata = (rqMd) => {
+  if (!rqMd) return false
+  if (!rqMd.hasOwnProperty('IsToDb') || typeof rqMd.IsToDb !== typeof true) return false
+  if (!rqMd.hasOwnProperty('IsInternal') || typeof rqMd.IsInternal !== typeof true) return false
+  if (!rqMd.hasOwnProperty('Entity')) return false
+
+  return Array.isArray(rqMd.Entity)
 }
 
 // return true if this is model run request
@@ -462,6 +512,8 @@ export const isRunRequest = (rReq) => {
   if (!rReq.hasOwnProperty('IsMpi') || typeof rReq.IsMpi !== typeof true) return false
   if (!rReq.Mpi.hasOwnProperty('Np') || typeof rReq.Mpi.Np !== typeof 1) return false
   if (!rReq.Mpi.hasOwnProperty('IsNotOnRoot') || typeof rReq.Mpi.IsNotOnRoot !== typeof true) return false
+
+  if (!rReq.hasOwnProperty('Microdata') || !isRunRequestMicrodata(rReq.Microdata)) return false
 
   return Array.isArray(rReq.RunNotes) && Array.isArray(rReq.Tables)
 }
@@ -487,8 +539,9 @@ export const runRequestFromJob = (jc) => {
   rReq.Mpi.IsNotOnRoot = jc.Mpi.IsNotOnRoot
   rReq.Mpi.IsNotByJob = jc.Mpi.IsNotByJob
   rReq.Template = jc.Template || ''
-  rReq.RunNotes = Array.from(jc.RunNotes)
   rReq.Tables = Array.from(jc.Tables)
+  rReq.Microdata = (jc?.Microdata && isRunRequestMicrodata(jc.Microdata)) ? jc.Microdata : emptyRunRequestMicrodata()
+  rReq.RunNotes = Array.from(jc.RunNotes)
 
   for (const key in jc.Opts) {
     if (!!key && (jc.Opts[key] || '') !== '') rReq.Opts[key] = jc.Opts[key]

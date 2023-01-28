@@ -47,6 +47,8 @@ export default {
   },
 
   computed: {
+    isMicrodata () { return !!this.serverConfig.AllowMicrodata },
+
     ...mapState('serverState', {
       omsUrl: state => state.omsUrl,
       serverConfig: state => state.config

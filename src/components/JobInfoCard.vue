@@ -74,6 +74,15 @@
               </div>
             </td>
           </tr>
+          <template v-if="isAnyMicrodata()">
+            <tr>
+              <td  colspan="2" class="pt-head text-weight-medium">{{ $t('Microdata') }}</td>
+            </tr>
+            <tr v-for="(ent, ien) of jobItem.Microdata.Entity" :key="'md-ent-' + ent.Name + '-' + ien.toString()">
+              <td class="pt-head-left text-weight-medium">{{ ent.Name }}</td>
+              <td class="pt-cell-left">{{ ent.Attr.join(', ') }}</td>
+            </tr>
+          </template>
         </tbody>
       </table>
     </q-card-section>
@@ -150,6 +159,7 @@ export default {
   name: 'JobInfoCard',
 
   props: {
+    isMicrodata: { type: Boolean, default: false },
     jobItem: {
       type: Object,
       default: Mdf.emptyJobItem()
@@ -215,6 +225,9 @@ export default {
 
   methods: {
     isNotEmptyJob () { return Mdf.isNotEmptyJobItem(this.jobItem) },
+    isAnyMicrodata () {
+      return this.isMicrodata && this.jobItem?.Microdata?.Entity && this.jobItem?.Microdata?.Entity?.length > 0
+    },
     dtRoundStr (dt) { return Mdf.dtStr(dt) },
     durationStr (startDt, lastDt) { return Mdf.toIntervalStr(Mdf.dtStr(startDt), Mdf.dtStr(lastDt)) },
     runStatusDescr (status) { return Mdf.statusText(status) }

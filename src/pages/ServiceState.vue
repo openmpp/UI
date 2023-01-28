@@ -148,6 +148,7 @@
         </template>
 
         <job-info-card
+          :is-microdata="isMicrodata"
           :job-item="activeJobs[aj.SubmitStamp]"
           class="job-card q-mx-sm q-mb-md"
         >
@@ -248,6 +249,7 @@
         </template>
 
         <job-info-card
+          :is-microdata="isMicrodata"
           :job-item="queueJobs[qj.SubmitStamp]"
           class="job-card q-mx-sm q-mb-md"
         >
@@ -321,6 +323,7 @@
         </template>
 
         <job-info-card
+          :is-microdata="isMicrodata"
           :job-item="historyJobs[hj.SubmitStamp]"
           class="job-card q-mx-sm q-mb-md"
         >
@@ -386,6 +389,7 @@
         </template>
 
         <job-info-card
+          :is-microdata="isMicrodata"
           :job-item="historyJobs[hj.SubmitStamp]"
           class="job-card q-mx-sm q-mb-md"
         >

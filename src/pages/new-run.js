@@ -73,6 +73,7 @@ export default {
         mpiOnRoot: false,
         mpiTmpl: ''
       },
+      microOpts: Mdf.emptyRunRequestMicrodata(),
       advOptsExpanded: false,
       mpiOptsExpanded: false,
       langOptsExpanded: false,
@@ -228,6 +229,28 @@ export default {
         }
       }
 
+      // entity microdata for that model run
+      this.entityAttrCount = 0
+      this.entityAttrsUse = []
+      this.microOpts = Mdf.emptyRunRequestMicrodata()
+
+      if (this.isMicrodata) {
+        for (const et of this.theModel.EntityTxt) {
+          this.entityAttrCount += Mdf.entityAttrCount(et)
+        }
+
+        // init microdata list from existing base run
+        if (Mdf.isNotEmptyRunText(this.runCurrent)) {
+          for (const e of this.runCurrent.Entity) {
+            if (e?.Name && Array.isArray(e?.Attr)) {
+              for (const a of e.Attr) {
+                this.entityAttrsUse.push(e.Name + '.' + a)
+              }
+            }
+          }
+        }
+      }
+
       // make list of model languages, description and notes for workset editor
       this.newRunNotes = {}
 
@@ -249,16 +272,6 @@ export default {
             Descr: '',
             Note: ''
           })
-        }
-      }
-
-      // entities microdata for that model run
-      this.entityAttrCount = 0
-      this.entityAttrsUse = []
-
-      if (this.isMicrodata) {
-        for (const et of this.theModel.EntityTxt) {
-          this.entityAttrCount += Mdf.entityAttrCount(et)
         }
       }
 
@@ -468,7 +481,7 @@ export default {
       if (isAdded) {
         this.$q.notify({
           type: 'info',
-          message: this.entityAttrsUse.length < this.entityAttrCount ? this.$t('Include') + ': ' + name : this.$t('All entity attributes included into microdata')
+          message: this.entityAttrsUse.length < this.entityAttrCount ? this.$t('Add to microdata') + ': ' + name : this.$t('All entity attributes included into microdata')
         })
         this.refreshEntityTreeTickle = !this.refreshEntityTreeTickle
       }
@@ -501,7 +514,7 @@ export default {
       if (isAdded) {
         this.$q.notify({
           type: 'info',
-          message: (this.entityAttrsUse.length < this.entityAttrCount) ? this.$t('Include all attributes of') + ': ' + entName : this.$t('All entity attributes included into microdata')
+          message: (this.entityAttrsUse.length < this.entityAttrCount) ? this.$t('Add to microdata') + ': ' + entName : this.$t('All entity attributes included into microdata')
         })
         this.refreshEntityTreeTickle = !this.refreshEntityTreeTickle
       }
@@ -667,7 +680,6 @@ export default {
       }
 
       // merge preset with run options
-
       this.runOpts.runName = Mdf.getRunOption(rReq.Opts, 'OpenM.RunName') || this.runOpts.runName
       this.runOpts.worksetName = Mdf.getRunOption(rReq.Opts, 'OpenM.SetName') || this.runOpts.worksetName
       this.runOpts.baseRunDigest = Mdf.getRunOption(rReq.Opts, 'OpenM.BaseRunDigest') || this.runOpts.baseRunDigest
@@ -738,6 +750,23 @@ export default {
                 if (this.tablesRetain.indexOf(tn) < 0) {
                   this.tablesRetain.push(tn)
                 }
+              }
+            }
+          }
+        }
+      }
+
+      // restore microdata run options
+      if (this.isMicrodata && rReq?.Microdata) {
+        // clear existing microdata state
+        this.entityAttrsUse = []
+        this.microOpts = Mdf.emptyRunRequestMicrodata()
+
+        if (Array.isArray(rReq.Microdata?.Entity)) {
+          for (const e of rReq.Microdata?.Entity) {
+            if (e?.Name && Array.isArray(e?.Attr)) {
+              for (const a of e.Attr) {
+                this.entityAttrsUse.push(e.Name + '.' + a)
               }
             }
           }
@@ -858,6 +887,43 @@ export default {
         } while (isAny)
 
         this.retainTablesGroups = tLst
+      }
+
+      // create microdata entity attributes array
+      if (this.isMicrodata && this.entityAttrsUse.length > 0) {
+        const mdLst = []
+
+        for (const eau of this.entityAttrsUse) {
+          const n = eau.indexOf('.')
+          if (n <= 0 || n >= eau.length - 1) continue // skip: expected entity.attribute
+
+          const eName = eau.substring(0, n)
+          const aName = eau.substring(n + 1)
+
+          // check if entity attribute exist and if it is an internal attribute
+          const a = Mdf.entityAttrTextByName(this.theModel, eName, aName)
+
+          if (a.Attr.Name !== aName) continue // entity attribute not found
+          if (a.Attr.IsInternal) this.microOpts.IsInternal = true // allow use of internal attributes
+
+          let isFound = false
+          for (const md of mdLst) {
+            if (md.Name !== eName) continue
+            isFound = true
+            md.Attr.push(aName) // entity already found, append another attribute
+            break
+          }
+          if (!isFound) { // entity not found, add new entity and attribute to the list
+            mdLst.push({
+              Name: eName,
+              Attr: []
+            })
+            mdLst[mdLst.length - 1].Attr.push(aName)
+          }
+        }
+
+        this.microOpts.IsToDb = mdLst.length > 0
+        this.microOpts.Entity = mdLst
       }
 
       // collect description and notes for each language

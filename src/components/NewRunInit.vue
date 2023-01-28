@@ -35,6 +35,10 @@ export default {
       })
     },
     tablesRetain: { type: Array, default: () => [] },
+    microdataOpts: {
+      type: Object,
+      default: () => { return Mdf.emptyRunRequestMicrodata() }
+    },
     runNotes: {
       type: Object,
       default: () => ({})
@@ -83,7 +87,6 @@ export default {
         ModelDigest: (this.modelDigest || ''),
         Dir: '',
         Opts: { },
-        Tables: [],
         Threads: 1,
         IsMpi: false,
         Mpi: {
@@ -92,8 +95,11 @@ export default {
           IsNotByJob: !this.serverConfig.IsJobControl
         },
         Template: '',
+        Tables: [],
+        Microdata: Mdf.emptyRunRequestMicrodata(),
         RunNotes: []
       }
+
       if ((this.runOpts.runName || '') !== '') rv.Opts['OpenM.RunName'] = this.runOpts.runName
       if ((this.runOpts.worksetName || '') !== '') rv.Opts['OpenM.SetName'] = this.runOpts.worksetName
       if ((this.runOpts.baseRunDigest || '') !== '') rv.Opts['OpenM.BaseRunDigest'] = this.runOpts.baseRunDigest
@@ -115,6 +121,8 @@ export default {
       }
 
       rv.Tables = Array.from(this.tablesRetain)
+
+      if (this.serverConfig.AllowMicrodata) rv.Microdata = this.microdataOpts
 
       if ((this.runOpts.mpiNpCount || 0) <= 0) {
         if (this.runOpts.runTmpl) rv.Template = this.runOpts.runTmpl

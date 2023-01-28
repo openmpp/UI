@@ -589,6 +589,7 @@
     :model-digest="digest"
     :run-opts="runOpts"
     :tables-retain="retainTablesGroups"
+    :microdata-opts="microOpts"
     :run-notes="newRunNotes"
     @done="doneNewRunInit"
     @wait="()=>{}">
