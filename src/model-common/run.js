@@ -357,7 +357,7 @@ export const isNotEmptyRunProgress = (rpi) => {
     IsInternal: false,
     Entity: [
       {
-        Name: "Person"
+        Name: "Person",
         Attr: ["Age", "Income"]
       }
     ]
@@ -448,7 +448,7 @@ export const isNotEmptyJobItem = (jc) => {
     IsInternal: false,
     Entity: [
       {
-        Name: "Person"
+        Name: "Person",
         Attr: ["Age", "Income"]
       }
     ]

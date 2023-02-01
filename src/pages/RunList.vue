@@ -473,7 +473,7 @@
   <parameter-info-dialog :show-tickle="paramInfoTickle" :param-name="paramInfoName" :run-digest="runDigestSelected"></parameter-info-dialog>
   <table-info-dialog :show-tickle="tableInfoTickle" :table-name="tableInfoName" :run-digest="runDigestSelected"></table-info-dialog>
   <group-info-dialog :show-tickle="groupInfoTickle" :group-name="groupInfoName"></group-info-dialog>
-  <entity-info-dialog :show-tickle="entityInfoTickle" :entity-name="entityInfoName"></entity-info-dialog>
+  <entity-info-dialog :show-tickle="entityInfoTickle" :entity-name="entityInfoName" :run-digest="runDigestSelected"></entity-info-dialog>
   <entity-attr-info-dialog :show-tickle="attrInfoTickle" :entity-name="entityInfoName" :attr-name="attrInfoName"></entity-attr-info-dialog>
 
   <refresh-run v-if="(digest || '') !== '' && (runDigestRefresh || '') !== ''"

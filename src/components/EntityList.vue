@@ -194,7 +194,6 @@ export default {
         // make group of attributes from entity
         let isAny = false
 
-        let isNote = Mdf.noteOfDescrNote(ent) !== ''
         const g = {
           key: 'egr-' + ent.Entity.EntityId, // + '-' + this.nextId++,
           label: ent.Entity.Name,
@@ -202,8 +201,8 @@ export default {
           children: [],
           parts: '',
           isGroup: true,
-          isAbout: isNote,
-          isAboutEmpty: !isNote
+          isAbout: true,
+          isAboutEmpty: false
         }
 
         // add attributes as leafs of the entity group
@@ -223,7 +222,6 @@ export default {
           this.isAnyHidden = this.isAnyHidden || ea.Attr.IsInternal
           if (!this.isShowHidden && ea.Attr.IsInternal) continue // skip hidden internal attribute if reqired
 
-          isNote = Mdf.noteOfDescrNote(ea) !== ''
           g.children.push({
             key: 'etl-' + ea.Attr.EntityId + '-' + ea.Attr.AttrId, // + '-' + this.nextId++,
             label: ea.Attr.Name,

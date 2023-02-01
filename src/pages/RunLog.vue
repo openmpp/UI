@@ -132,9 +132,9 @@
     >
   </refresh-run-log>
   <refresh-run-progress
-    v-if="(runState.RunStamp || '') !== ''"
+    v-if="(runState.RunStamp || stamp) !== ''"
     :model-digest="digest"
-    :run-stamp="(runState.RunStamp || '')"
+    :run-stamp="(runState.RunStamp || stamp)"
     :refresh-tickle="isProgressRefresh"
     @done="doneRunProgressRefresh"
     @wait="()=>{}"
