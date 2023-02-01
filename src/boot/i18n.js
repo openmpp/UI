@@ -5,8 +5,8 @@ import messages from 'src/i18n'
 Vue.use(VueI18n)
 
 const i18n = new VueI18n({
-  locale: 'en-US',
-  fallbackLocale: 'en-US',
+  locale: 'en-us',
+  fallbackLocale: 'en-us',
   silentFallbackWarn: true,
   // silentTranslationWarn: process.env.PROD,
   silentTranslationWarn: true,
