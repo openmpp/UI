@@ -24,6 +24,9 @@
           <div v-if="internalRunAttrCount || internalAttrCount" class="om-note-row">
             <span class="om-note-cell q-pr-sm">{{ $t('Run Internal Attributes') }}:</span><span class="om-note-cell">{{ internalRunAttrCount }}</span>
           </div>
+          <div class="om-note-row">
+            <span class="om-note-cell q-pr-sm">{{ $t('Microdata Count') }}:</span><span class="om-note-cell">{{ rowCount }}</span>
+          </div>
         </template>
       </div>
       <div v-if="notes" v-html="notes" />
@@ -61,6 +64,7 @@ export default {
       internalAttrCount: 0,
       runAttrCount: 0,
       internalRunAttrCount: 0,
+      rowCount: 0,
       notes: '',
       runCurrent: Mdf.emptyRunText() // currently selected run
     }
@@ -87,12 +91,14 @@ export default {
       }
       const isRun = this.runDigest && Mdf.isNotEmptyRunText(this.runCurrent)
 
+      this.rowCount = 0
       if (isRun) {
         for (const e of this.runCurrent.Entity) {
           if (e?.Name && e.Name === this.entityName && Array.isArray(e?.Attr)) {
             for (const a of e.Attr) {
               aUse[a] = true
             }
+            this.rowCount = e?.RowCount || 0 // if this is microdata of model run then show microdata row count
           }
         }
       }
