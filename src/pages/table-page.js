@@ -103,8 +103,9 @@ export default {
   },
 
   methods: {
-    doRefresh () {
+    async doRefresh () {
       this.initView()
+      await this.setPageView()
       this.doRefreshDataPage()
     },
 
@@ -222,7 +223,6 @@ export default {
         this.exprDecimals[eId] = nDec
         if (this.maxDecimals < nDec) this.maxDecimals = nDec
       }
-
       if (this.maxDecimals < 0) this.maxDecimals = 4 // if model decimals=-1, which is display all then limit maxDecimals = 4 before display all
 
       fe.enums = Object.freeze(eLst)
@@ -315,9 +315,6 @@ export default {
       this.pvc.formatter = Pcvt.formatFloat({ isNullable: this.isNullable, locale: lc, nDecimal: -1, maxDecimal: this.maxDecimals }) // decimal: -1 is to show source float value
       this.pvc.cellClass = 'pv-cell-right'
       this.ctrl.formatOpts = this.pvc.formatter.options()
-
-      // set columns layout and refresh the data
-      this.setPageView()
     },
 
     // set page view: use previous page view from store or default

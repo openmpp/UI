@@ -264,11 +264,7 @@ const formatNumber = {
     if (opts.locale) {
       return opts.nDecimal < 0
         ? val.toString()
-        : (
-            opts.nDecimal > 0
-              ? val.toLocaleString(opts.locale, { minimumFractionDigits: opts.nDecimal })
-              : val.toLocaleString(opts.locale, { maximumFractionDigits: opts.nDecimal })
-          )
+        : val.toLocaleString(opts.locale, {  minimumFractionDigits: opts.nDecimal, maximumFractionDigits: opts.nDecimal })
     }
     // else use default numeric formating, example: 1,234.5678
     const groupSep = ','   // thousands group separator
