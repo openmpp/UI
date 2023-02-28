@@ -233,7 +233,7 @@ export default {
       }
       this.dispatchParamViewDelete(this.routeKey) // clean current view
       await this.restoreDefaultView()
-      this.setPageView()
+      await this.setPageView()
       this.doRefreshDataPage()
     },
     // save current view as default parameter view
@@ -563,15 +563,18 @@ export default {
     // end of dimensions drag, drop and selection filter
 
     doRefresh () {
-      this.initView()
-      this.doRefreshDataPage()
+      this.initViewRefreshData()
       if (!this.isFromRun) {
         this.$emit('edit-updated', this.edt.isUpdated, this.routeKey)
       }
     },
+    async initViewRefreshData () {
+      await this.initView()
+      this.doRefreshDataPage()
+    },
 
     // initialize current page view on mounted or tab switch
-    initView () {
+    async initView () {
       // check if parameter exist in model run or in workset
       const { isFound, src } = this.initParamRunSet()
       if (!isFound) {
@@ -714,7 +717,7 @@ export default {
       this.ctrl.formatOpts = this.pvc.formatter.options()
 
       // set columns layout and refresh the data
-      this.setPageView()
+      await this.setPageView()
     },
 
     // set page view: use previous page view from store or default
@@ -1169,8 +1172,7 @@ export default {
   },
 
   mounted () {
-    this.initView()
-    this.doRefreshDataPage()
+    this.initViewRefreshData()
     if (this.isFromRun) {
       this.$emit('tab-mounted', 'run-parameter', { digest: this.digest, runDigest: this.runDigest, parameterName: this.parameterName })
     } else {
