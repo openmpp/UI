@@ -11,12 +11,26 @@ npm install
 ```
 
 ### Start the app in development mode (hot-code reloading, error reporting, etc.)
+Linux or MacOS:
 ```
+export NODE_OPTIONS=--openssl-legacy-provider
+npm run dev
+```
+Windows:
+```
+set NODE_OPTIONS=--openssl-legacy-provider
 npm run dev
 ```
 
 ### Build the app for production
+Linux or MacOS:
 ```
+export NODE_OPTIONS=--openssl-legacy-provider
+npm run build
+```
+Windows:
+```
+set NODE_OPTIONS=--openssl-legacy-provider
 npm run build
 ```
 
@@ -26,7 +40,7 @@ npm run lint
 ```
 
 ### Customize the configuration
-See [Configuring quasar.conf.js](https://quasar.dev/quasar-cli/quasar-conf-js).
+See [Configuring quasar.conf.js](https://v1.quasar.dev/quasar-cli/quasar-conf-js).
 
 **License:** MIT.
 
