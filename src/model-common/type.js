@@ -2,6 +2,7 @@
 
 import * as Mdl from './model'
 import * as Dnf from './descr-note'
+import * as Mlang from './language'
 import * as Hlpr from './helper'
 
 // is model has type text list and each element is TypeTxt
@@ -166,7 +167,7 @@ export const enumCodeById = (typeTxt, enumId) => {
 }
 
 // return array of enum Ids by array of codes
-export const codeArrayToEnumIdArray = (typeTxt, codeArr) => {
+export const codeArrayToEnumIdArray = (typeTxt, codeArr, isTotal = false, totalId = 0) => {
   if (!typeTxt || !typeTxt.hasOwnProperty('TypeEnumTxt')) return []
 
   const cLen = Hlpr.lengthOf(codeArr)
@@ -180,12 +181,15 @@ export const codeArrayToEnumIdArray = (typeTxt, codeArr) => {
       eArr[n++] = typeTxt.TypeEnumTxt[k].Enum.EnumId
     }
   }
+  if (isTotal && codeArr.findIndex(c => c === Mlang.ALL_WORD_CODE) >= 0) {
+    eArr[n++] = totalId
+  }
   eArr.length = n // remove size of not found
   return eArr
 }
 
 // return array of codes by array of enum Ids
-export const enumIdArrayToCodeArray = (typeTxt, enumIdArr) => {
+export const enumIdArrayToCodeArray = (typeTxt, enumIdArr, isTotal = false, totalId = 0) => {
   if (!typeTxt || !typeTxt.hasOwnProperty('TypeEnumTxt')) return []
 
   const eLen = Hlpr.lengthOf(enumIdArr)
@@ -198,6 +202,9 @@ export const enumIdArrayToCodeArray = (typeTxt, enumIdArr) => {
     if (enumIdArr.findIndex(eId => eId === typeTxt.TypeEnumTxt[k].Enum.EnumId) >= 0) {
       cArr[n++] = typeTxt.TypeEnumTxt[k].Enum.Name || ''
     }
+  }
+  if (isTotal && enumIdArr.findIndex(eId => eId === totalId) >= 0) {
+    cArr[n++] = Mlang.ALL_WORD_CODE
   }
   cArr.length = n // remove size of not found
   return cArr

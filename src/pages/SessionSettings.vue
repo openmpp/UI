@@ -117,7 +117,7 @@
             <span class="row">
             <q-btn
               @click="onDownloadViews"
-              :disable="!isModel || !paramIdx.length"
+              :disable="!isModel || (!paramNames.length && !tableNames.length)"
               flat
               dense
               no-caps
@@ -163,29 +163,58 @@
   </q-expansion-item>
 
   <q-expansion-item
-    :disable="!paramIdx.length"
+    :disable="!paramNames.length"
     switch-toggle-side
     expand-separator
     default-opened
     header-class="bg-primary text-white"
-    :label="$t('Default views of parameters')"
+    :label="$t('Default views of parameters') + ': ' + (paramNames.length ? paramNames.length.toString() : $t('None'))"
     >
     <q-list bordered separator>
 
-      <q-item v-for="p of paramIdx" :key="p.name">
+      <q-item v-for="pName of paramNames" :key="pName">
         <q-item-section avatar>
           <q-btn
-            @click="onRemoveParamView(p.name)"
+            @click="onRemoveParamView(pName)"
             flat
             dense
             class="bg-primary text-white rounded-borders"
             icon="delete"
-            :title="$t('Erase default view of parameter') + ' ' + p.name"
+            :title="$t('Erase default view of parameter') + ' ' + pName"
             />
         </q-item-section>
         <q-item-section>
-          <q-item-label>{{ p.name }}</q-item-label>
-          <q-item-label caption>{{ parameterDescr(p.name) }}</q-item-label>
+          <q-item-label>{{ pName }}</q-item-label>
+          <q-item-label caption>{{ parameterDescr(pName) }}</q-item-label>
+        </q-item-section>
+      </q-item>
+    </q-list>
+  </q-expansion-item>
+
+  <q-expansion-item
+    :disable="!tableNames.length"
+    switch-toggle-side
+    expand-separator
+    default-opened
+    header-class="bg-primary text-white"
+    :label="$t('Default views of output tables') + ': ' + (tableNames.length ? tableNames.length.toString() : $t('None'))"
+    >
+    <q-list bordered separator>
+
+      <q-item v-for="tName of tableNames" :key="tName">
+        <q-item-section avatar>
+          <q-btn
+            @click="onRemoveTableView(tName)"
+            flat
+            dense
+            class="bg-primary text-white rounded-borders"
+            icon="delete"
+            :title="$t('Erase default view of output table') + ' ' + tName"
+            />
+        </q-item-section>
+        <q-item-section>
+          <q-item-label>{{ tName }}</q-item-label>
+          <q-item-label caption>{{ tableDescr(tName) }}</q-item-label>
         </q-item-section>
       </q-item>
 
@@ -216,8 +245,9 @@ export default {
 
   data () {
     return {
-      dbRows: [],
-      paramIdx: [], // parameter names and index in dbRows, if db row exist
+      dbRows: [], // user views: parameter views or output table views
+      paramNames: [], // parameter names from dbRows
+      tableNames: [], // output table names from dbRows
       uploadFile: null,
       uploadUserViewsTickle: false,
       uploadUserViewsDone: false,
@@ -281,7 +311,7 @@ export default {
       this.isMicroDownload = !this.noAccDownload && !this.noMicrodataDownload && !!this.serverConfig.AllowMicrodata
       this.labelKind = (this.treeLabelKind === 'name-only' || this.treeLabelKind === 'descr-only') ? this.treeLabelKind : 'default'
 
-      if (this.modelName) this.doReadParameterViews()
+      if (this.modelName) this.doReadViews()
     },
 
     onModelClear () {
@@ -298,7 +328,8 @@ export default {
     },
     clearState () {
       this.dbRows = []
-      this.paramIdx = []
+      this.paramNames = []
+      this.tableNames = []
       this.uploadFile = null
     },
     onRunTextListClear () { this.dispatchRunTextList([]) },
@@ -306,26 +337,35 @@ export default {
     onUiLanguageClear () { this.dispatchUiLang('') },
 
     // return parameter description by name
-    parameterDescr (pName) { return Mdf.descrOfDescrNote(Mdf.paramTextByName(this.theModel, pName)) },
+    parameterDescr (name) { return Mdf.descrOfDescrNote(Mdf.paramTextByName(this.theModel, name)) },
 
-    // download parameters views
+    // return output table description by name
+    tableDescr (name) {
+      const tt = Mdf.tableTextByName(this.theModel, name)
+      return tt?.TableDescr || ''
+    },
+
+    // download user views views
     onDownloadViews () {
       const fName = this.modelName + '.view.json'
 
-      // make parameter views json
-      const ps = this.dbRows.filter(r => this.paramIdx.findIndex(p => p.name === r.name) >= 0)
+      // make parameter views and output table views json
+      const pv = this.dbRows.filter(r => this.paramNames.findIndex(pName => pName === r.name) >= 0)
+      const tv = this.dbRows.filter(r => this.tableNames.findIndex(tName => tName === r.name) >= 0)
+
       let vs = ''
-      if (Mdf.isLength(ps)) {
+      if (Mdf.isLength(pv) || Mdf.isLength(tv)) {
         try {
           vs = JSON.stringify({
             model: {
               name: this.modelName,
-              parameterViews: ps
+              parameterViews: pv,
+              tableViews: tv
             }
           })
         } catch (e) {
           vs = ''
-          console.warn('Error at stringify of:', ps)
+          console.warn('Error at stringify of:', pv, tv)
         }
       }
       if (!vs) {
@@ -341,11 +381,11 @@ export default {
       }
     },
 
-    // upload parameter views
+    // upload model user views
     async onUploadViews () {
       if (!this.isUploadFile) return
 
-      // read and parse parameter views json
+      // read and parse model user views json
       let vs
       try {
         const t = await this.uploadFile.text()
@@ -359,8 +399,9 @@ export default {
         return
       }
 
-      // write parameter views into indexed db
+      // write user views into indexed db
       let nViews = 0
+
       if (Array.isArray(vs.model?.parameterViews) && vs.model?.parameterViews?.length) {
         let name = ''
         try {
@@ -378,55 +419,84 @@ export default {
           return
         }
       }
-      // refresh parameter views: read new version of views from database
+      if (Array.isArray(vs.model?.tableViews) && vs.model?.tableViews?.length) {
+        let name = ''
+        try {
+          const dbCon = await Idb.connection()
+          const rw = await dbCon.openReadWrite(this.modelName)
+          for (const v of vs.model.tableViews) {
+            if (!v?.name || !v?.view) continue
+            name = v.name
+            await rw.put(v.name, v.view)
+            nViews++
+          }
+        } catch (e) {
+          console.warn('Unable to save default output table view:', name, e)
+          this.$q.notify({ type: 'negative', message: this.$t('Unable to save default output table view') + ': ' + name })
+          return
+        }
+      }
+
+      // refresh user views: read new version of views from database
       if (nViews) {
-        this.doReadParameterViews()
-        this.$q.notify({ type: 'info', message: this.$t('Updated {count} parameter view(s)', { count: nViews }) })
+        this.doReadViews()
+        this.$q.notify({ type: 'info', message: this.$t('User views count') + ': ' + nViews.toString() })
       } else {
-        this.$q.notify({ type: 'info', message: this.$t('No parameter views found') + ': ' + this.modelName })
+        this.$q.notify({ type: 'info', message: this.$t('No user views found') + ': ' + this.modelName })
       }
 
       // upload parameter views into user home directory
       this.uploadUserViewsTickle = !this.uploadUserViewsTickle
     },
 
-    // upload of parameter views completed
+    // upload of parameter and output table views completed
     doneUserViewsUpload (isSuccess, nViews) {
       this.uploadUserViewsDone = true
       if (isSuccess && nViews > 0) {
-        this.$q.notify({ type: 'info', message: this.$t('Uploaded {count} parameter view(s)', { count: nViews }) })
+        this.$q.notify({ type: 'info', message: this.$t('User views uploaded') + ': ' + nViews.toString() })
       }
     },
 
     // delete parameter default view
-    async onRemoveParamView (pName) {
+    onRemoveParamView (name) {
+      this.doRemoveView(true, name)
+    },
+    // delete output table default view
+    onRemoveTableView (name) {
+      this.doRemoveView(false, name)
+    },
+    async doRemoveView (isParam, name) {
       if (!this.modelName) return // model not selected
 
       try {
         const dbCon = await Idb.connection()
         const rw = await dbCon.openReadWrite(this.modelName)
-        await rw.remove(pName)
+        await rw.remove(name)
       } catch (e) {
-        console.warn('Unable to erase default view of parameter', pName, e)
-        this.$q.notify({ type: 'negative', message: this.$t('Unable to erase default view of parameter') + ': ' + pName })
+        console.warn('Unable to erase default view of', name, e)
+        this.$q.notify({ type: 'negative', message: this.$t('Unable to erase default view of') + ': ' + name })
         return
       }
-
-      this.paramIdx = this.paramIdx.filter(p => p.name !== pName)
+      if (isParam) {
+        this.paramNames = this.paramNames.filter(pn => pn !== name)
+      } else {
+        this.tableNames = this.tableNames.filter(tn => tn !== name)
+      }
 
       this.$q.notify({
         type: 'info',
-        message: this.$t('Default view of parameter erased') + ': ' + pName
+        message: this.$t('Default view erased') + ': ' + name
       })
 
       // upload parameter views into user home directory
       this.uploadUserViewsTickle = !this.uploadUserViewsTickle
     },
 
-    // select all parameter views from indexed db
-    async doReadParameterViews () {
+    // select all user views from indexed db
+    async doReadViews () {
       this.dbRows = []
-      this.paramIdx = []
+      this.paramNames = []
+      this.tableNames = []
 
       // select all rows from model indexed db
       this.dbRows = []
@@ -449,10 +519,12 @@ export default {
       }
       if (!Mdf.isLength(this.dbRows)) return // no rows in model db or all rows are empty
 
-      // refresh parameter index: for each parameter name find index in db rows, if exist
-      for (const p of this.theModel.ParamTxt) {
-        const idx = this.dbRows.findIndex(r => r.name === p.Param.Name)
-        if (idx >= 0) this.paramIdx.push({ name: p.Param.Name, dbIdx: idx })
+      // refresh parameter names and table names list where view is exist
+      for (const pt of this.theModel.ParamTxt) {
+        if (this.dbRows.findIndex(r => r.name === pt.Param.Name) >= 0) this.paramNames.push(pt.Param.Name)
+      }
+      for (const tt of this.theModel.TableTxt) {
+        if (this.dbRows.findIndex(r => r.name === tt.Table.Name) >= 0) this.tableNames.push(tt.Table.Name)
       }
     },
 

@@ -237,13 +237,13 @@ export default {
     doneUserViewsLoad (isSuccess, nViews) {
       this.loadUserViewsDone = true
       if (nViews > 0) {
-        this.$q.notify({ type: 'info', message: this.$t('Updated {count} parameter view(s)', { count: nViews }) })
+        this.$q.notify({ type: 'info', message: this.$t('User views count') + ': ' + nViews.toString() })
       }
     },
     doneUserViewsUpload (isSuccess, nViews) {
       this.uploadUserViewsDone = true
       if (isSuccess && nViews > 0) {
-        this.$q.notify({ type: 'info', message: this.$t('Uploaded {count} parameter view(s)', { count: nViews }) })
+        this.$q.notify({ type: 'info', message: this.$t('User views uploaded') + ': ' + nViews.toString() })
       }
     },
 
@@ -330,6 +330,10 @@ export default {
     },
     // on parameter default view saved by user
     onParameterViewSaved (name) {
+      this.uploadUserViewsTickle = !this.uploadUserViewsTickle
+    },
+    // on output table default view saved by user
+    onTableViewSaved (name) {
       this.uploadUserViewsTickle = !this.uploadUserViewsTickle
     },
     // view run log: add tab with open run log page

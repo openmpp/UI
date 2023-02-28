@@ -14,8 +14,154 @@
     </q-toolbar>
   </div>
 
+  <!-- ouput table header -->
   <div class="q-mx-sm q-mb-sm">
     <q-toolbar class="row reverse-wrap items-center shadow-1 rounded-borders">
+
+    <!-- menu -->
+    <q-btn
+      outline
+      dense
+      class="col-auto text-primary rounded-borders q-mr-xs"
+      icon="menu"
+      :title="$t('Menu')"
+      :aria-label="$t('Menu')"
+      >
+      <q-menu auto-close>
+        <q-list>
+
+          <q-item
+            @click="doShowTableNote"
+            clickable
+            >
+            <q-item-section avatar>
+              <q-icon color="primary" name="mdi-information-outline" />
+            </q-item-section>
+            <q-item-section>{{ $t('About') + ' ' + tableName }}</q-item-section>
+          </q-item>
+          <q-separator />
+
+          <q-item
+            @click="onCopyToClipboard"
+            clickable
+            >
+            <q-item-section avatar>
+              <q-icon color="primary" name="mdi-content-copy" />
+            </q-item-section>
+            <q-item-section>{{ $t('Copy tab separated values to clipboard') + ': Ctrl+C' }}</q-item-section>
+          </q-item>
+          <q-item
+            @click="onDownload"
+            clickable
+            >
+            <q-item-section avatar>
+              <q-icon color="primary" name="mdi-download" />
+            </q-item-section>
+            <q-item-section>{{ $t('Download') + ' '  + tableName + ' ' + $t('as CSV') }}</q-item-section>
+          </q-item>
+          <q-separator />
+
+          <q-item
+            @click="onToggleRowColControls"
+            :disable="!ctrl.isRowColModeToggle"
+            clickable
+            >
+            <q-item-section avatar>
+              <q-icon color="primary" :name="ctrl.isRowColControls ? 'mdi-tune' : 'mdi-tune-vertical'" />
+            </q-item-section>
+            <q-item-section>{{ ctrl.isRowColControls ? $t('Hide rows and columns bars') : $t('Show rows and columns bars') }}</q-item-section>
+          </q-item>
+
+          <template v-if="ctrl.isRowColModeToggle">
+            <q-item
+              @click="onSetRowColMode(2)"
+              :disable="pvc.rowColMode === 2"
+              clickable
+              >
+              <q-item-section avatar>
+                <q-icon color="primary" name="mdi-view-quilt-outline" />
+              </q-item-section>
+              <q-item-section>{{ $t('Switch to default pivot view') }}</q-item-section>
+            </q-item>
+            <q-item
+              @click="onSetRowColMode(1)"
+              :disable="pvc.rowColMode === 1"
+              clickable
+              >
+              <q-item-section avatar>
+                <q-icon color="primary" name="mdi-view-list-outline" />
+              </q-item-section>
+              <q-item-section>{{ $t('Table view: hide rows and columns name') }}</q-item-section>
+            </q-item>
+            <q-item
+              @click="onSetRowColMode(0)"
+              :disable="pvc.rowColMode === 0"
+              clickable
+              >
+              <q-item-section avatar>
+                <q-icon color="primary" name="mdi-view-module-outline" />
+              </q-item-section>
+              <q-item-section>{{ $t('Table view: always show rows and columns item') }}</q-item-section>
+            </q-item>
+          </template>
+
+          <q-item
+            @click="onShowItemNames"
+            :disable="isScalar"
+            clickable
+            >
+            <q-item-section avatar>
+              <q-icon color="primary" name="mdi-decimal-increase" />
+            </q-item-section>
+            <q-item-section>{{ pvc.isShowNames ? $t('Show labels') : $t('Show names') }}</q-item-section>
+          </q-item>
+          <template v-if="ctrl.formatOpts">
+            <q-item
+              @click="onShowMoreFormat"
+              :disable="!ctrl.formatOpts.isDoMore"
+              clickable
+              >
+              <q-item-section avatar>
+                <q-icon color="primary" name="mdi-decimal-increase" />
+              </q-item-section>
+              <q-item-section>{{ $t('Increase precision or show source value') }}</q-item-section>
+            </q-item>
+            <q-item
+              @click="onShowLessFormat"
+              :disable="!ctrl.formatOpts.isDoLess"
+              clickable
+              >
+              <q-item-section avatar>
+                <q-icon color="primary" name="mdi-decimal-decrease" />
+              </q-item-section>
+              <q-item-section>{{ $t('Decrease precision') }}</q-item-section>
+            </q-item>
+          </template>
+          <q-separator />
+
+          <q-item
+            @click="onSaveDefaultView"
+            clickable
+            >
+            <q-item-section avatar>
+              <q-icon color="primary" name="mdi-content-save-cog" />
+            </q-item-section>
+            <q-item-section>{{ $t('Save table view as default view of') + ' ' + tableName }}</q-item-section>
+          </q-item>
+          <q-item
+            @click="onReloadDefaultView"
+            clickable
+            >
+            <q-item-section avatar>
+              <q-icon color="primary" name="mdi-cog-refresh-outline" />
+            </q-item-section>
+            <q-item-section>{{ $t('Reset table view to default and reload') + ' ' + tableName }}</q-item-section>
+          </q-item>
+
+        </q-list>
+      </q-menu>
+    </q-btn>
+    <!-- end of menu -->
 
     <q-btn
       @click="doShowTableNote"
@@ -27,7 +173,7 @@
       />
     <q-btn
       @click="doExpressionPage"
-      :disable="tv.kind === 0"
+      :disable="ctrl.kind === 0"
       flat
       dense
       class="col-auto bg-primary text-white rounded-borders q-mr-xs"
@@ -36,24 +182,35 @@
       />
     <q-btn
       @click="doAccumulatorPage"
-      :disable="tv.kind === 1"
+      :disable="ctrl.kind === 1"
       flat
       dense
       class="col-auto bg-primary text-white rounded-borders q-mr-xs"
       icon="mdi-variable"
       :title="$t('View accumulators and sub-values (sub-samples)')"
       />
+    <!--
     <q-btn
       @click="doAllAccumulatorPage"
-      :disable="tv.kind === 2"
+      :disable="ctrl.kind === 2"
       flat
       dense
       class="col-auto bg-primary text-white rounded-borders"
       icon="mdi-application-variable-outline"
       :title="$t('View all accumulators and sub-values (sub-samples)')"
       />
+    -->
+
     <q-separator vertical inset spaced="sm" color="secondary" />
 
+    <q-btn
+      @click="onCopyToClipboard"
+      flat
+      dense
+      class="col-auto bg-primary text-white rounded-borders q-mr-xs"
+      icon="mdi-content-copy"
+      :title="$t('Copy tab separated values to clipboard') + ': Ctrl+C'"
+      />
     <q-btn
       @click="onDownload"
       flat
@@ -62,61 +219,349 @@
       icon="mdi-download"
       :title="$t('Download') + ' '  + tableName + ' ' + $t('as CSV')"
       />
+
     <q-separator vertical inset spaced="sm" color="secondary" />
 
     <q-btn
-      @click="togglePivotControls"
+      @click="onToggleRowColControls"
+      :disable="!ctrl.isRowColModeToggle"
       flat
       dense
       class="col-auto bg-primary text-white rounded-borders q-mr-xs"
-      :icon="pvtState.isShowUI ? 'mdi-tune' : 'mdi-tune-vertical'"
-      :title="pvtState.isShowUI ? $t('Hide pivot controls') : $t('Show pivot controls')"
+      :class="{ 'q-mr-xs' : ctrl.isRowColModeToggle || ctrl.formatOpts }"
+      :icon="ctrl.isRowColControls ? 'mdi-tune' : 'mdi-tune-vertical'"
+      :title="ctrl.isRowColControls ? $t('Hide rows and columns bars') : $t('Show rows and columns bars')"
       />
+
+    <template v-if="ctrl.isRowColModeToggle">
+      <q-btn
+        @click="onSetRowColMode(2)"
+        :disable="pvc.rowColMode === 2"
+        flat
+        dense
+        class="col-auto bg-primary text-white rounded-borders q-mr-xs"
+        icon="mdi-view-quilt-outline"
+        :title="$t('Switch to default pivot view')"
+        />
+      <q-btn
+        @click="onSetRowColMode(1)"
+        :disable="pvc.rowColMode === 1"
+        flat
+        dense
+        class="col-auto bg-primary text-white rounded-borders q-mr-xs"
+        icon="mdi-view-list-outline"
+        :title="$t('Table view: hide rows and columns name')"
+        />
+      <q-btn
+        @click="onSetRowColMode(0)"
+        :disable="pvc.rowColMode === 0"
+        flat
+        dense
+        class="col-auto bg-primary text-white rounded-borders"
+        :class="{ 'q-mr-xs' : ctrl.formatOpts }"
+        icon="mdi-view-module-outline"
+        :title="$t('Table view: always show rows and columns item')"
+        />
+    </template>
+
     <q-btn
-      @click="showMoreDecimals"
-      :disable="pvtState.isAllDecimals"
+      @click="onShowItemNames"
+      :disable="isScalar"
       flat
       dense
       class="col-auto bg-primary text-white rounded-borders q-mr-xs"
-      icon="mdi-decimal-increase"
-      :title="$t('Show more decimals')"
+      :icon="pvc.isShowNames ? 'mdi-label-outline' : 'mdi-label-off-outline'"
+      :title="pvc.isShowNames ? $t('Show labels') : $t('Show names')"
       />
-    <q-btn
-      @click="showLessDecimals"
-      :disable="pvtState.nDecimals <= 0 && !pvtState.isAllDecimals"
-      flat
-      dense
-      class="col-auto bg-primary text-white rounded-borders"
-      icon="mdi-decimal-decrease"
-      :title="$t('Show less decimals')"
-      />
+    <template v-if="ctrl.formatOpts">
+      <q-btn
+        @click="onShowMoreFormat"
+        :disable="!ctrl.formatOpts.isDoMore"
+        flat
+        dense
+        class="col-auto bg-primary text-white rounded-borders q-mr-xs"
+        icon="mdi-decimal-increase"
+        :title="$t('Increase precision or show source value')"
+        />
+      <q-btn
+        @click="onShowLessFormat"
+        :disable="!ctrl.formatOpts.isDoLess"
+        flat
+        dense
+        class="col-auto bg-primary text-white rounded-borders"
+        icon="mdi-decimal-decrease"
+        :title="$t('Decrease precision')"
+        />
+    </template>
+
     <q-separator vertical inset spaced="sm" color="secondary" />
 
     <q-btn
-      @click="doResetView"
+      @click="onSaveDefaultView"
+      flat
+      dense
+      class="col-auto bg-primary text-white rounded-borders q-mr-xs"
+      icon="mdi-content-save-cog"
+      :title="$t('Save table view as default view of') + ' ' + tableName"
+      />
+    <q-btn
+      @click="onReloadDefaultView"
       flat
       dense
       class="col-auto bg-primary text-white rounded-borders q-mr-xs"
       icon="mdi-cog-refresh-outline"
-      :title="$t('Reset table view to default')"
+      :title="$t('Reset table view to default and reload') + ' ' + tableName"
       />
 
     <div
       class="col-auto"
       >
       <span>{{ tableName }}<br />
-      <span class="om-text-descr">{{ tableText.TableDescr }}</span></span>
+      <span class="om-text-descr">{{ tableDescr }}</span></span>
     </div>
 
     </q-toolbar>
-  </div>
 
-  <pivot-react class="q-ml-sm" :pvtState="pvtState"></pivot-react>
+  </div>
+  <!-- end of output table header -->
+
+  <!-- pivot table controls and view -->
+  <div class="q-mx-sm">
+
+    <div v-show="ctrl.isRowColControls"
+      :title="$t('Slicer dimensions')"
+      class="other-panel"
+      >
+      <draggable
+        v-model="otherFields"
+        group="fields"
+        @start="onDrag"
+        @end="onDrop"
+        class="other-fields other-drag"
+        :class="{'drag-area-hint': isDragging}"
+        >
+        <div v-for="f in otherFields" :key="f.name" class="field-drag om-text-medium">
+          <q-select
+            v-model="f.singleSelection"
+            :options="f.options"
+            :option-label="pvc.isShowNames ? 'name' : 'label'"
+            @input="onSelectInput('other', f.name, f.singleSelection)"
+            use-input
+            hide-selected
+            @filter="f.filter"
+            :label="selectLabel(pvc.isShowNames, f)"
+            outlined
+            dense
+            options-dense
+            bottom-slots
+            class="other-select"
+            options-selected-class="option-selected"
+            :title="$t('Select') + ' ' + (pvc.isShowNames ? f.name : f.label)"
+            >
+            <template v-slot:before>
+              <q-icon
+                name="mdi-hand-back-left"
+                size="xs"
+                class="bg-primary text-white rounded-borders select-handle-move"
+                :title="$t('Drag and drop')"
+                />
+              <div class="column">
+                <q-icon
+                  name="check"
+                  size="xs"
+                  class="row bg-primary text-white rounded-borders select-handle-button om-bg-inactive q-mb-xs"
+                  :title="$t('Select all')"
+                  />
+                <q-icon
+                  name="cancel"
+                  size="xs"
+                  class="row bg-primary text-white rounded-borders select-handle-button om-bg-inactive"
+                  :title="$t('Clear all')"
+                  />
+              </div>
+            </template>
+            <template v-slot:hint>
+              <div class="row">
+                <span class="col ellipsis">{{ pvc.isShowNames ? f.name : f.label }}</span>
+                <span class="col-auto text-no-wrap">{{ f.selection ? f.selection.length : 0 }} / {{ f.enums ? f.enums.length : 0 }}</span>
+              </div>
+            </template>
+          </q-select>
+        </div>
+      </draggable>
+    </div>
+
+    <div v-show="ctrl.isRowColControls"
+      :title="$t('Column dimensions')"
+      class="col-panel"
+      >
+      <draggable
+        v-model="colFields"
+        group="fields"
+        @start="onDrag"
+        @end="onDrop"
+        class="col-fields col-drag"
+        :class="{'drag-area-hint': isDragging}"
+        >
+        <div v-for="f in colFields" :key="f.name" class="field-drag om-text-medium">
+          <q-select
+            v-model="f.selection"
+            :options="f.options"
+            :option-label="pvc.isShowNames ? 'name' : 'label'"
+            @input="onSelectInput('col', f.name, f.selection)"
+            use-input
+            hide-selected
+            @filter="f.filter"
+            :label="selectLabel(pvc.isShowNames, f)"
+            multiple
+            outlined
+            dense
+            options-dense
+            bottom-slots
+            class="col-select"
+            options-selected-class="option-selected"
+            :title="$t('Select') + ' ' + (pvc.isShowNames ? f.name : f.label)"
+            >
+            <template v-slot:before>
+              <q-icon
+                name="mdi-hand-back-left"
+                size="xs"
+                class="bg-primary text-white rounded-borders select-handle-move"
+                :title="$t('Drag and drop')"
+                />
+              <div class="column">
+                <q-btn
+                  @click.stop="onSelectAll(f.name)"
+                  flat
+                  dense
+                  size="xs"
+                  class="row bg-primary text-white rounded-borders q-mb-xs"
+                  icon="check"
+                  :title="$t('Select all')"
+                  />
+                <q-btn
+                  @click.stop="onClearAll(f.name)"
+                  flat
+                  dense
+                  size="xs"
+                  class="row bg-primary text-white rounded-borders"
+                  icon="cancel"
+                  :title="$t('Clear all')"
+                  />
+              </div>
+            </template>
+            <template v-slot:hint>
+              <div class="row">
+                <span class="col ellipsis">{{ pvc.isShowNames ? f.name : f.label }}</span>
+                <span class="col-auto text-no-wrap">{{ f.selection ? f.selection.length : 0 }} / {{ f.enums ? f.enums.length : 0 }}</span>
+              </div>
+            </template>
+          </q-select>
+        </div>
+      </draggable>
+    </div>
+
+    <div class="pv-panel">
+
+      <draggable
+        v-show="ctrl.isRowColControls"
+        v-model="rowFields"
+        group="fields"
+        @start="onDrag"
+        @end="onDrop"
+        class="row-fields row-drag"
+        :class="{'drag-area-hint': isDragging}"
+        >
+        <div v-for="f in rowFields" :key="f.name" class="field-drag om-text-medium">
+          <q-select
+            v-model="f.selection"
+            :name="f.name"
+            :options="f.options"
+            :option-label="pvc.isShowNames ? 'name' : 'label'"
+            @input="onSelectInput('row', f.name, f.selection)"
+            use-input
+            hide-selected
+            @filter="f.filter"
+            :label="selectLabel(pvc.isShowNames, f)"
+            multiple
+            outlined
+            dense
+            options-dense
+            bottom-slots
+            class="row-select"
+            options-selected-class="option-selected"
+            :title="$t('Select') + ' ' + (pvc.isShowNames ? f.name : f.label)"
+            >
+            <template v-slot:before>
+              <q-icon
+                name="mdi-hand-back-left"
+                size="xs"
+                class="bg-primary text-white rounded-borders select-handle-move"
+                :title="$t('Drag and drop')"
+                />
+              <div class="column">
+                <q-btn
+                  @click.stop="onSelectAll(f.name)"
+                  flat
+                  dense
+                  size="xs"
+                  class="row bg-primary text-white rounded-borders q-mb-xs"
+                  icon="check"
+                  :title="$t('Select all')"
+                  />
+                <q-btn
+                  @click.stop="onClearAll(f.name)"
+                  flat
+                  dense
+                  size="xs"
+                  class="row bg-primary text-white rounded-borders"
+                  icon="cancel"
+                  :title="$t('Clear all')"
+                  />
+              </div>
+            </template>
+            <template v-slot:hint>
+              <div class="row">
+                <span class="col ellipsis">{{ pvc.isShowNames ? f.name : f.label }}</span>
+                <span class="col-auto text-no-wrap">{{ f.selection ? f.selection.length : 0 }} / {{ f.enums ? f.enums.length : 0 }}</span>
+              </div>
+            </template>
+          </q-select>
+        </div>
+      </draggable>
+
+      <pv-table
+        ref="omPivotTable"
+        :rowFields="rowFields"
+        :colFields="colFields"
+        :otherFields="otherFields"
+        :pv-data="inpData"
+        :pv-control="pvc"
+        :refreshViewTickle="ctrl.isPvTickle"
+        :refreshDimsTickle="ctrl.isPvDimsTickle"
+        @pv-key-pos="onPvKeyPos"
+        >
+      </pv-table>
+
+    </div>
+
+  </div>
+  <!-- end of pivot table controls and view -->
+
+  <refresh-run v-if="(digest || '') !== '' && (runDigest || '') !== ''"
+    :model-digest="digest"
+    :run-digest="runDigest"
+    :refresh-tickle="refreshTickle"
+    :refresh-run-tickle="refreshRunTickle"
+    @done="loadRunWait = false"
+    @wait="loadRunWait = true"
+    >
+  </refresh-run>
 
   <run-info-dialog :show-tickle="runInfoTickle" :model-digest="digest" :run-digest="runDigest"></run-info-dialog>
   <table-info-dialog :show-tickle="tableInfoTickle" :table-name="tableName" :run-digest="runDigest"></table-info-dialog>
 
-  <q-inner-loading :showing="loadWait">
+  <q-inner-loading :showing="loadWait || loadRunWait">
     <q-spinner-gears size="md" color="primary" />
   </q-inner-loading>
 
@@ -125,5 +570,84 @@
 
 <script src="./table-page.js"></script>
 
-<style lang="scss" scoped>
+<style lang="scss" scope="local">
+  /* pivot vew controls: rows, columns, other dimensions and drag-drop area */
+  .flex-item {
+    display: flex;
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  .col-panel, .other-panel, .pv-panel {
+    @extend .flex-item;
+    flex-direction: row;
+    flex-wrap: nowrap;
+  }
+
+  .other-fields, .col-fields {
+    flex: 1 0 auto;
+  }
+  .row-fields {
+    min-width: 12rem;
+    flex: 0 0 auto;
+  }
+  .row-select, .col-select, .other-select {
+    min-width: 10rem;
+  }
+  .drag-area {
+    min-height: 2.5rem;
+    padding: 0.125rem;
+    border: 1px dashed lightgrey;
+  }
+  .drag-area-hint {
+    background-color: whitesmoke;
+  }
+  .sortable-ghost {
+    opacity: 0.5;
+  }
+  .col-drag, .other-drag {
+    @extend .flex-item;
+    @extend .drag-area;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+  }
+  .row-drag {
+    @extend .flex-item;
+    @extend .drag-area;
+    flex-direction: column;
+    flex-wrap: wrap;
+    align-items: flex-start;
+  }
+
+  .field-drag {
+    display: inline-block;
+    margin-left: 0.25rem;
+    padding: 0.25rem;
+    &:hover {
+      cursor: move;
+    }
+  }
+
+  .option-selected {
+    background-color: whitesmoke;
+  }
+  .select-handle-move {
+    min-height: 2.5rem;
+    &:hover {
+      cursor: move;
+    }
+  }
+  .select-handle-button {
+    &:hover {
+      cursor: move;
+    }
+  }
+
+  .upload-right {
+    text-align: right;
+  }
+  .upload-max-width-10 {
+    max-width: 10rem;
+  }
 </style>

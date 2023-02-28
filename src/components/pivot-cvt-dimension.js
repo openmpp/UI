@@ -49,7 +49,7 @@ export const dimField = (field, isOnRow = false, isOnCol = false) => {
 
 // compartor to sort row (or column) keys
 // each row (or column) consist of multiple dimensions
-// row (column) key is array of dimansion items
+// row (column) key is array of dimension items
 //  keyLen is number of row dimensions (or column diamnsions)
 //  cmp is compartor function to return negtive, zero or positive as result of items comaprison
 export const compareKeys = (keyLen, cmp) => {

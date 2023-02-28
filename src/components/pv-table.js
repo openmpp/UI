@@ -170,7 +170,7 @@ export default {
     },
     // return formatted cell value
     getCellValueFmt (key) {
-      return this.pvControl.formatter.format(this.pvt.cells[key])
+      return this.pvControl.formatter.format(this.pvt.cells[key], key)
     },
 
     // start of editor methods
@@ -181,8 +181,8 @@ export default {
     },
     getUpdatedFmt (key) {
       return this.pvEdit.isUpdated && this.pvEdit.updated.hasOwnProperty(key)
-        ? this.pvControl.formatter.format(this.pvEdit.updated[key])
-        : this.pvControl.formatter.format(this.pvt.cells[key])
+        ? this.pvControl.formatter.format(this.pvEdit.updated[key], key)
+        : this.pvControl.formatter.format(this.pvt.cells[key], key)
     },
     getUpdatedToDisplay (key) {
       const v = this.getUpdatedFmt(key)
@@ -212,9 +212,9 @@ export default {
 
     // cancel input edit by escape
     onCellInputEscape () {
-      const ckey = this.pvEdit.cellKey
+      const cKey = this.pvEdit.cellKey
       this.$nextTick(() => {
-        this.focusNextTick(ckey)
+        this.focusNextTick(cKey)
       })
       this.pvEdit.cellKey = ''
       this.pvEdit.cellValue = ''
@@ -222,14 +222,14 @@ export default {
 
     // confirm input edit by Enter: finish cell edit, move to next cell and start next cell edit
     onCellInputEnter (nRow, nCol) {
-      const ckey = this.pvEdit.cellKey
-      const isOk = this.cellInputConfirm(this.pvEdit.cellValue, ckey)
+      const cKey = this.pvEdit.cellKey
+      const isOk = this.cellInputConfirm(this.pvEdit.cellValue, cKey)
       this.pvEdit.cellKey = ''
       this.pvEdit.cellValue = ''
       this.$emit('pv-edit')
       // if invalid input or end of the table then stop edit and keep focus at the same cell
       if (!isOk || ((nRow || 0) >= this.pvt.rowCount - 1 && (nCol || 0) >= this.pvt.colCount - 1)) {
-        this.$nextTick(() => { this.focusNextTick(ckey) })
+        this.$nextTick(() => { this.focusNextTick(cKey) })
         return
       }
       // else: move to next cell right and down
@@ -249,10 +249,10 @@ export default {
     },
     // confirm input edit: finish cell edit and keep focus at the same cell
     onCellInputConfirm () {
-      const ckey = this.pvEdit.cellKey
-      this.cellInputConfirm(this.pvEdit.cellValue, ckey)
+      const cKey = this.pvEdit.cellKey
+      this.cellInputConfirm(this.pvEdit.cellValue, cKey)
       this.$nextTick(() => {
-        this.focusNextTick(ckey)
+        this.focusNextTick(cKey)
       })
       this.pvEdit.cellKey = ''
       this.pvEdit.cellValue = ''
@@ -260,9 +260,9 @@ export default {
     },
     // confirm input edit by lost focus
     onCellInputBlur () {
-      const ckey = this.pvEdit.cellKey
-      if ((ckey || '') === '') return // exit on blur before focus: Chrome vs Firefox
-      this.cellInputConfirm(this.pvEdit.cellValue, ckey)
+      const cKey = this.pvEdit.cellKey
+      if ((cKey || '') === '') return // exit on blur before focus: Chrome vs Firefox
+      this.cellInputConfirm(this.pvEdit.cellValue, cKey)
       this.pvEdit.cellKey = ''
       this.pvEdit.cellValue = ''
       this.$emit('pv-edit')
@@ -306,22 +306,22 @@ export default {
       if (!this.pvEdit.isEdit || this.pvEdit.lastHistory <= 0) return // exit: entire history already undone
 
       const n = --this.pvEdit.lastHistory
-      const ckey = this.pvEdit.history[n].key
+      const cKey = this.pvEdit.history[n].key
 
       let isPrev = false
       for (let k = 0; !isPrev && k < n; k++) {
-        isPrev = this.pvEdit.history[k].key === ckey
+        isPrev = this.pvEdit.history[k].key === cKey
       }
       if (isPrev) {
-        this.pvEdit.updated[ckey] = this.pvEdit.history[n].prev
+        this.pvEdit.updated[cKey] = this.pvEdit.history[n].prev
       } else {
-        delete this.pvEdit.updated[ckey]
+        delete this.pvEdit.updated[cKey]
         this.pvEdit.isUpdated = !!this.pvEdit.updated && this.pvEdit.lastHistory > 0
       }
 
       // update display value
-      this.changeRenderKey(ckey)
-      this.focusNextTick(ckey)
+      this.changeRenderKey(cKey)
+      this.focusNextTick(cKey)
       this.$emit('pv-edit')
     },
     // redo most recent undo
@@ -329,13 +329,13 @@ export default {
       if (!this.pvEdit.isEdit || this.pvEdit.lastHistory >= this.pvEdit.history.length) return // exit: already at the end of history
 
       const n = this.pvEdit.lastHistory++
-      const ckey = this.pvEdit.history[n].key
-      this.pvEdit.updated[ckey] = this.pvEdit.history[n].now
+      const cKey = this.pvEdit.history[n].key
+      this.pvEdit.updated[cKey] = this.pvEdit.history[n].now
       this.pvEdit.isUpdated = true
 
       // update display value
-      this.changeRenderKey(ckey)
-      this.focusNextTick(ckey)
+      this.changeRenderKey(cKey)
+      this.focusNextTick(cKey)
       this.$emit('pv-edit')
     },
 
@@ -552,7 +552,8 @@ export default {
         // body cell values
         if (!this.pvEdit.isEdit) {
           for (let nCol = 0; nCol < this.pvt.colCount; nCol++) {
-            tsv += this.pvControl.formatter.format(this.pvt.cells[this.pvt.cellKeys[nRow * this.pvt.colCount + nCol]]) + (nCol < this.pvt.colCount - 1 ? '\t' : '\r\n')
+            const cKey = this.pvt.cellKeys[nRow * this.pvt.colCount + nCol]
+            tsv += this.pvControl.formatter.format(this.pvt.cells[cKey], cKey) + (nCol < this.pvt.colCount - 1 ? '\t' : '\r\n')
           }
         } else {
           for (let nCol = 0; nCol < this.pvt.colCount; nCol++) {
@@ -604,7 +605,7 @@ export default {
     },
 
     // update pivot table from input data page
-    setData (d) {
+    setData (data) {
       // clean existing view
       this.pvt.rowCount = 0
       this.pvt.colCount = 0
@@ -620,8 +621,8 @@ export default {
       this.keyPos = []
 
       // if response is empty or invalid: clean table
-      const len = (!!d && (d.length || 0) > 0) ? d.length : 0
-      if (!d || len <= 0) {
+      const len = (!!data && (data.length || 0) > 0) ? data.length : 0
+      if (!data || len <= 0) {
         return
       }
 
@@ -674,7 +675,7 @@ export default {
         let i = 0
         let j = 0
         for (const p of dimProc) {
-          const v = p.read(d[nSrc])
+          const v = p.read(data[nSrc])
           isSel = p.filter(v)
           if (!isSel) break
           if (p.isRow) r[i++] = v
@@ -696,7 +697,7 @@ export default {
         }
 
         // extract value(s) from record and aggregate
-        const v = this.pvControl.readValue(d[nSrc])
+        const v = this.pvControl.readValue(data[nSrc])
 
         const bkey = isScalar ? Pcvt.PV_KEY_SCALAR : Pcvt.itemsToKey(b)
         if (!vstate.hasOwnProperty(bkey)) {

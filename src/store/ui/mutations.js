@@ -151,43 +151,54 @@ export const paramViewDeleteByModel = (state, modelDigest) => {
   }
 }
 
-// delete parameter view by model digest and run digest
-export const paramViewDeleteByModelRun = (state, modelRun) => {
-  const m = (typeof modelRun?.digest === typeof 'string') ? modelRun.digest : '-'
-  const r = (typeof modelRun?.runDigest === typeof 'string') ? modelRun.runDigest : '-'
-  for (const key in state.paramViews) {
-    if (state.paramViews?.[key]?.digest === m && state.paramViews?.[key]?.runDigest === r) delete state.paramViews[key]
-  }
-}
-
-// delete parameter view by model digest and workset name
-export const paramViewDeleteByModelWorkset = (state, modelWorkset) => {
-  const m = (typeof modelWorkset?.digest === typeof 'string') ? modelWorkset.digest : '-'
-  const w = (typeof modelWorkset?.worksetName === typeof 'string') ? modelWorkset.worksetName : '-'
-  for (const key in state.paramViews) {
-    if (state.paramViews?.[key]?.digest === m && state.paramViews?.[key]?.worksetName === w) delete state.paramViews[key]
-  }
-}
-
-// delete parameter view by model name and parameter name
-export const paramViewDeleteByModelParameterName = (state, modelNameParamName) => {
-  const m = (typeof modelNameParamName?.modelName === typeof 'string') ? modelNameParamName.modelName : '-'
-  const p = (typeof modelNameParamName?.parameterName === typeof 'string') ? modelNameParamName.parameterName : '-'
-  for (const key in state.paramViews) {
-    if (state.paramViews?.[key]?.modelName === m && state.paramViews?.[key]?.parameterName === p) delete state.paramViews[key]
-  }
-}
-
 // insert or replace table view by route key (key must be non-empty string)
 export const tableView = (state, tv) => {
   if (!tv || !tv?.key) return
   if (typeof tv.key !== typeof 'string' || tv.key === '') return
 
   // insert new or replace existing table view
-  if (tv?.view) state.tableViews[tv.key] = Mdf._cloneDeep(tv.view)
+  if (tv?.view) {
+    state.tableViews[tv.key] = Mdf._cloneDeep({
+      view: tv.view,
+      digest: tv?.digest || '',
+      modelName: tv?.modelName || '',
+      runDigest: tv?.runDigest || '',
+      tableName: tv?.tableName || ''
+    })
+    return
+  }
+  // else: update existing output table view
+  if (!state.tableViews?.[tv.key]?.view) return // output table view not found
+
+  if (Array.isArray(tv?.rows)) {
+    state.tableViews[tv.key].view.rows = Mdf._cloneDeep(tv.rows)
+  }
+  if (Array.isArray(tv?.cols)) {
+    state.tableViews[tv.key].view.cols = Mdf._cloneDeep(tv.cols)
+  }
+  if (Array.isArray(tv?.others)) {
+    state.tableViews[tv.key].view.others = Mdf._cloneDeep(tv.others)
+  }
+  if (typeof tv?.isRowColControls === typeof true) {
+    state.tableViews[tv.key].view.isRowColControls = tv.isRowColControls
+  }
+  if (typeof tv?.rowColMode === typeof 1) {
+    state.tableViews[tv.key].view.rowColMode = tv.rowColMode
+  }
+  if (typeof tv?.kind === typeof 1) {
+    state.tableViews[tv.key].view.kind = tv.kind % 3 || 0 // table has only 3 possible view kinds
+  }
 }
 
 // delete table view by route key, if exist (key must be a string)
 export const tableViewDelete = (state, key) => {
   if (typeof key === typeof 'string' && state.tableViews?.[key]) delete state.tableViews[key]
+}
+
+// delete table view by model digest
+export const tableViewDeleteByModel = (state, modelDigest) => {
+  const m = (typeof modelDigest === typeof 'string') ? modelDigest : '-'
+  for (const key in state.tableViews) {
+    if (state.tableViews?.[key]?.digest === m) delete state.tableViews[key]
+  }
 }

@@ -16,8 +16,6 @@ import PvTable from 'components/PvTable'
 import MarkdownEditor from 'components/MarkdownEditor.vue'
 import { openURL } from 'quasar'
 
-const SUB_ID_DIM = 'SubId' // sub-value id dminesion name
-
 export default {
   name: 'ParameterPage',
   components: {
@@ -51,8 +49,8 @@ export default {
       saveWait: false,
       isNullable: false,    // if true then parameter value can be NULL
       isScalar: false,      // if true then it is scalar parameter with single sub-value
+      rank: 0,              // parameter rank
       paramText: Mdf.emptyParamText(),
-      paramSize: Mdf.emptyParamSize(),
       paramType: Mdf.emptyTypeText(),
       paramRunSet: Mdf.emptyParamRunSet(),
       subCount: 0,
@@ -254,7 +252,7 @@ export default {
 
           // if regular dimension then make array of enum codes
           let cArr = []
-          if (p.name !== SUB_ID_DIM) {
+          if (p.name !== Puih.SUB_ID_DIM) {
             const dt = this.paramText.ParamDimsTxt.find((d) => d.Dim.Name === p.name)
             if (!dt) {
               console.warn('Error: dimension not found:', p.name)
@@ -325,7 +323,7 @@ export default {
 
           // if regular dimension then make array of enum id's
           let eArr = []
-          if (p.name !== SUB_ID_DIM) {
+          if (p.name !== Puih.SUB_ID_DIM) {
             const dt = this.paramText.ParamDimsTxt.find((d) => d.Dim.Name === p.name)
             if (!dt) {
               continue // unknown dimension: skip
@@ -420,13 +418,13 @@ export default {
       for (const f of this.dimProp) {
         if (f.selection.length < 1) {
           f.selection.push(f.enums[0])
-          if (f.name === SUB_ID_DIM) isSubIdSelUpdate = true
+          if (f.name === Puih.SUB_ID_DIM) isSubIdSelUpdate = true
         }
       }
       for (const f of this.otherFields) {
         if (f.selection.length > 1) {
           f.selection.splice(1)
-          if (f.name === SUB_ID_DIM) isSubIdSelUpdate = true
+          if (f.name === Puih.SUB_ID_DIM) isSubIdSelUpdate = true
         }
       }
       for (const f of this.dimProp) {
@@ -437,7 +435,7 @@ export default {
       //  if other dimesion(s) filters same as before
       //  then update pivot table view now
       //  else refresh data
-      if (Puih.equalFilterState(this.filterState, this.otherFields, SUB_ID_DIM)) {
+      if (Puih.equalFilterState(this.filterState, this.otherFields, Puih.SUB_ID_DIM)) {
         this.ctrl.isPvTickle = !this.ctrl.isPvTickle
         if (isSubIdSelUpdate) {
           this.filterState = Puih.makeFilterState(this.otherFields)
@@ -477,9 +475,9 @@ export default {
       // update pivot view:
       //   if other dimesions filters same as before then update pivot table view now
       //   else refresh data
-      if (panel !== 'other' || Puih.equalFilterState(this.filterState, this.otherFields, SUB_ID_DIM)) {
+      if (panel !== 'other' || Puih.equalFilterState(this.filterState, this.otherFields, Puih.SUB_ID_DIM)) {
         this.ctrl.isPvTickle = !this.ctrl.isPvTickle
-        if (name === SUB_ID_DIM) {
+        if (name === Puih.SUB_ID_DIM) {
           this.filterState = Puih.makeFilterState(this.otherFields)
         }
       } else {
@@ -537,7 +535,7 @@ export default {
     // update pivot view after "select all" or "clear all"
     updateSelectOrClearView (name) {
       this.ctrl.isPvTickle = !this.ctrl.isPvTickle
-      if (name === SUB_ID_DIM) {
+      if (name === Puih.SUB_ID_DIM) {
         this.filterState = Puih.makeFilterState(this.otherFields)
       }
       // update pivot view rows, columns, other dimensions
@@ -547,6 +545,19 @@ export default {
         cols: Pcvt.pivotStateFields(this.colFields),
         others: Pcvt.pivotStateFields(this.otherFields)
       })
+    },
+
+    // make a label for dimension item(s) select
+    selectLabel (isNames, f) {
+      const dsl = this.$t('Select')
+
+      if (!f) return dsl + '\u2026'
+      //
+      switch (f.selection.length) {
+        case 0: return dsl + ' ' + (isNames ? f.name : f.label) + '\u2026'
+        case 1: return (isNames ? f.selection[0].name : f.selection[0].label)
+      }
+      return (isNames ? f.selection[0].name : f.selection[0].label) + ', ' + '\u2026'
     },
     //
     // end of dimensions drag, drop and selection filter
@@ -569,12 +580,12 @@ export default {
 
       // find parameter, parameter type and size, including run sub-values count
       this.paramText = Mdf.paramTextByName(this.theModel, this.parameterName)
-      this.paramSize = Mdf.paramSizeByName(this.theModel, this.parameterName)
       this.paramType = Mdf.typeTextById(this.theModel, (this.paramText.Param.TypeId || 0))
+      this.rank = Mdf.paramSizeByName(this.theModel, this.parameterName)?.rank || 0
 
       this.isNullable = this.paramText.Param?.IsExtendable || false
       this.subCount = this.paramRunSet.SubCount || 0
-      this.isScalar = this.paramSize.rank <= 0 && this.subCount <= 1
+      this.isScalar = this.rank <= 0 && this.subCount <= 1
 
       // adjust controls
       this.edt.isEnabled = this.isUploadEnabled = !this.isFromRun && Mdf.isNotEmptyWorksetText(src) && !src.IsReadonly
@@ -624,7 +635,7 @@ export default {
       // if parameter has sub-values then add sub-value id dimension
       if (this.subCount > 1) {
         const f = {
-          name: SUB_ID_DIM,
+          name: Puih.SUB_ID_DIM,
           label: this.$t('Sub #'),
           read: (r) => (r.SubId),
           enums: [],
@@ -704,19 +715,6 @@ export default {
 
       // set columns layout and refresh the data
       this.setPageView()
-    },
-
-    // make a label for dimension item(s) select
-    selectLabel (isNames, f) {
-      const dsl = this.$t('Select')
-
-      if (!f) return dsl + '\u2026'
-      //
-      switch (f.selection.length) {
-        case 0: return dsl + ' ' + (isNames ? f.name : f.label) + '\u2026'
-        case 1: return (isNames ? f.selection[0].name : f.selection[0].label)
-      }
-      return (isNames ? f.selection[0].name : f.selection[0].label) + ', ' + '\u2026'
     },
 
     // set page view: use previous page view from store or default
@@ -824,9 +822,12 @@ export default {
       Pcvt.resetEdit(this.edt) // clear editor state
 
       // store pivot view
+      const vs = Pcvt.pivotStateFromFields(this.rowFields, this.colFields, this.otherFields, this.ctrl.isRowColControls, this.pvc.rowColMode)
+      vs.edit = this.edt // edit state exist only for parameters
+
       this.dispatchParamView({
         key: this.routeKey,
-        view: Pcvt.pivotStateFromFields(this.rowFields, this.colFields, this.otherFields, this.ctrl.isRowColControls, this.pvc.rowColMode, this.edt),
+        view: vs,
         digest: this.digest || '',
         modelName: Mdf.modelName(this.theModel),
         runDigest: this.runDigest || '',
@@ -891,7 +892,7 @@ export default {
       this.noteEditorLangCode = this.uiLang || this.$q.lang.getLocale() || ''
       this.noteEditorShow = true
     },
-    // TODO: ask user to confirm cancel if notes changed
+    // ask user to confirm cancel if notes changed
     onCancelParamNote () {
       const udn = this.$refs['param-note-editor'].getDescrNote()
       if (udn.isUpdated) { // redirect to dialog to confirm "discard changes?"
@@ -930,7 +931,7 @@ export default {
       this.filterState = Puih.makeFilterState(this.otherFields)
 
       // make parameter read layout and url
-      const layout = Puih.makeSelectLayout(this.parameterName, this.otherFields, SUB_ID_DIM)
+      const layout = Puih.makeSelectLayout(this.parameterName, this.otherFields, Puih.SUB_ID_DIM)
       const udgst = encodeURIComponent(this.digest)
 
       const u = this.isFromRun
@@ -978,7 +979,7 @@ export default {
 
       // prepare parameter data for save, exit with error if no changes found
       const pv = Puih.makePageForSave(
-        this.dimProp, this.pvKeyPos, this.paramSize.rank, SUB_ID_DIM, this.isNullable, this.edt.updated
+        this.dimProp, this.pvKeyPos, this.rank, Puih.SUB_ID_DIM, this.isNullable, this.edt.updated
       )
       if (!Mdf.lengthOf(pv)) {
         console.warn('No parameter changes, nothing to save:', this.parameterName, this.worksetName)

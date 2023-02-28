@@ -74,16 +74,6 @@ module.exports = function (ctx) {
           .use(ESLintPlugin, [{ extensions: ['js', 'vue'] }])
       },
 
-      // https://quasar.dev/quasar-cli/handling-webpack
-      extendWebpack (cfg) {
-        cfg.module.rules.push({
-          enforce: 'pre',
-          test: /\.(react)\.(jsx)$/,
-          loader: 'babel-loader',
-          exclude: /node_modules/
-        })
-      },
-
       // https://quasar.dev/quasar-cli/handling-process-env
       env: {
         OMS_URL: ctx.dev ? 'http://localhost:4040' : '' // oms service url

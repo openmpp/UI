@@ -111,6 +111,7 @@
     @upload-select="onUploadSelect"
     @run-completed-list="onRunCompletedList"
     @parameter-view-saved="onParameterViewSaved"
+    @table-view-saved="onTableViewSaved"
     @run-list-refresh="onRunListRefresh"
     @set-list-refresh="onWorksetListRefresh"
     >

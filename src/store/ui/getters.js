@@ -49,5 +49,5 @@ export const paramViewUpdatedCount = (state) => (modelDigest) => {
 
 // return copy of table view by key
 export const tableView = (state) => (key) => {
-  return state.tableViews?.[key].view ? Mdf._cloneDeep(state.tableViews[key].view) : undefined
+  return state.tableViews?.[key]?.view ? Mdf._cloneDeep(state.tableViews[key].view) : undefined
 }

@@ -2,6 +2,18 @@
 
 import * as Pcvt from 'components/pivot-cvt'
 
+/* eslint-disable no-multi-spaces */
+
+export const SUB_ID_DIM = 'SubId' // sub-value id dminesion name
+
+// kind of output table view
+export const kind = {
+  EXPR: 0,  // output table expression(s)
+  ACC: 1,   // output table accumulator(s)
+  ALL: 2    // output table all-accumultors view
+}
+/* eslint-enable no-multi-spaces */
+
 // make filter state: selection in other dimensions
 export const makeFilterState = (dims) => {
   const fs = {}
@@ -16,10 +28,15 @@ export const makeFilterState = (dims) => {
 }
 
 // compare filter state and return true if it is the same
-export const equalFilterState = (fs, dims, skipDimName) => {
+// do not filter by skipDims dimensions, skipDims can be single name of [array of names]
+export const equalFilterState = (fs, dims, skipDims) => {
   // check if all previous filter dimensions in the new list
   for (const p in fs) {
-    if (p === skipDimName) continue // do not filter by "measure" dimension
+    // skip dimension filter: do not filter by sub-value id or by measure dimension
+    if (skipDims) {
+      if (typeof skipDims === typeof 'string' && p === skipDims) continue
+      if (Array.isArray(skipDims) && skipDims.indexOf(p) >= 0) continue
+    }
 
     let isFound = false
     for (let k = 0; !isFound && k < dims.length; k++) {
@@ -30,7 +47,11 @@ export const equalFilterState = (fs, dims, skipDimName) => {
 
   // check if all new dimensions in previous list and have same items selected
   for (const d of dims) {
-    if (d.name === skipDimName) continue // do not filter by "measure" dimension
+    // skip dimension filter: do not filter by sub-value id or by measure dimension
+    if (skipDims) {
+      if (typeof skipDims === typeof 'string' && d.name === skipDims) continue
+      if (Array.isArray(skipDims) && skipDims.indexOf(d.name) >= 0) continue
+    }
 
     if (!fs.hasOwnProperty(d.name)) return false
     if (fs[d.name].length !== d.selection.length) return false
@@ -43,9 +64,10 @@ export const equalFilterState = (fs, dims, skipDimName) => {
 
 // return page layout to read parameter data
 // filter by other dimension(s) selected values
-export const makeSelectLayout = (paramName, otherFields, skipDimName) => {
+// do not filter by skipDims dimensions, skipDims can be single name of [array of names]
+export const makeSelectLayout = (name, otherFields, skipDims) => {
   const layout = {
-    Name: paramName,
+    Name: name,
     Offset: 0,
     Size: 0,
     FilterById: []
@@ -53,7 +75,11 @@ export const makeSelectLayout = (paramName, otherFields, skipDimName) => {
 
   // make filters for other dimensions to include selected value
   for (const f of otherFields) {
-    if (f.name === skipDimName) continue // do not filter by "measure" dimension
+    // skip dimension filter: do not filter by sub-value id or by measure dimension
+    if (skipDims) {
+      if (typeof skipDims === typeof 'string' && f.name === skipDims) continue
+      if (Array.isArray(skipDims) && skipDims.indexOf(f.name) >= 0) continue
+    }
 
     const flt = {
       Name: f.name,
@@ -127,6 +153,17 @@ export const makePageForSave = (dimProp, keyPos, rank, subIdName, isNullable, up
     })
   }
   return pv
+}
+
+// return dimension enum id from cell key by dimension name
+export const dimEnumIdFromKey = (cKey, dimName, keyPos) => {
+  if (!cKey || !cKey?.length || !dimName || !keyPos?.length) {
+    return { isFound: false, enumId: 0 } // invalid arguments or key is empty: not found
+  }
+
+  const n = keyPos.findIndex(p => p.name === dimName)
+
+  return (n >= 0 && n < keyPos.length) ? Pcvt.enumIdFromKey(cKey, n) : { isFound: false, enumId: 0 }
 }
 
 // filter handler: update options list on user input

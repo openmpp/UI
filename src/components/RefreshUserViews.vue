@@ -83,7 +83,7 @@ export default {
           this.loadDone = false // error: model name in server json response must be same as current UI model name
         } else {
           //
-          // write parameter views into indexed db
+          // write parameters view into indexed db
           if (Array.isArray(vs.model?.parameterViews) && vs.model?.parameterViews?.length) {
             let pName = ''
             try {
@@ -91,13 +91,38 @@ export default {
               const rw = await dbCon.openReadWrite(this.modelName)
               for (const v of vs.model.parameterViews) {
                 if (!v?.name || !v?.view) continue
+
                 pName = v.name
+                if (this.theModel.ParamTxt.findIndex(p => p.Param.Name === pName) < 0) continue // parameter not exist that model version
+
                 await rw.put(v.name, v.view)
                 count++
               }
             } catch (e) {
               console.warn('Unable to save default parameter view:', pName, e)
               this.$q.notify({ type: 'negative', message: this.$t('Unable to save default parameter view') + ': ' + pName })
+              this.loadDone = false // error during view write, it can be incorrect json
+            }
+          }
+
+          // write output tables view into indexed db
+          if (Array.isArray(vs.model?.tableViews) && vs.model?.tableViews?.length) {
+            let tName = ''
+            try {
+              const dbCon = await Idb.connection()
+              const rw = await dbCon.openReadWrite(this.modelName)
+              for (const v of vs.model.tableViews) {
+                if (!v?.name || !v?.view) continue
+
+                tName = v.name
+                if (this.theModel.TableTxt.findIndex(tt => tt.Table.Name === tName) < 0) continue // table not exist in that model version
+
+                await rw.put(v.name, v.view)
+                count++
+              }
+            } catch (e) {
+              console.warn('Unable to save default output table view:', tName, e)
+              this.$q.notify({ type: 'negative', message: this.$t('Unable to save default output table view') + ': ' + tName })
               this.loadDone = false // error during view write, it can be incorrect json
             }
           }
