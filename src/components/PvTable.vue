@@ -96,7 +96,7 @@
 
         <!-- table body value cells -->
         <td v-for="(col, nCol) in pvt.cols" :key="pvt.cellKeys[nRow * pvt.colCount + nCol]"
-          :class="pvControl.cellClass">{{getCellValueFmt(pvt.cellKeys[nRow * pvt.colCount + nCol])}}</td>
+          :class="pvControl.cellClass">{{getCellValueFmt(nRow, nCol)}}</td>
 
       </tr>
 
@@ -137,7 +137,7 @@
 
           <!-- eidtor: readonly cells -->
           <template v-if="pvt.cellKeys[nRow * pvt.colCount + nCol] !== pvEdit.cellKey">
-            {{getUpdatedToDisplay(pvt.cellKeys[nRow * pvt.colCount + nCol])}}
+            {{getUpdatedToDisplay(nRow, nCol)}}
           </template>
           <template v-else>
 

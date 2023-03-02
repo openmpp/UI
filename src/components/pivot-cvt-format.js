@@ -5,8 +5,9 @@ import * as PcvtHlp from './pivot-cvt-helper'
 // more-less options to control decimals for float number format or show "source" value without any formatting
 /* eslint-disable no-multi-spaces */
 export const moreLessDefault = () => ({
-  isSrcValue: false, // if true then show "source" value, do not apply format(), this is final "more" state
-  isSrcShow: false,  // if true then show "source value" as "more" button
+  isRawUse: false,   // if true then show "raw value" button
+  isRawValue: false, // if true then display "raw" value, do not apply format()
+  isMoreLess: false, // if true then show more and less buttons
   isDoMore: false,   // if true then "more" button enabled
   isDoLess: false    // if true then "less" button enabled
 })
@@ -14,7 +15,7 @@ export const moreLessDefault = () => ({
 
 // default format: do not convert value, only validate if empty value allowed (if parameter nullable)
 export const formatDefault = (options) => {
-  const opts = Object.assign({}, moreLessDefault(), { isNullable: false, isSrcValue: true }, options)
+  const opts = Object.assign({}, moreLessDefault(), { isNullable: false, isRawValue: true }, options)
   return {
     format: (val) => val, // disable format() value by default
     parse: (s) => s, // disable parse() value by default
@@ -29,34 +30,31 @@ export const formatDefault = (options) => {
 // format number as float
 // options is a merge of formatNumber options (see below) and more-less options to control decimals
 export const formatFloat = (options) => {
-  const opts = Object.assign({}, formatNumber.makeOpts(options))
+  const opts = Object.assign({},
+    moreLessDefault(),
+    formatNumber.makeOpts(options),
+    { isRawUse: true, isMoreLess: true })
 
   // adjust format options and more-less options
   if (opts.maxDecimal < 0) opts.maxDecimal = 0
+  if (opts.nDecimal < 0) opts.nDecimal = 0
   if (opts.nDecimal > opts.maxDecimal) opts.nDecimal = opts.maxDecimal
-  if (opts.isSrcValue || opts.nDecimal < 0) opts.nDecimal = -1
 
-  const adjustMoreLess = () => {
-    opts.isSrcValue = opts.nDecimal < 0
-    opts.isSrcShow = opts.isSrcValue || opts.nDecimal >= opts.maxDecimal
-    opts.isDoMore = !opts.isSrcValue
-    opts.isDoLess = opts.isSrcValue || opts.nDecimal > 0
-  }
-  adjustMoreLess()
+  opts.isDoMore = !opts.isRawValue && opts.nDecimal < opts.maxDecimal
+  opts.isDoLess = !opts.isRawValue && opts.nDecimal > 0
 
   // save default format options
   const defaultOpts = {
     nDecimal: opts.nDecimal,
     maxDecimal: opts.maxDecimal,
-    isSrcValue: opts.isSrcValue,
-    isSrcShow: opts.isSrcShow,
+    isRawValue: opts.isRawValue,
     isDoMore: opts.isDoMore,
     isDoLess: opts.isDoLess
   }
 
   return {
     format: (val) => {
-      if (opts.isSrcValue) return val // return source value
+      if (opts.isRawValue) return val // return source value
       return formatNumber.format(val, opts)
     },
     parse: (s) => {
@@ -74,26 +72,26 @@ export const formatFloat = (options) => {
     resetOptions: () => {
       Object.assign(opts, defaultOpts)
     },
+    doRawValue: () => {
+      opts.isRawValue = !opts.isRawValue
+      opts.isDoMore = !opts.isRawValue && opts.nDecimal < opts.maxDecimal
+      opts.isDoLess = !opts.isRawValue && opts.nDecimal > 0
+    },
     doMore: () => {
       if (!opts.isDoMore) return
 
-      if (opts.nDecimal >= 0) {
-        opts.nDecimal++
-      }
-      if (opts.nDecimal < 0 || opts.nDecimal > opts.maxDecimal) {
-        opts.nDecimal = -1
-      }
-      adjustMoreLess()
+      if (opts.nDecimal < opts.maxDecimal) opts.nDecimal++
+
+      opts.isDoMore = !opts.isRawValue && opts.nDecimal < opts.maxDecimal
+      opts.isDoLess = !opts.isRawValue && opts.nDecimal > 0
     },
     doLess: () => {
       if (!opts.isDoLess) return
 
-      if (opts.nDecimal < 0) {
-        opts.nDecimal = opts.maxDecimal
-      } else {
-        if (opts.nDecimal > 0) opts.nDecimal--
-      }
-      adjustMoreLess()
+      if (opts.nDecimal > 0) opts.nDecimal--
+
+      opts.isDoMore = !opts.isRawValue && opts.nDecimal < opts.maxDecimal
+      opts.isDoLess = !opts.isRawValue && opts.nDecimal > 0
     }
   }
 }
@@ -101,13 +99,13 @@ export const formatFloat = (options) => {
 // format number as integer
 export const formatInt = (options) => {
   const opts = Object.assign({},
-    moreOrLess.makeDefault(),
+    moreLessDefault(),
     formatNumber.makeOpts(options),
-    { nDecimal: 0, maxDecimal: 0, isDoMore: !options.isSrcValue, isDoLess: !!options.isSrcValue }
+    { nDecimal: 0, maxDecimal: 0, isRawUse: true, isMoreLess: false }
   )
   return {
     format: (val) => {
-      if (opts.isSrcValue) return val // return source value
+      if (opts.isRawValue) return val // return source value
       return formatNumber.format(val, opts)
     },
     parse: (s) => {
@@ -125,21 +123,18 @@ export const formatInt = (options) => {
     resetOptions: () => {
       opts.nDecimal = 0
       opts.maxDecimal = 0
-      moreOrLess.reset(opts)
+      opts.isRawValue = false
     },
-    doMore: () => { moreOrLess.doMore(opts) },
-    doLess: () => { moreOrLess.doLess(opts) }
+    doRawValue: () => { opts.isRawValue = !opts.isRawValue }
   }
 }
 
 // format enum value: return enum label by enum id
 export const formatEnum = (options) => {
   const opts = Object.assign({},
-    moreOrLess.makeDefault(),
-    { enums: [] },
-    options,
-    { isDoMore: !options.isSrcValue, isDoLess: !!options.isSrcValue }
-  )
+    moreLessDefault(),
+    { enums: [], isRawUse: true, isNullable: false },
+    options)
 
   const labels = {} // enums as map of id to label
   for (const e of opts.enums) {
@@ -157,7 +152,7 @@ export const formatEnum = (options) => {
       return void 0 // not found
     },
     format: (val) => {
-      if (opts.isSrcValue) return val // return source value
+      if (opts.isRawValue) return val // return source value
       return (val !== void 0 && val !== null) ? labels[val] || val : ''
     },
     parse: (s) => {
@@ -177,22 +172,20 @@ export const formatEnum = (options) => {
       return false
     },
     options: () => opts,
-    resetOptions: () => { moreOrLess.reset(opts) },
-    doMore: () => { moreOrLess.doMore(opts) },
-    doLess: () => { moreOrLess.doLess(opts) }
+    resetOptions: () => { opts.isRawValue = false },
+    doRawValue: () => { opts.isRawValue = !opts.isRawValue }
   }
 }
 
 // format boolean value
 export const formatBool = (options) => {
   const opts = Object.assign({},
-    moreOrLess.makeDefault(),
-    options,
-    { isDoMore: !options.isSrcValue, isDoLess: !!options.isSrcValue }
-  )
+    moreLessDefault(),
+    { isRawUse: true, isNullable: false },
+    options)
   return {
     format: (val) => {
-      if (opts.isSrcValue) return val // return source value
+      if (opts.isRawValue) return val // return source value
       return (val !== void 0 && val !== null) ? (val ? '\u2713' : 'x') || val : ''
     },
     parse: (s) => {
@@ -203,41 +196,10 @@ export const formatBool = (options) => {
       return (typeof PcvtHlp.parseBool(s)) === typeof true
     },
     options: () => opts,
-    resetOptions: () => { moreOrLess.reset(opts) },
-    doMore: () => { moreOrLess.doMore(opts) },
-    doLess: () => { moreOrLess.doLess(opts) }
+    resetOptions: () => { opts.isRawValue = false },
+    doRawValue: () => { opts.isRawValue = !opts.isRawValue }
   }
 }
-
-// more-less options with binary state:
-//  initial "less" => show formatted value
-//  or "more" => show "source" value
-/* eslint-disable no-multi-spaces */
-const moreOrLess = {
-  makeDefault: () => ({
-    isNullable: false,    // if true then allow empty (NULL) value
-    isSrcValue: false,    // if true then show "source" value, do not apply format(), this is final "more" state
-    isSrcShow: true,      // if true then show "source value" as "more" button
-    isDoMore: true,       // if true then "more" button enabled
-    isDoLess: false       // if true then "less" button enabled
-  }),
-  reset: (opts) => {
-    return Object.assign(opts, moreOrLess.makeDefault())
-  },
-  doMore: (opts) => {
-    opts.isSrcValue = true
-    opts.isSrcShow = true
-    opts.isDoMore = false
-    opts.isDoLess = true
-  },
-  doLess: (opts) => {
-    opts.isSrcValue = false
-    opts.isSrcShow = true
-    opts.isDoMore = true
-    opts.isDoLess = false
-  }
-}
-/* eslint-enable no-multi-spaces */
 
 // format number
 /* eslint-disable no-multi-spaces */
@@ -246,8 +208,9 @@ const formatNumber = {
     const opts = Object.assign({},
       {
         isNullable: false,  // if true then allow empty (NULL) value
+        isRawValue: false,  // if true then display "raw" value, do not apply format()
         locale: '',         // locale name, if defined then return toLocaleString()
-        nDecimal: -1,       // if >= 0 then number of decimals else show all decimals, ex: 2 => 1234.56
+        nDecimal: 4,        // number of decimals, ex: 2 => 1234.56
         maxDecimal: 4       // max decimals to display, using toFixed(nDecimal) and nDecimal <= maxDecimal
       },
       options)
@@ -262,7 +225,7 @@ const formatNumber = {
 
     // if locale defined then use built-in locale conversion
     if (opts.locale) {
-      return opts.nDecimal < 0
+      return opts.isRawValue
         ? val.toString()
         : val.toLocaleString(opts.locale, {  minimumFractionDigits: opts.nDecimal, maximumFractionDigits: opts.nDecimal })
     }
@@ -272,7 +235,7 @@ const formatNumber = {
     const decimalSep = '.' // decimals separator
 
     // convert to numeric string, optionally with fixed decimals
-    const src = opts.nDecimal >= 0 ? val.toFixed(opts.nDecimal) : val.toString()
+    const src = (!opts.isRawValue && opts.nDecimal >= 0) ? val.toFixed(opts.nDecimal) : val.toString()
 
     if (src.length <= 1) return src // empty value as string or single digit number
 

@@ -23,38 +23,6 @@ export const itemsToKey = (items) => items.join(PV_KEY_ITEM_SEP)
 // split row, column or body value key as into row or column dimension items
 export const keyToItems = (key) => (key !== void 0 && key !== '') ? key.split(PV_KEY_ITEM_SEP) : []
 
-// return n-th enum id from cell key
-export const enumIdFromKey = (cKey, n) => {
-  if (!cKey || !cKey?.length || typeof n !== typeof 1 || isNaN(n) || n < 0) {
-    return { isFound: false, enumId: 0 } // invalid arguments or key is empty: not found
-  }
-
-  // find start of enum id in cell key string
-  let nStart = 0
-  for (let k = 0; nStart >= 0 && k < n; k++) {
-    nStart = cKey.indexOf(PV_KEY_ITEM_SEP, nStart + 1)
-  }
-  // if this is not a first dimension then skip key items separator
-  if (n > 0 && nStart >= 0) nStart = nStart + PV_KEY_ITEM_SEP.length
-
-  // if there is no key items separator found then assume it is only single item key (only one dimension in cell key)
-  if (n > 0 && (nStart < 0 || nStart >= cKey.length)) {
-    return { isFound: false, enumId: 0 }
-  }
-  if (n === 0 && (nStart < 0 || nStart >= cKey.length)) {
-    const eId = parseInt(cKey, 10)
-    return !isNaN(eId) ? { isFound: true, enumId: eId } : { isFound: false, enumId: 0 }
-  }
-
-  // find end of enum id in cell key string
-  let nEnd = nStart
-  if (nStart >= 0 && nStart < cKey.length) nEnd = cKey.indexOf(PV_KEY_ITEM_SEP, nStart)
-  if (nEnd < 0 || nEnd > cKey.length) nEnd = cKey.length
-
-  const eId = parseInt(cKey.substring(nStart, nEnd), 10)
-  return !isNaN(eId) ? { isFound: true, enumId: eId } : { isFound: false, enumId: 0 }
-}
-
 // "parse" value as boolean, return undefined if value cannot treated as boolean
 export const parseBool = (val) => {
   switch (val) {

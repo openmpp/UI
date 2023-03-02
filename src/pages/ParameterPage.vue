@@ -221,17 +221,7 @@
             </q-item>
           </template>
 
-          <q-item
-            @click="onShowItemNames"
-            :disable="isScalar"
-            clickable
-            >
-            <q-item-section avatar>
-              <q-icon color="primary" name="mdi-decimal-increase" />
-            </q-item-section>
-            <q-item-section>{{ pvc.isShowNames ? $t('Show labels') : $t('Show names') }}</q-item-section>
-          </q-item>
-          <template v-if="ctrl.formatOpts">
+          <template v-if="ctrl.formatOpts && ctrl.formatOpts.isMoreLess">
             <q-item
               @click="onShowMoreFormat"
               :disable="!ctrl.formatOpts.isDoMore"
@@ -240,7 +230,7 @@
               <q-item-section avatar>
                 <q-icon color="primary" name="mdi-decimal-increase" />
               </q-item-section>
-              <q-item-section>{{ $t('Increase precision or show source value') }}</q-item-section>
+              <q-item-section>{{ $t('Increase precision') }}</q-item-section>
             </q-item>
             <q-item
               @click="onShowLessFormat"
@@ -253,6 +243,26 @@
               <q-item-section>{{ $t('Decrease precision') }}</q-item-section>
             </q-item>
           </template>
+          <q-item
+            v-if="ctrl.formatOpts && ctrl.formatOpts.isRawUse"
+            @click="onToggleRawValue"
+            clickable
+            >
+            <q-item-section avatar>
+              <q-icon color="primary" :name="!ctrl.formatOpts.isRawValue ? 'mdi-loupe' : 'mdi-magnify-close'" />
+            </q-item-section>
+            <q-item-section>{{ !ctrl.formatOpts.isRawValue ? $t('Show raw source value') : $t('Show formatted value') }}</q-item-section>
+          </q-item>
+          <q-item
+            @click="onShowItemNames"
+            :disable="isScalar"
+            clickable
+            >
+            <q-item-section avatar>
+              <q-icon color="primary" :name="pvc.isShowNames ? 'mdi-label-outline' : 'mdi-label-off-outline'" />
+            </q-item-section>
+            <q-item-section>{{ pvc.isShowNames ? $t('Show labels') : $t('Show names') }}</q-item-section>
+          </q-item>
           <q-separator />
 
           <q-item
@@ -447,35 +457,45 @@
         />
     </template>
 
+    <template v-if="ctrl.formatOpts && ctrl.formatOpts.isMoreLess">
+      <q-btn
+        @click="onShowMoreFormat"
+        :disable="!ctrl.formatOpts.isDoMore || edt.isEdit"
+        flat
+        dense
+        class="col-auto bg-primary text-white rounded-borders q-mr-xs"
+        icon="mdi-decimal-increase"
+        :title="$t('Increase precision')"
+        />
+      <q-btn
+        @click="onShowLessFormat"
+        :disable="!ctrl.formatOpts.isDoLess || edt.isEdit"
+        flat
+        dense
+        class="col-auto bg-primary text-white rounded-borders q-mr-xs"
+        icon="mdi-decimal-decrease"
+        :title="$t('Decrease precision')"
+        />
+    </template>
+    <q-btn
+      v-if="ctrl.formatOpts && ctrl.formatOpts.isRawUse"
+      @click="onToggleRawValue"
+      :disable="edt.isEdit"
+      flat
+      dense
+      class="col-auto bg-primary text-white rounded-borders q-mr-xs"
+      :icon="!ctrl.formatOpts.isRawValue ? 'mdi-loupe' : 'mdi-magnify-close'"
+      :title="!ctrl.formatOpts.isRawValue ? $t('Show raw source value') : $t('Show formatted value')"
+      />
     <q-btn
       @click="onShowItemNames"
       :disable="isScalar"
       flat
       dense
-      class="col-auto bg-primary text-white rounded-borders q-mr-xs"
+      class="col-auto bg-primary text-white rounded-borders"
       :icon="pvc.isShowNames ? 'mdi-label-outline' : 'mdi-label-off-outline'"
       :title="pvc.isShowNames ? $t('Show labels') : $t('Show names')"
       />
-    <template v-if="ctrl.formatOpts">
-      <q-btn
-        @click="onShowMoreFormat"
-        :disable="!ctrl.formatOpts.isDoMore"
-        flat
-        dense
-        class="col-auto bg-primary text-white rounded-borders q-mr-xs"
-        icon="mdi-decimal-increase"
-        :title="$t('Increase precision or show source value')"
-        />
-      <q-btn
-        @click="onShowLessFormat"
-        :disable="!ctrl.formatOpts.isDoLess"
-        flat
-        dense
-        class="col-auto bg-primary text-white rounded-borders"
-        icon="mdi-decimal-decrease"
-        :title="$t('Decrease precision')"
-        />
-    </template>
 
     <q-separator vertical inset spaced="sm" color="secondary" />
 
@@ -890,7 +910,7 @@
   .drag-area {
     min-height: 2.5rem;
     padding: 0.125rem;
-    border: 1px dashed lightgrey;
+    border: 1px dashed grey;
   }
   .drag-area-hint {
     background-color: whitesmoke;
@@ -898,12 +918,16 @@
   .sortable-ghost {
     opacity: 0.5;
   }
-  .col-drag, .other-drag {
+  .col-drag {
     @extend .flex-item;
     @extend .drag-area;
     flex-direction: row;
     flex-wrap: wrap;
     justify-content: flex-start;
+  }
+  .other-drag {
+    @extend .col-drag;
+    border-bottom-style: none;
   }
   .row-drag {
     @extend .flex-item;
@@ -911,6 +935,7 @@
     flex-direction: column;
     flex-wrap: wrap;
     align-items: flex-start;
+    border-top-style: none;
   }
 
   .field-drag {

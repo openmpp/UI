@@ -223,6 +223,7 @@ export default {
         this.exprDecimals[eId] = nDec
         if (this.maxDecimals < nDec) this.maxDecimals = nDec
       }
+      const isAllDec = this.maxDecimals < 0
       if (this.maxDecimals < 0) this.maxDecimals = 4 // if model decimals=-1, which is display all then limit maxDecimals = 4 before display all
 
       fe.enums = Object.freeze(eLst)
@@ -312,7 +313,9 @@ export default {
       // this.exprDecimals
       //
       this.pvc.processValue = Pcvt.asFloatPval
-      this.pvc.formatter = Pcvt.formatFloat({ isNullable: this.isNullable, locale: lc, nDecimal: -1, maxDecimal: this.maxDecimals }) // decimal: -1 is to show source float value
+      this.pvc.formatter = Pcvt.formatFloat({
+        isNullable: this.isNullable, locale: lc, isRawValue: isAllDec, nDecimal: this.maxDecimals, maxDecimal: this.maxDecimals
+      })
       this.pvc.cellClass = 'pv-cell-right'
       this.ctrl.formatOpts = this.pvc.formatter.options()
     },
@@ -689,6 +692,11 @@ export default {
     onShowLessFormat () {
       if (!this.pvc.formatter) return
       this.pvc.formatter.doLess()
+    },
+    // toogle to formatted value or to raw value in table body
+    onToggleRawValue () {
+      if (!this.pvc.formatter) return
+      this.pvc.formatter.doRawValue()
     },
     // copy tab separated values to clipboard: forward actions to pivot table component
     onCopyToClipboard () {

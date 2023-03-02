@@ -162,15 +162,14 @@ export default {
     getRenderKey (key) {
       return this.renderKeys.hasOwnProperty(key) ? this.renderKeys[key] : void 0
     },
-    makeRenderKey (key) {
-      return [key, this.keyRenderCount].join('-')
-    },
+    makeRenderKey (key) { return [key, this.keyRenderCount].join('-') },
     changeRenderKey (key) {
       this.renderKeys[key] = [key, ++this.keyRenderCount].join('-')
     },
     // return formatted cell value
-    getCellValueFmt (key) {
-      return this.pvControl.formatter.format(this.pvt.cells[key], key)
+    getCellValueFmt (nRow, nCol) {
+      const key = this.cellKeyByRowCol(nRow, nCol)
+      return this.pvControl.formatter.format(this.pvt.cells[key])
     },
 
     // start of editor methods
@@ -179,13 +178,14 @@ export default {
     getUpdatedSrc (key) {
       return this.pvEdit.isUpdated && this.pvEdit.updated.hasOwnProperty(key) ? this.pvEdit.updated[key] : this.pvt.cells[key]
     },
-    getUpdatedFmt (key) {
+    getUpdatedFmt (nRow, nCol) {
+      const key = this.cellKeyByRowCol(nRow, nCol)
       return this.pvEdit.isUpdated && this.pvEdit.updated.hasOwnProperty(key)
-        ? this.pvControl.formatter.format(this.pvEdit.updated[key], key)
-        : this.pvControl.formatter.format(this.pvt.cells[key], key)
+        ? this.pvControl.formatter.format(this.pvEdit.updated[key])
+        : this.pvControl.formatter.format(this.pvt.cells[key])
     },
-    getUpdatedToDisplay (key) {
-      const v = this.getUpdatedFmt(key)
+    getUpdatedToDisplay (nRow, nCol) {
+      const v = this.getUpdatedFmt(nRow, nCol)
       return (v !== void 0 && v !== '') ? v : '\u00a0' // value or &nbsp;
     },
 
@@ -495,7 +495,7 @@ export default {
 
       // for each value do input into the cell
       // if this is enum based parameter and cell values are labels then convert enum labels to enum id's
-      const isToEnumId = this.pvEdit.kind === Pcvt.EDIT_ENUM && !this.pvControl.formatter.options().isSrcValue
+      const isToEnumId = this.pvEdit.kind === Pcvt.EDIT_ENUM && !this.pvControl.formatter.options().isRawValue
 
       for (let k = 0; k < pv.arr.length; k++) {
         for (let j = 0; j < pv.arr[k].length; j++) {
@@ -553,11 +553,11 @@ export default {
         if (!this.pvEdit.isEdit) {
           for (let nCol = 0; nCol < this.pvt.colCount; nCol++) {
             const cKey = this.pvt.cellKeys[nRow * this.pvt.colCount + nCol]
-            tsv += this.pvControl.formatter.format(this.pvt.cells[cKey], cKey) + (nCol < this.pvt.colCount - 1 ? '\t' : '\r\n')
+            tsv += this.pvControl.formatter.format(this.pvt.cells[cKey]) + (nCol < this.pvt.colCount - 1 ? '\t' : '\r\n')
           }
         } else {
           for (let nCol = 0; nCol < this.pvt.colCount; nCol++) {
-            tsv += this.getUpdatedFmt(this.pvt.cellKeys[nRow * this.pvt.colCount + nCol]) + (nCol < this.pvt.colCount - 1 ? '\t' : '\r\n')
+            tsv += this.getUpdatedFmt(nRow, nCol) + (nCol < this.pvt.colCount - 1 ? '\t' : '\r\n')
           }
         }
       }

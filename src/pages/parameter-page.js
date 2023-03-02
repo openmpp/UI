@@ -197,6 +197,11 @@ export default {
       if (!this.pvc.formatter) return
       this.pvc.formatter.doLess()
     },
+    // toogle to formatted value or to raw value in table body
+    onToggleRawValue () {
+      if (!this.pvc.formatter) return
+      this.pvc.formatter.doRawValue()
+    },
     // copy tab separated values to clipboard: forward actions to pivot table component
     onCopyToClipboard () {
       this.$refs.omPivotTable.onCopyTsv()
@@ -351,9 +356,12 @@ export default {
       // if is not empty any of selection rows, columns, other dimensions
       // then store pivot view: do insert or replace of the view
       if (Mdf.isLength(rows) || Mdf.isLength(cols) || Mdf.isLength(others)) {
+        const vs = Pcvt.pivotState(rows, cols, others, dv.isRowColControls, dv.rowColMode || Pcvt.SPANS_AND_DIMS_PVT)
+        vs.edit = this.edt // edit state exist only for parameters
+
         this.dispatchParamView({
           key: this.routeKey,
-          view: Pcvt.pivotState(rows, cols, others, dv.isRowColControls, dv.rowColMode || Pcvt.SPANS_AND_DIMS_PVT),
+          view: vs,
           digest: this.digest || '',
           modelName: Mdf.modelName(this.theModel),
           runDigest: this.runDigest || '',
@@ -378,6 +386,9 @@ export default {
       const isEditNow = this.edt.isEdit
       Pcvt.resetEdit(this.edt)
       this.edt.isEdit = !isEditNow
+      if (this.edt.isEdit && this.pvc.formatter) {
+        if (!this.ctrl.formatOpts.isRawValue) this.pvc.formatter.doRawValue() // show raw value on edit start
+      }
       this.dispatchParamView({ key: this.routeKey, edit: this.edt })
     },
     // parameter editor question: "Discard all changes?", user answer: "yes"
@@ -681,7 +692,7 @@ export default {
       if (Mdf.isBuiltIn(this.paramType.Type)) {
         if (Mdf.isFloat(this.paramType.Type)) {
           this.pvc.processValue = Pcvt.asFloatPval
-          this.pvc.formatter = Pcvt.formatFloat({ isNullable: this.isNullable, locale: lc, nDecimal: -1 }) // decimal: -1 is to show source float value
+          this.pvc.formatter = Pcvt.formatFloat({ isNullable: this.isNullable, locale: lc, isRawValue: true }) // show source float value
         }
         if (Mdf.isInt(this.paramType.Type)) {
           this.pvc.processValue = Pcvt.asIntPval

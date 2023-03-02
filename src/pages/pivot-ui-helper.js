@@ -155,17 +155,6 @@ export const makePageForSave = (dimProp, keyPos, rank, subIdName, isNullable, up
   return pv
 }
 
-// return dimension enum id from cell key by dimension name
-export const dimEnumIdFromKey = (cKey, dimName, keyPos) => {
-  if (!cKey || !cKey?.length || !dimName || !keyPos?.length) {
-    return { isFound: false, enumId: 0 } // invalid arguments or key is empty: not found
-  }
-
-  const n = keyPos.findIndex(p => p.name === dimName)
-
-  return (n >= 0 && n < keyPos.length) ? Pcvt.enumIdFromKey(cKey, n) : { isFound: false, enumId: 0 }
-}
-
 // filter handler: update options list on user input
 export const makeFilter = (f) => (val, update, abort) => {
   update(
