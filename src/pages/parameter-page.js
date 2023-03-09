@@ -65,7 +65,8 @@ export default {
         isRowColModeToggle: true,
         isPvTickle: false,      // used to update view of pivot table (on data selection change, on edit/save change)
         isPvDimsTickle: false,  // used to update dimensions in pivot table (on label change)
-        formatOpts: void 0      // hide format controls by default
+        formatOpts: void 0,     // hide format controls by default
+        isRawShow: false        // for number editor this is raw value format status before editor started
       },
       pvc: {
         rowColMode: Pcvt.SPANS_AND_DIMS_PVT,  // rows and columns mode: 2 = use spans and show dim names, 1 = use spans and hide dim names, 0 = no spans and hide dim names
@@ -386,20 +387,35 @@ export default {
       const isEditNow = this.edt.isEdit
       Pcvt.resetEdit(this.edt)
       this.edt.isEdit = !isEditNow
-      if (this.edt.isEdit && this.pvc.formatter) {
-        if (!this.ctrl.formatOpts.isRawValue) this.pvc.formatter.doRawValue() // show raw value on edit start
+
+      // for numeric editor display raw value during editing and restore raw value format status after edit completed
+      if (this.edt.kind === Pcvt.EDIT_NUMBER && this.pvc.formatter) {
+        if (this.edt.isEdit) {
+          this.ctrl.isRawShow = this.ctrl.formatOpts.isRawValue
+          if (!this.ctrl.isRawShow) this.pvc.formatter.doRawValue() // show raw value on edit start
+        } else {
+          if (this.ctrl.formatOpts.isRawValue !== this.ctrl.isRawShow) this.pvc.formatter.doRawValue() // switch back to formatted value on edit complete
+        }
       }
+
       this.dispatchParamView({ key: this.routeKey, edit: this.edt })
     },
     // parameter editor question: "Discard all changes?", user answer: "yes"
     onYesDiscardChanges () {
       Pcvt.resetEdit(this.edt)
       this.dispatchParamView({ key: this.routeKey, edit: this.edt })
+
+      if (this.edt.kind === Pcvt.EDIT_NUMBER && this.pvc.formatter) {
+        if (this.ctrl.formatOpts.isRawValue !== this.ctrl.isRawShow) this.pvc.formatter.doRawValue() // switch back to formatted value on edit complete
+      }
     },
 
     // save if data editied
     onEditSave () {
       this.doSaveDataPage()
+      if (this.edt.kind === Pcvt.EDIT_NUMBER && this.pvc.formatter) {
+        if (this.ctrl.formatOpts.isRawValue !== this.ctrl.isRawShow) this.pvc.formatter.doRawValue() // switch back to formatted value on edit complete
+      }
     },
 
     // undo and redo last edit changes: forward actions to pivot table component
@@ -993,7 +1009,7 @@ export default {
 
       // prepare parameter data for save, exit with error if no changes found
       const pv = Puih.makePageForSave(
-        this.dimProp, this.pvKeyPos, this.rank, Puih.SUB_ID_DIM, this.isNullable, this.edt.updated
+        this.dimProp, this.pvKeyPos, this.rank, Puih.SUB_ID_DIM, (this.paramRunSet?.DefaultSubId || 0), this.isNullable, this.edt.updated
       )
       if (!Mdf.lengthOf(pv)) {
         console.warn('No parameter changes, nothing to save:', this.parameterName, this.worksetName)

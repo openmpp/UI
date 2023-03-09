@@ -402,7 +402,8 @@
             >
             <q-btn
               @click.stop="doShowRunNote(prop.node.digest)"
-              flat
+              :flat="prop.node.digest !== runDigestSelected"
+              :outline="prop.node.digest === runDigestSelected"
               round
               dense
               :color="(isSuccess(prop.node.status) || isInProgress(prop.node.status)) ? 'primary' : 'warning'"
@@ -456,7 +457,7 @@
               :title="$t('Download') + ' ' + prop.node.label"
               />
             <div class="col">
-              <span>{{ prop.node.label }}<br />
+              <span><span :class="{ 'text-bold': prop.node.digest === runDigestSelected }">{{ prop.node.label }}</span><br />
               <span
                 :class="prop.node.digest === runDigestSelected ? 'om-text-descr-selected' : 'om-text-descr'"
                 >

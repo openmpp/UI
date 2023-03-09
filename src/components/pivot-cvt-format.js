@@ -2,6 +2,8 @@
 
 import * as PcvtHlp from './pivot-cvt-helper'
 
+export const maxDecimalDefault = 4 // by default use 4 decimals max to format expressions and accumulators
+
 // more-less options to control decimals for float number format or show "source" value without any formatting
 /* eslint-disable no-multi-spaces */
 export const moreLessDefault = () => ({
@@ -92,6 +94,115 @@ export const formatFloat = (options) => {
 
       opts.isDoMore = !opts.isRawValue && opts.nDecimal < opts.maxDecimal
       opts.isDoLess = !opts.isRawValue && opts.nDecimal > 0
+    }
+  }
+}
+
+// format number as float using multiple formats defined by key, e.g. different number decimals
+// if isByKey option is true and itemsFormat is not empty object then caller can use format.format(val, fmtKey)
+// if itemsFormat[fmtKey] exist then it must have isRawValue, nDecimal, maxDecimal properties
+// otherwise formatFloat is used
+export const formatFloatByKey = (options) => {
+  const floatFmt = formatFloat(options)
+  const opts = floatFmt.options()
+
+  // check if formats by key enabled
+  opts.isByKey = opts?.isByKey || false
+  opts.itemsFormat = opts?.itemsFormat || {}
+  if (!(opts?.itemsFormat instanceof Object)) opts.itemsFormat = {}
+
+  let n = 0
+  for (const fmtKey in opts.itemsFormat) {
+    if (opts.itemsFormat[fmtKey] instanceof Object) {
+      n++
+      const fmt = opts.itemsFormat[fmtKey]
+
+      fmt.isRawValue = fmt?.isRawValue || false
+      if (fmt.maxDecimal < 0) fmt.maxDecimal = 0
+      if (fmt.nDecimal < 0) fmt.nDecimal = 0
+      if (fmt.nDecimal > fmt.maxDecimal) fmt.nDecimal = fmt.maxDecimal
+    }
+  }
+  if (n <= 0) opts.isByKey = false // there are no format items
+
+  // save default format options
+  const defaultOpts = {
+    nDecimal: opts.nDecimal,
+    maxDecimal: opts.maxDecimal,
+    isRawValue: opts.isRawValue,
+    isDoMore: opts.isDoMore,
+    isDoLess: opts.isDoLess,
+    isByKey: opts.isByKey,
+    itemsFormat: {}
+  }
+  for (const fmtKey in opts.itemsFormat) {
+    defaultOpts.itemsFormat[fmtKey] = Object.assign({}, opts.itemsFormat[fmtKey])
+  }
+
+  return {
+    byKey: (isByKey) => { opts.isByKey = isByKey }, // set or clear format by key option
+    format: (val, fmtKey) => {
+      if (typeof fmtKey === typeof void 0 || !opts.isByKey || typeof opts?.itemsFormat[fmtKey] === typeof void 0) {
+        return floatFmt.format(val)
+      }
+      const fo = Object.assign({}, opts, opts?.itemsFormat[fmtKey])
+
+      if (fo.isRawValue) return val // return source value
+      return formatNumber.format(val, fo)
+    },
+    parse: (s) => {
+      return floatFmt.parse(s)
+    },
+    isValid: (s, fmtKey) => {
+      if (typeof fmtKey === typeof void 0 || !opts.isByKey || typeof opts?.itemsFormat[fmtKey] === typeof void 0) {
+        return floatFmt.isValid(s)
+      }
+      if (s === '' || s === void 0) {
+        const isNable = opts?.itemsFormat[fmtKey]?.isNullable
+        return (typeof isNable !== typeof void 0) ? isNable : opts.isNullable
+      }
+      return floatFmt.isValid(s)
+    },
+    options: () => opts,
+    resetOptions: () => {
+      Object.assign(opts, defaultOpts)
+      for (const fmtKey in defaultOpts.itemsFormat) {
+        opts.itemsFormat[fmtKey] = Object.assign({}, defaultOpts.itemsFormat[fmtKey])
+      }
+    },
+    doRawValue: () => {
+      opts.isRawValue = !opts.isRawValue
+      opts.isDoMore = !opts.isRawValue && opts.nDecimal < opts.maxDecimal
+      opts.isDoLess = !opts.isRawValue && opts.nDecimal > 0
+      for (const fmtKey in opts.itemsFormat) {
+        opts.itemsFormat[fmtKey].isRawValue = opts.isRawValue // apply to each format by key items
+      }
+    },
+    doMore: () => {
+      if (!opts.isDoMore) return
+
+      if (opts.nDecimal < opts.maxDecimal) opts.nDecimal++
+
+      opts.isDoMore = !opts.isRawValue && opts.nDecimal < opts.maxDecimal
+      opts.isDoLess = !opts.isRawValue && opts.nDecimal > 0
+
+      for (const fmtKey in opts.itemsFormat) {
+        const fo = opts.itemsFormat[fmtKey]
+        if (fo.nDecimal < fo.maxDecimal) fo.nDecimal++ // increase decimals until by key options less than max
+      }
+    },
+    doLess: () => {
+      if (!opts.isDoLess) return
+
+      if (opts.nDecimal > 0) opts.nDecimal--
+
+      opts.isDoMore = !opts.isRawValue && opts.nDecimal < opts.maxDecimal
+      opts.isDoLess = !opts.isRawValue && opts.nDecimal > 0
+
+      for (const fmtKey in opts.itemsFormat) {
+        const fo = opts.itemsFormat[fmtKey]
+        if (fo.nDecimal > 0) fo.nDecimal-- // decrease decimals for eack by key item
+      }
     }
   }
 }
@@ -207,11 +318,11 @@ const formatNumber = {
   makeOpts: (options) => {
     const opts = Object.assign({},
       {
-        isNullable: false,  // if true then allow empty (NULL) value
-        isRawValue: false,  // if true then display "raw" value, do not apply format()
-        locale: '',         // locale name, if defined then return toLocaleString()
-        nDecimal: 4,        // number of decimals, ex: 2 => 1234.56
-        maxDecimal: 4       // max decimals to display, using toFixed(nDecimal) and nDecimal <= maxDecimal
+        isNullable: false,            // if true then allow empty (NULL) value
+        isRawValue: false,            // if true then display "raw" value, do not apply format()
+        locale: '',                   // locale name, if defined then return toLocaleString()
+        nDecimal: maxDecimalDefault,  // number of decimals, ex: 2 => 1234.56
+        maxDecimal: maxDecimalDefault // max decimals to display, using toFixed(nDecimal) and nDecimal <= maxDecimal
       },
       options)
     return opts

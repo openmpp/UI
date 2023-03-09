@@ -10,6 +10,10 @@ import UpdateWorksetStatus from 'components/UpdateWorksetStatus.vue'
 import RefreshWorksetArray from 'components/RefreshWorksetArray.vue'
 import RefreshUserViews from 'components/RefreshUserViews.vue'
 import UploadUserViews from 'components/UploadUserViews.vue'
+import RunBar from 'components/RunBar.vue'
+import RunInfoDialog from 'components/RunInfoDialog.vue'
+import WorksetBar from 'components/WorksetBar.vue'
+import WorksetInfoDialog from 'components/WorksetInfoDialog.vue'
 
 /* eslint-disable no-multi-spaces */
 const RUN_LST_TAB_POS = 1       // model runs list tab position
@@ -22,7 +26,20 @@ const FREE_TAB_POS = 20         // first unassigned tab position
 export default {
   name: 'ModelPage',
   components: {
-    RefreshModel, RefreshRun, RefreshRunList, RefreshRunArray, RefreshWorkset, RefreshWorksetList, UpdateWorksetStatus, RefreshWorksetArray, RefreshUserViews, UploadUserViews
+    RefreshModel,
+    RefreshRun,
+    RefreshRunList,
+    RefreshRunArray,
+    RefreshWorkset,
+    RefreshWorksetList,
+    UpdateWorksetStatus,
+    RefreshWorksetArray,
+    RefreshUserViews,
+    UploadUserViews,
+    RunBar,
+    RunInfoDialog,
+    WorksetBar,
+    WorksetInfoDialog
   },
 
   props: {
@@ -62,6 +79,8 @@ export default {
       isReadonlyWsStatus: false,
       nameWsStatus: '',
       updateWsStatusTickle: false,
+      runInfoTickle: false,
+      worksetInfoTickle: false,
       toUpDownSection: 'down',    // downloads and uploads page active section
       paramEditCount: 0,          // number of edited and unsaved parameters
       pathToRouteLeave: '',       // router component leave guard: path-to leave if user confirm changes discard
@@ -336,6 +355,14 @@ export default {
     onTableViewSaved (name) {
       this.uploadUserViewsTickle = !this.uploadUserViewsTickle
     },
+    // show run notes dialog
+    doShowRunNote (modelDgst, runDgst) {
+      this.runInfoTickle = !this.runInfoTickle
+    },
+    // show current workset notes dialog
+    doShowWorksetNote (modelDgst, name) {
+      this.worksetInfoTickle = !this.worksetInfoTickle
+    },
     // view run log: add tab with open run log page
     onRunLogSelect (stamp) {
       const p = this.doTabAdd('run-log', { digest: this.digest, runStamp: stamp })
@@ -547,7 +574,7 @@ export default {
             console.warn('Invalid (empty) run digest or output table name:', parts.runDigest, parts.tableName)
             return emptyTabInfo()
           }
-          const tds = Mdf.descrOfDescrNote(Mdf.tableTextByName(this.theModel, parts.itemKey))
+          const tds = Mdf.tableTextByName(this.theModel, parts.tableName)?.TableDescr || ''
           // path: '/model/' + this.digest + '/run/' + parts.runDigest + '/table/' + parts.tableName,
           return {
             kind: tabKind,

@@ -1,7 +1,7 @@
 <!-- run info bar: show run info in flex bar -->
 <template>
   <div
-    class="row reverse-wrap items-center"
+    class="row items-center"
     >
 
     <q-btn
@@ -63,6 +63,7 @@ export default {
   watch: {
     modelDigest () { this.doRefresh() },
     runDigest () { this.doRefresh() },
+    refreshRunTickle () { this.doRefresh() },
     runTextListUpdated () { this.doRefresh() }
   },
 

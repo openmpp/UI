@@ -1,8 +1,30 @@
 <template>
-<q-page class="text-body1 q-pt-sm">
+<q-page class="text-body1 q-pt-xs">
 
-  <q-separator />
-  <div class="row no-wrap full-width">
+  <q-toolbar
+    v-if="runDigestSelected || worksetNameSelected"
+    class="shadow-1 rounded-borders q-pl-sm q-mb-sm"
+    >
+    <run-bar
+      v-if="runDigestSelected"
+      :model-digest="digest"
+      :run-digest="runDigestSelected"
+      :refresh-run-tickle="refreshTickle"
+      @run-info-click="doShowRunNote"
+      >
+    </run-bar>
+    <q-separator v-if="runDigestSelected && worksetNameSelected" vertical spaced="md" color="secondary" />
+    <workset-bar
+      v-if="worksetNameSelected"
+      :model-digest="digest"
+      :workset-name="worksetNameSelected"
+      :refresh-workset-tickle="refreshTickle"
+      @set-info-click="doShowWorksetNote"
+      >
+    </workset-bar>
+  </q-toolbar>
+
+  <div class="row no-wrap full-width q-pl-sm">
 
     <q-tabs
       outside-arrows
@@ -90,7 +112,6 @@
     </q-btn>
 
   </div>
-  <q-separator />
 
   <router-view
     ref="theTab"
@@ -196,6 +217,8 @@
     @wait="uploadUserViewsDone = false"
     >
   </upload-user-views>
+  <run-info-dialog :show-tickle="runInfoTickle" :model-digest="digest" :run-digest="runDnsCurrent"></run-info-dialog>
+  <workset-info-dialog :show-tickle="worksetInfoTickle" :model-digest="digest" :workset-name="wsNameCurrent"></workset-info-dialog>
 
   <q-dialog v-model="showAllDiscardDlg">
     <q-card>

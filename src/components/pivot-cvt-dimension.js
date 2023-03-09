@@ -88,3 +88,63 @@ export const itemSpans = (keyLen, itemArr) => {
 
   return itSpan
 }
+
+// dimension location: rows, columns, other
+const dimAt = {
+  none: 0,
+  row: 1,
+  col: 2,
+  other: 3
+}
+
+// for all dimensions return item key (enum id) by row or column or by dimension name for other dimensions
+export const itemKeys = (rowFields, colFields, otherFields, rows, cols) => {
+  const keyItemAt = {} // item key positions: map dimension name to {at: row/col/other, idx: index of item key in array of item keys}
+
+  for (let k = 0; k < rowFields.length; k++) {
+    keyItemAt[rowFields[k].name] = { at: dimAt.row, idx: k }
+  }
+  for (let k = 0; k < colFields.length; k++) {
+    keyItemAt[colFields[k].name] = { at: dimAt.col, idx: k }
+  }
+  for (let k = 0; k < otherFields.length; k++) {
+    keyItemAt[otherFields[k].name] = { at: dimAt.other, idx: k }
+  }
+
+  const getByDimRowCol = (dimName, nRow, nCol) => {
+    const dAt = keyItemAt?.[dimName]?.at || dimAt.none
+    const nFld = keyItemAt?.[dimName]?.idx || 0
+    let eId = void 0
+
+    switch (dAt) {
+      case dimAt.row:
+        eId = rows[nRow][keyItemAt[dimName].idx]
+        break
+      case dimAt.col:
+        eId = cols[nCol][keyItemAt[dimName].idx]
+        break
+      case dimAt.other:
+        eId = (otherFields.length > 0 && otherFields[nFld].selection.length === 1) ? otherFields[nFld].selection[0]?.value : void 0
+        break
+    }
+    return eId
+  }
+
+  return {
+    // return dimension item key (enum id) by row or column number
+    dimKey: (dimName) => {
+      return {
+        byRowCol: (nRow, nCol) => { return getByDimRowCol(dimName, nRow, nCol) }
+      }
+    },
+    // return dimension item key (enum id) by dimension name and row or column number
+    byDimRowCol: (dimName, nRow, nCol) => { return getByDimRowCol(dimName, nRow, nCol) }
+  }
+}
+
+// return dimension item key (enum id) by row or column
+export const dimItemKeys = (dimName) => {
+  return {
+    itemKeys: (rowFields, colFields, otherFields, rows, cols) => itemKeys(rowFields, colFields, otherFields, rows, cols).dimKey(dimName)
+  }
+}

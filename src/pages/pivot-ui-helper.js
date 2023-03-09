@@ -96,14 +96,14 @@ export const makeSelectLayout = (name, otherFields, skipDims) => {
 
 // prepare page of parameter data for save
 // all dimension items are packed ino cell key ordered by dimension name
-export const makePageForSave = (dimProp, keyPos, rank, subIdName, isNullable, updated) => {
+export const makePageForSave = (dimProp, keyPos, rank, subIdName, defaultSubId, isNullable, updated) => {
   // sub-id value is zero by default
   // if parameter has multiple sub-values
   // then sub-id also can be a single value from filter or packed into cell key
   const subIdField = {
     isConst: true,
     srcPos: 0,
-    value: 0
+    value: defaultSubId || 0
   }
 
   // rows and columns: cell key contain items ordered by dimension names

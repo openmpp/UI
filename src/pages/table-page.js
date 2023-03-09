@@ -12,9 +12,9 @@ import PvTable from 'components/PvTable'
 import { openURL } from 'quasar'
 
 /* eslint-disable no-multi-spaces */
-const exprDimName = 'EXPRESSIONS_DIM'         // expressions measure dimension name
-const accDimName = 'ACCUMULATORS_DIM'         // accuimulators measure dimension name
-const allAccDimName = 'ALL_ACCUMULATORS_DIM'  // all accuimulators measure dimension name
+const EXPR_DIM_NAME = 'EXPRESSIONS_DIM'         // expressions measure dimension name
+const ACC_DIM_NAME = 'ACCUMULATORS_DIM'         // accuimulators measure dimension name
+const ALL_ACC_DIM_NAME = 'ALL_ACCUMULATORS_DIM' // all accuimulators measure dimension name
 /* eslint-enable no-multi-spaces */
 
 export default {
@@ -64,8 +64,6 @@ export default {
       pvKeyPos: [],           // position of each dimension item in cell key
       isDragging: false,      // if true then user is dragging dimension select control
       exprDimPos: 0,          // expression dimension position: table ExprPos
-      exprDecimals: {},
-      maxDecimals: 4,
       totalEnumLabel: '',     // total enum item label, language-specific, ex.: All
       loadRunWait: false,
       refreshRunTickle: false,
@@ -77,7 +75,7 @@ export default {
 
   computed: {
     routeKey () { return Mdf.tablePath(this.digest, this.runDigest, this.tableName) },
-    tableDescr () { return Mdf.descrOfDescrNote(this.tableText) },
+    tableDescr () { return this?.tableText?.TableDescr || '' },
 
     ...mapState('model', {
       theModel: state => state.theModel,
@@ -191,11 +189,12 @@ export default {
       }
 
       // expression measure dimension: items are output expressions
-      this.exprDecimals = {}
-      this.maxDecimals = -1
+      const exprFmt = {}
+      let maxDec = -1
+      let isAllRaw = true
 
       const fe = {
-        name: exprDimName,
+        name: EXPR_DIM_NAME,
         label: this.tableText.ExprDescr || this.$t('Measure'),
         read: (r) => (r.ExprId),
         enums: [],
@@ -219,12 +218,19 @@ export default {
           label: Mdf.descrOfDescrNote(this.tableText.TableExprTxt[j]) || e.SrcExpr || e.Name || eId.toString()
         })
 
+        // format value handlers: output table values are always float and nullable
         const nDec = e.Decimals || 0
-        this.exprDecimals[eId] = nDec
-        if (this.maxDecimals < nDec) this.maxDecimals = nDec
+        const isRaw = nDec < 0
+
+        exprFmt[eId] = {
+          isRawValue: isRaw,
+          nDecimal: (!isRaw ? nDec : Pcvt.maxDecimalDefault),
+          maxDecimal: (!isRaw ? nDec : Pcvt.maxDecimalDefault)
+        }
+        isAllRaw = isAllRaw && isRaw
+        if (maxDec < nDec) maxDec = nDec
       }
-      const isAllDec = this.maxDecimals < 0
-      if (this.maxDecimals < 0) this.maxDecimals = 4 // if model decimals=-1, which is display all then limit maxDecimals = 4 before display all
+      if (maxDec < 0) maxDec = Pcvt.maxDecimalDefault // if model decimals=-1, which is display all then limit decimals = 4
 
       fe.enums = Object.freeze(eLst)
       fe.options = fe.enums
@@ -235,7 +241,7 @@ export default {
       // accumulators measure dimension: items are output table accumulators
       const makeAccDim = (isAll) => {
         const fa = {
-          name: !isAll ? accDimName : allAccDimName,
+          name: !isAll ? ACC_DIM_NAME : ALL_ACC_DIM_NAME,
           label: this.tableText.ExprDescr || this.$t('Measure'),
           read: (r) => (r.AccId),
           enums: [],
@@ -298,6 +304,7 @@ export default {
       this.dimProp[this.rank + 3] = fs // sub-values dimension at [rank + 3] position
 
       // setup process value and format value handlers: output table values are always float and nullable
+      // output table values type is always float and nullable
       let lc = this.uiLang || this.$q.lang.getLocale() || ''
       if (lc) {
         try {
@@ -308,16 +315,19 @@ export default {
           console.warn('Error: undefined canonical locale:', e)
         }
       }
-      // output table values type is always float and nullable
-      //
-      // this.exprDecimals
-      //
       this.pvc.processValue = Pcvt.asFloatPval
-      this.pvc.formatter = Pcvt.formatFloat({
-        isNullable: this.isNullable, locale: lc, isRawValue: isAllDec, nDecimal: this.maxDecimals, maxDecimal: this.maxDecimals
+      this.pvc.formatter = Pcvt.formatFloatByKey({
+        isNullable: this.isNullable,
+        locale: lc,
+        isRawValue: isAllRaw,
+        nDecimal: maxDec,
+        maxDecimal: maxDec,
+        isByKey: (this.ctrl.kind === Puih.kind.EXPR) || false,
+        itemsFormat: exprFmt
       })
-      this.pvc.cellClass = 'pv-cell-right'
+      this.pvc.dimItemKeys = Pcvt.dimItemKeys(EXPR_DIM_NAME)
       this.ctrl.formatOpts = this.pvc.formatter.options()
+      this.pvc.cellClass = 'pv-cell-right'
     },
 
     // set page view: use previous page view from store or default
@@ -382,7 +392,9 @@ export default {
         this.otherFields.push(f)
       }
 
-      // restore controls view state
+      // restore formatter and controls view state
+      this.pvc.formatter.byKey((this.ctrl.kind === Puih.kind.EXPR) || false)
+
       this.ctrl.isRowColControls = !!tv.isRowColControls
       this.pvc.rowColMode = typeof tv.rowColMode === typeof 1 ? tv.rowColMode : Pcvt.NO_SPANS_NO_DIMS_PVT
 
@@ -394,11 +406,11 @@ export default {
     isDimKindValid (kind, name) {
       switch (kind) {
         case Puih.kind.EXPR:
-          return name !== accDimName && name !== allAccDimName && name !== Puih.SUB_ID_DIM // skip sub-value and accumulators measure
+          return name !== ACC_DIM_NAME && name !== ALL_ACC_DIM_NAME && name !== Puih.SUB_ID_DIM // skip sub-value and accumulators measure
         case Puih.kind.ACC:
-          return name !== exprDimName && name !== allAccDimName // skip other measure dimensions
+          return name !== EXPR_DIM_NAME && name !== ALL_ACC_DIM_NAME // skip other measure dimensions
         case Puih.kind.ALL:
-          return name !== exprDimName && name !== accDimName // skip other measure dimensions
+          return name !== EXPR_DIM_NAME && name !== ACC_DIM_NAME // skip other measure dimensions
       }
       return false // invalid view kind
     },
@@ -493,6 +505,8 @@ export default {
       })
 
       // refresh pivot view: both dimensions labels and table body
+      this.pvc.formatter.byKey((this.ctrl.kind === Puih.kind.EXPR) || false)
+
       this.ctrl.isPvDimsTickle = !this.ctrl.isPvDimsTickle
       this.ctrl.isPvTickle = !this.ctrl.isPvTickle
     },
@@ -545,7 +559,7 @@ export default {
     doExpressionPage () {
       // replace measure dimension by expressions measure
       const kind = this.ctrl.kind
-      const mName = kind === Puih.kind.ACC ? accDimName : allAccDimName
+      const mName = kind === Puih.kind.ACC ? ACC_DIM_NAME : ALL_ACC_DIM_NAME
       const mNewIdx = this.rank // expression dimension index in dimesions list
 
       let n = this.replaceMeasureDim(mName, mNewIdx, this.rowFields, false)
@@ -569,6 +583,7 @@ export default {
 
       // set new view kind and  store pivot view
       this.ctrl.kind = Puih.kind.EXPR
+      this.pvc.formatter.byKey(true)
       this.storeViewAndRefreshData()
     },
     // show output table accumulators
@@ -576,7 +591,7 @@ export default {
       // replace measure dimension by accumulators measure
       // and insert sub-value dimension after accumulators
       const kind = this.ctrl.kind
-      const mName = kind === Puih.kind.EXPR ? exprDimName : allAccDimName
+      const mName = kind === Puih.kind.EXPR ? EXPR_DIM_NAME : ALL_ACC_DIM_NAME
       const mNewIdx = this.rank + 1 // accumulators dimension index in dimesions list
       const subIdx = this.rank + 3 // sub-values dimension index in dimensions list
       let isOther = false
@@ -608,6 +623,7 @@ export default {
 
       // set new view kind and reload data
       this.ctrl.kind = Puih.kind.ACC
+      this.pvc.formatter.byKey(false)
       this.storeViewAndRefreshData()
     },
 
@@ -924,7 +940,7 @@ export default {
       //  if other dimesion(s) filters same as before
       //  then update pivot table view now
       //  else refresh data
-      if (Puih.equalFilterState(this.filterState, this.otherFields, [Puih.SUB_ID_DIM, exprDimName, accDimName, allAccDimName])) {
+      if (Puih.equalFilterState(this.filterState, this.otherFields, [Puih.SUB_ID_DIM, EXPR_DIM_NAME, ACC_DIM_NAME, ALL_ACC_DIM_NAME])) {
         this.ctrl.isPvTickle = !this.ctrl.isPvTickle
         if (isSubIdOrMeasure) {
           this.filterState = Puih.makeFilterState(this.otherFields)
@@ -965,7 +981,7 @@ export default {
       // update pivot view:
       //   if other dimesions filters same as before then update pivot table view now
       //   else refresh data
-      if (panel !== 'other' || Puih.equalFilterState(this.filterState, this.otherFields, [Puih.SUB_ID_DIM, exprDimName, accDimName, allAccDimName])) {
+      if (panel !== 'other' || Puih.equalFilterState(this.filterState, this.otherFields, [Puih.SUB_ID_DIM, EXPR_DIM_NAME, ACC_DIM_NAME, ALL_ACC_DIM_NAME])) {
         this.ctrl.isPvTickle = !this.ctrl.isPvTickle
         if (name === Puih.SUB_ID_DIM || name === this.measureName) {
           this.filterState = Puih.makeFilterState(this.otherFields)
@@ -1065,7 +1081,7 @@ export default {
       this.filterState = Puih.makeFilterState(this.otherFields)
 
       // make output table read layout and url
-      const layout = Puih.makeSelectLayout(this.tableName, this.otherFields, [Puih.SUB_ID_DIM, exprDimName, accDimName, allAccDimName])
+      const layout = Puih.makeSelectLayout(this.tableName, this.otherFields, [Puih.SUB_ID_DIM, EXPR_DIM_NAME, ACC_DIM_NAME, ALL_ACC_DIM_NAME])
       layout.IsAccum = this.ctrl.kind !== Puih.kind.EXPR
       layout.IsAllAccum = this.ctrl.kind === Puih.kind.ALL
 

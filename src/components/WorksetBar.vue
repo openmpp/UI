@@ -1,7 +1,7 @@
 <!-- workset info bar: show workset (a.k.a. input secenario) info in flex bar -->
 <template>
   <div
-    class="row reverse-wrap items-center"
+    class="row items-center"
     >
 
     <q-btn
@@ -107,6 +107,7 @@ export default {
   props: {
     modelDigest: { type: String, default: '' },
     worksetName: { type: String, default: '' },
+    refreshworksetTickle: { type: Boolean, default: false },
     isNewRunButton: { type: Boolean, default: false },
     isReadonlyButton: { type: Boolean, default: false },
     isReadonlyDisabled: { type: Boolean, default: false },
@@ -140,6 +141,7 @@ export default {
   watch: {
     modelDigest () { this.doRefresh() },
     worksetName () { this.doRefresh() },
+    refreshworksetTickle () { this.doRefresh() },
     worksetTextListUpdated () { this.doRefresh() }
   },
 

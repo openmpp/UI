@@ -496,7 +496,8 @@
             >
             <q-btn
               @click.stop="doShowWorksetNote(prop.node.label)"
-              flat
+              :flat="prop.node.label !== worksetNameSelected"
+              :outline="prop.node.label === worksetNameSelected"
               round
               dense
               color="primary"
@@ -553,7 +554,7 @@
               :title="$t('Download') + ' ' + prop.node.label"
               />
             <div class="col">
-              <span>{{ prop.node.label }}<br />
+              <span><span :class="{ 'text-bold': prop.node.label === worksetNameSelected }">{{ prop.node.label }}</span><br />
               <span
                 :class="prop.node.label === worksetNameSelected ? 'om-text-descr-selected' : 'om-text-descr'"
                 >

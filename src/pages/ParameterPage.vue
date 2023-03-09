@@ -157,7 +157,7 @@
             v-if="!isFromRun"
             @click="doShowFileSelect()"
             v-show="!uploadFileSelect"
-            :disable="!isUploadEnabled"
+            :disable="!isUploadEnabled || edt.isEdit"
             clickable
             >
             <q-item-section avatar>
@@ -396,7 +396,7 @@
       v-if="!isFromRun"
       @click="doShowFileSelect()"
       v-show="!uploadFileSelect"
-      :disable="!isUploadEnabled"
+      :disable="!isUploadEnabled || edt.isEdit"
       flat
       dense
       class="col-auto text-white rounded-borders q-ml-xs bg-primary text-white rounded-borders"

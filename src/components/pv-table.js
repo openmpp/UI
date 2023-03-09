@@ -77,6 +77,14 @@ pvEdit: {
 
 import * as Pcvt from './pivot-cvt'
 
+// dimension location: rows, columns, other
+// const dimAt = {
+//   none: 0,
+//   row: 1,
+//   col: 2,
+//   other: 3
+// }
+
 export default {
   /* eslint-disable no-multi-spaces */
   props: {
@@ -92,9 +100,10 @@ export default {
         rowColMode: Pcvt.NO_SPANS_NO_DIMS_PVT,  // rows and columns mode: 2 = use spans and show dim names, 1 = use spans and hide dim names, 0 = no spans and hide dim names
         isShowNames: false,                     // if true then show dimension names and item names instead of labels
         readValue: (r) => (!r.IsNull ? r.Value : (void 0)),
-        processValue: Pcvt.asIsPval,    // default value processing: return as is
-        formatter: Pcvt.formatDefault,  // disable format(), parse() and validation by default
-        cellClass: 'pv-cell-right'      // default cell value style: right justified number
+        processValue: Pcvt.asIsPval,      // default value processing: return as is
+        formatter: Pcvt.formatDefault,    // disable format(), parse() and validation by default
+        cellClass: 'pv-cell-right',       // default cell value style: right justified number
+        dimItemKeys: void 0               // interface to find dimension item key (enum id) by row or column number
       })
     },
     refreshViewTickle: {
@@ -112,9 +121,9 @@ export default {
   data () {
     return {
       pvt: {
-        rowCount: 0,  // table size: number of rows
-        colCount: 0,  // table size: number of columns
-        labels: {},   // row, column, other dimensions item labels, key: {dimensionName, itemCode}
+        rowCount: 0,      // table size: number of rows
+        colCount: 0,      // table size: number of columns
+        labels: {},       // row, column, other dimensions item labels, key: {dimensionName, itemCode}
         rows: Object.freeze([]),      // for each row:    array of item keys
         cols: Object.freeze([]),      // for each column: array of item keys
         rowKeys: Object.freeze([]),   // for each table row:    itemsToKey(rows[i])
@@ -127,7 +136,8 @@ export default {
       keyRenderCount: 0,  // table body cell key suffix to force update
       renderKeys: {},     // for each cellKey string of: 'cellKey-keyRenderCount'
       keyPos: [],         // position of each dimension item in cell key
-      valueLen: 0         // value input text size
+      valueLen: 0,        // value input text size
+      itemKeyByRowCol: (nRow, nCol) => (void 0) // return dimension item key (enum id) by row or column number
     }
   },
   /* eslint-enable no-multi-spaces */
@@ -168,25 +178,31 @@ export default {
     },
     // return formatted cell value
     getCellValueFmt (nRow, nCol) {
-      const key = this.cellKeyByRowCol(nRow, nCol)
-      return this.pvControl.formatter.format(this.pvt.cells[key])
+      const v = this.pvt.cells[this.pvt.cellKeys[nRow * this.pvt.colCount + nCol]]
+
+      if (this.pvControl.formatter.options()?.isByKey) {
+        return this.pvControl.formatter.format(v, this.itemKeyByRowCol(nRow, nCol))
+      }
+      return this.pvControl.formatter.format(v)
     },
 
     // start of editor methods
     //
     // return updated cell value or default if value not updated
-    getUpdatedSrc (key) {
-      return this.pvEdit.isUpdated && this.pvEdit.updated.hasOwnProperty(key) ? this.pvEdit.updated[key] : this.pvt.cells[key]
-    },
-    getUpdatedFmt (nRow, nCol) {
-      const key = this.cellKeyByRowCol(nRow, nCol)
-      return this.pvEdit.isUpdated && this.pvEdit.updated.hasOwnProperty(key)
-        ? this.pvControl.formatter.format(this.pvEdit.updated[key])
-        : this.pvControl.formatter.format(this.pvt.cells[key])
-    },
     getUpdatedToDisplay (nRow, nCol) {
       const v = this.getUpdatedFmt(nRow, nCol)
       return (v !== void 0 && v !== '') ? v : '\u00a0' // value or &nbsp;
+    },
+    getUpdatedFmt (nRow, nCol) {
+      const v = this.getUpdatedSrc(this.pvt.cellKeys[nRow * this.pvt.colCount + nCol])
+
+      if (this.pvControl.formatter.options()?.isByKey) {
+        return this.pvControl.formatter.format(v, this.itemKeyByRowCol(nRow, nCol))
+      }
+      return this.pvControl.formatter.format(v)
+    },
+    getUpdatedSrc (key) {
+      return this.pvEdit.isUpdated && this.pvEdit.updated.hasOwnProperty(key) ? this.pvEdit.updated[key] : this.pvt.cells[key]
     },
 
     // start cell edit: enter into input control
@@ -619,6 +635,8 @@ export default {
       this.pvt.colSpans = Object.freeze({})
       this.renderKeys = {}
       this.keyPos = []
+      this.keyItemAt = {}
+      this.itemKeyByRowCol = (nRow, nCol) => (void 0)
 
       // if response is empty or invalid: clean table
       const len = (!!data && (data.length || 0) > 0) ? data.length : 0
@@ -798,6 +816,9 @@ export default {
       this.pvt.colSpans = Object.freeze(csp)
       this.renderKeys = vupd
       this.keyPos = nkp
+      if (this.pvControl.dimItemKeys) {
+        this.itemKeyByRowCol = this.pvControl.dimItemKeys.itemKeys(this.rowFields, this.colFields, this.otherFields, this.pvt.rows, this.pvt.cols).byRowCol
+      }
 
       this.$emit('pv-key-pos', this.keyPos)
     }
