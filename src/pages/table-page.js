@@ -191,7 +191,6 @@ export default {
       // expression measure dimension: items are output expressions
       const exprFmt = {}
       let maxDec = -1
-      let isAllRaw = true
 
       const fe = {
         name: EXPR_DIM_NAME,
@@ -220,14 +219,11 @@ export default {
 
         // format value handlers: output table values are always float and nullable
         const nDec = e.Decimals || 0
-        const isRaw = nDec < 0
-
         exprFmt[eId] = {
-          isRawValue: isRaw,
-          nDecimal: (!isRaw ? nDec : Pcvt.maxDecimalDefault),
-          maxDecimal: (!isRaw ? nDec : Pcvt.maxDecimalDefault)
+          isAllDecimal: nDec < 0,
+          nDecimal: (nDec >= 0 ? nDec : Pcvt.maxDecimalDefault),
+          maxDecimal: (nDec >= 0 ? nDec : Pcvt.maxDecimalDefault)
         }
-        isAllRaw = isAllRaw && isRaw
         if (maxDec < nDec) maxDec = nDec
       }
       if (maxDec < 0) maxDec = Pcvt.maxDecimalDefault // if model decimals=-1, which is display all then limit decimals = 4
@@ -319,7 +315,6 @@ export default {
       this.pvc.formatter = Pcvt.formatFloatByKey({
         isNullable: this.isNullable,
         locale: lc,
-        isRawValue: isAllRaw,
         nDecimal: maxDec,
         maxDecimal: maxDec,
         isByKey: (this.ctrl.kind === Puih.kind.EXPR) || false,

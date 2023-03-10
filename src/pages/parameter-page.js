@@ -708,7 +708,7 @@ export default {
       if (Mdf.isBuiltIn(this.paramType.Type)) {
         if (Mdf.isFloat(this.paramType.Type)) {
           this.pvc.processValue = Pcvt.asFloatPval
-          this.pvc.formatter = Pcvt.formatFloat({ isNullable: this.isNullable, locale: lc, isRawValue: true }) // show source float value
+          this.pvc.formatter = Pcvt.formatFloat({ isNullable: this.isNullable, locale: lc, isAllDecimal: true }) // show all deciamls for the float value
         }
         if (Mdf.isInt(this.paramType.Type)) {
           this.pvc.processValue = Pcvt.asIntPval
