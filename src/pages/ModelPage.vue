@@ -1,9 +1,9 @@
 <template>
 <q-page class="text-body1 q-pt-xs">
 
-  <q-toolbar
+  <q-card
     v-if="runDigestSelected || worksetNameSelected"
-    class="shadow-1 rounded-borders q-pl-sm q-mb-sm"
+    class="row q-mb-sm q-mx-sm q-pl-sm"
     >
     <run-bar
       v-if="runDigestSelected"
@@ -13,7 +13,7 @@
       @run-info-click="doShowRunNote"
       >
     </run-bar>
-    <q-separator v-if="runDigestSelected && worksetNameSelected" vertical spaced="md" color="secondary" />
+    <q-separator v-if="runDigestSelected && worksetNameSelected" vertical inset spaced="lg" color="secondary" />
     <workset-bar
       v-if="worksetNameSelected"
       :model-digest="digest"
@@ -22,7 +22,7 @@
       @set-info-click="doShowWorksetNote"
       >
     </workset-bar>
-  </q-toolbar>
+  </q-card>
 
   <div class="row no-wrap full-width q-pl-sm">
 
