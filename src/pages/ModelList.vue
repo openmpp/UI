@@ -58,7 +58,8 @@
           >
           <q-btn
             @click.stop="doShowModelNote(prop.node.digest)"
-            flat
+            :flat="prop.node.digest !== theModelDigest"
+            :outline="prop.node.digest === theModelDigest"
             round
             dense
             color="primary"
@@ -83,7 +84,7 @@
             class="col om-tree-leaf-link"
             :class="{ 'text-primary' : prop.node.digest === theModelDigest }"
             >
-            <span>{{ prop.node.label }}<br />
+            <span><span :class="{ 'text-bold': prop.node.digest === theModelDigest }">{{ prop.node.label }}</span><br />
             <span :class="prop.node.digest === theModelDigest ? 'om-text-descr-selected' : 'om-text-descr'">{{ prop.node.descr }}</span></span>
           </router-link>
         </div>
