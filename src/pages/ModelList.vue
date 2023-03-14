@@ -64,7 +64,7 @@
             dense
             color="primary"
             class="col-auto"
-            icon="mdi-information-outline"
+            :icon="prop.node.digest === theModelDigest ? 'mdi-information' : 'mdi-information-outline'"
             :title="$t('About') + ' ' + prop.node.label"
             />
           <q-btn

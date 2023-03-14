@@ -242,6 +242,8 @@ export default {
   'Model run with the same name already exist': 'Le modèle exécuté avec le même nom existe déjà',
   'Model Runs': "Le modèle s'exécute",
   'Model Version': 'Version du modèle',
+  'Model views': 'Vues du modèle',
+  'Model views of': 'Vues du modèle de',
   'Modelling Threads max': 'Modèles de threads max',
   'Models': 'Modèles',
   'Models list': 'Liste des modèles',

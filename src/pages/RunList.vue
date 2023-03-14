@@ -408,7 +408,7 @@
               dense
               :color="(isSuccess(prop.node.status) || isInProgress(prop.node.status)) ? 'primary' : 'warning'"
               class="col-auto"
-              :icon="isSuccess(prop.node.status) ? 'mdi-information-outline' : (isInProgress(prop.node.status) ? 'mdi-run' : 'mdi-alert-circle-outline')"
+              :icon="isSuccess(prop.node.status) ? (prop.node.digest === runDigestSelected ? 'mdi-information' : 'mdi-information-outline') : (isInProgress(prop.node.status) ? 'mdi-run' : 'mdi-alert-circle-outline')"
               :title="$t('About') + ' ' + prop.node.label"
               />
             <q-btn
