@@ -3,9 +3,9 @@
 
   <q-expansion-item
     switch-toggle-side
-    expand-separator
     default-opened
     header-class="bg-primary text-white"
+    class="q-mb-xs"
     :label="$t('Session state and settings')"
     >
     <table class="settings-table q-mb-sm">
@@ -112,26 +112,40 @@
           </td>
         </tr>
 
-        <tr>
-          <td colspan="3" class="settings-cell q-pa-sm">
-            <span class="row">
-            <q-btn
-              @click="onDownloadViews"
-              :disable="!isModel || (!paramNames.length && !tableNames.length)"
-              flat
-              dense
-              no-caps
-              align="left"
-              class="bg-primary text-white rounded-borders col-grow"
-              icon="mdi-download"
-              :label="isModel ? $t('Download views of') + ' ' + modelTitle : $t('Download model views')"
-              />
-            </span>
-          </td>
-        </tr>
+      </tbody>
+    </table>
+  </q-expansion-item>
 
-        <tr>
-          <td class="settings-cell q-pa-sm">
+  <q-expansion-item
+    switch-toggle-side
+    default-opened
+    header-class="bg-primary text-white"
+    :label="isModel ? $t('Model views of') + ' ' + modelTitle : $t('Model views')"
+    >
+    <q-card>
+
+      <q-card-section class="row items-center q-py-sm">
+        <span class="col-auto">
+          <q-btn
+            @click="onDownloadViews"
+            :disable="!isModel || (!paramNames.length && !tableNames.length)"
+            flat
+            dense
+            no-caps
+            align="left"
+            class="bg-primary text-white rounded-borders"
+            icon="mdi-download"
+            :title="isModel ? $t('Download views of') + ' ' + modelTitle : $t('Download model views')"
+            />
+        </span>
+        <span
+          :class="{ 'om-text-secondary' : !isModel || (!paramNames.length && !tableNames.length) }"
+          class="col-grow q-pl-sm"
+        >{{ isModel ? $t('Download views of') + ' ' + modelTitle : $t('Download model views') }}</span>
+      </q-card-section>
+
+      <q-card-section class="row items-center q-pt-sm q-pb-md">
+          <span class="col-auto">
             <q-btn
               @click="onUploadViews"
               :disable="!isModel || !isUploadFile"
@@ -141,8 +155,8 @@
               icon="mdi-upload"
               :title="$t('Upload views of') + (isModel ? (' ' + modelTitle) : '')"
               />
-          </td>
-          <td colspan="2" class="settings-cell q-pa-sm">
+          </span>
+          <span class="col-grow q-pl-sm">
             <q-file
               v-model="uploadFile"
               :disable="!isModel"
@@ -155,70 +169,62 @@
               :label="isModel ? $t('Upload views of') + ' ' + modelTitle : $t('Upload model views')"
               >
             </q-file>
-          </td>
-        </tr>
+          </span>
+      </q-card-section>
 
-      </tbody>
-    </table>
-  </q-expansion-item>
+      <q-card-section
+        class="row items-center bg-primary text-white q-py-sm q-mx-md"
+        :class="{ 'om-bg-inactive' : !paramNames.length }"
+        >
+        <span class="col-grow">{{ $t('Default views of parameters') + ': ' + (paramNames.length ? paramNames.length.toString() : $t('None')) }}</span>
+      </q-card-section>
+      <q-list
+        class="q-mb-xs"
+        >
+        <q-item v-for="pName of paramNames" :key="pName">
+          <q-item-section avatar>
+            <q-btn
+              @click="onRemoveParamView(pName)"
+              flat
+              dense
+              class="bg-primary text-white rounded-borders"
+              icon="delete"
+              :title="$t('Erase default view of parameter') + ' ' + pName"
+              />
+          </q-item-section>
+          <q-item-section>
+            <q-item-label>{{ pName }}</q-item-label>
+            <q-item-label caption>{{ parameterDescr(pName) }}</q-item-label>
+          </q-item-section>
+        </q-item>
+      </q-list>
 
-  <q-expansion-item
-    :disable="!paramNames.length"
-    switch-toggle-side
-    expand-separator
-    default-opened
-    header-class="bg-primary text-white"
-    :label="$t('Default views of parameters') + ': ' + (paramNames.length ? paramNames.length.toString() : $t('None'))"
-    >
-    <q-list bordered separator>
+      <q-card-section
+        class="row items-center bg-primary text-white q-py-sm q-mx-md"
+        :class="{ 'om-bg-inactive' : !tableNames.length }"
+        >
+        <span class="col-grow">{{ $t('Default views of output tables') + ': ' + (tableNames.length ? tableNames.length.toString() : $t('None')) }}</span>
+      </q-card-section>
+      <q-list>
+        <q-item v-for="tName of tableNames" :key="tName">
+          <q-item-section avatar>
+            <q-btn
+              @click="onRemoveTableView(tName)"
+              flat
+              dense
+              class="bg-primary text-white rounded-borders"
+              icon="delete"
+              :title="$t('Erase default view of output table') + ' ' + tName"
+              />
+          </q-item-section>
+          <q-item-section>
+            <q-item-label>{{ tName }}</q-item-label>
+            <q-item-label caption>{{ tableDescr(tName) }}</q-item-label>
+          </q-item-section>
+        </q-item>
+      </q-list>
 
-      <q-item v-for="pName of paramNames" :key="pName">
-        <q-item-section avatar>
-          <q-btn
-            @click="onRemoveParamView(pName)"
-            flat
-            dense
-            class="bg-primary text-white rounded-borders"
-            icon="delete"
-            :title="$t('Erase default view of parameter') + ' ' + pName"
-            />
-        </q-item-section>
-        <q-item-section>
-          <q-item-label>{{ pName }}</q-item-label>
-          <q-item-label caption>{{ parameterDescr(pName) }}</q-item-label>
-        </q-item-section>
-      </q-item>
-    </q-list>
-  </q-expansion-item>
-
-  <q-expansion-item
-    :disable="!tableNames.length"
-    switch-toggle-side
-    expand-separator
-    default-opened
-    header-class="bg-primary text-white"
-    :label="$t('Default views of output tables') + ': ' + (tableNames.length ? tableNames.length.toString() : $t('None'))"
-    >
-    <q-list bordered separator>
-
-      <q-item v-for="tName of tableNames" :key="tName">
-        <q-item-section avatar>
-          <q-btn
-            @click="onRemoveTableView(tName)"
-            flat
-            dense
-            class="bg-primary text-white rounded-borders"
-            icon="delete"
-            :title="$t('Erase default view of output table') + ' ' + tName"
-            />
-        </q-item-section>
-        <q-item-section>
-          <q-item-label>{{ tName }}</q-item-label>
-          <q-item-label caption>{{ tableDescr(tName) }}</q-item-label>
-        </q-item-section>
-      </q-item>
-
-    </q-list>
+    </q-card>
   </q-expansion-item>
 
   <upload-user-views
