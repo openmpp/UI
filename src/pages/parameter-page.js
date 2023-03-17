@@ -71,7 +71,7 @@ export default {
       pvc: {
         rowColMode: Pcvt.SPANS_AND_DIMS_PVT,  // rows and columns mode: 2 = use spans and show dim names, 1 = use spans and hide dim names, 0 = no spans and hide dim names
         isShowNames: false,                   // if true then show dimension names and item names instead of labels
-        readValue: (r) => (!r.IsNull ? r.Value : (void 0)),
+        reader: void 0,                       // return row reader: if defined then methods to read next row, read() dimension items and readValue()
         processValue: Pcvt.asIsPval,          // default value processing: return as is
         formatter: Pcvt.formatDefault,        // disable format(), parse() and validation by default
         cellClass: 'pv-cell-right'            // default cell value style: right justified number
@@ -638,7 +638,6 @@ export default {
         const f = {
           name: dt.Dim.Name || '',
           label: Mdf.descrOfDescrNote(dt) || dt.Dim.Name || '',
-          read: (r) => (r.DimIds.length > n ? r.DimIds[n] : void 0),
           enums: [],
           options: [],
           selection: [],
@@ -667,7 +666,6 @@ export default {
         const f = {
           name: Puih.SUB_ID_DIM,
           label: this.$t('Sub #'),
-          read: (r) => (r.SubId),
           enums: [],
           options: [],
           selection: [],
@@ -684,6 +682,31 @@ export default {
         f.filter = Puih.makeFilter(f)
 
         this.dimProp.push(f)
+      }
+
+      // read parameter rows: one row for each parameter value
+      this.pvc.reader = (src) => {
+        // no data to read: if source rows are empty or invalid return undefined reader
+        if (!src || (src?.length || 0) <= 0) return void 0
+
+        const srcLen = src.length
+        let nSrc = 0
+
+        const rd = { // reader to return
+          readRow: () => {
+            return (nSrc < srcLen) ? src[nSrc++] : void 0 // parameter row: one row for each parameter value
+          },
+          readDim: {},
+          readValue: (r) => (!r.IsNull ? r.Value : void 0) // parameter value
+        }
+
+        // read dimension item value: enum id, sub-value id, parameter id
+        for (let n = 0; n < this.rank; n++) {
+          rd.readDim[this.dimProp[n].name] = (r) => (r.DimIds.length > n ? r.DimIds[n] : void 0)
+        }
+        rd.readDim[Puih.SUB_ID_DIM] = (r) => (r.SubId) // read parameter sub-value id
+
+        return rd
       }
 
       // setup process value and format value handlers:

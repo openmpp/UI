@@ -56,11 +56,14 @@ export default {
       pvc: {
         rowColMode: Pcvt.SPANS_AND_DIMS_PVT,  // rows and columns mode: 2 = use spans and show dim names, 1 = use spans and hide dim names, 0 = no spans and hide dim names
         isShowNames: false,                   // if true then show dimension names and item names instead of labels
-        readValue: (r) => (!r.IsNull ? r.Value : (void 0)),
+        reader: void 0,                       // return row reader: if defined then methods to read next row, read() dimension items and readValue()
         processValue: Pcvt.asIsPval,          // default value processing: return as is
         formatter: Pcvt.formatDefault,        // disable format(), parse() and validation by default
         cellClass: 'pv-cell-right'            // default cell value style: right justified number
       },
+      readerExpr: void 0,     // expression row reader
+      readerAcc: void 0,      // accumulators row reader: one row for each accumulator
+      readerAllAcc: void 0,   // all accumulators row reader: all acumulators in single row
       pvKeyPos: [],           // position of each dimension item in cell key
       isDragging: false,      // if true then user is dragging dimension select control
       exprDimPos: 0,          // expression dimension position: table ExprPos
@@ -112,7 +115,9 @@ export default {
       // check if model run exists and output table is included in model run results
       if (!this.initRunTable()) return // exit on error
 
-      this.rank = Mdf.tableSizeByName(this.theModel, this.tableName)?.rank || 0
+      const tblSize = Mdf.tableSizeByName(this.theModel, this.tableName)
+      this.rank = tblSize.rank || 0
+      const allAccCount = tblSize.allAccCount || 0
       this.subCount = this.runText.SubCount || 0
       this.exprDimPos = this.tableText.Table.ExprPos || 0
 
@@ -141,7 +146,6 @@ export default {
         const f = {
           name: dt.Dim.Name || '',
           label: Mdf.descrOfDescrNote(dt) || dt.Dim.Name || '',
-          read: (r) => (r.DimIds.length > n ? r.DimIds[n] : void 0),
           enums: [],
           options: [],
           selection: [],
@@ -195,7 +199,6 @@ export default {
       const fe = {
         name: EXPR_DIM_NAME,
         label: this.tableText.ExprDescr || this.$t('Measure'),
-        read: (r) => (r.ExprId),
         enums: [],
         options: [],
         selection: [],
@@ -239,7 +242,6 @@ export default {
         const fa = {
           name: !isAll ? ACC_DIM_NAME : ALL_ACC_DIM_NAME,
           label: this.tableText.ExprDescr || this.$t('Measure'),
-          read: (r) => (r.AccId),
           enums: [],
           options: [],
           selection: [],
@@ -271,15 +273,110 @@ export default {
       }
       this.dimProp[this.rank + 1] = makeAccDim(false) // accumullators measure dimension at [rank + 1] position, not derived accumulators
       this.dimProp[this.rank + 2] = makeAccDim(true) // all accumullator measure dimension at [rank + 2] position, including derived
-      //
-      this.dimProp[this.rank + 2].read = (r) => ('none') // TODO
-      //
+
+      // read expression rows: one row for each expression
+      this.readerExpr = (src) => {
+        // no data to read: if source rows are empty or invalid return undefined reader
+        if (!src || (src?.length || 0) <= 0) return void 0
+
+        const srcLen = src.length
+        let nSrc = 0
+
+        const rd = { // reader to return
+          readRow: () => {
+            return (nSrc < srcLen) ? src[nSrc++] : void 0 // expression row: one row for each expression
+          },
+          readDim: {},
+          readValue: (r) => (!r.IsNull ? r.Value : void 0) // expression value
+        }
+
+        // read dimension item value: enum id, expression id
+        for (let n = 0; n < this.rank; n++) {
+          rd.readDim[this.dimProp[n].name] = (r) => (r.DimIds.length > n ? r.DimIds[n] : void 0)
+        }
+
+        // read measure dimension: expression id
+        rd.readDim[EXPR_DIM_NAME] = (r) => (r.ExprId)
+
+        return rd
+      }
+
+      // read native accumulators rows: one row for each accumilator
+      this.readerAcc = (src) => {
+        // no data to read: if source rows are empty or invalid return undefined reader
+        if (!src || (src?.length || 0) <= 0) return void 0
+
+        const srcLen = src.length
+        let nSrc = 0
+
+        const rd = { // reader to return
+          readRow: () => {
+            return (nSrc < srcLen) ? src[nSrc++] : void 0 // accumilator row: one row for each accumilator
+          },
+          readDim: {},
+          readValue: (r) => (!r.IsNull ? r.Value : void 0) // accumilator value
+        }
+
+        // read dimension item value: enum id, sub-value id, accumulator id
+        for (let n = 0; n < this.rank; n++) {
+          rd.readDim[this.dimProp[n].name] = (r) => (r.DimIds.length > n ? r.DimIds[n] : void 0)
+        }
+
+        // read measure dimensions: accumulator id and sub-value id
+        rd.readDim[ACC_DIM_NAME] = (r) => (r.AccId)
+        rd.readDim[Puih.SUB_ID_DIM] = (r) => (r.SubId)
+
+        return rd
+      }
+
+      // read all accumulators rows: all accumilators are in one row, including derived accumulators
+      this.readerAllAcc = (src) => {
+        // no data to read: if source rows are empty or invalid return undefined reader
+        if (!src || (src?.length || 0) <= 0) return void 0
+
+        // accumulator id's: measure dimension items, all accumulators dimension is at [rank + 2]
+        const accIds = []
+        for (const e of this.dimProp[this.rank + 2].enums) {
+          accIds.push(e.value)
+        }
+
+        const srcLen = src.length
+        let nSrc = 0
+        let nAcc = -1 // after first read row must be nAcc = 0
+
+        const rd = { // reader to return
+          readRow: () => {
+            if (nAcc < allAccCount) {
+              nAcc++
+            } else {
+              nAcc = 0
+              nSrc++
+            }
+            return (nSrc < srcLen) ? src[nSrc] : void 0 // accumilator row: all accumilators in one row
+          },
+          readDim: {},
+          readValue: (r) => {
+            const v = !r.IsNull[nAcc] ? r.Value[nAcc] : void 0 // accumilator value
+            return v
+          }
+        }
+
+        // read dimension item value: enum id, sub-value id, accumulator id
+        for (let n = 0; n < this.rank; n++) {
+          rd.readDim[this.dimProp[n].name] = (r) => (r.DimIds.length > n ? r.DimIds[n] : void 0)
+        }
+
+        // read measure dimensions: accumulator id and sub-value id
+        rd.readDim[ALL_ACC_DIM_NAME] = (r) => (accIds[nAcc])
+        rd.readDim[Puih.SUB_ID_DIM] = (r) => (r.SubId)
+
+        return rd
+      }
 
       // sub-value dimension: items name and label are same as item id
       const fs = {
         name: Puih.SUB_ID_DIM,
         label: this.$t('Sub #'),
-        read: (r) => (r.SubId),
         enums: [],
         options: [],
         selection: [],
@@ -387,6 +484,22 @@ export default {
         this.otherFields.push(f)
       }
 
+      // restore rows reader
+      switch (this.ctrl.kind) {
+        case Puih.kind.EXPR:
+          this.pvc.reader = this.readerExpr
+          break
+        case Puih.kind.ACC:
+          this.pvc.reader = this.readerAcc
+          break
+        case Puih.kind.ALL:
+          this.pvc.reader = this.readerAllAcc
+          break
+        default:
+          this.pvc.reader = void 0 // default empty reader: no data
+          console.warn('Inavlid table view kind:', this.ctrl.kind)
+      }
+
       // restore formatter and controls view state
       this.pvc.formatter.byKey((this.ctrl.kind === Puih.kind.EXPR) || false)
 
@@ -482,6 +595,8 @@ export default {
       this.colFields = cf
       this.otherFields = tf
 
+      this.pvc.reader = this.readerExpr // use expression reader
+
       // default row-column mode: no row-column headers for scalar output table without sub-values and measure dimension
       // as it is today output table cannot be scalar, always has measure dimension
       this.pvc.rowColMode = !this.isScalar ? Pcvt.SPANS_AND_DIMS_PVT : Pcvt.NO_SPANS_NO_DIMS_PVT
@@ -576,6 +691,9 @@ export default {
       if (!isFound) isFound = removeSubValueDim(this.colFields)
       if (!isFound) isFound = removeSubValueDim(this.otherFields)
 
+      // use expression reader
+      this.pvc.reader = this.readerExpr
+
       // set new view kind and  store pivot view
       this.ctrl.kind = Puih.kind.EXPR
       this.pvc.formatter.byKey(true)
@@ -583,23 +701,31 @@ export default {
     },
     // show output table accumulators
     doAccumulatorPage () {
-      // replace measure dimension by accumulators measure
-      // and insert sub-value dimension after accumulators
-      const kind = this.ctrl.kind
-      const mName = kind === Puih.kind.EXPR ? EXPR_DIM_NAME : ALL_ACC_DIM_NAME
-      const mNewIdx = this.rank + 1 // accumulators dimension index in dimesions list
+      this.switchToAccumulatorPage(false)
+    },
+    // show all-accumulators view
+    doAllAccumulatorPage () {
+      this.switchToAccumulatorPage(true)
+    },
+    // switch to output table accumulators or all accumulators view
+    switchToAccumulatorPage (isToAll) {
+      // replace current measure dimension mName by accumulators measure
+      // and insert sub-value dimension after accumulators, if current measure is expressions
+      const isFromExpr = this.ctrl.kind === Puih.kind.EXPR
+      const mName = isFromExpr ? EXPR_DIM_NAME : (isToAll ? ACC_DIM_NAME : ALL_ACC_DIM_NAME)
+      const mNewIdx = isToAll ? this.rank + 2 : this.rank + 1 // new accumulators dimension index in dimesions list
       const subIdx = this.rank + 3 // sub-values dimension index in dimensions list
       let isOther = false
 
       let n = this.replaceMeasureDim(mName, mNewIdx, this.rowFields, false)
-      if (n >= 0) this.rowFields.splice(n + 1, 0, this.dimProp[subIdx])
+      if (n >= 0 && isFromExpr) this.rowFields.splice(n + 1, 0, this.dimProp[subIdx])
       if (n < 0) {
         n = this.replaceMeasureDim(mName, mNewIdx, this.colFields, false)
-        if (n >= 0) this.colFields.splice(n + 1, 0, this.dimProp[subIdx])
+        if (n >= 0 && isFromExpr) this.colFields.splice(n + 1, 0, this.dimProp[subIdx])
       }
       if (n < 0) {
         n = this.replaceMeasureDim(mName, mNewIdx, this.otherFields, true)
-        if (n >= 0) this.otherFields.splice(n + 1, 0, this.dimProp[subIdx])
+        if (n >= 0 && isFromExpr) this.otherFields.splice(n + 1, 0, this.dimProp[subIdx])
         isOther = n >= 0
       }
       if (n < 0) {
@@ -616,17 +742,13 @@ export default {
       }
       this.dimProp[subIdx].singleSelection = (this.dimProp[subIdx].selection.length > 0) ? this.dimProp[subIdx].selection[0] : {}
 
+      // use accumulators or all accumilators reader
+      this.pvc.reader = isToAll ? this.readerAllAcc : this.readerAcc
+
       // set new view kind and reload data
-      this.ctrl.kind = Puih.kind.ACC
+      this.ctrl.kind = isToAll ? Puih.kind.ALL : Puih.kind.ACC
       this.pvc.formatter.byKey(false)
       this.storeViewAndRefreshData()
-    },
-
-    // show all-accumulators view
-    doAllAccumulatorPage () {
-      // const kind = this.ctrl.kind // current kind of table view
-      // this.ctrl.kind = Puih.kind.ALL
-      // this.doRefreshDataPage()
     },
 
     // replace measure dimension in rows, columns or othres list by new dimension

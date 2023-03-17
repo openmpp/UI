@@ -183,7 +183,7 @@
             clickable
             >
             <q-item-section avatar>
-              <q-icon color="primary" :name="ctrl.isRowColControls ? 'mdi-tune' : 'mdi-tune-vertical'" />
+              <q-icon color="primary" name="mdi-tune" />
             </q-item-section>
             <q-item-section>{{ ctrl.isRowColControls ? $t('Hide rows and columns bars') : $t('Show rows and columns bars') }}</q-item-section>
           </q-item>
@@ -249,7 +249,7 @@
             clickable
             >
             <q-item-section avatar>
-              <q-icon color="primary" :name="!ctrl.formatOpts.isRawValue ? 'mdi-loupe' : 'mdi-magnify-close'" />
+              <q-icon color="primary" name="mdi-loupe" />
             </q-item-section>
             <q-item-section>{{ !ctrl.formatOpts.isRawValue ? $t('Show raw source value') : $t('Show formatted value') }}</q-item-section>
           </q-item>
@@ -259,7 +259,7 @@
             clickable
             >
             <q-item-section avatar>
-              <q-icon color="primary" :name="pvc.isShowNames ? 'mdi-label-outline' : 'mdi-label-off-outline'" />
+              <q-icon color="primary" name="mdi-label-outline" />
             </q-item-section>
             <q-item-section>{{ pvc.isShowNames ? $t('Show labels') : $t('Show names') }}</q-item-section>
           </q-item>
@@ -418,11 +418,12 @@
     <q-btn
       @click="onToggleRowColControls"
       :disable="!ctrl.isRowColModeToggle"
-      flat
+      :flat="ctrl.isRowColControls || !ctrl.isRowColModeToggle"
+      :outline="!ctrl.isRowColControls && ctrl.isRowColModeToggle"
       dense
-      class="col-auto bg-primary text-white rounded-borders"
-      :class="{ 'q-mr-xs' : ctrl.isRowColModeToggle || ctrl.formatOpts }"
-      :icon="ctrl.isRowColControls ? 'mdi-tune' : 'mdi-tune-vertical'"
+      :class="{ 'bar-button-on' : (ctrl.isRowColControls || !ctrl.isRowColModeToggle), 'bar-button-off' : (!ctrl.isRowColControls && ctrl.isRowColModeToggle), 'q-mr-xs' : ctrl.isRowColModeToggle || ctrl.formatOpts }"
+      class="col-auto rounded-borders q-mr-xs"
+      icon="mdi-tune"
       :title="ctrl.isRowColControls ? $t('Hide rows and columns bars') : $t('Show rows and columns bars')"
       />
 
@@ -481,19 +482,23 @@
       v-if="ctrl.formatOpts && ctrl.formatOpts.isRawUse"
       @click="onToggleRawValue"
       :disable="edt.isEdit"
-      flat
+      :flat="!ctrl.formatOpts.isRawValue || edt.isEdit"
+      :outline="ctrl.formatOpts.isRawValue && !edt.isEdit"
       dense
-      class="col-auto bg-primary text-white rounded-borders q-mr-xs"
-      :icon="!ctrl.formatOpts.isRawValue ? 'mdi-loupe' : 'mdi-magnify-close'"
+      :class="(!ctrl.formatOpts.isRawValue || edt.isEdit) ? 'bar-button-on' : 'bar-button-off'"
+      class="col-auto rounded-borders q-mr-xs"
+      icon="mdi-loupe"
       :title="!ctrl.formatOpts.isRawValue ? $t('Show raw source value') : $t('Show formatted value')"
       />
     <q-btn
       @click="onShowItemNames"
       :disable="isScalar"
-      flat
+      :flat="!pvc.isShowNames"
+      :outline="pvc.isShowNames"
       dense
-      class="col-auto bg-primary text-white rounded-borders"
-      :icon="pvc.isShowNames ? 'mdi-label-outline' : 'mdi-label-off-outline'"
+      :class="!pvc.isShowNames ? 'bar-button-on' : 'bar-button-off'"
+      class="col-auto rounded-borders"
+      icon="mdi-label-outline"
       :title="pvc.isShowNames ? $t('Show labels') : $t('Show names')"
       />
 
@@ -960,6 +965,14 @@
     &:hover {
       cursor: move;
     }
+  }
+
+  .bar-button-on {
+    background-color: $primary;
+    color: white;
+  }
+  .bar-button-off {
+    color: $primary;
   }
 
   .upload-right {

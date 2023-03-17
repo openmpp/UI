@@ -4,7 +4,7 @@
 //  read dimension items from input record
 //  check if item is in dropdown filter values
 //  comparator to sort items in the order of dimension enums
-export const dimField = (field, isOnRow = false, isOnCol = false) => {
+export const dimField = (field, readDim, isOnRow = false, isOnCol = false) => {
   //
   const selectedIdsIndex = {}
   for (let k = 0; k < field.selection.length; k++) {
@@ -24,7 +24,7 @@ export const dimField = (field, isOnRow = false, isOnCol = false) => {
     isCol: isOnCol,   // if true then this is column dimension field
     name: field.name, // dimension field name
     //
-    read: field.read,                                   // read field item function to return dimension item from source record
+    read: readDim,                                      // read field item function to return dimension item from source record
     filter: (v) => selectedIdsIndex.hasOwnProperty(v),  // return true if field item is selected by dimension filters
     //
     keyPos: 0,                                  // position of field item in body cell key

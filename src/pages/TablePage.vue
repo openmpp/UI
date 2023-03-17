@@ -39,6 +39,40 @@
             </q-item-section>
             <q-item-section>{{ $t('About') + ' ' + tableName }}</q-item-section>
           </q-item>
+
+          <q-separator />
+
+          <q-item
+            @click="doExpressionPage"
+            :disable="ctrl.kind === 0"
+            clickable
+            >
+            <q-item-section avatar>
+              <q-icon color="primary" name="mdi-function-variant" />
+            </q-item-section>
+            <q-item-section>{{ $t('View table expressions') }}</q-item-section>
+          </q-item>
+          <q-item
+            @click="doAccumulatorPage"
+            :disable="ctrl.kind === 1"
+            clickable
+            >
+            <q-item-section avatar>
+              <q-icon color="primary" name="mdi-variable" />
+            </q-item-section>
+            <q-item-section>{{ $t('View accumulators and sub-values (sub-samples)') }}</q-item-section>
+          </q-item>
+          <q-item
+            @click="doAllAccumulatorPage"
+            :disable="ctrl.kind === 2"
+            clickable
+            >
+            <q-item-section avatar>
+              <q-icon color="primary" name="mdi-application-variable-outline" />
+            </q-item-section>
+            <q-item-section>{{ $t('View all accumulators and sub-values (sub-samples)') }}</q-item-section>
+          </q-item>
+
           <q-separator />
 
           <q-item
@@ -67,7 +101,7 @@
             clickable
             >
             <q-item-section avatar>
-              <q-icon color="primary" :name="ctrl.isRowColControls ? 'mdi-tune' : 'mdi-tune-vertical'" />
+              <q-icon color="primary" name="mdi-tune" />
             </q-item-section>
             <q-item-section>{{ ctrl.isRowColControls ? $t('Hide rows and columns bars') : $t('Show rows and columns bars') }}</q-item-section>
           </q-item>
@@ -133,7 +167,7 @@
             clickable
             >
             <q-item-section avatar>
-              <q-icon color="primary" :name="!ctrl.formatOpts.isRawValue ? 'mdi-loupe' : 'mdi-magnify-close'" />
+              <q-icon color="primary" name="mdi-loupe" />
             </q-item-section>
             <q-item-section>{{ !ctrl.formatOpts.isRawValue ? $t('Show raw source value') : $t('Show formatted value') }}</q-item-section>
           </q-item>
@@ -143,7 +177,7 @@
             clickable
             >
             <q-item-section avatar>
-              <q-icon color="primary" :name="pvc.isShowNames ? 'mdi-label-outline' : 'mdi-label-off-outline'" />
+              <q-icon color="primary" name="mdi-label-outline" />
             </q-item-section>
             <q-item-section>{{ pvc.isShowNames ? $t('Show labels') : $t('Show names') }}</q-item-section>
           </q-item>
@@ -177,10 +211,13 @@
       @click="doShowTableNote"
       flat
       dense
-      class="col-auto bg-primary text-white rounded-borders q-mr-xs"
+      class="col-auto bg-primary text-white rounded-borders"
       icon="mdi-information"
       :title="$t('About') + ' ' + tableName"
       />
+
+    <q-separator vertical inset spaced="sm" color="secondary" />
+
     <q-btn
       @click="doExpressionPage"
       :disable="ctrl.kind === 0"
@@ -199,7 +236,6 @@
       icon="mdi-variable"
       :title="$t('View accumulators and sub-values (sub-samples)')"
       />
-    <!--
     <q-btn
       @click="doAllAccumulatorPage"
       :disable="ctrl.kind === 2"
@@ -209,7 +245,6 @@
       icon="mdi-application-variable-outline"
       :title="$t('View all accumulators and sub-values (sub-samples)')"
       />
-    -->
 
     <q-separator vertical inset spaced="sm" color="secondary" />
 
@@ -235,11 +270,12 @@
     <q-btn
       @click="onToggleRowColControls"
       :disable="!ctrl.isRowColModeToggle"
-      flat
+      :flat="ctrl.isRowColControls"
+      :outline="!ctrl.isRowColControls"
       dense
-      class="col-auto bg-primary text-white rounded-borders q-mr-xs"
-      :class="{ 'q-mr-xs' : ctrl.isRowColModeToggle || ctrl.formatOpts }"
-      :icon="ctrl.isRowColControls ? 'mdi-tune' : 'mdi-tune-vertical'"
+      :class="{ 'bar-button-on' : ctrl.isRowColControls, 'bar-button-off' : !ctrl.isRowColControls, 'q-mr-xs' : ctrl.isRowColModeToggle || ctrl.formatOpts }"
+      class="col-auto rounded-borders"
+      icon="mdi-tune"
       :title="ctrl.isRowColControls ? $t('Hide rows and columns bars') : $t('Show rows and columns bars')"
       />
 
@@ -297,19 +333,23 @@
     <q-btn
       v-if="ctrl.formatOpts && ctrl.formatOpts.isRawUse"
       @click="onToggleRawValue"
-      flat
+      :flat="!ctrl.formatOpts.isRawValue"
+      :outline="ctrl.formatOpts.isRawValue"
       dense
-      class="col-auto bg-primary text-white rounded-borders q-mr-xs"
-      :icon="!ctrl.formatOpts.isRawValue ? 'mdi-loupe' : 'mdi-magnify-close'"
+      :class="!ctrl.formatOpts.isRawValue ? 'bar-button-on' : 'bar-button-off'"
+      class="col-auto rounded-borders q-mr-xs"
+      icon="mdi-loupe"
       :title="!ctrl.formatOpts.isRawValue ? $t('Show raw source value') : $t('Show formatted value')"
       />
     <q-btn
       @click="onShowItemNames"
       :disable="isScalar"
-      flat
+      :flat="!pvc.isShowNames"
+      :outline="pvc.isShowNames"
       dense
-      class="col-auto bg-primary text-white rounded-borders"
-      :icon="pvc.isShowNames ? 'mdi-label-outline' : 'mdi-label-off-outline'"
+      :class="!pvc.isShowNames ? 'bar-button-on' : 'bar-button-off'"
+      class="col-auto rounded-borders"
+      icon="mdi-label-outline"
       :title="pvc.isShowNames ? $t('Show labels') : $t('Show names')"
       />
 
@@ -666,6 +706,14 @@
     &:hover {
       cursor: move;
     }
+  }
+
+  .bar-button-on {
+    background-color: $primary;
+    color: white;
+  }
+  .bar-button-off {
+    color: $primary;
   }
 
   .upload-right {

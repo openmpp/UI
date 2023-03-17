@@ -5,7 +5,6 @@ rowFields[], colFields[], otherFields[]: array of dimensions, example of each el
   {
     name: 'dim0',
     label: 'Salary',
-    read: (r) => (r.DimIds.length > 0 ? r.DimIds[0] : void 0),
     selection: [],
     enums: [
       { value: 100, name: 'low',    label: 'Low Value' },
@@ -25,16 +24,24 @@ pvData: // array of table rows, for example:
 pvControl: {
   rowColMode:   rows and columns mode: 2 = use spans, show dim names, 1 = use spans, hide dim names, 0 = no spans, hide dim names
   isShowNames:  if true then show item names (enums[k].name) instead of labels (enums[k].label) by default
-  readValue():  function expected to return table cell value
+
+  reader: (src) => { // row reader: methods to read next row, read() dimension items and readValue()
+    readRow: () => {
+      return next row or undefined if end of rorws
+    },
+    readDim[dimension name]: (r) => {
+      return dimension item id by diemnsion name from row (r), for example: (r) => (r.DimIds.length > 0 ? r.DimIds[0] : void 0),
+    },
+    readValue: (r) => {
+      read table cell value from row (r), for example: (r) => (!r.IsNull ? r.Value : void 0)
+    }
+  },
   processValue: functions are used to aggregate cell value(s)
   formatter: {
     format():   function (if defined) to convert cell value to string
     parse():    function (if defined) to convert cell string to value, ex: parseFloat(), used by editor only
     isValid():  function to validate cell value, used by editor only
   }
-
-  readValue(): // function, for example:
-    readValue: (r) => (!r.IsNull ? r.Value : (void 0))
 
   processValue{}: // object with two methods:
     doNext() applied to each input row readValue() return, for example:
@@ -77,14 +84,6 @@ pvEdit: {
 
 import * as Pcvt from './pivot-cvt'
 
-// dimension location: rows, columns, other
-// const dimAt = {
-//   none: 0,
-//   row: 1,
-//   col: 2,
-//   other: 3
-// }
-
 export default {
   /* eslint-disable no-multi-spaces */
   props: {
@@ -99,7 +98,7 @@ export default {
       default: () => ({
         rowColMode: Pcvt.NO_SPANS_NO_DIMS_PVT,  // rows and columns mode: 2 = use spans and show dim names, 1 = use spans and hide dim names, 0 = no spans and hide dim names
         isShowNames: false,                     // if true then show dimension names and item names instead of labels
-        readValue: (r) => (!r.IsNull ? r.Value : (void 0)),
+        reader: void 0,                   // return row reader: if defined then methods to read next row, read() dimension items and readValue()
         processValue: Pcvt.asIsPval,      // default value processing: return as is
         formatter: Pcvt.formatDefault,    // disable format(), parse() and validation by default
         cellClass: 'pv-cell-right',       // default cell value style: right justified number
@@ -635,31 +634,39 @@ export default {
       this.pvt.colSpans = Object.freeze({})
       this.renderKeys = {}
       this.keyPos = []
-      this.keyItemAt = {}
       this.itemKeyByRowCol = (nRow, nCol) => (void 0)
 
-      // if response is empty or invalid: clean table
-      const len = (!!data && (data.length || 0) > 0) ? data.length : 0
-      if (!data || len <= 0) {
+      // if response is empty or invalid: clean table and exit
+      if (!data || (data?.length || 0) <= 0) return
+
+      if (!this.pvControl.reader) {
+        console.warn('Reader not ready, data length:', data?.length)
         return
       }
+
+      const rdr = this.pvControl.reader(data)
+      if (!rdr) {
+        console.warn('Unexpected empty row reader, data length:', data?.length)
+        return // data is empty: unexpected
+      }
+      const emptyRead = (r) => (void 0)
 
       // make dimensions field selectors to read, filter and sort dimension fields
       const dimProc = []
       const rCmp = []
       const cCmp = []
       for (const f of this.rowFields) {
-        const p = Pcvt.dimField(f, true, false)
+        const p = Pcvt.dimField(f, ((rdr?.readDim?.[f.name]) || emptyRead), true, false)
         dimProc.push(p)
         rCmp.push(p.compareEnumIdByIndex)
       }
       for (const f of this.colFields) {
-        const p = Pcvt.dimField(f, false, true)
+        const p = Pcvt.dimField(f, ((rdr?.readDim?.[f.name]) || emptyRead), false, true)
         dimProc.push(p)
         cCmp.push(p.compareEnumIdByIndex)
       }
       for (const f of this.otherFields) {
-        dimProc.push(Pcvt.dimField(f, false, false))
+        dimProc.push(Pcvt.dimField(f, ((rdr?.readDim?.[f.name]) || emptyRead), false, false))
       }
 
       const isScalar = dimProc.length === 0 // scalar parameter with only one sub-value
@@ -684,7 +691,12 @@ export default {
       const vcells = {}
       const vstate = {}
 
-      for (let nSrc = 0; nSrc < len; nSrc++) {
+      while (true) {
+        const rRow = rdr.readRow()
+        if (!rRow) {
+          break // end of data
+        }
+
         // check if record match selection filters
         let isSel = true
         const r = Array(rowKeyLen)
@@ -693,7 +705,7 @@ export default {
         let i = 0
         let j = 0
         for (const p of dimProc) {
-          const v = p.read(data[nSrc])
+          const v = p.read(rRow)
           isSel = p.filter(v)
           if (!isSel) break
           if (p.isRow) r[i++] = v
@@ -715,7 +727,7 @@ export default {
         }
 
         // extract value(s) from record and aggregate
-        const v = this.pvControl.readValue(data[nSrc])
+        const v = rdr.readValue(rRow)
 
         const bkey = isScalar ? Pcvt.PV_KEY_SCALAR : Pcvt.itemsToKey(b)
         if (!vstate.hasOwnProperty(bkey)) {
