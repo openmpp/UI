@@ -25,7 +25,7 @@
           <span class="om-note-cell q-pr-sm">{{ $t('Started') }}:</span><span class="om-note-cell">{{ createDateTime }}</span>
         </div>
         <div class="om-note-row">
-          <span class="om-note-cell q-pr-sm">{{ $t('Completed') }}:</span><span class="om-note-cell">{{ lastDateTime }}</span>
+          <span class="om-note-cell q-pr-sm">{{ isSucess ? $t('Completed') : $t('Last Updated on') }}:</span><span class="om-note-cell">{{ lastDateTime }}</span>
         </div>
         <div class="om-note-row">
           <span class="om-note-cell q-pr-sm">{{ $t('Duration') }}:</span><span class="om-note-cell">{{ duration }}</span>

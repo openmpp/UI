@@ -202,6 +202,7 @@ export default {
   'Log Progress Percent': 'Pourcentage de progression du journal',
   'Log Progress Step': 'Étape de progression du journal',
   'Language': 'Langue',
+  'Last Updated on': 'Dernière mise à jour le',
   'Licence': 'Licence',
   'List of Models': 'Liste des modèles',
   'Local CPU Cores': "Cœurs de processeur de l'hôte local",
