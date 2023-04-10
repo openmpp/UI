@@ -4,7 +4,6 @@
 export const emptyConfig = () => {
   return {
     OmsName: '',
-    RowPageMaxSize: 100,
     AllowUserHome: false,
     AllowDownload: false,
     AllowUpload: false,
@@ -29,7 +28,7 @@ export const emptyConfig = () => {
 // return true if this is service config (it can be empty)
 export const isConfig = (c) => {
   if (!c) return false
-  if (!c.hasOwnProperty('OmsName') || !c.hasOwnProperty('RowPageMaxSize') || !c.hasOwnProperty('AllowUserHome') ||
+  if (!c.hasOwnProperty('OmsName') || !c.hasOwnProperty('AllowUserHome') ||
     !c.hasOwnProperty('AllowDownload') || !c.hasOwnProperty('AllowUpload') || !c.hasOwnProperty('AllowMicrodata') ||
     !c.hasOwnProperty('IsJobControl') || !c.hasOwnProperty('Env') || !c.hasOwnProperty('ModelCatalog') ||
     !c.hasOwnProperty('RunCatalog')) {
