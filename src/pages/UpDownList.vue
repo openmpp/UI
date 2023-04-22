@@ -1,5 +1,5 @@
 <template>
-<div class="text-body1">
+<q-page class="text-body1">
 
   <q-card
     class="q-ma-sm"
@@ -540,10 +540,10 @@
   </delete-confirm-dialog>
 
   <q-inner-loading :showing="loadWsListWait">
-    <q-spinner-gears size="md" color="primary" />
+    <q-spinner-gears size="lg" color="primary" />
   </q-inner-loading>
 
-</div>
+</q-page>
 </template>
 
 <script src="./updown-list.js"></script>

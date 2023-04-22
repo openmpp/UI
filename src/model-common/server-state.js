@@ -377,3 +377,136 @@ export const isUpDownFileTree = (pLst) => {
   }
   return true
 }
+
+/* Archive state:
+{
+  "IsArchive": true,
+  "ArchiveDays": 3,
+  "AlertDays": 2,
+  "ArchiveDateTime": "2023-04-17 10:36:17.364",
+  "AlertDateTime": "2023-04-18 10:36:17.364",
+  "UpdateDateTime": "2023-04-20 10:36:17.364",
+  "Model": [
+    {
+      "ModelDigest": "6ea6d7fe44b76493c5d13ae6d01bdd35",
+      "ModelName": "RiskPaths",
+      "Version": "3.0.0.0",
+      "Run": [
+        {
+          "ModelName": "RiskPaths",
+          "ModelDigest": "6ea6d7fe44b76493c5d13ae6d01bdd35",
+          "ModelVersion": "3.0.0.0",
+          "ModelCreateDateTime": "2023-02-01 01:37:28.697",
+          "Name": "Microdata to CSV",
+          "SubCount": 1,
+          "SubStarted": 1,
+          "SubCompleted": 1,
+          "CreateDateTime": "2023-02-01 01:37:54.114",
+          "Status": "s",
+          "UpdateDateTime": "2023-02-01 01:37:54.910",
+          "RunDigest": "ecfbf3f5268dfcf7e346ac7586e8bfff",
+          "ValueDigest": "0f454b3af0d30f9f0614a9ce23e5cbfd",
+          "RunStamp": "2023_02_01_01_37_54_077",
+          "Txt": [],
+          "Opts": {},
+          "Param": [],
+          "Table": [],
+          "Entity": [],
+          "Progress": []
+        }
+      ],
+      "Set": [
+        {
+          "ModelName": "RiskPaths",
+          "ModelDigest": "6ea6d7fe44b76493c5d13ae6d01bdd35",
+          "ModelVersion": "3.0.0.0",
+          "ModelCreateDateTime": "2023-02-01 01:37:28.697",
+          "Name": "New cases",
+          "BaseRunDigest": "",
+          "IsReadonly": true,
+          "UpdateDateTime": "2023-04-03 12:20:37.450",
+          "IsCleanBaseRun": false,
+          "Txt": [],
+          "Param": []
+        }
+      ],
+      "RunAlert": [],
+      "SetAlert": []
+    }
+  ]
+}
+*/
+// return empty archive state
+export const emptyArchiveState = () => {
+  return {
+    IsArchive: false,
+    ArchiveDays: 0,
+    ArchiveDateTime: '',
+    AlertDateTime: '',
+    UpdateDateTime: '',
+    Model: []
+  }
+}
+
+// return true if this is archive state (it can be empty)
+export const isArchiveState = (st) => {
+  if (!st) return false
+  if (!Array.isArray(st.Model)) return false
+
+  if (!st.hasOwnProperty('IsArchive') || typeof st.IsArchive !== typeof true) return false
+  if (!st.hasOwnProperty('ArchiveDays') || typeof st.ArchiveDays !== typeof 1) return false
+  if (!st.hasOwnProperty('ArchiveDateTime') || typeof st.ArchiveDateTime !== typeof 'string') return false
+  if (!st.hasOwnProperty('AlertDateTime') || typeof st.AlertDateTime !== typeof 'string') return false
+  if (!st.hasOwnProperty('UpdateDateTime') || typeof st.UpdateDateTime !== typeof 'string') return false
+
+  for (const m of st.Model) {
+    if (!m.hasOwnProperty('ModelName') || typeof m.ModelName !== typeof 'string') return false
+    if (!m.hasOwnProperty('ModelDigest') || typeof m.ModelDigest !== typeof 'string') return false
+    if (!m.hasOwnProperty('Version') || typeof m.Version !== typeof 'string') return false
+
+    if (!Array.isArray(m.Run) || !Array.isArray(m.Set) || !Array.isArray(m.RunAlert) || !Array.isArray(m.SetAlert)) return false
+
+    for (const ar of m.Run) {
+      if (!isArchiveRun(ar)) return false
+    }
+    for (const ar of m.RunAlert) {
+      if (!isArchiveRun(ar)) return false
+    }
+    for (const aw of m.Set) {
+      if (!isArchiveWorkset(aw)) return false
+    }
+    for (const aw of m.SetAlert) {
+      if (!isArchiveWorkset(aw)) return false
+    }
+  }
+  return true
+}
+
+// return true if this is archive run or run alert item
+export const isArchiveRun = (ar) => {
+  if (!ar) return false
+
+  if (!ar.hasOwnProperty('ModelName') || typeof ar.ModelName !== typeof 'string') return false
+  if (!ar.hasOwnProperty('ModelDigest') || typeof ar.ModelDigest !== typeof 'string') return false
+  if (!ar.hasOwnProperty('Name') || typeof ar.Name !== typeof 'string') return false
+  if (!ar.hasOwnProperty('CreateDateTime') || typeof ar.CreateDateTime !== typeof 'string') return false
+  if (!ar.hasOwnProperty('Status') || typeof ar.Status !== typeof 'string') return false
+  if (!ar.hasOwnProperty('UpdateDateTime') || typeof ar.UpdateDateTime !== typeof 'string') return false
+  if (!ar.hasOwnProperty('RunDigest') || typeof ar.RunDigest !== typeof 'string') return false
+  if (!ar.hasOwnProperty('RunStamp') || typeof ar.RunStamp !== typeof 'string') return false
+
+  return true
+}
+
+// return true if this is archive workset or workset alert item
+export const isArchiveWorkset = (aw) => {
+  if (!aw) return false
+
+  if (!aw.hasOwnProperty('ModelName') || typeof aw.ModelName !== typeof 'string') return false
+  if (!aw.hasOwnProperty('ModelDigest') || typeof aw.ModelDigest !== typeof 'string') return false
+  if (!aw.hasOwnProperty('Name') || typeof aw.Name !== typeof 'string') return false
+  if (!aw.hasOwnProperty('IsReadonly') || typeof aw.IsReadonly !== typeof true) return false
+  if (!aw.hasOwnProperty('UpdateDateTime') || typeof aw.UpdateDateTime !== typeof 'string') return false
+
+  return true
+}
