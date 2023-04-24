@@ -449,17 +449,17 @@ export const emptyArchiveState = () => {
 }
 
 // return true if this is archive state (it can be empty)
-export const isArchiveState = (st) => {
-  if (!st) return false
-  if (!Array.isArray(st.Model)) return false
+export const isArchiveState = (ast) => {
+  if (!ast) return false
+  if (!Array.isArray(ast.Model)) return false
 
-  if (!st.hasOwnProperty('IsArchive') || typeof st.IsArchive !== typeof true) return false
-  if (!st.hasOwnProperty('ArchiveDays') || typeof st.ArchiveDays !== typeof 1) return false
-  if (!st.hasOwnProperty('ArchiveDateTime') || typeof st.ArchiveDateTime !== typeof 'string') return false
-  if (!st.hasOwnProperty('AlertDateTime') || typeof st.AlertDateTime !== typeof 'string') return false
-  if (!st.hasOwnProperty('UpdateDateTime') || typeof st.UpdateDateTime !== typeof 'string') return false
+  if (!ast.hasOwnProperty('IsArchive') || typeof ast.IsArchive !== typeof true) return false
+  if (!ast.hasOwnProperty('ArchiveDays') || typeof ast.ArchiveDays !== typeof 1) return false
+  if (!ast.hasOwnProperty('ArchiveDateTime') || typeof ast.ArchiveDateTime !== typeof 'string') return false
+  if (!ast.hasOwnProperty('AlertDateTime') || typeof ast.AlertDateTime !== typeof 'string') return false
+  if (!ast.hasOwnProperty('UpdateDateTime') || typeof ast.UpdateDateTime !== typeof 'string') return false
 
-  for (const m of st.Model) {
+  for (const m of ast.Model) {
     if (!m.hasOwnProperty('ModelName') || typeof m.ModelName !== typeof 'string') return false
     if (!m.hasOwnProperty('ModelDigest') || typeof m.ModelDigest !== typeof 'string') return false
     if (!m.hasOwnProperty('Version') || typeof m.Version !== typeof 'string') return false
@@ -509,4 +509,44 @@ export const isArchiveWorkset = (aw) => {
   if (!aw.hasOwnProperty('UpdateDateTime') || typeof aw.UpdateDateTime !== typeof 'string') return false
 
   return true
+}
+
+// return true if run archiving now: find model digest and run digest in archive state Run array
+export const isArchiveNowRun = (ast, md, rd) => {
+  if (!md || !rd) return false
+
+  const im = ast.Model.findIndex(m => m.ModelDigest === md)
+  if (im < 0) return false
+
+  return ast.Model[im].Run.findIndex(r => r.RunDigest === rd) >= 0
+}
+
+// return true if run archiving soon: find model digest and run digest in archive state RunAlert array
+export const isArchiveAlertRun = (ast, md, rd) => {
+  if (!md || !rd) return false
+
+  const im = ast.Model.findIndex(m => m.ModelDigest === md)
+  if (im < 0) return false
+
+  return ast.Model[im].RunAlert.findIndex(r => r.RunDigest === rd) >= 0
+}
+
+// return true if workset archiving now: find model digest and workset name in archive state Set array
+export const isArchiveNowWorkset = (ast, md, name) => {
+  if (!md || !name) return false
+
+  const im = ast.Model.findIndex(m => m.ModelDigest === md)
+  if (im < 0) return false
+
+  return ast.Model[im].Set.findIndex(w => w.Name === name) >= 0
+}
+
+// return true if workset archiving soon: find model digest and workset name in archive state SetAlert array
+export const isArchiveAlertWorkset = (ast, md, name) => {
+  if (!md || !name) return false
+
+  const im = ast.Model.findIndex(m => m.ModelDigest === md)
+  if (im < 0) return false
+
+  return ast.Model[im].SetAlert.findIndex(w => w.Name === name) >= 0
 }

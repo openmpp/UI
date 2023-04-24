@@ -98,6 +98,7 @@ export default {
     isReadonlyWorksetCurrent () { return Mdf.isNotEmptyWorksetText(this.worksetCurrent) && this.worksetCurrent.IsReadonly },
     descrWorksetCurrent () { return Mdf.descrOfTxt(this.worksetCurrent) },
     fileSelected () { return !(this.uploadFile === null) },
+    archiveUpdateDateTime () { return (!!this?.serverConfig?.IsArchive && !!this?.archiveState?.IsArchive) ? this.archiveState.UpdateDateTime : '' },
 
     ...mapState('model', {
       theModel: state => state.theModel,
@@ -116,7 +117,8 @@ export default {
     }),
     ...mapState('serverState', {
       omsUrl: state => state.omsUrl,
-      serverConfig: state => state.config
+      serverConfig: state => state.config,
+      archiveState: state => state.archive
     })
   },
 
@@ -124,6 +126,7 @@ export default {
     digest () { this.doRefresh() },
     refreshTickle () { this.doRefresh() },
     worksetTextListUpdated () { this.doRefresh() },
+    archiveUpdateDateTime () { this.doRefresh() },
     worksetNameSelected () {
       this.worksetCurrent = this.worksetTextByName({ ModelDigest: this.digest, Name: this.worksetNameSelected })
       if (!Mdf.isNotEmptyWorksetText(this.worksetCurrent) || this.worksetCurrent.IsReadonly) {
@@ -139,6 +142,8 @@ export default {
   methods: {
     dateTimeStr (dt) { return Mdf.dtStr(dt) },
     isEdit () { return this.isFromRunShow || this.isFromWorksetShow || this.isNewWorksetShow || this.isShowNoteEditor },
+    isNowArchive (name) { return this.archiveUpdateDateTime && Mdf.isArchiveNowWorkset(this.archiveState, this.digest, name) },
+    isSoonArchive (name) { return this.archiveUpdateDateTime && Mdf.isArchiveAlertWorkset(this.archiveState, this.digest, name) },
 
     // update page view
     doRefresh () {

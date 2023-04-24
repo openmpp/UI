@@ -22,7 +22,8 @@
           <span class="om-note-cell q-pr-sm">{{ $t('Parameters') }}:</span><span class="om-note-cell">{{ paramCount }}</span>
         </div>
         <div class="om-note-row">
-          <span class="om-note-cell q-pr-sm">{{ worksetText.IsReadonly ? $t('Read only') : $t('Read and write') }}</span><span class="om-note-cell"></span>
+          <span class="om-note-cell q-pr-sm">{{ worksetText.IsReadonly ? $t('Read only') : $t('Read and write') }}</span>
+          <span class="om-note-cell"><span v-if="isNowArchive" class="text-white bg-negative"> {{$t('Archiving now') }}</span><span v-if="isSoonArchive" class="bg-warning">{{ $t('Archiving soon') }}</span></span>
         </div>
       </div>
 
@@ -48,7 +49,7 @@
 </template>
 
 <script>
-import { mapGetters } from 'vuex'
+import { mapState, mapGetters } from 'vuex'
 import * as Mdf from 'src/model-common'
 import RefreshWorkset from 'components/RefreshWorkset.vue'
 import { marked } from 'marked'
@@ -75,13 +76,18 @@ export default {
       paramCount: 0,
       refreshWsTickle: false,
       loadWsWait: false,
-      wsName: ''
+      wsName: '',
+      isNowArchive: false,
+      isSoonArchive: false
     }
   },
 
   computed: {
     ...mapGetters('model', {
       worksetTextByName: 'worksetTextByName'
+    }),
+    ...mapState('serverState', {
+      archiveState: state => state.archive
     })
   },
 
@@ -101,6 +107,12 @@ export default {
 
       this.paramCount = Mdf.lengthOf(this.worksetText.Param)
       if (this.paramCount <= 0) this.wsName = this.worksetName // start refresh workset
+
+      // if archive is enabled then check workset archive status
+      if (this?.archiveState?.IsArchive) {
+        this.isNowArchive = Mdf.isArchiveNowWorkset(this.archiveState, this.modelDigest, this.worksetName)
+        this.isSoonArchive = Mdf.isArchiveAlertWorkset(this.archiveState, this.modelDigest, this.worksetName)
+      }
 
       // workset notes: convert from markdown to html
       marked.setOptions({

@@ -22,16 +22,19 @@
             clickable
             >
             <q-item-section avatar>
-              <q-icon color="primary" name="mdi-information-outline" />
+              <q-icon
+                :color="isNowArchive ? 'negative' : (isSoonArchive ? 'warning' : 'primary')"
+                name="mdi-information-outline"
+                />
             </q-item-section>
-            <q-item-section>{{ $t('About') + ' ' + worksetName }}</q-item-section>
+            <q-item-section>{{ (isNowArchive ? $t('Archiving now') : (isSoonArchive ? $t('Archiving soon') : ($t('About')))) + ': ' + worksetName }}</q-item-section>
           </q-item>
           <q-separator />
 
           <q-item
             v-if="isNewRunButton"
             @click="onNewRunClick"
-            :disable="!isNotEmptyWorkset || !isReadonlyWorkset"
+            :disable="!isNotEmptyWorkset || !isReadonlyWorkset || isNowArchive"
             clickable
             >
             <q-item-section avatar>
@@ -41,7 +44,7 @@
           </q-item>
           <q-item
             v-if="isReadonlyButton"
-            :disable="!isNotEmptyWorkset || isReadonlyDisabled"
+            :disable="!isNotEmptyWorkset || isReadonlyDisabled || isNowArchive"
             @click="onWorksetReadonlyToggle"
             clickable
             >
@@ -60,16 +63,17 @@
       :disable="!isNotEmptyWorkset"
       flat
       dense
-      class="col-auto bg-primary text-white rounded-borders"
+      class="col-auto text-white rounded-borders"
+      :class="isNowArchive ? 'bg-negative' : (isSoonArchive ? 'bg-warning' : 'bg-primary')"
       icon="mdi-information"
-      :title="$t('About') + ' ' + worksetName"
+      :title="(isNowArchive ? $t('Archiving now') : (isSoonArchive ? $t('Archiving soon') : ($t('About')))) + ': ' + worksetName"
       />
     <q-separator v-if="isShowMenu" vertical inset spaced="sm" color="secondary" />
 
     <q-btn
       v-if="isNewRunButton"
       @click="onNewRunClick"
-      :disable="!isNotEmptyWorkset || !isReadonlyWorkset"
+      :disable="!isNotEmptyWorkset || !isReadonlyWorkset || isNowArchive"
       flat
       dense
       class="col-auto bg-primary text-white rounded-borders"
@@ -78,7 +82,7 @@
       />
     <q-btn
       v-if="isReadonlyButton"
-      :disable="!isNotEmptyWorkset || isReadonlyDisabled"
+      :disable="!isNotEmptyWorkset || isReadonlyDisabled || isNowArchive"
       @click="onWorksetReadonlyToggle"
       flat
       dense
@@ -116,7 +120,9 @@ export default {
 
   data () {
     return {
-      worksetText: Mdf.emptyWorksetText()
+      worksetText: Mdf.emptyWorksetText(),
+      isNowArchive: false,
+      isSoonArchive: false
     }
   },
 
@@ -124,6 +130,7 @@ export default {
     isNotEmptyWorkset () { return Mdf.isNotEmptyWorksetText(this.worksetText) },
     lastDateTimeStr () { return Mdf.dtStr(this.worksetText.UpdateDateTime) },
     descrOfWorkset () { return Mdf.descrOfTxt(this.worksetText) },
+    archiveUpdateDateTime () { return (!!this?.serverConfig?.IsArchive && !!this?.archiveState?.IsArchive) ? this.archiveState.UpdateDateTime : '' },
 
     // if true then workset is read-only and model run enabled
     isReadonlyWorkset () {
@@ -135,6 +142,10 @@ export default {
     }),
     ...mapGetters('model', {
       worksetTextByName: 'worksetTextByName'
+    }),
+    ...mapState('serverState', {
+      serverConfig: state => state.config,
+      archiveState: state => state.archive
     })
   },
 
@@ -142,12 +153,19 @@ export default {
     modelDigest () { this.doRefresh() },
     worksetName () { this.doRefresh() },
     refreshworksetTickle () { this.doRefresh() },
-    worksetTextListUpdated () { this.doRefresh() }
+    worksetTextListUpdated () { this.doRefresh() },
+    archiveUpdateDateTime () { this.doRefresh() }
   },
 
   methods: {
     doRefresh () {
       this.worksetText = this.worksetTextByName({ ModelDigest: this.modelDigest, Name: this.worksetName })
+
+      // if archive is enabled then check workset archive status
+      if (this.archiveUpdateDateTime) {
+        this.isNowArchive = Mdf.isArchiveNowWorkset(this.archiveState, this.modelDigest, this.worksetName)
+        this.isSoonArchive = Mdf.isArchiveAlertWorkset(this.archiveState, this.modelDigest, this.worksetName)
+      }
     },
     onShowWorksetNote () {
       this.$emit('set-info-click', this.modelDigest, this.worksetName)

@@ -13,7 +13,8 @@
           <span class="om-note-cell q-pr-sm">{{ $t('Name') }}:</span><span class="om-note-cell">{{ runText.Name }}</span>
         </div>
         <div class="om-note-row">
-          <span class="om-note-cell q-pr-sm">{{ $t('Status') }}:</span><span class="om-note-cell">{{ statusDescr }}</span>
+          <span class="om-note-cell q-pr-sm">{{ $t('Status') }}:</span>
+          <span class="om-note-cell">{{ statusDescr }}<span v-if="isNowArchive" class="text-white bg-negative"> {{ $t('Archiving now') }}</span><span v-if="isSoonArchive" class="bg-warning"> {{ $t('Archiving soon') }}</span></span>
         </div>
         <div class="om-note-row">
           <span class="om-note-cell q-pr-sm">{{ $t('Sub-values Count') }}:</span><span class="om-note-cell">{{ runText.SubCount || 0 }}</span>
@@ -53,7 +54,7 @@
 </template>
 
 <script>
-import { mapGetters } from 'vuex'
+import { mapState, mapGetters } from 'vuex'
 import * as Mdf from 'src/model-common'
 import { marked } from 'marked'
 import hljs from 'highlight.js'
@@ -78,13 +79,18 @@ export default {
       statusDescr: '',
       createDateTime: '',
       lastDateTime: '',
-      duration: ''
+      duration: '',
+      isNowArchive: false,
+      isSoonArchive: false
     }
   },
 
   computed: {
     ...mapGetters('model', {
       runTextByDigest: 'runTextByDigest'
+    }),
+    ...mapState('serverState', {
+      archiveState: state => state.archive
     })
   },
 
@@ -104,6 +110,12 @@ export default {
       this.createDateTime = Mdf.dtStr(this.runText.CreateDateTime)
       this.lastDateTime = Mdf.dtStr(this.runText.UpdateDateTime)
       this.duration = Mdf.toIntervalStr(this.createDateTime, this.lastDateTime)
+
+      // if archive is enabled then check run archive status
+      if (this?.archiveState?.IsArchive) {
+        this.isNowArchive = Mdf.isArchiveNowRun(this.archiveState, this.modelDigest, this.runDigest)
+        this.isSoonArchive = Mdf.isArchiveAlertRun(this.archiveState, this.modelDigest, this.runDigest)
+      }
 
       // run notes: convert from markdown to html
       marked.setOptions({

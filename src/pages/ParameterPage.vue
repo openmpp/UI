@@ -60,7 +60,7 @@
           <template v-if="!isFromRun">
             <q-item
               @click="doEditToogle"
-              :disable="!edt.isEnabled"
+              :disable="!edt.isEnabled || (isNowArchive || isSoonArchive)"
               clickable
               >
               <q-item-section avatar>
@@ -70,7 +70,7 @@
             </q-item>
             <q-item
               @click="onEditSave"
-              :disable="!edt.isEnabled || !edt.isUpdated"
+              :disable="!edt.isEnabled || !edt.isUpdated || isNowArchive"
               clickable
               >
               <q-item-section avatar>
@@ -80,7 +80,7 @@
             </q-item>
             <q-item
               @click="onUndo"
-              :disable="!edt.isEnabled || edt.lastHistory <= 0"
+              :disable="!edt.isEnabled || edt.lastHistory <= 0 || isNowArchive"
               clickable
               >
               <q-item-section avatar>
@@ -90,7 +90,7 @@
             </q-item>
             <q-item
               @click="onRedo"
-              :disable="!edt.isEnabled || edt.lastHistory >= edt.history.length"
+              :disable="!edt.isEnabled || edt.lastHistory >= edt.history.length || isNowArchive"
               clickable
               >
               <q-item-section avatar>
@@ -104,7 +104,7 @@
           <q-item
             v-if="!noteEditorShow"
             @click="onEditParamNote()"
-            :disable="!isFromRun && !edt.isEnabled"
+            :disable="!isFromRun && (!edt.isEnabled || isNowArchive || isSoonArchive)"
             clickable
             >
             <q-item-section avatar>
@@ -124,7 +124,7 @@
           </q-item>
           <q-item
             @click="onSaveParamNote()"
-            :disable="!noteEditorShow || (!isFromRun && !edt.isEnabled)"
+            :disable="!noteEditorShow || (!isFromRun && (!edt.isEnabled || isNowArchive || isSoonArchive))"
             clickable
             >
             <q-item-section avatar>
@@ -157,7 +157,7 @@
             v-if="!isFromRun"
             @click="doShowFileSelect()"
             v-show="!uploadFileSelect"
-            :disable="!isUploadEnabled || edt.isEdit"
+            :disable="!isUploadEnabled || edt.isEdit || (isNowArchive || isSoonArchive)"
             clickable
             >
             <q-item-section avatar>
@@ -305,7 +305,7 @@
     <template v-if="!isFromRun">
       <q-btn
         @click="doEditToogle"
-        :disable="!edt.isEnabled"
+        :disable="!edt.isEnabled || (isNowArchive || isSoonArchive)"
         flat
         dense
         class="col-auto bg-primary text-white rounded-borders"
@@ -314,7 +314,7 @@
         />
       <q-btn
         @click="onEditSave"
-        :disable="!edt.isEnabled || !edt.isUpdated"
+        :disable="!edt.isEnabled || !edt.isUpdated || isNowArchive"
         flat
         dense
         class="col-auto bg-primary text-white rounded-borders q-ml-xs"
@@ -323,7 +323,7 @@
         />
       <q-btn
         @click="onUndo"
-        :disable="!edt.isEnabled || edt.lastHistory <= 0"
+        :disable="!edt.isEnabled || edt.lastHistory <= 0 || isNowArchive"
         flat
         dense
         class="col-auto bg-primary text-white rounded-borders q-ml-xs"
@@ -332,7 +332,7 @@
         />
       <q-btn
         @click="onRedo"
-        :disable="!edt.isEnabled || edt.lastHistory >= edt.history.length"
+        :disable="!edt.isEnabled || edt.lastHistory >= edt.history.length || isNowArchive"
         flat
         dense
         class="col-auto bg-primary text-white rounded-borders q-ml-xs"
@@ -346,7 +346,7 @@
     <q-btn
       v-if="!noteEditorShow"
       @click="onEditParamNote()"
-      :disable="!isFromRun && !edt.isEnabled"
+      :disable="!isFromRun && (!edt.isEnabled || isNowArchive || isSoonArchive)"
       flat
       dense
       class="col-auto bg-primary text-white rounded-borders"
@@ -364,7 +364,7 @@
       />
     <q-btn
       @click="onSaveParamNote()"
-      :disable="!noteEditorShow || (!isFromRun && !edt.isEnabled)"
+      :disable="!noteEditorShow || (!isFromRun && (!edt.isEnabled || isNowArchive || isSoonArchive))"
       flat
       dense
       class="col-auto bg-primary text-white rounded-borders q-ml-xs"
@@ -396,7 +396,7 @@
       v-if="!isFromRun"
       @click="doShowFileSelect()"
       v-show="!uploadFileSelect"
-      :disable="!isUploadEnabled || edt.isEdit"
+      :disable="!isUploadEnabled || edt.isEdit || (isNowArchive || isSoonArchive)"
       flat
       dense
       class="col-auto text-white rounded-borders q-ml-xs bg-primary text-white rounded-borders"

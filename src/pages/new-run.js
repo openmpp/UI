@@ -43,6 +43,8 @@ export default {
       worksetCurrent: Mdf.emptyWorksetText(), // currently selected workset
       useWorkset: false,
       useBaseRun: false,
+      isRunNowArchive: false,
+      isWorksetNowArchive: false,
       runTemplateLst: [],
       mpiTemplateLst: [],
       presetLst: [],
@@ -122,6 +124,9 @@ export default {
     isNoTables () { return !this.tablesRetain || this.tablesRetain.length <= 0 },
     isMicrodata () { return !!this.serverConfig.AllowMicrodata && Mdf.entityCount(this.theModel) > 0 },
     isNoEntityAttrsUse () { return !this.entityAttrsUse || this.entityAttrsUse.length <= 0 },
+    archiveUpdateDateTime () {
+      return (!!this?.serverConfig?.IsArchive && !!this?.archiveState?.IsArchive) ? this.archiveState.UpdateDateTime : ''
+    },
 
     ...mapState('model', {
       theModel: state => state.theModel,
@@ -140,13 +145,22 @@ export default {
     }),
     ...mapState('serverState', {
       omsUrl: state => state.omsUrl,
-      serverConfig: state => state.config
+      serverConfig: state => state.config,
+      archiveState: state => state.archive
     })
   },
 
   watch: {
     digest () { this.doRefresh() },
-    refreshTickle () { this.doRefresh() }
+    refreshTickle () { this.doRefresh() },
+    archiveUpdateDateTime () {
+      if (this.archiveUpdateDateTime) {
+        this.isWorksetNowArchive = this.archiveUpdateDateTime && Mdf.isArchiveNowWorkset(this.archiveState, this.digest, this.worksetCurrent.Name)
+        this.isRunNowArchive = this.archiveUpdateDateTime && Mdf.isArchiveNowRun(this.archiveState, this.digest, this.runCurrent.RunDigest)
+        if (this.isWorksetNowArchive) this.useWorkset = false
+        if (this.isRunNowArchive) this.useBaseRun = false
+      }
+    }
   },
 
   methods: {
@@ -167,11 +181,14 @@ export default {
       // reset run options and state
       this.isInitRun = false
 
+      this.isWorksetNowArchive = this.archiveUpdateDateTime && Mdf.isArchiveNowWorkset(this.archiveState, this.digest, this.worksetCurrent.Name)
+      this.isRunNowArchive = this.archiveUpdateDateTime && Mdf.isArchiveNowRun(this.archiveState, this.digest, this.runCurrent.RunDigest)
+
       this.runOpts.runName = ''
       this.runOpts.worksetName = ''
       this.runOpts.baseRunDigest = ''
-      this.useWorkset = this.isReadonlyWorksetCurrent
-      this.useBaseRun = this.isUseCurrentAsBaseRun()
+      this.useWorkset = this.isReadonlyWorksetCurrent && !this.isWorksetNowArchive
+      this.useBaseRun = this.isUseCurrentAsBaseRun() && !this.isRunNowArchive
       this.runOpts.sparseOutput = false
       this.mpiNpCount = 0
       this.runOpts.mpiUseJobs = false // this.serverConfig.IsJobControl

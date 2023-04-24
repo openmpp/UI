@@ -101,6 +101,7 @@ export default {
     isCompare () { return !!this.runCompare && (this.runCompare?.RunDigest || '') !== '' },
     fileSelected () { return !(this.uploadFile === null) },
     isMicrodata () { return !!this.serverConfig.AllowMicrodata && Mdf.entityCount(this.theModel) > 0 },
+    archiveUpdateDateTime () { return (!!this?.serverConfig?.IsArchive && !!this?.archiveState?.IsArchive) ? this.archiveState.UpdateDateTime : '' },
 
     ...mapState('model', {
       theModel: state => state.theModel,
@@ -121,13 +122,15 @@ export default {
     }),
     ...mapState('serverState', {
       omsUrl: state => state.omsUrl,
-      serverConfig: state => state.config
+      serverConfig: state => state.config,
+      archiveState: state => state.archive
     })
   },
 
   watch: {
     digest () { this.doRefresh() },
     refreshTickle () { this.doRefresh() },
+    archiveUpdateDateTime () { this.doRefresh() },
     runTextListUpdated () { this.onRunTextListUpdated() },
     runDigestSelected () {
       this.runCurrent = this.runTextByDigest({ ModelDigest: this.digest, RunDigest: this.runDigestSelected })
@@ -141,6 +144,8 @@ export default {
     dateTimeStr (dt) { return Mdf.dtStr(dt) },
     runCurrentDescr () { return Mdf.descrOfTxt(this.runCurrent) },
     runCurrentNote () { return Mdf.noteOfTxt(this.runCurrent) },
+    isNowArchive (dgst) { return this.archiveUpdateDateTime && Mdf.isArchiveNowRun(this.archiveState, this.digest, dgst) },
+    isSoonArchive (dgst) { return this.archiveUpdateDateTime && Mdf.isArchiveAlertRun(this.archiveState, this.digest, dgst) },
 
     // update page view
     doRefresh () {
@@ -313,7 +318,12 @@ export default {
     //
     // return true to disable new workset create button click
     isNewWorksetDisabled () {
-      return !this.isCompare || !Array.isArray(this.paramDiff) || this.paramDiff.length <= 0 || this.isNewWorksetShow || this.isShowNoteEditor
+      return !this.isCompare ||
+        !Array.isArray(this.paramDiff) ||
+        this.paramDiff.length <= 0 ||
+        this.isNewWorksetShow ||
+        this.isShowNoteEditor ||
+        this.isNowArchive(this.runDigestSelected)
     },
     // start create new workset
     onNewWorksetClick () {
