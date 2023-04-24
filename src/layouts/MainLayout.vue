@@ -288,7 +288,7 @@
 
       <q-item
         clickable
-        v-if="serverConfig.IsJobControl"
+        :disable="!serverConfig.IsJobControl"
         to="/service-state"
         >
         <q-item-section avatar>
@@ -302,7 +302,7 @@
 
       <q-item
         clickable
-        v-if="serverConfig.IsArchive"
+        :disable="!serverConfig.IsArchive"
         to="/archive"
         >
         <q-item-section avatar>

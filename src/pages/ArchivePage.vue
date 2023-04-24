@@ -5,7 +5,7 @@
     class="q-ma-sm"
     >
     <q-card-section v-if="!archiveState.IsArchive">
-      $t('Server offline or archive state retrieve failed.')
+      {{ $t('Server offline or archive state retrieve failed.') }}
     </q-card-section>
     <q-card-section v-else>
 

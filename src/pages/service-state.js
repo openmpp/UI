@@ -47,6 +47,7 @@ export default {
   },
 
   computed: {
+    isJobControl () { return !!this.serverConfig.IsJobControl },
     isMicrodata () { return !!this.serverConfig.AllowMicrodata },
 
     ...mapState('serverState', {
@@ -56,7 +57,8 @@ export default {
   },
 
   watch: {
-    refreshTickle () { this.initView() }
+    refreshTickle () { this.initView() },
+    isJobControl () { this.initView() }
   },
 
   methods: {
@@ -89,7 +91,9 @@ export default {
     initView () {
       this.srvState = Mdf.emptyServiceState()
       this.stopRefresh()
-      this.startRefresh()
+      if (this.isJobControl) {
+        this.startRefresh()
+      }
       this.isActiveShow = true
       this.isQueueShow = true
       this.isDoneHistoryShow = false

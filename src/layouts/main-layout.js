@@ -40,7 +40,7 @@ export default {
     loginUrl () { return Mdf.configEnvValue(this.serverConfig, 'OM_CFG_LOGIN_URL') },
     logoutUrl () { return Mdf.configEnvValue(this.serverConfig, 'OM_CFG_LOGOUT_URL') },
     loadWait () {
-      return !this.loadConfigDone || !this.loadArchiveDone
+      return !this.loadConfigDone || (!this.loadArchiveDone && this.isArchive)
     },
 
     ...mapState('model', {
@@ -162,10 +162,7 @@ export default {
       this.loadConfigDone = true
 
       // update archive state if necessary
-      const isArc = !!this?.serverConfig?.IsArchive
-      if (isArc !== this.isArchive) {
-        this.isArchive = isArc
-      }
+      this.isArchive = !!this?.serverConfig?.IsArchive
     },
 
     // receive archive state from server
