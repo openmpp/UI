@@ -142,8 +142,8 @@ export default {
   methods: {
     dateTimeStr (dt) { return Mdf.dtStr(dt) },
     isEdit () { return this.isFromRunShow || this.isFromWorksetShow || this.isNewWorksetShow || this.isShowNoteEditor },
-    isNowArchive (name) { return this.archiveUpdateDateTime && Mdf.isArchiveNowWorkset(this.archiveState, this.digest, name) },
-    isSoonArchive (name) { return this.archiveUpdateDateTime && Mdf.isArchiveAlertWorkset(this.archiveState, this.digest, name) },
+    isNowArchive (name) { return this.archiveUpdateDateTime !== '' && Mdf.isArchiveNowWorkset(this.archiveState, this.digest, name) },
+    isSoonArchive (name) { return this.archiveUpdateDateTime !== '' && Mdf.isArchiveAlertWorkset(this.archiveState, this.digest, name) },
 
     // update page view
     doRefresh () {

@@ -162,10 +162,8 @@ export default {
       this.worksetText = this.worksetTextByName({ ModelDigest: this.modelDigest, Name: this.worksetName })
 
       // if archive is enabled then check workset archive status
-      if (this.archiveUpdateDateTime) {
-        this.isNowArchive = Mdf.isArchiveNowWorkset(this.archiveState, this.modelDigest, this.worksetName)
-        this.isSoonArchive = Mdf.isArchiveAlertWorkset(this.archiveState, this.modelDigest, this.worksetName)
-      }
+      this.isNowArchive = this.archiveUpdateDateTime !== '' && Mdf.isArchiveNowWorkset(this.archiveState, this.modelDigest, this.worksetName)
+      this.isSoonArchive = this.archiveUpdateDateTime !== '' && Mdf.isArchiveAlertWorkset(this.archiveState, this.modelDigest, this.worksetName)
     },
     onShowWorksetNote () {
       this.$emit('set-info-click', this.modelDigest, this.worksetName)

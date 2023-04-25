@@ -154,12 +154,10 @@ export default {
     digest () { this.doRefresh() },
     refreshTickle () { this.doRefresh() },
     archiveUpdateDateTime () {
-      if (this.archiveUpdateDateTime) {
-        this.isWorksetNowArchive = this.archiveUpdateDateTime && Mdf.isArchiveNowWorkset(this.archiveState, this.digest, this.worksetCurrent.Name)
-        this.isRunNowArchive = this.archiveUpdateDateTime && Mdf.isArchiveNowRun(this.archiveState, this.digest, this.runCurrent.RunDigest)
-        if (this.isWorksetNowArchive) this.useWorkset = false
-        if (this.isRunNowArchive) this.useBaseRun = false
-      }
+      this.isWorksetNowArchive = this.archiveUpdateDateTime !== '' && Mdf.isArchiveNowWorkset(this.archiveState, this.digest, this.worksetCurrent.Name)
+      this.isRunNowArchive = this.archiveUpdateDateTime !== '' && Mdf.isArchiveNowRun(this.archiveState, this.digest, this.runCurrent.RunDigest)
+      if (this.isWorksetNowArchive) this.useWorkset = false
+      if (this.isRunNowArchive) this.useBaseRun = false
     }
   },
 
@@ -181,8 +179,8 @@ export default {
       // reset run options and state
       this.isInitRun = false
 
-      this.isWorksetNowArchive = this.archiveUpdateDateTime && Mdf.isArchiveNowWorkset(this.archiveState, this.digest, this.worksetCurrent.Name)
-      this.isRunNowArchive = this.archiveUpdateDateTime && Mdf.isArchiveNowRun(this.archiveState, this.digest, this.runCurrent.RunDigest)
+      this.isWorksetNowArchive = this.archiveUpdateDateTime !== '' && Mdf.isArchiveNowWorkset(this.archiveState, this.digest, this.worksetCurrent.Name)
+      this.isRunNowArchive = this.archiveUpdateDateTime !== '' && Mdf.isArchiveNowRun(this.archiveState, this.digest, this.runCurrent.RunDigest)
 
       this.runOpts.runName = ''
       this.runOpts.worksetName = ''

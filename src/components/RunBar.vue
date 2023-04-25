@@ -80,10 +80,8 @@ export default {
       this.runText = this.runTextByDigest({ ModelDigest: this.modelDigest, RunDigest: this.runDigest })
 
       // if archive is enabled then check run archive status
-      if (this.archiveUpdateDateTime) {
-        this.isNowArchive = Mdf.isArchiveNowRun(this.archiveState, this.modelDigest, this.runDigest)
-        this.isSoonArchive = Mdf.isArchiveAlertRun(this.archiveState, this.modelDigest, this.runDigest)
-      }
+      this.isNowArchive = this.archiveUpdateDateTime !== '' && Mdf.isArchiveNowRun(this.archiveState, this.modelDigest, this.runDigest)
+      this.isSoonArchive = this.archiveUpdateDateTime !== '' && Mdf.isArchiveAlertRun(this.archiveState, this.modelDigest, this.runDigest)
     },
     onShowRunNote () {
       this.$emit('run-info-click', this.modelDigest, this.runDigest)

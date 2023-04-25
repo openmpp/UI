@@ -144,8 +144,8 @@ export default {
     dateTimeStr (dt) { return Mdf.dtStr(dt) },
     runCurrentDescr () { return Mdf.descrOfTxt(this.runCurrent) },
     runCurrentNote () { return Mdf.noteOfTxt(this.runCurrent) },
-    isNowArchive (dgst) { return this.archiveUpdateDateTime && Mdf.isArchiveNowRun(this.archiveState, this.digest, dgst) },
-    isSoonArchive (dgst) { return this.archiveUpdateDateTime && Mdf.isArchiveAlertRun(this.archiveState, this.digest, dgst) },
+    isNowArchive (dgst) { return this.archiveUpdateDateTime !== '' && Mdf.isArchiveNowRun(this.archiveState, this.digest, dgst) },
+    isSoonArchive (dgst) { return this.archiveUpdateDateTime !== '' && Mdf.isArchiveAlertRun(this.archiveState, this.digest, dgst) },
 
     // update page view
     doRefresh () {

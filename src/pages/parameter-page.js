@@ -144,8 +144,8 @@ export default {
     worksetTextListUpdated () { this.onWorksetUpdated() },
     archiveUpdateDateTime () {
       if (!this.isFromRun) {
-        this.isNowArchive = this.archiveUpdateDateTime && Mdf.isArchiveNowWorkset(this.archiveState, this.digest, this.worksetName)
-        this.isSoonArchive = this.archiveUpdateDateTime && Mdf.isArchiveAlertWorkset(this.archiveState, this.digest, this.worksetName)
+        this.isNowArchive = this.archiveUpdateDateTime !== '' && Mdf.isArchiveNowWorkset(this.archiveState, this.digest, this.worksetName)
+        this.isSoonArchive = this.archiveUpdateDateTime !== '' && Mdf.isArchiveAlertWorkset(this.archiveState, this.digest, this.worksetName)
       }
     }
   },
@@ -180,8 +180,8 @@ export default {
       this.edt.isEnabled = this.isUploadEnabled = !this.isFromRun && isFound && Mdf.isNotEmptyWorksetText(src) && !src.IsReadonly
 
       if (!this.isFromRun) {
-        this.isNowArchive = this.archiveUpdateDateTime && Mdf.isArchiveNowWorkset(this.archiveState, this.digest, this.worksetName)
-        this.isSoonArchive = this.archiveUpdateDateTime && Mdf.isArchiveAlertWorkset(this.archiveState, this.digest, this.worksetName)
+        this.isNowArchive = Mdf.isArchiveNowWorkset(this.archiveState, this.digest, this.worksetName)
+        this.isSoonArchive = Mdf.isArchiveAlertWorkset(this.archiveState, this.digest, this.worksetName)
       }
       if (isFound && nSub !== (this.paramRunSet.SubCount || 0)) {
         this.dispatchParamViewDelete(this.routeKey)
