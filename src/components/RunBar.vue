@@ -53,7 +53,8 @@ export default {
     isInProgress () { return this.runText.Status === Mdf.RUN_IN_PROGRESS || this.runText.Status === Mdf.RUN_INITIAL },
     lastDateTimeStr () { return Mdf.dtStr(this.runText.UpdateDateTime) },
     descrOfRun () { return Mdf.descrOfTxt(this.runText) },
-    archiveUpdateDateTime () { return (!!this?.serverConfig?.IsArchive && !!this?.archiveState?.IsArchive) ? this.archiveState.UpdateDateTime : '' },
+    isArchive () { return !!this?.archiveState?.IsArchive },
+    archiveUpdateDateTime () { return this?.archiveState?.UpdateDateTime || '' },
 
     ...mapState('model', {
       runTextListUpdated: state => state.runTextListUpdated
@@ -72,6 +73,7 @@ export default {
     runDigest () { this.doRefresh() },
     refreshRunTickle () { this.doRefresh() },
     runTextListUpdated () { this.doRefresh() },
+    isArchive () { this.doRefresh() },
     archiveUpdateDateTime () { this.doRefresh() }
   },
 
@@ -80,8 +82,8 @@ export default {
       this.runText = this.runTextByDigest({ ModelDigest: this.modelDigest, RunDigest: this.runDigest })
 
       // if archive is enabled then check run archive status
-      this.isNowArchive = this.archiveUpdateDateTime !== '' && Mdf.isArchiveNowRun(this.archiveState, this.modelDigest, this.runDigest)
-      this.isSoonArchive = this.archiveUpdateDateTime !== '' && Mdf.isArchiveAlertRun(this.archiveState, this.modelDigest, this.runDigest)
+      this.isNowArchive = Mdf.isArchiveNowRun(this.archiveState, this.modelDigest, this.runDigest)
+      this.isSoonArchive = Mdf.isArchiveAlertRun(this.archiveState, this.modelDigest, this.runDigest)
     },
     onShowRunNote () {
       this.$emit('run-info-click', this.modelDigest, this.runDigest)

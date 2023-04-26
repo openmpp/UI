@@ -101,7 +101,8 @@ export default {
     isCompare () { return !!this.runCompare && (this.runCompare?.RunDigest || '') !== '' },
     fileSelected () { return !(this.uploadFile === null) },
     isMicrodata () { return !!this.serverConfig.AllowMicrodata && Mdf.entityCount(this.theModel) > 0 },
-    archiveUpdateDateTime () { return (!!this?.serverConfig?.IsArchive && !!this?.archiveState?.IsArchive) ? this.archiveState.UpdateDateTime : '' },
+    isArchive () { return !!this?.archiveState?.IsArchive },
+    archiveUpdateDateTime () { return this?.archiveState?.UpdateDateTime || '' },
 
     ...mapState('model', {
       theModel: state => state.theModel,
@@ -130,12 +131,13 @@ export default {
   watch: {
     digest () { this.doRefresh() },
     refreshTickle () { this.doRefresh() },
-    archiveUpdateDateTime () { this.doRefresh() },
     runTextListUpdated () { this.onRunTextListUpdated() },
     runDigestSelected () {
       this.runCurrent = this.runTextByDigest({ ModelDigest: this.digest, RunDigest: this.runDigestSelected })
       this.refreshRunCompare()
-    }
+    },
+    isArchive () { this.doRefresh() },
+    archiveUpdateDateTime () { this.doRefresh() }
   },
 
   methods: {
@@ -144,8 +146,8 @@ export default {
     dateTimeStr (dt) { return Mdf.dtStr(dt) },
     runCurrentDescr () { return Mdf.descrOfTxt(this.runCurrent) },
     runCurrentNote () { return Mdf.noteOfTxt(this.runCurrent) },
-    isNowArchive (dgst) { return this.archiveUpdateDateTime !== '' && Mdf.isArchiveNowRun(this.archiveState, this.digest, dgst) },
-    isSoonArchive (dgst) { return this.archiveUpdateDateTime !== '' && Mdf.isArchiveAlertRun(this.archiveState, this.digest, dgst) },
+    isNowArchive (dgst) { return Mdf.isArchiveNowRun(this.archiveState, this.digest, dgst) },
+    isSoonArchive (dgst) { return Mdf.isArchiveAlertRun(this.archiveState, this.digest, dgst) },
 
     // update page view
     doRefresh () {

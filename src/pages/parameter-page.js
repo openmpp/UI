@@ -110,7 +110,8 @@ export default {
         : Mdf.parameterWorksetPath(this.digest, this.worksetName, this.parameterName)
     },
     paramDescr () { return Mdf.descrOfDescrNote(this.paramText) },
-    archiveUpdateDateTime () { return (!!this?.serverConfig?.IsArchive && !!this?.archiveState?.IsArchive) ? this.archiveState.UpdateDateTime : '' },
+    isArchive () { return !!this?.archiveState?.IsArchive },
+    archiveUpdateDateTime () { return this?.archiveState?.UpdateDateTime || '' },
 
     fileSelected () { return !(this.uploadFile === null) },
 
@@ -144,8 +145,8 @@ export default {
     worksetTextListUpdated () { this.onWorksetUpdated() },
     archiveUpdateDateTime () {
       if (!this.isFromRun) {
-        this.isNowArchive = this.archiveUpdateDateTime !== '' && Mdf.isArchiveNowWorkset(this.archiveState, this.digest, this.worksetName)
-        this.isSoonArchive = this.archiveUpdateDateTime !== '' && Mdf.isArchiveAlertWorkset(this.archiveState, this.digest, this.worksetName)
+        this.isNowArchive = Mdf.isArchiveNowWorkset(this.archiveState, this.digest, this.worksetName)
+        this.isSoonArchive = Mdf.isArchiveAlertWorkset(this.archiveState, this.digest, this.worksetName)
       }
     }
   },

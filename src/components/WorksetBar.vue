@@ -130,7 +130,8 @@ export default {
     isNotEmptyWorkset () { return Mdf.isNotEmptyWorksetText(this.worksetText) },
     lastDateTimeStr () { return Mdf.dtStr(this.worksetText.UpdateDateTime) },
     descrOfWorkset () { return Mdf.descrOfTxt(this.worksetText) },
-    archiveUpdateDateTime () { return (!!this?.serverConfig?.IsArchive && !!this?.archiveState?.IsArchive) ? this.archiveState.UpdateDateTime : '' },
+    isArchive () { return !!this?.archiveState?.IsArchive },
+    archiveUpdateDateTime () { return this?.archiveState?.UpdateDateTime || '' },
 
     // if true then workset is read-only and model run enabled
     isReadonlyWorkset () {
@@ -154,7 +155,9 @@ export default {
     worksetName () { this.doRefresh() },
     refreshworksetTickle () { this.doRefresh() },
     worksetTextListUpdated () { this.doRefresh() },
+    isArchive () { this.doRefresh() },
     archiveUpdateDateTime () { this.doRefresh() }
+
   },
 
   methods: {
@@ -162,8 +165,8 @@ export default {
       this.worksetText = this.worksetTextByName({ ModelDigest: this.modelDigest, Name: this.worksetName })
 
       // if archive is enabled then check workset archive status
-      this.isNowArchive = this.archiveUpdateDateTime !== '' && Mdf.isArchiveNowWorkset(this.archiveState, this.modelDigest, this.worksetName)
-      this.isSoonArchive = this.archiveUpdateDateTime !== '' && Mdf.isArchiveAlertWorkset(this.archiveState, this.modelDigest, this.worksetName)
+      this.isNowArchive = Mdf.isArchiveNowWorkset(this.archiveState, this.modelDigest, this.worksetName)
+      this.isSoonArchive = Mdf.isArchiveAlertWorkset(this.archiveState, this.modelDigest, this.worksetName)
     },
     onShowWorksetNote () {
       this.$emit('set-info-click', this.modelDigest, this.worksetName)

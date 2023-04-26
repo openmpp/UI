@@ -513,7 +513,7 @@ export const isArchiveWorkset = (aw) => {
 
 // return true if run archiving now: find model digest and run digest in archive state Run array
 export const isArchiveNowRun = (ast, md, rd) => {
-  if (!md || !rd) return false
+  if (!md || !rd || !ast || !ast?.IsArchive) return false
 
   const im = ast.Model.findIndex(m => m.ModelDigest === md)
   if (im < 0) return false
@@ -523,7 +523,7 @@ export const isArchiveNowRun = (ast, md, rd) => {
 
 // return true if run archiving soon: find model digest and run digest in archive state RunAlert array
 export const isArchiveAlertRun = (ast, md, rd) => {
-  if (!md || !rd) return false
+  if (!md || !rd || !ast || !ast?.IsArchive) return false
 
   const im = ast.Model.findIndex(m => m.ModelDigest === md)
   if (im < 0) return false
@@ -533,7 +533,7 @@ export const isArchiveAlertRun = (ast, md, rd) => {
 
 // return true if workset archiving now: find model digest and workset name in archive state Set array
 export const isArchiveNowWorkset = (ast, md, name) => {
-  if (!md || !name) return false
+  if (!md || !name || !ast || !ast?.IsArchive) return false
 
   const im = ast.Model.findIndex(m => m.ModelDigest === md)
   if (im < 0) return false
@@ -543,7 +543,7 @@ export const isArchiveNowWorkset = (ast, md, name) => {
 
 // return true if workset archiving soon: find model digest and workset name in archive state SetAlert array
 export const isArchiveAlertWorkset = (ast, md, name) => {
-  if (!md || !name) return false
+  if (!md || !name || !ast || !ast?.IsArchive) return false
 
   const im = ast.Model.findIndex(m => m.ModelDigest === md)
   if (im < 0) return false

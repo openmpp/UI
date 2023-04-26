@@ -19,7 +19,8 @@ export default {
   },
 
   computed: {
-    archiveUpdateDateTime () { return this.archiveState.UpdateDateTime },
+    isArchive () { return !!this?.archiveState?.IsArchive },
+    archiveUpdateDateTime () { return this?.archiveState?.UpdateDateTime || '' },
     loadWait () {
       return !this.loadArchiveDone
     },
@@ -32,13 +33,14 @@ export default {
 
   watch: {
     refreshTickle () { this.doRefresh() },
+    isArchive () { this.updateArchiveCounts() },
     archiveUpdateDateTime () { this.updateArchiveCounts() }
   },
 
   methods: {
     // update page view
     doRefresh () {
-      if (!this.archiveState.IsArchive) {
+      if (!this.isArchive) {
         this.$q.notify({ type: 'negative', message: this.$t('Server offline or archive state retrieve failed.') })
         return
       }
