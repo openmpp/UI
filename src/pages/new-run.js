@@ -195,29 +195,39 @@ export default {
       // append empty '' string first to allow model run without template
       // if default run template exist then select it
       this.runTemplateLst = []
+      const cfgDefaultTmpl = Mdf.configEnvValue(this.serverConfig, 'OM_CFG_DEFAULT_RUN_TMPL')
+
       if (Mdf.isLength(this.serverConfig.RunCatalog.RunTemplates)) {
-        const runDefaultTmpl = Mdf.configEnvValue(this.serverConfig, 'OM_CFG_DEFAULT_RUN_TMPL')
         let isFound = false
 
         this.runTemplateLst.push('')
         for (const p of this.serverConfig.RunCatalog.RunTemplates) {
           this.runTemplateLst.push(p)
-          if (!isFound) isFound = p === runDefaultTmpl
+          if (!isFound) isFound = p === cfgDefaultTmpl
         }
-        this.runOpts.runTmpl = isFound ? runDefaultTmpl : this.runTemplateLst[0]
+        this.runOpts.runTmpl = isFound ? cfgDefaultTmpl : this.runTemplateLst[0]
       }
 
       // get MPI run template list and select default template
       this.runOpts.mpiTmpl = ''
       this.mpiTemplateLst = this.serverConfig.RunCatalog.MpiTemplates
-      const dTmpl = this.serverConfig.RunCatalog.DefaultMpiTemplate
 
-      if (dTmpl && Mdf.isLength(this.mpiTemplateLst)) {
+      if (Mdf.isLength(this.mpiTemplateLst)) {
         let isFound = false
+        const dMpiTmpl = this.serverConfig.RunCatalog.DefaultMpiTemplate
+
         for (let k = 0; !isFound && k < this.mpiTemplateLst.length; k++) {
-          isFound = this.mpiTemplateLst[k] === dTmpl
+          isFound = this.mpiTemplateLst[k] === cfgDefaultTmpl
         }
-        this.runOpts.mpiTmpl = isFound ? dTmpl : this.mpiTemplateLst[0]
+        if (isFound) this.runOpts.mpiTmpl = cfgDefaultTmpl
+
+        if (!isFound && dMpiTmpl) {
+          for (let k = 0; !isFound && k < this.mpiTemplateLst.length; k++) {
+            isFound = this.mpiTemplateLst[k] === dMpiTmpl
+          }
+          if (isFound) this.runOpts.mpiTmpl = dMpiTmpl
+        }
+        if (!isFound) this.runOpts.mpiTmpl = this.mpiTemplateLst[0]
       }
 
       // check if usage of ini-file options allowed by server
