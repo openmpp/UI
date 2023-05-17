@@ -122,6 +122,7 @@ export const RUN_INITIAL = 'i'      // run not started yet
 export const RUN_WAIT = 'w'         // task run paused
 export const RUN_FAILED = 'e'       // run falied (comleted with error)
 export const RUN_EXIT = 'x'         // run exit and not completed
+export const RUN_DELETE = 'd'       // run delete in progress
 /* eslint-enable no-multi-spaces */
 
 // return true if run completed successfuly
@@ -140,8 +141,13 @@ export const isRunCompleted = (rt) => {
 }
 
 // return true if run completed, status is one of: s=success, x=exit, e=error
-export const isRunCompletedStatus = (code) => {
-  return code === RUN_SUCCESS || code === RUN_EXIT || code === RUN_FAILED
+export const isRunCompletedStatus = (status) => {
+  return status === RUN_SUCCESS || status === RUN_EXIT || status === RUN_FAILED
+}
+
+// return true if run delete in progress: status is: d=delete or name starts with 'deleted:'
+export const isRunDeletedStatus = (status, name) => {
+  return status === RUN_DELETE || (typeof name === typeof 'string' && name.startsWith('deleted:'))
 }
 
 // return run status description, e.g: i=init p=progress s=success x=exit e=error(failed)
@@ -153,6 +159,7 @@ export const statusText = (status) => {
     case RUN_WAIT: return 'waiting'
     case RUN_FAILED: return 'failed'
     case RUN_EXIT: return 'exit (not completed)'
+    case RUN_DELETE: return 'deleted'
     case 'success': return 'success'
     case 'in progress': return 'in progress'
     case 'progress': return 'in progress'
@@ -164,6 +171,7 @@ export const statusText = (status) => {
     case 'error': return 'failed'
     case 'exit': return 'exit (not completed)'
     case 'exit (not completed)': return 'exit (not completed)'
+    case 'deleted': return 'deleted'
   }
   return 'unknown'
 }

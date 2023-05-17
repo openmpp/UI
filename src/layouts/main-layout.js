@@ -3,7 +3,7 @@ import languages from 'quasar/lang/index.json'
 import * as Mdf from 'src/model-common'
 import ModelInfoDialog from 'components/ModelInfoDialog.vue'
 
-const ARCHIVE_REFRESH_TIME = (61 * 60 * 1000) // msec, archive state refresh interval
+const ARCHIVE_REFRESH_TIME = 3067 // (60 * 1000) // msec, archive state refresh interval
 
 export default {
   name: 'MainLayout',
@@ -40,7 +40,7 @@ export default {
     loginUrl () { return Mdf.configEnvValue(this.serverConfig, 'OM_CFG_LOGIN_URL') },
     logoutUrl () { return Mdf.configEnvValue(this.serverConfig, 'OM_CFG_LOGOUT_URL') },
     loadWait () {
-      return !this.loadConfigDone || (!this.loadArchiveDone && this.isArchive)
+      return !this.loadConfigDone // || (!this.loadArchiveDone && this.isArchive)
     },
 
     ...mapState('model', {

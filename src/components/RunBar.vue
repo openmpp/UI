@@ -10,9 +10,9 @@
       flat
       dense
       class="col-auto text-white rounded-borders q-mr-xs"
-      :class="isNowArchive ? 'bg-negative' : ((!isSoonArchive && (isSuccess || isInProgress)) ? 'bg-primary' : 'bg-warning')"
+      :class="(isNowArchive || isDeleted) ? 'bg-negative' : ((!isSoonArchive && !isDeleted && (isSuccess || isInProgress)) ? 'bg-primary' : 'bg-warning')"
       :icon="isSuccess ? 'mdi-information' : (isInProgress ? 'mdi-run' : 'mdi-alert-circle-outline')"
-      :title="(isNowArchive ? $t('Archiving now') : (isSoonArchive ? $t('Archiving soon') : ($t('About')))) + ': ' + runText.Name"
+      :title="(isNowArchive ? $t('Archiving now') : (isSoonArchive ? $t('Archiving soon') : (isDeleted ? $t('Deleted') : $t('About')))) + ': ' + runText.Name"
       />
 
     <div
@@ -51,6 +51,7 @@ export default {
     isNotEmptyRun () { return Mdf.isNotEmptyRunText(this.runText) },
     isSuccess () { return this.runText.Status === Mdf.RUN_SUCCESS },
     isInProgress () { return this.runText.Status === Mdf.RUN_IN_PROGRESS || this.runText.Status === Mdf.RUN_INITIAL },
+    isDeleted () { return Mdf.isRunDeletedStatus(this.runText.Status, this.runText.Name) },
     lastDateTimeStr () { return Mdf.dtStr(this.runText.UpdateDateTime) },
     descrOfRun () { return Mdf.descrOfTxt(this.runText) },
     isArchive () { return !!this?.archiveState?.IsArchive },

@@ -143,6 +143,7 @@ export default {
   methods: {
     isSuccess (status) { return status === Mdf.RUN_SUCCESS },
     isInProgress (status) { return status === Mdf.RUN_IN_PROGRESS || status === Mdf.RUN_INITIAL },
+    isRunDeleted (status, name) { return Mdf.isRunDeletedStatus(status, name) },
     dateTimeStr (dt) { return Mdf.dtStr(dt) },
     runCurrentDescr () { return Mdf.descrOfTxt(this.runCurrent) },
     runCurrentNote () { return Mdf.noteOfTxt(this.runCurrent) },
@@ -325,7 +326,8 @@ export default {
         this.paramDiff.length <= 0 ||
         this.isNewWorksetShow ||
         this.isShowNoteEditor ||
-        this.isNowArchive(this.runDigestSelected)
+        this.isNowArchive(this.runDigestSelected) ||
+        Mdf.isRunDeletedStatus(this.runCurrent.Status, this.runCurrent.Name)
     },
     // start create new workset
     onNewWorksetClick () {
@@ -391,7 +393,7 @@ export default {
       if (dgst === this.runCompare.RunDigest) {
         this.clearRunCompare()
       }
-      this.doRunDelete(dgst, runName)
+      this.doRunDeleteStart(dgst, runName)
     },
 
     // click on run download: start run download and show download list page
@@ -507,8 +509,8 @@ export default {
       return td
     },
 
-    // delete run
-    async doRunDelete (dgst, runName) {
+    // start run delete
+    async doRunDeleteStart (dgst, runName) {
       if (!dgst) {
         console.warn('Unable to delete: invalid (empty) run digest')
         return
@@ -519,7 +521,7 @@ export default {
       let isOk = false
       const u = this.omsUrl +
         '/api/model/' + encodeURIComponent(this.digest) +
-        '/run/' + encodeURIComponent((dgst || ''))
+        '/unlink/run/' + encodeURIComponent((dgst || ''))
       try {
         await this.$axios.delete(u) // response expected to be empty on success
         isOk = true
@@ -537,8 +539,8 @@ export default {
       }
 
       // refresh run list from the server
-      this.$emit('run-list-refresh')
-      this.$q.notify({ type: 'info', message: this.$t('Deleted') + ': ' + dgst + ' ' + (runName || '') })
+      this.$q.notify({ type: 'info', message: this.$t('Start deleting') + ': ' + dgst + ' ' + (runName || '') })
+      setTimeout(() => this.$emit('run-list-refresh'), 521)
     },
 
     // start run download

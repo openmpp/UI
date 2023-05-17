@@ -14,7 +14,7 @@
         </div>
         <div class="om-note-row">
           <span class="om-note-cell q-pr-sm">{{ $t('Status') }}:</span>
-          <span class="om-note-cell">{{ statusDescr }}<span v-if="isNowArchive" class="text-white bg-negative"> {{ $t('Archiving now') }}</span><span v-if="isSoonArchive" class="bg-warning"> {{ $t('Archiving soon') }}</span></span>
+          <span class="om-note-cell" :class="isDeleted ? 'text-white bg-negative' : ''">{{ statusDescr }}<span v-if="isNowArchive" class="text-white bg-negative"> {{ $t('Archiving now') }}</span><span v-if="isSoonArchive" class="bg-warning"> {{ $t('Archiving soon') }}</span></span>
         </div>
         <div class="om-note-row">
           <span class="om-note-cell q-pr-sm">{{ $t('Sub-values Count') }}:</span><span class="om-note-cell">{{ runText.SubCount || 0 }}</span>
@@ -80,6 +80,7 @@ export default {
       createDateTime: '',
       lastDateTime: '',
       duration: '',
+      isDeleted: false,
       isNowArchive: false,
       isSoonArchive: false
     }
@@ -110,6 +111,7 @@ export default {
       this.createDateTime = Mdf.dtStr(this.runText.CreateDateTime)
       this.lastDateTime = Mdf.dtStr(this.runText.UpdateDateTime)
       this.duration = Mdf.toIntervalStr(this.createDateTime, this.lastDateTime)
+      this.isDeleted = Mdf.isRunDeletedStatus(this.runText.Status, this.runText.Name)
 
       // if archive is enabled then check run archive status
       if (this?.archiveState?.IsArchive) {
