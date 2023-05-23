@@ -218,6 +218,64 @@
 
     <q-separator vertical inset spaced="sm" color="secondary" />
 
+    <template v-if="isPages">
+      <q-btn
+        @click="onFirstPage"
+        :disable="pageStart === 0"
+        flat
+        dense
+        class="col-auto bg-primary text-white rounded-borders q-mr-xs"
+        icon="mdi-page-first"
+        :title="$t('First page')"
+        />
+      <q-btn
+        @click="onPrevPage"
+        :disable="pageStart === 0"
+        flat
+        dense
+        class="col-auto bg-primary text-white rounded-borders q-mr-xs"
+        icon="mdi-chevron-left"
+        :title="$t('Previous page')"
+        />
+      <div
+        class="page-start-item rounded-borders om-text-secondary q-px-xs q-py-xs q-mr-xs"
+        :title="$t('Position')"
+        >{{ (!!pageStart && typeof pageStart === typeof 1) ? pageStart.toLocaleString() : pageStart }}</div>
+      <q-btn
+        @click="onNextPage"
+        :disable="isLastPage"
+        flat
+        dense
+        class="col-auto bg-primary text-white rounded-borders q-mr-xs"
+        icon="mdi-chevron-right"
+        :title="$t('Next page')"
+        />
+      <q-btn
+        @click="onLastPage"
+        :disable="isLastPage"
+        flat
+        dense
+        class="col-auto bg-primary text-white rounded-borders q-mr-xs"
+        icon="mdi-page-last"
+        :title="$t('Last page')"
+        />
+      <q-select
+        v-model="pageSize"
+        @input="onPageSize"
+        :options="[10, 40, 100, 200, 400, 1000, 2000, 4000, 10000, 20000, 'All']"
+        :option-label="(val) => (!val || typeof val !== typeof 1) ? $t('All') : val.toLocaleString()"
+        outlined
+        options-dense
+        dense
+        :label="$t('Size')"
+        class="col-auto"
+        style="min-width: 6rem"
+        >
+      </q-select>
+
+      <q-separator vertical inset spaced="sm" color="secondary" />
+    </template>
+
     <q-btn
       @click="doExpressionPage"
       :disable="ctrl.kind === 0"
@@ -653,6 +711,12 @@
   .row-select, .col-select, .other-select {
     min-width: 10rem;
   }
+  .page-start-item {
+    background: rgba(0, 0, 0, 0.1);
+    min-width: 2rem;
+    text-align: center;
+  }
+
   .drag-area {
     min-height: 2.5rem;
     padding: 0.125rem;
@@ -670,6 +734,7 @@
     flex-direction: row;
     flex-wrap: wrap;
     justify-content: flex-start;
+    width: 100%;
   }
   .other-drag {
     @extend .col-drag;

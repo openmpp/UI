@@ -16,6 +16,12 @@ import PvTable from 'components/PvTable'
 import MarkdownEditor from 'components/MarkdownEditor.vue'
 import { openURL } from 'quasar'
 
+/* eslint-disable no-multi-spaces */
+const ALL_PAGE_SIZE = 'All'                     // if size = All then do not use page size is unlimited
+const SMALL_PAGE_SIZE = 100                     // small page size: do not show page controls
+const LAST_PAGE_OFFSET = 2 * 1024 * 1024 * 1024 // large page offset to get the last page
+/* eslint-enable no-multi-spaces */
+
 export default {
   name: 'ParameterPage',
   components: {
@@ -79,6 +85,10 @@ export default {
       pvKeyPos: [],           // position of each dimension item in cell key
       edt: Pcvt.emptyEdit(),  // editor options and state shared with child
       isDragging: false,      // if true then user is dragging dimension select control
+      isPages: false,
+      pageStart: 0,
+      pageSize: SMALL_PAGE_SIZE,
+      isLastPage: false,
       loadRunWait: false,
       refreshRunTickle: false,
       loadWsWait: false,
@@ -236,6 +246,38 @@ export default {
       u += (this.$q.platform.is.win) ? '/csv-bom' : '/csv'
 
       openURL(u)
+    },
+
+    // view parameter rows by pages
+    onPageSize () {
+      if (this.pageSize === ALL_PAGE_SIZE) {
+        this.pageStart = 0
+        this.pageSize = 0
+      }
+      this.doRefreshDataPage()
+    },
+    onFirstPage () {
+      this.pageStart = 0
+      this.doRefreshDataPage()
+    },
+    onPrevPage () {
+      this.pageStart = this.pageStart - this.pageSize
+      if (this.pageStart < 0) this.pageStart = 0
+
+      this.doRefreshDataPage()
+    },
+    onNextPage () {
+      this.pageStart = this.pageStart + this.pageSize
+      this.doRefreshDataPage()
+    },
+    onLastPage () {
+      if (this.pageSize === ALL_PAGE_SIZE || typeof this.pageSize !== typeof 1 || this.pageSize > SMALL_PAGE_SIZE) { // limit last page size
+        this.pageSize = SMALL_PAGE_SIZE
+        this.$q.notify({ type: 'info', message: this.$t('Size reduced to') + ': ' + this.pageSize })
+      }
+      this.pageStart = LAST_PAGE_OFFSET
+
+      this.doRefreshDataPage(true)
     },
 
     // show parameter csv upload dialog
@@ -627,8 +669,14 @@ export default {
       // find parameter, parameter type and size, including run sub-values count
       this.paramText = Mdf.paramTextByName(this.theModel, this.parameterName)
       this.paramType = Mdf.typeTextById(this.theModel, (this.paramText.Param.TypeId || 0))
-      this.rank = Mdf.paramSizeByName(this.theModel, this.parameterName)?.rank || 0
+      const paramSize = Mdf.paramSizeByName(this.theModel, this.parameterName)
+      this.rank = paramSize?.rank || 0
 
+      this.isPages = paramSize?.dimTotal > SMALL_PAGE_SIZE
+      if (!this.isPages) {
+        this.pageStart = 0
+        this.pageSize = 0
+      }
       this.isNullable = this.paramText.Param?.IsExtendable || false
       this.subCount = this.paramRunSet.SubCount || 0
       this.isScalar = this.rank <= 0 && this.subCount <= 1
@@ -987,7 +1035,7 @@ export default {
     },
 
     // get page of parameter data from current model run or workset
-    async doRefreshDataPage () {
+    async doRefreshDataPage (isFullPage = false) {
       const r = this.initParamRunSet()
       if (!r.isFound) {
         return // exit on error
@@ -1001,6 +1049,14 @@ export default {
 
       // make parameter read layout and url
       const layout = Puih.makeSelectLayout(this.parameterName, this.otherFields, Puih.SUB_ID_DIM)
+      layout.Offset = 0
+      layout.Size = 0
+      layout.IsFullPage = false
+      if (this.isPages) {
+        layout.Offset = this.pageStart || 0
+        layout.Size = (!!this.pageSize && typeof this.pageSize === typeof 1) ? (this.pageSize || 0) : 0
+        layout.IsFullPage = !!isFullPage
+      }
       const udgst = encodeURIComponent(this.digest)
 
       const u = this.isFromRun
@@ -1012,8 +1068,15 @@ export default {
         const response = await this.$axios.post(u, layout)
         const rsp = response.data
         let d = []
-        if (rsp) {
-          if ((rsp?.Page?.length || 0) > 0) d = rsp.Page
+        if (!rsp) {
+          this.pageStart = 0
+          this.isLastPage = true
+        } else {
+          if ((rsp?.Page?.length || 0) > 0) {
+            d = rsp.Page
+          }
+          this.pageStart = rsp?.Layout?.Offset || 0
+          this.isLastPage = rsp?.Layout?.IsLastPage || false
         }
 
         // update pivot table view

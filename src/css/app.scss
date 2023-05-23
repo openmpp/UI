@@ -5,6 +5,8 @@
   font-family: Roboto Mono, Consolas, Menlo, Monaco, Lucida Console, Liberation Mono, DejaVu Sans Mono, Bitstream Vera Sans Mono, Courier New, monospace;
 }
 
+$om-secondary-text-color: #616161; // grey-8
+
 .om-text-secondary {
   color: $om-secondary-text-color;
       // @extend .text-body1;

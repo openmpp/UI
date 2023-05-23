@@ -15,6 +15,9 @@ import { openURL } from 'quasar'
 const EXPR_DIM_NAME = 'EXPRESSIONS_DIM'         // expressions measure dimension name
 const ACC_DIM_NAME = 'ACCUMULATORS_DIM'         // accuimulators measure dimension name
 const ALL_ACC_DIM_NAME = 'ALL_ACCUMULATORS_DIM' // all accuimulators measure dimension name
+const ALL_PAGE_SIZE = 'All'                     // if size = All then do not use page size is unlimited
+const SMALL_PAGE_SIZE = 100                     // small page size: do not show page controls
+const LAST_PAGE_OFFSET = 2 * 1024 * 1024 * 1024 // large page offset to get the last page
 /* eslint-enable no-multi-spaces */
 
 export default {
@@ -68,6 +71,10 @@ export default {
       isDragging: false,      // if true then user is dragging dimension select control
       exprDimPos: 0,          // expression dimension position: table ExprPos
       totalEnumLabel: '',     // total enum item label, language-specific, ex.: All
+      isPages: false,
+      pageStart: 0,
+      pageSize: SMALL_PAGE_SIZE,
+      isLastPage: false,
       loadRunWait: false,
       refreshRunTickle: false,
       runInfoTickle: false,
@@ -121,6 +128,11 @@ export default {
       this.subCount = this.runText.SubCount || 0
       this.exprDimPos = this.tableText.Table.ExprPos || 0
 
+      this.isPages = tblSize?.dimTotal > SMALL_PAGE_SIZE
+      if (!this.isPages) {
+        this.pageStart = 0
+        this.pageSize = 0
+      }
       this.isNullable = true // output table always nullable
       this.isScalar = false // output table view never scalar: there is always a measure dimension
 
@@ -836,6 +848,38 @@ export default {
       this.$refs.omPivotTable.onCopyTsv()
     },
 
+    // view table rows by pages
+    onPageSize () {
+      if (this.pageSize === ALL_PAGE_SIZE) {
+        this.pageStart = 0
+        this.pageSize = 0
+      }
+      this.doRefreshDataPage()
+    },
+    onFirstPage () {
+      this.pageStart = 0
+      this.doRefreshDataPage()
+    },
+    onPrevPage () {
+      this.pageStart = this.pageStart - this.pageSize
+      if (this.pageStart < 0) this.pageStart = 0
+
+      this.doRefreshDataPage()
+    },
+    onNextPage () {
+      this.pageStart = this.pageStart + this.pageSize
+      this.doRefreshDataPage()
+    },
+    onLastPage () {
+      if (this.pageSize === ALL_PAGE_SIZE || typeof this.pageSize !== typeof 1 || this.pageSize > SMALL_PAGE_SIZE) { // limit last page size
+        this.pageSize = SMALL_PAGE_SIZE
+        this.$q.notify({ type: 'info', message: this.$t('Size reduced to') + ': ' + this.pageSize })
+      }
+      this.pageStart = LAST_PAGE_OFFSET
+
+      this.doRefreshDataPage(true)
+    },
+
     // download output table as csv file
     onDownload () {
       let u = this.omsUrl +
@@ -1188,7 +1232,7 @@ export default {
     },
 
     // get page of output table data from current model run
-    async doRefreshDataPage () {
+    async doRefreshDataPage (isFullPage = false) {
       if (!this.checkRunTable()) return // exit on error
 
       this.loadDone = false
@@ -1201,6 +1245,14 @@ export default {
       const layout = Puih.makeSelectLayout(this.tableName, this.otherFields, [Puih.SUB_ID_DIM, EXPR_DIM_NAME, ACC_DIM_NAME, ALL_ACC_DIM_NAME])
       layout.IsAccum = this.ctrl.kind !== Puih.kind.EXPR
       layout.IsAllAccum = this.ctrl.kind === Puih.kind.ALL
+      layout.Offset = 0
+      layout.Size = 0
+      layout.IsFullPage = false
+      if (this.isPages) {
+        layout.Offset = this.pageStart || 0
+        layout.Size = (!!this.pageSize && typeof this.pageSize === typeof 1) ? (this.pageSize || 0) : 0
+        layout.IsFullPage = !!isFullPage
+      }
 
       const u = this.omsUrl +
         '/api/model/' + encodeURIComponent(this.digest) +
@@ -1211,8 +1263,15 @@ export default {
         const response = await this.$axios.post(u, layout)
         const rsp = response.data
         let d = []
-        if (rsp) {
-          if ((rsp?.Page?.length || 0) > 0) d = rsp.Page
+        if (!rsp) {
+          this.pageStart = 0
+          this.isLastPage = true
+        } else {
+          if ((rsp?.Page?.length || 0) > 0) {
+            d = rsp.Page
+          }
+          this.pageStart = rsp?.Layout?.Offset || 0
+          this.isLastPage = rsp?.Layout?.IsLastPage || false
         }
 
         // update pivot table view
