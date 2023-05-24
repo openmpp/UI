@@ -136,6 +136,12 @@ export const paramView = (state, pv) => {
   if (pv?.edit) {
     state.paramViews[pv.key].view.edit = Mdf._cloneDeep(pv.edit)
   }
+  if (typeof pv?.pageStart === typeof 1) {
+    state.paramViews[pv.key].view.pageStart = pv.pageStart
+  }
+  if (typeof pv?.pageSize === typeof 1) {
+    state.paramViews[pv.key].view.pageSize = pv.pageSize
+  }
 }
 
 // delete parameter view by route key, if exist (key must be a string)
@@ -187,6 +193,12 @@ export const tableView = (state, tv) => {
   }
   if (typeof tv?.kind === typeof 1) {
     state.tableViews[tv.key].view.kind = tv.kind % 3 || 0 // table has only 3 possible view kinds
+  }
+  if (typeof tv?.pageStart === typeof 1) {
+    state.tableViews[tv.key].view.pageStart = tv.pageStart
+  }
+  if (typeof tv?.pageSize === typeof 1) {
+    state.tableViews[tv.key].view.pageSize = tv.pageSize
   }
 }
 

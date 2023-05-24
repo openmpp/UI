@@ -262,8 +262,8 @@
       <q-select
         v-model="pageSize"
         @input="onPageSize"
-        :options="[10, 40, 100, 200, 400, 1000, 2000, 4000, 10000, 20000, 'All']"
-        :option-label="(val) => (!val || typeof val !== typeof 1) ? $t('All') : val.toLocaleString()"
+        :options="[10, 40, 100, 200, 400, 1000, 2000, 4000, 10000, 20000, 0]"
+        :option-label="(val) => (!val || typeof val !== typeof 1 || val <= 0) ? $t('All') : val.toLocaleString()"
         outlined
         options-dense
         dense

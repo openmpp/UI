@@ -17,7 +17,6 @@ import MarkdownEditor from 'components/MarkdownEditor.vue'
 import { openURL } from 'quasar'
 
 /* eslint-disable no-multi-spaces */
-const ALL_PAGE_SIZE = 'All'                     // if size = All then do not use page size is unlimited
 const SMALL_PAGE_SIZE = 100                     // small page size: do not show page controls
 const LAST_PAGE_OFFSET = 2 * 1024 * 1024 * 1024 // large page offset to get the last page
 /* eslint-enable no-multi-spaces */
@@ -87,7 +86,7 @@ export default {
       isDragging: false,      // if true then user is dragging dimension select control
       isPages: false,
       pageStart: 0,
-      pageSize: SMALL_PAGE_SIZE,
+      pageSize: 0,
       isLastPage: false,
       loadRunWait: false,
       refreshRunTickle: false,
@@ -250,7 +249,7 @@ export default {
 
     // view parameter rows by pages
     onPageSize () {
-      if (this.pageSize === ALL_PAGE_SIZE) {
+      if (this.isAllPageSize()) {
         this.pageStart = 0
         this.pageSize = 0
       }
@@ -271,13 +270,16 @@ export default {
       this.doRefreshDataPage()
     },
     onLastPage () {
-      if (this.pageSize === ALL_PAGE_SIZE || typeof this.pageSize !== typeof 1 || this.pageSize > SMALL_PAGE_SIZE) { // limit last page size
+      if (this.isAllPageSize() || this.pageSize > SMALL_PAGE_SIZE) { // limit last page size
         this.pageSize = SMALL_PAGE_SIZE
         this.$q.notify({ type: 'info', message: this.$t('Size reduced to') + ': ' + this.pageSize })
       }
       this.pageStart = LAST_PAGE_OFFSET
 
       this.doRefreshDataPage(true)
+    },
+    isAllPageSize () {
+      return !this.pageSize || typeof this.pageSize !== typeof 1 || this.pageSize <= 0
     },
 
     // show parameter csv upload dialog
@@ -344,7 +346,9 @@ export default {
         cols: enumIdsToCodes(pv.cols),
         others: enumIdsToCodes(pv.others),
         isRowColControls: this.ctrl.isRowColControls,
-        rowColMode: this.pvc.rowColMode
+        rowColMode: this.pvc.rowColMode,
+        pageStart: this.isPages ? this.pageStart : 0,
+        pageSize: this.isPages ? this.pageSize : 0
       }
 
       // save into indexed db
@@ -412,11 +416,22 @@ export default {
       const cols = enumCodesToIds(dv.cols)
       const others = enumCodesToIds(dv.others)
 
+      // restore default page offset and size
+      if (this.isPages) {
+        this.pageStart = (typeof dv?.pageStart === typeof 1) ? (dv?.pageStart || 0) : 0
+        this.pageSize = (typeof dv?.pageSize === typeof 1) ? (dv?.pageSize || SMALL_PAGE_SIZE) : SMALL_PAGE_SIZE
+      } else {
+        this.pageStart = 0
+        this.pageSize = 0
+      }
+
       // if is not empty any of selection rows, columns, other dimensions
       // then store pivot view: do insert or replace of the view
       if (Mdf.isLength(rows) || Mdf.isLength(cols) || Mdf.isLength(others)) {
         const vs = Pcvt.pivotState(rows, cols, others, dv.isRowColControls, dv.rowColMode || Pcvt.SPANS_AND_DIMS_PVT)
         vs.edit = this.edt // edit state exist only for parameters
+        vs.pageStart = this.isPages ? this.pageStart : 0
+        vs.pageSize = this.isPages ? this.pageSize : 0
 
         this.dispatchParamView({
           key: this.routeKey,
@@ -672,11 +687,10 @@ export default {
       const paramSize = Mdf.paramSizeByName(this.theModel, this.parameterName)
       this.rank = paramSize?.rank || 0
 
-      this.isPages = paramSize?.dimTotal > SMALL_PAGE_SIZE
-      if (!this.isPages) {
-        this.pageStart = 0
-        this.pageSize = 0
-      }
+      this.isPages = paramSize?.dimTotal > SMALL_PAGE_SIZE // disable pages for small table
+      this.pageStart = 0
+      this.pageSize = this.isPages ? SMALL_PAGE_SIZE : 0
+
       this.isNullable = this.paramText.Param?.IsExtendable || false
       this.subCount = this.paramRunSet.SubCount || 0
       this.isScalar = this.rank <= 0 && this.subCount <= 1
@@ -895,6 +909,15 @@ export default {
       this.ctrl.isRowColControls = !!pv.isRowColControls
       this.pvc.rowColMode = typeof pv.rowColMode === typeof 1 ? pv.rowColMode : Pcvt.NO_SPANS_NO_DIMS_PVT
 
+      // restore page offset and size
+      if (this.isPages) {
+        this.pageStart = (typeof pv?.pageStart === typeof 1) ? (pv?.pageStart || 0) : 0
+        this.pageSize = (typeof pv?.pageSize === typeof 1) ? (pv?.pageSize || SMALL_PAGE_SIZE) : SMALL_PAGE_SIZE
+      } else {
+        this.pageStart = 0
+        this.pageSize = 0
+      }
+
       // refresh pivot view: both dimensions labels and table body
       this.ctrl.isPvDimsTickle = !this.ctrl.isPvDimsTickle
       this.ctrl.isPvTickle = !this.ctrl.isPvTickle
@@ -941,6 +964,8 @@ export default {
       // store pivot view
       const vs = Pcvt.pivotStateFromFields(this.rowFields, this.colFields, this.otherFields, this.ctrl.isRowColControls, this.pvc.rowColMode)
       vs.edit = this.edt // edit state exist only for parameters
+      vs.pageStart = 0
+      vs.pageSize = this.isPages ? SMALL_PAGE_SIZE : 0
 
       this.dispatchParamView({
         key: this.routeKey,
@@ -1064,9 +1089,11 @@ export default {
         : this.omsUrl + '/api/model/' + udgst + '/workset/' + encodeURIComponent(this.worksetName) + '/parameter/value-id'
 
       // retrieve page from server, it must be: {Layout: {...}, Page: [...]}
+      let isOk = false
       try {
         const response = await this.$axios.post(u, layout)
         const rsp = response.data
+
         let d = []
         if (!rsp) {
           this.pageStart = 0
@@ -1083,6 +1110,7 @@ export default {
         this.inpData = Object.freeze(d)
         this.loadDone = true
         this.ctrl.isPvTickle = !this.ctrl.isPvTickle
+        isOk = true
       } catch (e) {
         let em = ''
         try {
@@ -1093,6 +1121,13 @@ export default {
       }
 
       this.loadWait = false
+      if (isOk) {
+        this.dispatchParamView({
+          key: this.routeKey,
+          pageStart: this.isPages ? this.pageStart : 0,
+          pageSize: this.isPages ? this.pageSize : 0
+        })
+      }
     },
 
     // save page of parameter data into current workset
