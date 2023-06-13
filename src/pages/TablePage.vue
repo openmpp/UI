@@ -14,7 +14,7 @@
     </q-toolbar>
   </div>
 
-  <!-- ouput table header -->
+  <!-- output table header -->
   <div class="q-mx-sm q-mb-sm">
     <q-toolbar class="row reverse-wrap items-center shadow-1 rounded-borders">
 
@@ -128,6 +128,16 @@
               <q-item-section>{{ $t('Table view: hide rows and columns name') }}</q-item-section>
             </q-item>
             <q-item
+              @click="onSetRowColMode(3)"
+              :disable="pvc.rowColMode === 3"
+              clickable
+              >
+              <q-item-section avatar>
+                <q-icon color="primary" name="mdi-view-compact-outline" />
+              </q-item-section>
+              <q-item-section>{{ $t('Table view: always show rows and columns item and name') }}</q-item-section>
+            </q-item>
+            <q-item
               @click="onSetRowColMode(0)"
               :disable="pvc.rowColMode === 0"
               clickable
@@ -139,7 +149,7 @@
             </q-item>
           </template>
 
-          <template v-if="ctrl.formatOpts && ctrl.formatOpts.isMoreLess">
+          <template v-if="ctrl.formatOpts && ctrl.formatOpts.isFloat">
             <q-item
               @click="onShowMoreFormat"
               :disable="!ctrl.formatOpts.isDoMore"
@@ -357,6 +367,15 @@
         :title="$t('Table view: hide rows and columns name')"
         />
       <q-btn
+        @click="onSetRowColMode(3)"
+        :disable="pvc.rowColMode === 3"
+        flat
+        dense
+        class="col-auto bg-primary text-white rounded-borders q-mr-xs"
+        icon="mdi-view-compact-outline"
+        :title="$t('Table view: always show rows and columns item and name')"
+        />
+      <q-btn
         @click="onSetRowColMode(0)"
         :disable="pvc.rowColMode === 0"
         flat
@@ -368,7 +387,7 @@
         />
     </template>
 
-    <template v-if="ctrl.formatOpts && ctrl.formatOpts.isMoreLess">
+    <template v-if="ctrl.formatOpts && ctrl.formatOpts.isFloat">
       <q-btn
         @click="onShowMoreFormat"
         :disable="!ctrl.formatOpts.isDoMore"

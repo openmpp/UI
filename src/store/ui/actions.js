@@ -88,3 +88,18 @@ export const tableViewDelete = ({ commit }, key) => {
 export const tableViewDeleteByModel = ({ commit }, modelDigest) => {
   commit('tableViewDeleteByModel', modelDigest)
 }
+
+// insert or replace microdata view by route key
+export const microdataView = ({ commit }, mv) => {
+  commit('microdataView', mv)
+}
+
+// delete microdata view by route key, if exist
+export const microdataViewDelete = ({ commit }, key) => {
+  commit('microdataViewDelete', key)
+}
+
+// delete microdata view by model digest
+export const microdataViewDeleteByModel = ({ commit }, modelDigest) => {
+  commit('microdataViewDeleteByModel', modelDigest)
+}

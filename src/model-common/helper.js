@@ -29,6 +29,11 @@ export const tablePath = (model, runDigest, tableName) => {
     '/run/' + encodeURIComponent(runDigest || '-') +
     '/table/' + encodeURIComponent(tableName || '-')
 }
+export const microdataPath = (model, runDigest, entityName) => {
+  return '/model/' + encodeURIComponent(model || '-') +
+    '/run/' + encodeURIComponent(runDigest || '-') +
+    '/entity/' + encodeURIComponent(entityName || '-')
+}
 
 // length of timestap string
 export const TIME_STAMP_LEN = '1234_67_90_23_56_89_123'.length

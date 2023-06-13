@@ -48,15 +48,16 @@ export default {
       this.uploadWait = true
       this.$emit('wait')
 
-      // select all rows from indexed db by model name and make array of parameter and output table views
+      // select all rows from indexed db by model name and make array of parameter, output table or microdata views
       const pvRows = []
       const tvRows = []
+      const mvRows = []
       try {
         const dbCon = await Idb.connection()
         const rd = await dbCon.openReadOnly(this.modelName)
         const keyArr = await rd.getAllKeys()
 
-        // if there are any data selected by model name then find parameter or output table views
+        // if there are any data selected by model name then find parameter, output table or microdata views
         if (Mdf.isLength(keyArr)) {
           for (const key of keyArr) {
             const v = await rd.getByKey(key)
@@ -67,6 +68,9 @@ export default {
 
               i = this.theModel.TableTxt.findIndex(tt => tt.Table.Name === key)
               if (i >= 0) tvRows.push({ name: key, view: v })
+
+              i = this.theModel.EntityTxt.findIndex(et => et.Entity.Name === key)
+              if (i >= 0) mvRows.push({ name: key, view: v })
             }
           }
         }
@@ -77,7 +81,7 @@ export default {
         return
       }
 
-      const uv = { model: { name: this.modelName, parameterViews: pvRows, tableViews: tvRows } }
+      const uv = { model: { name: this.modelName, parameterViews: pvRows, tableViews: tvRows, microdataViews: mvRows } }
 
       // upload user views to the server, response body expected to be empty
       const u = this.omsUrl + '/api/user/view/model/' + encodeURIComponent(this.modelName)

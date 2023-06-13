@@ -56,7 +56,7 @@ export default {
         kind: Puih.kind.EXPR    // table view content: expressions, accumulators, all-accumulators
       },
       pvc: {
-        rowColMode: Pcvt.SPANS_AND_DIMS_PVT,  // rows and columns mode: 2 = use spans and show dim names, 1 = use spans and hide dim names, 0 = no spans and hide dim names
+        rowColMode: Pcvt.SPANS_AND_DIMS_PVT,  // rows and columns mode: 2 = use spans and show dim names
         isShowNames: false,                   // if true then show dimension names and item names instead of labels
         reader: void 0,                       // return row reader: if defined then methods to read next row, read() dimension items and readValue()
         processValue: Pcvt.asIsPval,          // default value processing: return as is
@@ -129,7 +129,7 @@ export default {
 
       this.isPages = tblSize?.dimTotal > SMALL_PAGE_SIZE // disable pages for small table
       this.pageStart = 0
-      this.pageSize = this.isPages ? SMALL_PAGE_SIZE : 0
+      this.pageSize = 0 // by default show all rows
 
       this.isNullable = true // output table always nullable
       this.isScalar = false // output table view never scalar: there is always a measure dimension
@@ -339,7 +339,7 @@ export default {
         return rd
       }
 
-      // read all accumulators rows: all accumilators are in one row, including derived accumulators
+      // read all accumulators rows: all accumulators are in one row, including derived accumulators
       this.readerAllAcc = (src) => {
         // no data to read: if source rows are empty or invalid return undefined reader
         if (!src || (src?.length || 0) <= 0) return void 0
@@ -356,13 +356,12 @@ export default {
 
         const rd = { // reader to return
           readRow: () => {
-            if (nAcc < allAccCount) {
-              nAcc++
-            } else {
+            nAcc++
+            if (nAcc >= allAccCount) {
               nAcc = 0
               nSrc++
             }
-            return (nSrc < srcLen) ? src[nSrc] : void 0 // accumilator row: all accumilators in one row
+            return (nSrc < srcLen) ? src[nSrc] : void 0 // accumilator row: all accumulators in one row
           },
           readDim: {},
           readValue: (r) => {
@@ -661,7 +660,7 @@ export default {
       }
       if (!Mdf.isRunTextHasTable(this.runText, this.tableName)) {
         console.warn('Output table not found in model run:', this.tableName, this.runDigest)
-        this.$q.notify({ type: 'negative', message: this.$t('Output table not found in model run' + ': ' + this.runDigest) })
+        this.$q.notify({ type: 'negative', message: this.$t('Output table not found in model run' + ': ' + this.tableName + ' ' + this.runDigest) })
         return false
       }
       return true
@@ -736,7 +735,7 @@ export default {
       const mName = isFromExpr ? EXPR_DIM_NAME : (isToAll ? ACC_DIM_NAME : ALL_ACC_DIM_NAME)
       const mNewIdx = isToAll ? this.rank + 2 : this.rank + 1 // new accumulators dimension index in dimesions list
       const subIdx = this.rank + 3 // sub-values dimension index in dimensions list
-      let isOther = false
+      let isSubOther = false
 
       let n = this.replaceMeasureDim(mName, mNewIdx, this.rowFields, false)
       if (n >= 0 && isFromExpr) this.rowFields.splice(n + 1, 0, this.dimProp[subIdx])
@@ -746,8 +745,8 @@ export default {
       }
       if (n < 0) {
         n = this.replaceMeasureDim(mName, mNewIdx, this.otherFields, true)
-        if (n >= 0 && isFromExpr) this.otherFields.splice(n + 1, 0, this.dimProp[subIdx])
-        isOther = n >= 0
+        isSubOther = n >= 0 && isFromExpr
+        if (isSubOther) this.otherFields.splice(n + 1, 0, this.dimProp[subIdx])
       }
       if (n < 0) {
         console.warning('Measure dimension not found:', mName)
@@ -756,14 +755,14 @@ export default {
       }
 
       // select sub-value items: all items if dimesion on rows or columns or first item if it is on othres
-      if (isOther) {
+      if (isSubOther) {
         this.dimProp[subIdx].selection = [this.dimProp[subIdx].enums[0]]
       } else {
         this.dimProp[subIdx].selection = Array.from(this.dimProp[subIdx].enums)
       }
       this.dimProp[subIdx].singleSelection = (this.dimProp[subIdx].selection.length > 0) ? this.dimProp[subIdx].selection[0] : {}
 
-      // use accumulators or all accumilators reader
+      // use accumulators or all accumulators reader
       this.pvc.reader = isToAll ? this.readerAllAcc : this.readerAcc
 
       // set new view kind and reload data
@@ -831,7 +830,7 @@ export default {
       this.dispatchTableView({ key: this.routeKey, isRowColControls: this.ctrl.isRowColControls })
     },
     onSetRowColMode (mode) {
-      this.pvc.rowColMode = (3 + mode) % 3
+      this.pvc.rowColMode = (4 + mode) % 4
       this.dispatchTableView({ key: this.routeKey, rowColMode: this.pvc.rowColMode })
     },
     // switch between show dimension names and item names or labels
@@ -1101,11 +1100,11 @@ export default {
 
       // make sure at least one item selected in each dimension
       // other dimensions: use single-select dropdown
-      let isSubIdOrMeasure = false
+      let isAllAcc = false
       for (const f of this.dimProp) {
         if (f.selection.length < 1 && this.isDimKindValid(this.ctrl.kind, f.name)) {
           f.selection.push(f.enums[0])
-          if (f.name === Puih.SUB_ID_DIM || f.name === this.measureName) isSubIdOrMeasure = true
+          if (f.name === ALL_ACC_DIM_NAME) isAllAcc = true
         }
       }
       for (const f of this.otherFields) {
@@ -1117,7 +1116,7 @@ export default {
             if (n < 0) n = 0
           }
           f.selection = [f.selection[n]]
-          if (f.name === Puih.SUB_ID_DIM || f.name === this.measureName) isSubIdOrMeasure = true
+          if (f.name === ALL_ACC_DIM_NAME) isAllAcc = true
         }
       }
       for (const f of this.dimProp) {
@@ -1128,9 +1127,9 @@ export default {
       //  if other dimesion(s) filters same as before
       //  then update pivot table view now
       //  else refresh data
-      if (Puih.equalFilterState(this.filterState, this.otherFields, [Puih.SUB_ID_DIM, EXPR_DIM_NAME, ACC_DIM_NAME, ALL_ACC_DIM_NAME])) {
+      if (Puih.equalFilterState(this.filterState, this.otherFields, ALL_ACC_DIM_NAME)) {
         this.ctrl.isPvTickle = !this.ctrl.isPvTickle
-        if (isSubIdOrMeasure) {
+        if (isAllAcc) {
           this.filterState = Puih.makeFilterState(this.otherFields)
         }
       } else {
@@ -1169,9 +1168,9 @@ export default {
       // update pivot view:
       //   if other dimesions filters same as before then update pivot table view now
       //   else refresh data
-      if (panel !== 'other' || Puih.equalFilterState(this.filterState, this.otherFields, [Puih.SUB_ID_DIM, EXPR_DIM_NAME, ACC_DIM_NAME, ALL_ACC_DIM_NAME])) {
+      if (panel !== 'other' || Puih.equalFilterState(this.filterState, this.otherFields, ALL_ACC_DIM_NAME)) {
         this.ctrl.isPvTickle = !this.ctrl.isPvTickle
-        if (name === Puih.SUB_ID_DIM || name === this.measureName) {
+        if (name === ALL_ACC_DIM_NAME) {
           this.filterState = Puih.makeFilterState(this.otherFields)
         }
       } else {
@@ -1230,9 +1229,7 @@ export default {
     // update pivot view after "select all" or "clear all"
     updateSelectOrClearView (name) {
       this.ctrl.isPvTickle = !this.ctrl.isPvTickle
-      if (name === Puih.SUB_ID_DIM) {
-        this.filterState = Puih.makeFilterState(this.otherFields)
-      }
+
       // update pivot view rows, columns, other dimensions
       this.dispatchTableView({
         key: this.routeKey,
@@ -1270,8 +1267,48 @@ export default {
 
       // make output table read layout and url
       const layout = Puih.makeSelectLayout(this.tableName, this.otherFields, [Puih.SUB_ID_DIM, EXPR_DIM_NAME, ACC_DIM_NAME, ALL_ACC_DIM_NAME])
-      layout.IsAccum = this.ctrl.kind !== Puih.kind.EXPR
+
+      // if sub_id on other dimensions then add filter by sub-value id
+      const fSub = this.filterState?.[Puih.SUB_ID_DIM]
+      if (fSub) {
+        layout.IsSubId = Array.isArray(fSub) && fSub.length > 0
+        if (layout.IsSubId) layout.SubId = fSub[0]
+      }
+
+      // if expr_id on other dimensions then add filter by expression name
+      if (this.ctrl.kind === Puih.kind.EXPR) {
+        const fExpr = this.filterState?.[EXPR_DIM_NAME]
+        if (fExpr) {
+          if (Array.isArray(fExpr) && fExpr.length > 0) {
+            // rank: expressions dimension index in dimesions list
+            for (const e of this.dimProp[this.rank].enums) {
+              if (e.value === fExpr[0]) {
+                layout.ValueName = e.name
+                break
+              }
+            }
+          }
+        }
+      }
+
+      // if acc_id on other dimensions then add filter by accumulator name
+      if (this.ctrl.kind === Puih.kind.ACC) {
+        const fAcc = this.filterState?.[ACC_DIM_NAME]
+        if (fAcc) {
+          if (Array.isArray(fAcc) && fAcc.length > 0) {
+            // rank + 1: accumulators dimension index in dimesions list
+            for (const e of this.dimProp[this.rank + 1].enums) {
+              if (e.value === fAcc[0]) {
+                layout.ValueName = e.name
+                break
+              }
+            }
+          }
+        }
+      }
+
       layout.IsAllAccum = this.ctrl.kind === Puih.kind.ALL
+      layout.IsAccum = layout.IsAllAccum || this.ctrl.kind === Puih.kind.ACC
       layout.Offset = 0
       layout.Size = 0
       layout.IsFullPage = false

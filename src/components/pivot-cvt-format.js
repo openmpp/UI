@@ -9,10 +9,10 @@ export const maxDecimalDefault = 4 // by default use 4 decimals max to format ex
 export const moreLessDefault = () => ({
   isRawUse: false,      // if true then show "raw value" button
   isRawValue: false,    // if true then display "raw" value, do not apply format(),
+  isFloat: false,       // if true then format decimals and use more and less buttons
   isAllDecimal: false,  // if true then show all decimals, do not limit it by max decimals
-  isMoreLess: false,    // if true then show more and less buttons
-  isDoMore: false,      // if true then "more" button enabled
-  isDoLess: false       // if true then "less" button enabled
+  isDoMore: false,      // if true then "more decimals" button enabled
+  isDoLess: false       // if true then "less decimals" button enabled
 })
 /* eslint-enable no-multi-spaces */
 
@@ -23,7 +23,7 @@ export const formatDefault = (options) => {
     format: (val) => val, // disable format() value by default
     parse: (s) => s, // disable parse() value by default
     isValid: (s) => true, // disable validation by default
-    options: () => opts,
+    options: () => Object.assign({}, opts), // immutable default options: return a copy
     resetOptions: () => {},
     doRawValue: () => {},
     doMore: () => {},
@@ -38,7 +38,7 @@ export const formatFloat = (options) => {
   const opts = Object.assign({},
     moreLessDefault(),
     formatNumber.makeOpts(options),
-    { isRawUse: true, isMoreLess: true })
+    { isRawUse: true, isFloat: true })
 
   // adjust format options and more-less options
   if (opts.maxDecimal < 0) opts.maxDecimal = 0
@@ -113,153 +113,6 @@ export const formatFloat = (options) => {
 
       opts.isDoMore = !opts.isRawValue && (opts.nDecimal < opts.maxDecimal || !opts.isAllDecimal)
       opts.isDoLess = !opts.isRawValue && (opts.nDecimal > 0 || opts.isAllDecimal)
-    }
-  }
-}
-
-// format number as float using multiple formats defined by key, e.g. different number decimals
-// if isByKey option is true and itemsFormat is not empty object then caller can use format.format(val, fmtKey)
-// if itemsFormat[fmtKey] exist then it must have isAllDecimal, nDecimal, maxDecimal properties
-// otherwise formatFloat is used
-export const formatFloatByKey = (options) => {
-  const floatFmt = formatFloat(options)
-  const opts = floatFmt.options()
-
-  // check if formats by key enabled
-  opts.isByKey = opts?.isByKey || false
-  opts.itemsFormat = opts?.itemsFormat || {}
-  if (!(opts?.itemsFormat instanceof Object)) opts.itemsFormat = {}
-
-  let n = 0
-  let m = 0
-  for (const fmtKey in opts.itemsFormat) {
-    if (opts.itemsFormat[fmtKey] instanceof Object) {
-      n++
-      const fmt = opts.itemsFormat[fmtKey]
-
-      fmt.isAllDecimal = fmt?.isAllDecimal || false
-      if (!fmt?.maxDecimal || fmt.maxDecimal < 0) fmt.maxDecimal = 0
-      if (!fmt?.nDecimal || fmt.nDecimal < 0) fmt.nDecimal = 0
-      if (fmt.nDecimal > fmt.maxDecimal) fmt.nDecimal = fmt.maxDecimal
-
-      if (m < fmt.maxDecimal) m = fmt.maxDecimal
-    }
-  }
-  if (n <= 0) opts.isByKey = false // there are no format items
-  if (opts.isByKey) opts.maxDecimal = m
-
-  // update all decimals, more, less options based on each item format
-  const updateAllMoreLess = () => {
-    let isAll = true
-    let isAny = false
-
-    for (const fmtKey in opts.itemsFormat) {
-      isAll = isAll && opts.itemsFormat[fmtKey].isAllDecimal
-      isAny = isAny || opts.itemsFormat[fmtKey].isAllDecimal || opts.itemsFormat[fmtKey].nDecimal > 0
-    }
-    if (opts.isByKey) opts.isAllDecimal = isAll
-
-    opts.isDoMore = !opts.isRawValue && (opts.nDecimal < opts.maxDecimal || !opts.isAllDecimal)
-    opts.isDoLess = !opts.isRawValue && (opts.nDecimal > 0 || opts.isAllDecimal || isAny)
-  }
-  updateAllMoreLess()
-
-  // save default format options
-  const defaultOpts = {
-    nDecimal: opts.nDecimal,
-    maxDecimal: opts.maxDecimal,
-    isRawValue: opts.isRawValue,
-    isAllDecimal: opts.isAllDecimal,
-    isDoMore: opts.isDoMore,
-    isDoLess: opts.isDoLess,
-    isByKey: opts.isByKey,
-    itemsFormat: {}
-  }
-  for (const fmtKey in opts.itemsFormat) {
-    defaultOpts.itemsFormat[fmtKey] = Object.assign({}, opts.itemsFormat[fmtKey])
-  }
-
-  return {
-    byKey: (isByKey) => { opts.isByKey = isByKey }, // set or clear format by key option
-
-    format: (val, fmtKey) => {
-      if (typeof fmtKey === typeof void 0 || !opts.isByKey || typeof opts?.itemsFormat[fmtKey] === typeof void 0) {
-        return floatFmt.format(val)
-      }
-      const fo = Object.assign({}, opts, opts?.itemsFormat[fmtKey])
-
-      return formatNumber.format(val, fo)
-    },
-
-    parse: (s) => {
-      return floatFmt.parse(s)
-    },
-
-    isValid: (s, fmtKey) => {
-      if (typeof fmtKey === typeof void 0 || !opts.isByKey || typeof opts?.itemsFormat[fmtKey] === typeof void 0) {
-        return floatFmt.isValid(s)
-      }
-      if (s === '' || s === void 0) {
-        const isNable = opts?.itemsFormat[fmtKey]?.isNullable
-        return (typeof isNable !== typeof void 0) ? isNable : opts.isNullable
-      }
-      return floatFmt.isValid(s)
-    },
-
-    options: () => opts,
-
-    resetOptions: () => {
-      Object.assign(opts, defaultOpts)
-      opts.itemsFormat = {}
-      for (const fmtKey in defaultOpts.itemsFormat) {
-        opts.itemsFormat[fmtKey] = Object.assign({}, defaultOpts.itemsFormat[fmtKey])
-      }
-    },
-
-    doRawValue: () => {
-      opts.isRawValue = !opts.isRawValue
-      updateAllMoreLess()
-    },
-
-    doMore: () => {
-      if (!opts.isDoMore) return
-
-      if (opts.nDecimal < opts.maxDecimal) {
-        opts.nDecimal++
-      } else {
-        opts.isAllDecimal = true
-      }
-
-      for (const fmtKey in opts.itemsFormat) {
-        const fo = opts.itemsFormat[fmtKey]
-        if (fo.nDecimal < opts.nDecimal) {
-          // use the same decimals for all values to avod more less clicks without table body changes
-          fo.nDecimal = opts.nDecimal
-        } else {
-          fo.isAllDecimal = true // that item format is at all decimals now
-        }
-      }
-      updateAllMoreLess()
-    },
-
-    doLess: () => {
-      if (!opts.isDoLess) return
-
-      if (!opts.isAllDecimal && opts.nDecimal > 0) {
-        opts.nDecimal--
-      }
-      opts.isAllDecimal = false
-
-      for (const fmtKey in opts.itemsFormat) {
-        const fo = opts.itemsFormat[fmtKey]
-
-        if (fo.nDecimal > opts.nDecimal) {
-          // use the same decimals for all values to avod more less clicks without table body changes
-          fo.nDecimal = opts.nDecimal
-        }
-        fo.isAllDecimal = false
-      }
-      updateAllMoreLess()
     }
   }
 }
@@ -436,6 +289,312 @@ const formatNumber = {
     } while (!isLast)
 
     return sL + rest
+  }
+}
+
+// format using multiple formats defined by key: format int, float or bool
+// options.formatter[key] must be defined for all keys and return a specific formatter object.
+// isByKey option is always true and cannot be changed using byKey() method
+export const formatByKey = (options) => {
+  const opts = Object.assign({}, formatDefault(options).options(), { isByKey: true })
+
+  // make float options
+  const floatOpts = Object.assign({}, formatFloat().options())
+
+  opts.isFloat = opts?.isFloat || false
+  let m = 0
+  for (const fmtKey in opts.formatter) {
+    if (!(opts.formatter[fmtKey] instanceof Object)) continue
+
+    const fo = opts.formatter[fmtKey]?.options?.()
+    if (!fo?.isFloat) continue
+    opts.isFloat = true
+
+    fo.isAllDecimal = fo?.isAllDecimal || false
+    if (!fo?.maxDecimal || fo.maxDecimal < 0) fo.maxDecimal = 0
+    if (!fo?.nDecimal || fo.nDecimal < 0) fo.nDecimal = 0
+    if (fo.nDecimal > fo.maxDecimal) fo.nDecimal = fo.maxDecimal
+
+    if (m < fo.maxDecimal) m = fo.maxDecimal
+  }
+  if (opts.isFloat) floatOpts.maxDecimal = m
+
+  // update all decimals, more, less options based on each float item format
+  const updateAllMoreLess = () => {
+    if (!opts.isFloat) {
+      opts.isDoMore = false
+      opts.isDoLess = false
+      return
+    }
+    let isAll = true
+    let isAny = false
+
+    for (const fmtKey in opts.formatter) {
+      const fo = opts.formatter[fmtKey]?.options()
+      if (!fo?.isFloat) continue
+
+      isAll = isAll && fo.isAllDecimal
+      isAny = isAny || fo.isAllDecimal || fo.nDecimal > 0
+    }
+    floatOpts.isAllDecimal = isAll
+
+    opts.isDoMore = !opts.isRawValue && (floatOpts.nDecimal < floatOpts.maxDecimal || !floatOpts.isAllDecimal)
+    opts.isDoLess = !opts.isRawValue && (floatOpts.nDecimal > 0 || floatOpts.isAllDecimal || isAny)
+  }
+  updateAllMoreLess()
+
+  // save default format options
+  const defaultFloatOpts = {
+    nDecimal: floatOpts.nDecimal,
+    maxDecimal: floatOpts.maxDecimal,
+    isAllDecimal: floatOpts.isAllDecimal,
+    isFloat: true
+  }
+  const defaultOpts = {
+    isRawUse: opts.isRawUse,
+    isRawValue: opts.isRawValue,
+    isFloat: opts.isFloat,
+    isAllDecimal: opts.isAllDecimal,
+    isDoMore: opts.isDoMore,
+    isDoLess: opts.isDoLess,
+    isByKey: opts.isByKey
+  }
+  const defaultiItemsFormat = {}
+  for (const fmtKey in opts.formatter) {
+    defaultiItemsFormat[fmtKey] = Object.assign({}, opts.formatter[fmtKey].options())
+  }
+
+  return {
+    byKey: (isByKey) => {}, // by key always true
+
+    format: (val, fmtKey) => {
+      if (typeof fmtKey === typeof void 0 || !opts.isByKey || typeof opts?.formatter[fmtKey] === typeof void 0) {
+        return val
+      }
+      return opts.formatter[fmtKey].format(val)
+    },
+
+    parse: (s, fmtKey) => {
+      if (typeof fmtKey === typeof void 0 || !opts.isByKey || typeof opts?.formatter[fmtKey] === typeof void 0) {
+        return s
+      }
+      return opts.formatter[fmtKey].parse(s)
+    },
+
+    isValid: (s, fmtKey) => {
+      if (typeof fmtKey === typeof void 0 || !opts.isByKey || typeof opts?.formatter[fmtKey] === typeof void 0) {
+        return false
+      }
+      return opts.formatter[fmtKey].isValid(s)
+    },
+
+    options: () => opts,
+
+    resetOptions: () => {
+      Object.assign(opts, defaultOpts)
+      Object.assign(floatOpts, defaultFloatOpts)
+
+      for (const fmtKey in opts.formatter) {
+        const fo = opts.formatter[fmtKey].options()
+        Object.assign(fo, defaultiItemsFormat[fmtKey])
+      }
+    },
+
+    doRawValue: () => {
+      opts.isRawValue = !opts.isRawValue
+      updateAllMoreLess()
+    },
+
+    doMore: () => {
+      if (!opts.isDoMore) return
+
+      if (floatOpts.nDecimal < floatOpts.maxDecimal) {
+        floatOpts.nDecimal++
+      } else {
+        floatOpts.isAllDecimal = true
+      }
+
+      for (const fmtKey in opts.formatter) {
+        const fo = opts.formatter[fmtKey].options()
+        if (!fo || !fo?.isFloat) continue
+
+        if (fo.nDecimal < floatOpts.nDecimal) {
+          // use the same decimals for all values to avod more less clicks without table body changes
+          fo.nDecimal = floatOpts.nDecimal
+        } else {
+          fo.isAllDecimal = true // that item format is at all decimals now
+        }
+      }
+      updateAllMoreLess()
+    },
+
+    doLess: () => {
+      if (!opts.isDoLess) return
+
+      if (!floatOpts.isAllDecimal && floatOpts.nDecimal > 0) {
+        floatOpts.nDecimal--
+      }
+      floatOpts.isAllDecimal = false
+
+      for (const fmtKey in opts.formatter) {
+        const fo = opts.formatter[fmtKey].options()
+        if (!fo || !fo?.isFloat) continue
+
+        if (fo.nDecimal > floatOpts.nDecimal) {
+          // use the same decimals for all values to avod more less clicks without table body changes
+          fo.nDecimal = floatOpts.nDecimal
+        }
+        fo.isAllDecimal = false
+      }
+      updateAllMoreLess()
+    }
+  }
+}
+
+// format number as float using multiple formats defined by key, e.g. different number decimals
+// if isByKey option is true and itemsFormat is not empty object then caller can use format.format(val, fmtKey)
+// if itemsFormat[fmtKey] exist then it must have isAllDecimal, nDecimal, maxDecimal properties
+// otherwise formatFloat is used
+export const formatFloatByKey = (options) => {
+  const floatFmt = formatFloat(options)
+  const opts = floatFmt.options()
+
+  // check if formats by key enabled
+  opts.isByKey = opts?.isByKey || false
+  opts.itemsFormat = opts?.itemsFormat || {}
+  if (!(opts?.itemsFormat instanceof Object)) opts.itemsFormat = {}
+
+  let n = 0
+  let m = 0
+  for (const fmtKey in opts.itemsFormat) {
+    if (opts.itemsFormat[fmtKey] instanceof Object) {
+      n++
+      const fmt = opts.itemsFormat[fmtKey]
+
+      fmt.isAllDecimal = fmt?.isAllDecimal || false
+      if (!fmt?.maxDecimal || fmt.maxDecimal < 0) fmt.maxDecimal = 0
+      if (!fmt?.nDecimal || fmt.nDecimal < 0) fmt.nDecimal = 0
+      if (fmt.nDecimal > fmt.maxDecimal) fmt.nDecimal = fmt.maxDecimal
+
+      if (m < fmt.maxDecimal) m = fmt.maxDecimal
+    }
+  }
+  if (n <= 0) opts.isByKey = false // there are no format items
+  if (opts.isByKey) opts.maxDecimal = m
+
+  // update all decimals, more, less options based on each item format
+  const updateAllMoreLess = () => {
+    let isAll = true
+    let isAny = false
+
+    for (const fmtKey in opts.itemsFormat) {
+      isAll = isAll && opts.itemsFormat[fmtKey].isAllDecimal
+      isAny = isAny || opts.itemsFormat[fmtKey].isAllDecimal || opts.itemsFormat[fmtKey].nDecimal > 0
+    }
+    if (opts.isByKey) opts.isAllDecimal = isAll
+
+    opts.isDoMore = !opts.isRawValue && (opts.nDecimal < opts.maxDecimal || !opts.isAllDecimal)
+    opts.isDoLess = !opts.isRawValue && (opts.nDecimal > 0 || opts.isAllDecimal || isAny)
+  }
+  updateAllMoreLess()
+
+  // save default format options
+  const defaultOpts = {
+    nDecimal: opts.nDecimal,
+    maxDecimal: opts.maxDecimal,
+    isRawValue: opts.isRawValue,
+    isAllDecimal: opts.isAllDecimal,
+    isDoMore: opts.isDoMore,
+    isDoLess: opts.isDoLess,
+    isByKey: opts.isByKey,
+    itemsFormat: {}
+  }
+  for (const fmtKey in opts.itemsFormat) {
+    defaultOpts.itemsFormat[fmtKey] = Object.assign({}, opts.itemsFormat[fmtKey])
+  }
+
+  return {
+    byKey: (isByKey) => { opts.isByKey = isByKey }, // set or clear format by key option
+
+    format: (val, fmtKey) => {
+      if (typeof fmtKey === typeof void 0 || !opts.isByKey || typeof opts?.itemsFormat[fmtKey] === typeof void 0) {
+        return floatFmt.format(val)
+      }
+      const fo = Object.assign({}, opts, opts?.itemsFormat[fmtKey])
+
+      return formatNumber.format(val, fo)
+    },
+
+    parse: (s) => {
+      return floatFmt.parse(s)
+    },
+
+    isValid: (s, fmtKey) => {
+      if (typeof fmtKey === typeof void 0 || !opts.isByKey || typeof opts?.itemsFormat[fmtKey] === typeof void 0) {
+        return floatFmt.isValid(s)
+      }
+      if (s === '' || s === void 0) {
+        const isNable = opts?.itemsFormat[fmtKey]?.isNullable
+        return (typeof isNable !== typeof void 0) ? isNable : opts.isNullable
+      }
+      return floatFmt.isValid(s)
+    },
+
+    options: () => opts,
+
+    resetOptions: () => {
+      Object.assign(opts, defaultOpts)
+      opts.itemsFormat = {}
+      for (const fmtKey in defaultOpts.itemsFormat) {
+        opts.itemsFormat[fmtKey] = Object.assign({}, defaultOpts.itemsFormat[fmtKey])
+      }
+    },
+
+    doRawValue: () => {
+      opts.isRawValue = !opts.isRawValue
+      updateAllMoreLess()
+    },
+
+    doMore: () => {
+      if (!opts.isDoMore) return
+
+      if (opts.nDecimal < opts.maxDecimal) {
+        opts.nDecimal++
+      } else {
+        opts.isAllDecimal = true
+      }
+
+      for (const fmtKey in opts.itemsFormat) {
+        const fo = opts.itemsFormat[fmtKey]
+        if (fo.nDecimal < opts.nDecimal) {
+          // use the same decimals for all values to avod more less clicks without table body changes
+          fo.nDecimal = opts.nDecimal
+        } else {
+          fo.isAllDecimal = true // that item format is at all decimals now
+        }
+      }
+      updateAllMoreLess()
+    },
+
+    doLess: () => {
+      if (!opts.isDoLess) return
+
+      if (!opts.isAllDecimal && opts.nDecimal > 0) {
+        opts.nDecimal--
+      }
+      opts.isAllDecimal = false
+
+      for (const fmtKey in opts.itemsFormat) {
+        const fo = opts.itemsFormat[fmtKey]
+
+        if (fo.nDecimal > opts.nDecimal) {
+          // use the same decimals for all values to avod more less clicks without table body changes
+          fo.nDecimal = opts.nDecimal
+        }
+        fo.isAllDecimal = false
+      }
+      updateAllMoreLess()
+    }
   }
 }
 /* eslint-enable no-multi-spaces */

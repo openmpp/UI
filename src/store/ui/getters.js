@@ -51,3 +51,8 @@ export const paramViewUpdatedCount = (state) => (modelDigest) => {
 export const tableView = (state) => (key) => {
   return state.tableViews?.[key]?.view ? Mdf._cloneDeep(state.tableViews[key].view) : undefined
 }
+
+// return copy of microdata view by key
+export const microdataView = (state) => (key) => {
+  return state.microdataViews?.[key]?.view ? Mdf._cloneDeep(state.microdataViews[key].view) : undefined
+}

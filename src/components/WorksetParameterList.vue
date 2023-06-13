@@ -9,6 +9,8 @@
     :is-any-group="isAnyGroup"
     :is-any-hidden="isAnyHidden"
     :is-show-hidden="isShowHidden"
+    :is-group-click="isGroupClick"
+    :is-leaf-click="isParamLeafClick"
     :is-add="isAdd"
     :is-add-group="isAddGroup"
     :is-add-disabled="isAddDisabled"
@@ -45,6 +47,8 @@ export default {
     worksetName: { type: String, required: true },
     refreshTickle: { type: Boolean, default: false },
     refreshParamTreeTickle: { type: Boolean, default: false },
+    isGroupClick: { type: Boolean, default: false },
+    isParamLeafClick: { type: Boolean, default: false },
     isAdd: { type: Boolean, default: false },
     isAddGroup: { type: Boolean, default: false },
     isAddDisabled: { type: Boolean, default: false },

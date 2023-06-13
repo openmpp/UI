@@ -192,7 +192,7 @@ export const tableView = (state, tv) => {
     state.tableViews[tv.key].view.rowColMode = tv.rowColMode
   }
   if (typeof tv?.kind === typeof 1) {
-    state.tableViews[tv.key].view.kind = tv.kind % 3 || 0 // table has only 3 possible view kinds
+    state.tableViews[tv.key].view.kind = tv.kind % 4 || 0 // table has only 4 possible view kinds
   }
   if (typeof tv?.pageStart === typeof 1) {
     state.tableViews[tv.key].view.pageStart = tv.pageStart
@@ -212,5 +212,60 @@ export const tableViewDeleteByModel = (state, modelDigest) => {
   const m = (typeof modelDigest === typeof 'string') ? modelDigest : '-'
   for (const key in state.tableViews) {
     if (state.tableViews?.[key]?.digest === m) delete state.tableViews[key]
+  }
+}
+
+// insert or replace microdata view by route key (key must be non-empty string)
+export const microdataView = (state, mv) => {
+  if (!mv || !mv?.key) return
+  if (typeof mv.key !== typeof 'string' || mv.key === '') return
+
+  // insert new or replace existing microdata view
+  if (mv?.view) {
+    state.microdataViews[mv.key] = Mdf._cloneDeep({
+      view: mv.view,
+      digest: mv?.digest || '',
+      modelName: mv?.modelName || '',
+      runDigest: mv?.runDigest || '',
+      entityName: mv?.entityName || ''
+    })
+    return
+  }
+  // else: update existing microdata view
+  if (!state.microdataViews?.[mv.key]?.view) return // microdata view not found
+
+  if (Array.isArray(mv?.rows)) {
+    state.microdataViews[mv.key].view.rows = Mdf._cloneDeep(mv.rows)
+  }
+  if (Array.isArray(mv?.cols)) {
+    state.microdataViews[mv.key].view.cols = Mdf._cloneDeep(mv.cols)
+  }
+  if (Array.isArray(mv?.others)) {
+    state.microdataViews[mv.key].view.others = Mdf._cloneDeep(mv.others)
+  }
+  if (typeof mv?.isRowColControls === typeof true) {
+    state.microdataViews[mv.key].view.isRowColControls = mv.isRowColControls
+  }
+  if (typeof mv?.rowColMode === typeof 1) {
+    state.microdataViews[mv.key].view.rowColMode = mv.rowColMode
+  }
+  if (typeof mv?.pageStart === typeof 1) {
+    state.microdataViews[mv.key].view.pageStart = mv.pageStart
+  }
+  if (typeof mv?.pageSize === typeof 1) {
+    state.microdataViews[mv.key].view.pageSize = mv.pageSize
+  }
+}
+
+// delete microdata view by route key, if exist (key must be a string)
+export const microdataViewDelete = (state, key) => {
+  if (typeof key === typeof 'string' && state.microdataViews?.[key]) delete state.microdataViews[key]
+}
+
+// delete microdata view by model digest
+export const microdataViewDeleteByModel = (state, modelDigest) => {
+  const m = (typeof modelDigest === typeof 'string') ? modelDigest : '-'
+  for (const key in state.microdataViews) {
+    if (state.microdataViews?.[key]?.digest === m) delete state.microdataViews[key]
   }
 }

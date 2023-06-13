@@ -36,6 +36,35 @@
       </tr>
 
     </thead>
+    <thead v-else-if="pvControl.rowColMode === 3"><!-- no spans and show dim names -->
+
+      <tr v-for="(cf, nFld) in colFields" :key="cf.name">
+        <th
+          v-if="nFld === 0 && !!rowFields.length"
+          :colspan="rowFields.length"
+          :rowspan="colFields.length"
+          class="pv-rc-pad"></th>
+        <th
+          class="pv-rc-cell">{{!pvControl.isShowNames ? cf.label : cf.name}}</th>
+        <template v-for="(col, nCol) in pvt.cols">
+          <th
+            :key="pvt.colKeys[nCol]"
+            :rowspan="(!!rowFields.length && nFld === colFields.length - 1) ? 2 : 1"
+            class="pv-col-head">
+              {{getDimItemLabel(cf.name, col[nFld])}}
+          </th>
+        </template>
+      </tr>
+      <tr v-if="!!rowFields.length">
+        <th v-for="rf in rowFields"
+          :key="rf.name"
+          class="pv-rc-cell">
+            {{!pvControl.isShowNames ? rf.label : rf.name}}
+        </th>
+        <th class="pv-rc-pad"></th>
+      </tr>
+
+    </thead>
     <thead v-else-if="pvControl.rowColMode === 1"><!-- use spans and hide dim names -->
 
       <tr v-for="(cf, nFld) in colFields" :key="cf.name">
@@ -84,15 +113,15 @@
         <template v-for="(rf, nFld) in rowFields">
           <th
             :key="pvt.rowKeys[nRow] + '-' + nFld"
-            v-if="pvControl.rowColMode === 0 || !!pvt.rowSpans[nRow * rowFields.length + nFld]"
+            v-if="pvControl.rowColMode === 0 || pvControl.rowColMode === 3 || !!pvt.rowSpans[nRow * rowFields.length + nFld]"
             :rowspan="(pvControl.rowColMode === 2 || pvControl.rowColMode === 1) && pvt.rowSpans[nRow * rowFields.length + nFld]"
-            :colspan="(pvControl.rowColMode === 2 && !!colFields.length && nFld === rowFields.length - 1) ? 2 : 1"
+            :colspan="((pvControl.rowColMode === 2 || pvControl.rowColMode === 3) && !!colFields.length && nFld === rowFields.length - 1) ? 2 : 1"
             class="pv-row-head">
               {{getDimItemLabel(rf.name, row[nFld])}}
           </th>
         </template>
         <!-- empty row headers if all dimensions on the columns -->
-        <th v-if="pvControl.rowColMode === 2 && !rowFields.length && !!colFields.length" class="pv-rc-pad"></th>
+        <th v-if="(pvControl.rowColMode === 2 || pvControl.rowColMode === 3) && !rowFields.length && !!colFields.length" class="pv-rc-pad"></th>
 
         <!-- table body value cells -->
         <td v-for="(col, nCol) in pvt.cols" :key="pvt.cellKeys[nRow * pvt.colCount + nCol]"
@@ -113,15 +142,15 @@
         <template v-for="(rf, nFld) in rowFields">
           <th
             :key="pvt.rowKeys[nRow] + '-' + nFld"
-            v-if="pvControl.rowColMode === 0 || !!pvt.rowSpans[nRow * rowFields.length + nFld]"
+            v-if="pvControl.rowColMode === 0 || pvControl.rowColMode === 3 || !!pvt.rowSpans[nRow * rowFields.length + nFld]"
             :rowspan="(pvControl.rowColMode === 2 || pvControl.rowColMode === 1) && pvt.rowSpans[nRow * rowFields.length + nFld]"
-            :colspan="(pvControl.rowColMode === 2 && !!colFields.length && nFld === rowFields.length - 1) ? 2 : 1"
+            :colspan="((pvControl.rowColMode === 2 || pvControl.rowColMode === 3) && !!colFields.length && nFld === rowFields.length - 1) ? 2 : 1"
             class="pv-row-head">
               {{getDimItemLabel(rf.name, row[nFld])}}
           </th>
         </template>
         <!-- empty row headers if all dimensions on the columns -->
-        <th v-if="pvControl.rowColMode === 2 && !rowFields.length && !!colFields.length" class="pv-rc-pad"></th>
+        <th v-if="(pvControl.rowColMode === 2 || pvControl.rowColMode === 3) && !rowFields.length && !!colFields.length" class="pv-rc-pad"></th>
 
         <!-- table body value cells: readonly cells and edit input cell (if edit in progress) -->
         <td v-for="(col, nCol) in pvt.cols"

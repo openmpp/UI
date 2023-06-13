@@ -3,9 +3,10 @@
 /* eslint-disable no-multi-spaces */
 
 // pivot table display mode: rows and columns mode
-export const SPANS_AND_DIMS_PVT = 2   // use spans and show dim names
-export const SPANS_NO_DIMS_PVT = 1    // use spans and hide dim names
-export const NO_SPANS_NO_DIMS_PVT = 0 // no spans and hide dim names
+export const NO_SPANS_AND_DIMS_PVT = 3  // no spans and show dim names
+export const SPANS_AND_DIMS_PVT = 2     // use spans and show dim names
+export const SPANS_NO_DIMS_PVT = 1      // use spans and hide dim names
+export const NO_SPANS_NO_DIMS_PVT = 0   // no spans and hide dim names
 
 // editor type
 export const EDIT_STRING = 0  // input type text
@@ -93,7 +94,7 @@ export const parseTsv = (src, rowLimit = -1, colLimit = -1) => {
     cols:   [ { name: ..., values: [...] }, {...} ],
     others: [ { name: ..., values: [...] }, {...} ],
     isRowColControls: true, // show or hide row-column controls
-    rowColMode: SPANS_AND_DIMS_PVT, // rows and columns mode: 2 = use spans and show dim names, 1 = use spans and hide dim names, 0 = no spans and hide dim names
+    rowColMode: SPANS_AND_DIMS_PVT, // rows and columns mode: 3 = no spans and show dim names, 2 = use spans and show dim names, 1 = use spans and hide dim names, 0 = no spans and hide dim names
     edit: {
       // editor state and undo history
     }

@@ -72,6 +72,7 @@
             <q-icon v-if="!t.updated && t.kind === 'set-parameter'" name="mdi-table-edit" size="sm" class="self-center q-pr-xs"/>
             <q-icon v-if="t.updated && t.kind === 'set-parameter'" name="mdi-content-save-edit" size="sm" class="self-center q-pr-xs"/>
             <q-icon v-if="t.kind === 'table'" name="mdi-table-large" size="sm" class="self-center q-pr-xs"/>
+            <q-icon v-if="t.kind === 'entity'" name="mdi-microscope" size="sm" class="self-center q-pr-xs"/>
             <q-icon v-if="t.kind === 'run-log'" name="mdi-text-long" size="sm" class="self-center q-pr-xs"/>
             <q-icon v-if="t.kind === 'updown-list'" name="mdi-download-circle-outline" size="sm" class="self-center q-pr-xs"/>
             <span class="col-shrink om-tab-title" :title="$t(t.title)">{{ $t(t.title) }}</span>
@@ -116,6 +117,7 @@
               <q-icon v-if="!t.updated && t.kind === 'set-parameter'" name="mdi-table-edit" />
               <q-icon v-if="t.updated && t.kind === 'set-parameter'" name="mdi-content-save-edit" />
               <q-icon v-if="t.kind === 'table'" name="mdi-table-large" />
+              <q-icon v-if="t.kind === 'entity'" name="mdi-microscope" />
               <q-icon v-if="t.kind === 'run-log'" name="mdi-text-long" />
               <q-icon v-if="t.kind === 'updown-list'" name="mdi-download-circle-outline" />
             </q-item-section>
@@ -139,6 +141,7 @@
     @run-parameter-select="onRunParamSelect"
     @set-parameter-select="onSetParamSelect"
     @table-select="onTableSelect"
+    @entity-select="onEntitySelect"
     @set-update-readonly="onWorksetReadonlyUpdate"
     @edit-updated="onEditUpdated"
     @run-log-select="onRunLogSelect"
@@ -149,6 +152,7 @@
     @run-completed-list="onRunCompletedList"
     @parameter-view-saved="onParameterViewSaved"
     @table-view-saved="onTableViewSaved"
+    @entity-view-saved="onEntityViewSaved"
     @run-list-refresh="onRunListRefresh"
     @set-list-refresh="onWorksetListRefresh"
     >

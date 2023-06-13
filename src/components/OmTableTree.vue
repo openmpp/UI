@@ -139,7 +139,20 @@ Expected array of tree items as:
             :title="$t('Remove') + ' ' + prop.node.label"
             />
           <div
-            class="col"
+            v-if="!isGroupClick"
+            class="col q-ml-xs q-pl-xs"
+            >
+            <template v-if="labelKind === 'name-only'">{{ prop.node.label }}</template>
+            <template v-if="labelKind === 'descr-only'">{{ prop.node.descr }}</template>
+            <template v-if="labelKind !== 'name-only' && labelKind !== 'descr-only'">
+              <span>{{ prop.node.label }}<br />
+              <span class="om-text-descr">{{ prop.node.descr }}</span></span>
+            </template>
+          </div>
+          <div
+            v-else
+            @click.stop="$emit('om-table-tree-group-select', prop.node.label, prop.node.parts)"
+            class="label-click col q-ml-xs q-pl-xs"
             >
             <template v-if="labelKind === 'name-only'">{{ prop.node.label }}</template>
             <template v-if="labelKind === 'descr-only'">{{ prop.node.descr }}</template>
@@ -151,9 +164,8 @@ Expected array of tree items as:
         </div>
 
         <div v-else
-          @click="$emit('om-table-tree-leaf-select', prop.node.label, prop.node.parts)"
           :class="{'om-tree-found-node': treeWalk.keysFound[prop.node.key]}"
-          class="row no-wrap items-center full-width cursor-pointer om-tree-leaf"
+          class="row no-wrap items-center full-width om-tree-leaf"
           >
           <q-btn
             v-if="prop.node.isAbout"
@@ -191,7 +203,11 @@ Expected array of tree items as:
             icon="mdi-minus-circle-outline"
             :title="$t('Remove') + ' ' + prop.node.label"
             />
-          <div class="col q-ml-xs">
+          <div
+            @click="$emit('om-table-tree-leaf-select', prop.node.label, prop.node.parts)"
+            :class="{'label-click': isLeafClick}"
+            class="col q-ml-xs q-pl-xs"
+            >
             <template v-if="labelKind === 'name-only'">{{ prop.node.label }}</template>
             <template v-if="labelKind === 'descr-only'">{{ prop.node.descr }}</template>
             <template v-if="labelKind !== 'name-only' && labelKind !== 'descr-only'">
@@ -208,6 +224,15 @@ Expected array of tree items as:
 </div>
 </template>
 
+<style lang="scss" scoped>
+  .label-click {
+    &:hover {
+      background: rgba(0, 0, 0, 0.05);
+      cursor: pointer;
+    }
+  }
+</style>
+
 <script>
 import * as Mdf from 'src/model-common'
 
@@ -223,6 +248,8 @@ export default {
     isAnyGroup: { type: Boolean, default: false },
     isAnyHidden: { type: Boolean, default: false },
     isShowHidden: { type: Boolean, default: false },
+    isGroupClick: { type: Boolean, default: false },
+    isLeafClick: { type: Boolean, default: false },
     isAdd: { type: Boolean, default: false },
     isAddGroup: { type: Boolean, default: false },
     isAddDisabled: { type: Boolean, default: false },

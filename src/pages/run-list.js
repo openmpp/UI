@@ -8,7 +8,7 @@ import RunInfoDialog from 'components/RunInfoDialog.vue'
 import ParameterInfoDialog from 'components/ParameterInfoDialog.vue'
 import TableInfoDialog from 'components/TableInfoDialog.vue'
 import GroupInfoDialog from 'components/GroupInfoDialog.vue'
-import EntityInfoDialog from 'components/EntityInfoDialog.vue'
+import EntityRunInfoDialog from 'components/EntityRunInfoDialog.vue'
 import EntityAttrInfoDialog from 'components/EntityAttrInfoDialog.vue'
 import DeleteConfirmDialog from 'components/DeleteConfirmDialog.vue'
 import NewWorkset from 'components/NewWorkset.vue'
@@ -26,7 +26,7 @@ export default {
     ParameterInfoDialog,
     TableInfoDialog,
     GroupInfoDialog,
-    EntityInfoDialog,
+    EntityRunInfoDialog,
     EntityAttrInfoDialog,
     DeleteConfirmDialog,
     NewWorkset,
@@ -456,6 +456,10 @@ export default {
       this.tableInfoTickle = !this.tableInfoTickle
     },
 
+    // entity selected: show entity data page
+    onEntityClick (name, parts) {
+      this.$emit('entity-select', name)
+    },
     // show or hide output microdata entity tree
     onToogleShowEntityTree () {
       this.isEntityTreeShow = !this.isEntityTreeShow
@@ -467,16 +471,16 @@ export default {
       this.entityTreeCount = entCount || 0
       this.entityVisibleCount = this.entityTreeCount
     },
+    // show run entity info dialog: entity and attributes
+    doShowEntityRunNote (entName) {
+      this.entityInfoName = entName
+      this.entityInfoTickle = !this.entityInfoTickle
+    },
     // show entity attribute notes dialog
     doShowEntityAttrNote (attrName, entName) {
       this.attrInfoName = attrName
       this.entityInfoName = entName
       this.attrInfoTickle = !this.attrInfoTickle
-    },
-    // show entity attribute notes dialog
-    doShowEntityNote (entName) {
-      this.entityInfoName = entName
-      this.entityInfoTickle = !this.entityInfoTickle
     },
 
     // return tree of model runs

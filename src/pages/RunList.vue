@@ -226,6 +226,7 @@
         :refresh-tickle="refreshTickle"
         :refresh-param-tree-tickle="refreshParamTreeTickle"
         :name-filter="paramDiff"
+        :is-param-leaf-click="true"
         :is-on-off-not-in-list="true"
         in-list-icon="mdi-not-equal-variant"
         in-list-on-label="Show only different parameters"
@@ -246,6 +247,7 @@
         :refresh-tickle="refreshTickle"
         :refresh-table-tree-tickle="refreshTableTreeTickle"
         :name-filter="tableDiff"
+        :is-table-leaf-click="true"
         :is-on-off-not-in-list="true"
         in-list-icon="mdi-not-equal-variant"
         in-list-on-label="Show only different output tables"
@@ -264,9 +266,11 @@
       <entity-list
         :run-digest="runDigestSelected"
         :refresh-tickle="refreshTickle"
-        :refresh-param-tree-tickle="refreshEntityTreeTickle"
+        :refresh-entity-tree-tickle="refreshEntityTreeTickle"
+        :is-entity-click="true"
+        @entity-select="onEntityClick"
+        @entity-info-show="doShowEntityRunNote"
         @entity-attr-info-show="doShowEntityAttrNote"
-        @entity-info-show="doShowEntityNote"
         @entity-tree-updated="onEntityTreeUpdated"
         >
       </entity-list>
@@ -477,7 +481,7 @@
   <parameter-info-dialog :show-tickle="paramInfoTickle" :param-name="paramInfoName" :run-digest="runDigestSelected"></parameter-info-dialog>
   <table-info-dialog :show-tickle="tableInfoTickle" :table-name="tableInfoName" :run-digest="runDigestSelected"></table-info-dialog>
   <group-info-dialog :show-tickle="groupInfoTickle" :group-name="groupInfoName"></group-info-dialog>
-  <entity-info-dialog :show-tickle="entityInfoTickle" :entity-name="entityInfoName" :run-digest="runDigestSelected"></entity-info-dialog>
+  <entity-run-info-dialog :show-tickle="entityInfoTickle" :entity-name="entityInfoName" :run-digest="runDigestSelected"></entity-run-info-dialog>
   <entity-attr-info-dialog :show-tickle="attrInfoTickle" :entity-name="entityInfoName" :attr-name="attrInfoName"></entity-attr-info-dialog>
 
   <refresh-run v-if="(digest || '') !== '' && (runDigestRefresh || '') !== ''"

@@ -11,6 +11,7 @@ export default function () {
     modelTreeExpandedKeys: [],
     paramViews: {},
     tableViews: {},
+    microdataViews: {},
     modelView: {}
   }
 }

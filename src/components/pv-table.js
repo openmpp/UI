@@ -22,7 +22,11 @@ pvData: // array of table rows, for example:
   dimension selection[] is an array of selected enums for each dimension
 
 pvControl: {
-  rowColMode:   rows and columns mode: 2 = use spans, show dim names, 1 = use spans, hide dim names, 0 = no spans, hide dim names
+  rowColMode:   rows and columns mode:
+                  3 = no spans and show dim names
+                  2 = use spans, show dim names
+                  1 = use spans, hide dim names
+                  0 = no spans, hide dim names
   isShowNames:  if true then show item names (enums[k].name) instead of labels (enums[k].label) by default
 
   reader: (src) => { // row reader: methods to read next row, read() dimension items and readValue()
@@ -96,7 +100,7 @@ export default {
     pvControl: {
       type: Object,
       default: () => ({
-        rowColMode: Pcvt.NO_SPANS_NO_DIMS_PVT,  // rows and columns mode: 2 = use spans and show dim names, 1 = use spans and hide dim names, 0 = no spans and hide dim names
+        rowColMode: Pcvt.NO_SPANS_NO_DIMS_PVT,  // rows and columns mode: 3 = no spans and show dim names, 2 = use spans and show dim names, 1 = use spans and hide dim names, 0 = no spans and hide dim names
         isShowNames: false,                     // if true then show dimension names and item names instead of labels
         reader: void 0,                   // return row reader: if defined then methods to read next row, read() dimension items and readValue()
         processValue: Pcvt.asIsPval,      // default value processing: return as is

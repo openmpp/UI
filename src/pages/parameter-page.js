@@ -74,7 +74,7 @@ export default {
         isRawShow: false        // for number editor this is raw value format status before editor started
       },
       pvc: {
-        rowColMode: Pcvt.SPANS_AND_DIMS_PVT,  // rows and columns mode: 2 = use spans and show dim names, 1 = use spans and hide dim names, 0 = no spans and hide dim names
+        rowColMode: Pcvt.SPANS_AND_DIMS_PVT,  // rows and columns mode: 2 = use spans and show dim names
         isShowNames: false,                   // if true then show dimension names and item names instead of labels
         reader: void 0,                       // return row reader: if defined then methods to read next row, read() dimension items and readValue()
         processValue: Pcvt.asIsPval,          // default value processing: return as is
@@ -205,7 +205,7 @@ export default {
       this.dispatchParamView({ key: this.routeKey, isRowColControls: this.ctrl.isRowColControls })
     },
     onSetRowColMode (mode) {
-      this.pvc.rowColMode = (3 + mode) % 3
+      this.pvc.rowColMode = (4 + mode) % 4
       this.dispatchParamView({ key: this.routeKey, rowColMode: this.pvc.rowColMode })
     },
     // switch between show dimension names and item names or labels
@@ -514,17 +514,14 @@ export default {
 
       // make sure at least one item selected in each dimension
       // other dimensions: use single-select dropdown
-      let isSubIdSelUpdate = false
       for (const f of this.dimProp) {
         if (f.selection.length < 1) {
           f.selection.push(f.enums[0])
-          if (f.name === Puih.SUB_ID_DIM) isSubIdSelUpdate = true
         }
       }
       for (const f of this.otherFields) {
         if (f.selection.length > 1) {
           f.selection.splice(1)
-          if (f.name === Puih.SUB_ID_DIM) isSubIdSelUpdate = true
         }
       }
       for (const f of this.dimProp) {
@@ -535,11 +532,8 @@ export default {
       //  if other dimesion(s) filters same as before
       //  then update pivot table view now
       //  else refresh data
-      if (Puih.equalFilterState(this.filterState, this.otherFields, Puih.SUB_ID_DIM)) {
+      if (Puih.equalFilterState(this.filterState, this.otherFields)) {
         this.ctrl.isPvTickle = !this.ctrl.isPvTickle
-        if (isSubIdSelUpdate) {
-          this.filterState = Puih.makeFilterState(this.otherFields)
-        }
       } else {
         this.doRefreshDataPage()
       }
@@ -575,11 +569,8 @@ export default {
       // update pivot view:
       //   if other dimesions filters same as before then update pivot table view now
       //   else refresh data
-      if (panel !== 'other' || Puih.equalFilterState(this.filterState, this.otherFields, Puih.SUB_ID_DIM)) {
+      if (panel !== 'other' || Puih.equalFilterState(this.filterState, this.otherFields)) {
         this.ctrl.isPvTickle = !this.ctrl.isPvTickle
-        if (name === Puih.SUB_ID_DIM) {
-          this.filterState = Puih.makeFilterState(this.otherFields)
-        }
       } else {
         this.doRefreshDataPage()
       }
@@ -635,9 +626,7 @@ export default {
     // update pivot view after "select all" or "clear all"
     updateSelectOrClearView (name) {
       this.ctrl.isPvTickle = !this.ctrl.isPvTickle
-      if (name === Puih.SUB_ID_DIM) {
-        this.filterState = Puih.makeFilterState(this.otherFields)
-      }
+
       // update pivot view rows, columns, other dimensions
       this.dispatchParamView({
         key: this.routeKey,
@@ -689,7 +678,7 @@ export default {
 
       this.isPages = paramSize?.dimTotal > SMALL_PAGE_SIZE // disable pages for small table
       this.pageStart = 0
-      this.pageSize = this.isPages ? SMALL_PAGE_SIZE : 0
+      this.pageSize = 0 // by default show all rows
 
       this.isNullable = this.paramText.Param?.IsExtendable || false
       this.subCount = this.paramRunSet.SubCount || 0
@@ -1074,6 +1063,14 @@ export default {
 
       // make parameter read layout and url
       const layout = Puih.makeSelectLayout(this.parameterName, this.otherFields, Puih.SUB_ID_DIM)
+
+      // if sub_id on other dimensions then add filter by sub-value id
+      const fSub = this.filterState?.[Puih.SUB_ID_DIM]
+      if (fSub) {
+        layout.IsSubId = Array.isArray(fSub) && fSub.length > 0
+        if (layout.IsSubId) layout.SubId = fSub[0]
+      }
+
       layout.Offset = 0
       layout.Size = 0
       layout.IsFullPage = false

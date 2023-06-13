@@ -9,6 +9,8 @@
     :is-any-group="isAnyEntity"
     :is-any-hidden="isAnyHidden"
     :is-show-hidden="isShowHidden"
+    :is-group-click="isEntityClick"
+    :is-leaf-click="isAttrClick"
     :is-add="isAddEntityAttr"
     :is-add-group="isAddEntity"
     :is-add-disabled="isAddDisabled"
@@ -24,6 +26,7 @@
     :in-list-clear-icon="inListClearIcon"
     @om-table-tree-show-hidden="onToogleHiddenNodes"
     @om-table-tree-clear-in-list="onClearInListFilter"
+    @om-table-tree-group-select="onEntityClick"
     @om-table-tree-leaf-select="onAttrClick"
     @om-table-tree-leaf-add="onAttrAddClick"
     @om-table-tree-group-add="onEntityAddClick"
@@ -50,6 +53,8 @@ export default {
     refreshTickle: { type: Boolean, default: false },
     refreshEntityTreeTickle: { type: Boolean, default: false },
     isAllExpand: { type: Boolean, default: false },
+    isEntityClick: { type: Boolean, default: false },
+    isAttrClick: { type: Boolean, default: false },
     isAddEntityAttr: { type: Boolean, default: false },
     isAddEntity: { type: Boolean, default: false },
     isAddDisabled: { type: Boolean, default: false },
@@ -118,6 +123,10 @@ export default {
     // click on clear filter: show all entity attributes
     onClearInListFilter () {
       this.$emit('entity-clear-in-list')
+    },
+    // click on entity: forward to parent
+    onEntityClick (name, parts) {
+      this.$emit('entity-select', name, parts)
     },
     // click on entity attribute: forward to parent
     onAttrClick (name, parts) {

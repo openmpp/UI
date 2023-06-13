@@ -260,6 +260,7 @@
         :workset-name="worksetNameSelected"
         :refresh-tickle="refreshTickle"
         :refresh-param-tree-tickle="refreshParamTreeTickle"
+        :is-param-leaf-click="true"
         :is-remove="true"
         :is-remove-group="true"
         :is-remove-disabled="isReadonlyWorksetCurrent"

@@ -128,3 +128,51 @@ export const entityAttrTextByName = (md, entName, attrName) => {
   }
   return emptyEntityAttrTxt() // not found
 }
+
+/* model run or run text microdata:
+    "Entity": [{
+            "Name": "Person",
+            "GenDigest": "76be220e9a1814557f3a2af2b32388e4",
+            "ValueDigest": "1e39ee49c28ec786cb0309df668d3d1e",
+            "RowCount": 131056,
+            "Attr": ["Age", "AgeGroup", "Sex", "Income", "Salary", "SalaryGroup", "FullTime", "IsOldAge", "Pension"]
+        }, {
+            "Name": "Other",
+            "GenDigest": "a3fddbd390e4c60101a28d892dc4597c",
+            "ValueDigest": "60e2c86ffdca9d0de346a533934d31bd",
+            "RowCount": 131056,
+            "Attr": ["Age", "AgeGroup", "Income"]
+        }
+    ]
+*/
+
+// return empty run entity
+export const emptyRunEntity = () => {
+  return {
+    Name: '',
+    GenDigest: '',
+    ValueDigest: '',
+    RowCount: 0,
+    Attr: []
+  }
+}
+
+// return true if it is model run Entity and it is not empty: Name, GenDigest, RowCount > 0 and Attr[] array not empty
+export const isNotEmptyRunEntity = (re) => {
+  if (!re || !re.hasOwnProperty('Name') || !re.hasOwnProperty('GenDigest') || !re.hasOwnProperty('ValueDigest') || !re.hasOwnProperty('RowCount')) return false
+  if (typeof re.Name !== typeof 'string' || typeof re.GenDigest !== typeof 'string' || typeof re.ValueDigest !== typeof 'string') return false
+  if (typeof re.RowCount !== typeof 1) return false
+  if (!Array.isArray(re?.Attr)) return false
+  return re.Name !== '' && re.GenDigest !== '' && re.Attr.length > 0 && re.RowCount > 0
+}
+
+// find non-empty run entity by name in model run Entity[] array
+export const runEntityByName = (r, name) => {
+  if (!r || !r?.Entity || !Array.isArray(r.Entity)) return emptyRunEntity()
+  if (!name || typeof name !== typeof 'string') return emptyRunEntity()
+
+  for (const re of r.Entity) {
+    if (isNotEmptyRunEntity(re) && re.Name === name) return re // entity name found
+  }
+  return emptyRunEntity()
+}

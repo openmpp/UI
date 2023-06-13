@@ -35,6 +35,11 @@ const routes = [
             props: true
           },
           {
+            path: 'run/:runDigest/entity/:entityName',
+            component: () => import('pages/EntityPage'),
+            props: true
+          },
+          {
             name: 'new-model-run',
             path: 'new-run',
             component: () => import('pages/NewRun'),

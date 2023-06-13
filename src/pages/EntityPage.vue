@@ -4,33 +4,17 @@
   <div class="q-pa-sm">
     <q-toolbar class="shadow-1 rounded-borders">
 
-      <template v-if="isFromRun">
-        <run-bar
-          :model-digest="digest"
-          :run-digest="runDigest"
-          @run-info-click="doShowRunNote"
-          >
-        </run-bar>
-      </template>
-
-      <template v-else>
-        <workset-bar
-          :model-digest="digest"
-          :workset-name="worksetName"
-          :is-readonly-button="true"
-          :is-new-run-button="true"
-          :is-show-menu="true"
-          @set-info-click="doShowWorksetNote"
-          @set-update-readonly="onWorksetReadonlyToggle"
-          @new-run-select="onNewRunClick"
-          >
-        </workset-bar>
-      </template>
+      <run-bar
+        :model-digest="digest"
+        :run-digest="runDigest"
+        @run-info-click="doShowRunNote"
+        >
+      </run-bar>
 
     </q-toolbar>
   </div>
 
-  <!-- parameter header -->
+  <!-- microdata header -->
   <div class="q-mx-sm q-mb-sm">
     <q-toolbar class="row reverse-wrap items-center shadow-1 rounded-borders">
 
@@ -38,7 +22,7 @@
     <q-btn
       outline
       dense
-      class="col-auto text-primary rounded-borders"
+      class="col-auto text-primary rounded-borders q-mr-xs"
       icon="menu"
       :title="$t('Menu')"
       :aria-label="$t('Menu')"
@@ -47,91 +31,15 @@
         <q-list>
 
           <q-item
-            @click="doShowParamNote"
+            @click="doShowEntityNote"
             clickable
             >
             <q-item-section avatar>
               <q-icon color="primary" name="mdi-information-outline" />
             </q-item-section>
-            <q-item-section>{{ $t('About') + ' ' + parameterName }}</q-item-section>
+            <q-item-section>{{ $t('About') + ' ' + entityName }}</q-item-section>
           </q-item>
-          <q-separator />
 
-          <template v-if="!isFromRun">
-            <q-item
-              @click="doEditToogle"
-              :disable="!edt.isEnabled || (isNowArchive || isSoonArchive)"
-              clickable
-              >
-              <q-item-section avatar>
-                <q-icon color="primary" :name="edt.isEdit ? 'mdi-close-circle-outline' : 'mdi-table-edit'" />
-              </q-item-section>
-              <q-item-section>{{ (edt.isEdit ? $t('Discard changes of') : $t('Edit')) + ' ' + parameterName }}</q-item-section>
-            </q-item>
-            <q-item
-              @click="onEditSave"
-              :disable="!edt.isEnabled || !edt.isUpdated || isNowArchive"
-              clickable
-              >
-              <q-item-section avatar>
-                <q-icon color="primary" name="mdi-content-save-edit" />
-              </q-item-section>
-              <q-item-section>{{ $t('Save') + ' ' + parameterName }}</q-item-section>
-            </q-item>
-            <q-item
-              @click="onUndo"
-              :disable="!edt.isEnabled || edt.lastHistory <= 0 || isNowArchive"
-              clickable
-              >
-              <q-item-section avatar>
-                <q-icon color="primary" name="mdi-undo-variant" />
-              </q-item-section>
-              <q-item-section>{{ $t('Undo') + ': Ctrl+Z' }}</q-item-section>
-            </q-item>
-            <q-item
-              @click="onRedo"
-              :disable="!edt.isEnabled || edt.lastHistory >= edt.history.length || isNowArchive"
-              clickable
-              >
-              <q-item-section avatar>
-                <q-icon color="primary" name="mdi-redo-variant" />
-              </q-item-section>
-              <q-item-section>{{ $t('Redo') + ': Ctrl+Y' }}</q-item-section>
-            </q-item>
-            <q-separator />
-          </template>
-
-          <q-item
-            v-if="!noteEditorShow"
-            @click="onEditParamNote()"
-            :disable="!isFromRun && (!edt.isEnabled || isNowArchive || isSoonArchive)"
-            clickable
-            >
-            <q-item-section avatar>
-              <q-icon color="primary" name="mdi-file-document-edit-outline" />
-            </q-item-section>
-            <q-item-section>{{ $t('Edit notes for') + ' ' + parameterName }}</q-item-section>
-          </q-item>
-          <q-item
-            v-if="noteEditorShow"
-            @click="onCancelParamNote()"
-            clickable
-            >
-            <q-item-section avatar>
-              <q-icon color="primary" name="mdi-close-circle-outline" />
-            </q-item-section>
-            <q-item-section>{{ $t('Discard changes to notes for') + ' ' + parameterName }}</q-item-section>
-          </q-item>
-          <q-item
-            @click="onSaveParamNote()"
-            :disable="!noteEditorShow || (!isFromRun && (!edt.isEnabled || isNowArchive || isSoonArchive))"
-            clickable
-            >
-            <q-item-section avatar>
-              <q-icon color="primary" name="mdi-content-save-edit" />
-            </q-item-section>
-            <q-item-section>{{ $t('Save notes for') + ' ' + parameterName }}</q-item-section>
-          </q-item>
           <q-separator />
 
           <q-item
@@ -145,35 +53,12 @@
           </q-item>
           <q-item
             @click="onDownload"
-            :disable="!isFromRun && edt.isEdit"
             clickable
             >
             <q-item-section avatar>
               <q-icon color="primary" name="mdi-download" />
             </q-item-section>
-            <q-item-section>{{ $t('Download') + ' '  + parameterName + ' ' + $t('as CSV') }}</q-item-section>
-          </q-item>
-          <q-item
-            v-if="!isFromRun"
-            @click="doShowFileSelect()"
-            v-show="!uploadFileSelect"
-            :disable="!isUploadEnabled || edt.isEdit || (isNowArchive || isSoonArchive)"
-            clickable
-            >
-            <q-item-section avatar>
-              <q-icon color="primary" name="mdi-upload" />
-            </q-item-section>
-            <q-item-section>{{ $t('Upload') + ' ' + parameterName + '.csv' }}</q-item-section>
-          </q-item>
-          <q-item
-            @click="doCancelFileSelect()"
-            v-show="uploadFileSelect"
-            clickable
-            >
-            <q-item-section avatar>
-              <q-icon color="primary" name="mdi-close-circle-outline" />
-            </q-item-section>
-            <q-item-section>{{ $t('Cancel upload') }}</q-item-section>
+            <q-item-section>{{ $t('Download') + ' '  + entityName + ' ' + $t('as CSV') }}</q-item-section>
           </q-item>
           <q-separator />
 
@@ -277,37 +162,36 @@
 
           <q-item
             @click="onSaveDefaultView"
-            :disable="edt.isEdit"
             clickable
             >
             <q-item-section avatar>
               <q-icon color="primary" name="mdi-content-save-cog" />
             </q-item-section>
-            <q-item-section>{{ $t('Save table view as default view of') + ' ' + parameterName }}</q-item-section>
+            <q-item-section>{{ $t('Save microdata view as default view of') + ' ' + entityName }}</q-item-section>
           </q-item>
           <q-item
             @click="onReloadDefaultView"
-            :disable="edt.isEdit"
             clickable
             >
             <q-item-section avatar>
               <q-icon color="primary" name="mdi-cog-refresh-outline" />
             </q-item-section>
-            <q-item-section>{{ $t('Reset table view to default and reload') + ' ' + parameterName }}</q-item-section>
+            <q-item-section>{{ $t('Reset microdata view to default and reload') + ' ' + entityName }}</q-item-section>
           </q-item>
 
         </q-list>
       </q-menu>
     </q-btn>
+
     <!-- end of menu -->
 
     <q-btn
-      @click="doShowParamNote"
+      @click="doShowEntityNote"
       flat
       dense
-      class="col-auto bg-primary text-white rounded-borders q-ml-xs"
+      class="col-auto bg-primary text-white rounded-borders"
       icon="mdi-information"
-      :title="$t('About') + ' ' + parameterName"
+      :title="$t('About') + ' ' + entityName"
       />
 
     <q-separator vertical inset spaced="sm" color="secondary" />
@@ -370,115 +254,21 @@
       <q-separator vertical inset spaced="sm" color="secondary" />
     </template>
 
-    <template v-if="!isFromRun">
-      <q-btn
-        @click="doEditToogle"
-        :disable="!edt.isEnabled || (isNowArchive || isSoonArchive)"
-        flat
-        dense
-        class="col-auto bg-primary text-white rounded-borders"
-        :icon="edt.isEdit ? 'cancel' : 'mdi-table-edit'"
-        :title="(edt.isEdit ? $t('Discard changes of') : $t('Edit')) + ' ' + parameterName"
-        />
-      <q-btn
-        @click="onEditSave"
-        :disable="!edt.isEnabled || !edt.isUpdated || isNowArchive"
-        flat
-        dense
-        class="col-auto bg-primary text-white rounded-borders q-ml-xs"
-        icon="mdi-content-save-edit"
-        :title="$t('Save') + ' ' + parameterName"
-        />
-      <q-btn
-        @click="onUndo"
-        :disable="!edt.isEnabled || edt.lastHistory <= 0 || isNowArchive"
-        flat
-        dense
-        class="col-auto bg-primary text-white rounded-borders q-ml-xs"
-        icon="mdi-undo-variant"
-        :title="$t('Undo') + ': Ctrl+Z'"
-        />
-      <q-btn
-        @click="onRedo"
-        :disable="!edt.isEnabled || edt.lastHistory >= edt.history.length || isNowArchive"
-        flat
-        dense
-        class="col-auto bg-primary text-white rounded-borders q-ml-xs"
-        icon="mdi-redo-variant"
-        :title="$t('Redo') + ': Ctrl+Y'"
-        />
-
-      <q-separator vertical inset spaced="sm" color="secondary" />
-    </template>
-
-    <q-btn
-      v-if="!noteEditorShow"
-      @click="onEditParamNote()"
-      :disable="!isFromRun && (!edt.isEnabled || isNowArchive || isSoonArchive)"
-      flat
-      dense
-      class="col-auto bg-primary text-white rounded-borders"
-      icon="mdi-file-document-edit-outline"
-      :title="$t('Edit notes for') + ' ' + parameterName"
-      />
-    <q-btn
-      v-if="noteEditorShow"
-      @click="onCancelParamNote()"
-      flat
-      dense
-      class="col-auto bg-primary text-white rounded-borders q-ml-xs"
-      icon="cancel"
-      :title="$t('Discard changes to notes for') + ' ' + parameterName"
-      />
-    <q-btn
-      @click="onSaveParamNote()"
-      :disable="!noteEditorShow || (!isFromRun && (!edt.isEnabled || isNowArchive || isSoonArchive))"
-      flat
-      dense
-      class="col-auto bg-primary text-white rounded-borders q-ml-xs"
-      icon="mdi-content-save-edit"
-      :title="$t('Save notes for') + ' ' + parameterName"
-      />
-
-    <q-separator vertical inset spaced="sm" color="secondary" />
-
     <q-btn
       @click="onCopyToClipboard"
       flat
       dense
-      class="col-auto bg-primary text-white rounded-borders"
+      class="col-auto bg-primary text-white rounded-borders q-mr-xs"
       icon="mdi-content-copy"
       :title="$t('Copy tab separated values to clipboard') + ': Ctrl+C'"
       />
     <q-btn
       @click="onDownload"
-      :disable="!isFromRun && edt.isEdit"
       flat
       dense
-      class="col-auto bg-primary text-white rounded-borders q-ml-xs"
+      class="col-auto bg-primary text-white rounded-borders"
       icon="mdi-download"
-      :title="$t('Download') + ' '  + parameterName + ' ' + $t('as CSV')"
-      />
-
-    <q-btn
-      v-if="!isFromRun"
-      @click="doShowFileSelect()"
-      v-show="!uploadFileSelect"
-      :disable="!isUploadEnabled || edt.isEdit || (isNowArchive || isSoonArchive)"
-      flat
-      dense
-      class="col-auto text-white rounded-borders q-ml-xs bg-primary text-white rounded-borders"
-      icon='mdi-upload'
-      :title="$t('Upload') + ' ' + parameterName + '.csv'"
-      />
-    <q-btn
-      @click="doCancelFileSelect()"
-      v-show="uploadFileSelect"
-      flat
-      dense
-      class="col-auto text-white rounded-borders q-ml-xs bg-primary text-white rounded-borders"
-      icon='mdi-close-circle'
-      :title="$t('Cancel upload')"
+      :title="$t('Download') + ' '  + entityName + ' ' + $t('as CSV')"
       />
 
     <q-separator vertical inset spaced="sm" color="secondary" />
@@ -486,59 +276,59 @@
     <q-btn
       @click="onToggleRowColControls"
       :disable="!ctrl.isRowColModeToggle"
-      :flat="ctrl.isRowColControls || !ctrl.isRowColModeToggle"
-      :outline="!ctrl.isRowColControls && ctrl.isRowColModeToggle"
+      :flat="ctrl.isRowColControls"
+      :outline="!ctrl.isRowColControls"
       dense
-      :class="{ 'bar-button-on' : (ctrl.isRowColControls || !ctrl.isRowColModeToggle), 'bar-button-off' : (!ctrl.isRowColControls && ctrl.isRowColModeToggle), 'q-mr-xs' : ctrl.isRowColModeToggle || ctrl.formatOpts }"
-      class="col-auto rounded-borders q-mr-xs"
+      :class="{ 'bar-button-on' : ctrl.isRowColControls, 'bar-button-off' : !ctrl.isRowColControls, 'q-mr-xs' : ctrl.isRowColModeToggle || ctrl.formatOpts }"
+      class="col-auto rounded-borders"
       icon="mdi-tune"
       :title="ctrl.isRowColControls ? $t('Hide rows and columns bars') : $t('Show rows and columns bars')"
       />
 
-    <template v-if="ctrl.isRowColModeToggle">
-      <q-btn
-        @click="onSetRowColMode(2)"
-        :disable="pvc.rowColMode === 2"
-        flat
-        dense
-        class="col-auto bg-primary text-white rounded-borders q-mr-xs"
-        icon="mdi-view-quilt-outline"
-        :title="$t('Switch to default pivot view')"
-        />
-      <q-btn
-        @click="onSetRowColMode(1)"
-        :disable="pvc.rowColMode === 1"
-        flat
-        dense
-        class="col-auto bg-primary text-white rounded-borders q-mr-xs"
-        icon="mdi-view-list-outline"
-        :title="$t('Table view: hide rows and columns name')"
-        />
-      <q-btn
-        @click="onSetRowColMode(3)"
-        :disable="pvc.rowColMode === 3"
-        flat
-        dense
-        class="col-auto bg-primary text-white rounded-borders q-mr-xs"
-        icon="mdi-view-compact-outline"
-        :title="$t('Table view: always show rows and columns item and name')"
-        />
-      <q-btn
-        @click="onSetRowColMode(0)"
-        :disable="pvc.rowColMode === 0"
-        flat
-        dense
-        class="col-auto bg-primary text-white rounded-borders"
-        :class="{ 'q-mr-xs' : ctrl.formatOpts }"
-        icon="mdi-view-module-outline"
-        :title="$t('Table view: always show rows and columns item')"
-        />
-    </template>
+      <template v-if="ctrl.isRowColModeToggle">
+        <q-btn
+          @click="onSetRowColMode(2)"
+          :disable="pvc.rowColMode === 2"
+          flat
+          dense
+          class="col-auto bg-primary text-white rounded-borders q-mr-xs"
+          icon="mdi-view-quilt-outline"
+          :title="$t('Switch to default pivot view')"
+          />
+        <q-btn
+          @click="onSetRowColMode(1)"
+          :disable="pvc.rowColMode === 1"
+          flat
+          dense
+          class="col-auto bg-primary text-white rounded-borders q-mr-xs"
+          icon="mdi-view-list-outline"
+          :title="$t('Table view: hide rows and columns name')"
+          />
+        <q-btn
+          @click="onSetRowColMode(3)"
+          :disable="pvc.rowColMode === 3"
+          flat
+          dense
+          class="col-auto bg-primary text-white rounded-borders q-mr-xs"
+          icon="mdi-view-compact-outline"
+          :title="$t('Table view: always show rows and columns item and name')"
+          />
+        <q-btn
+          @click="onSetRowColMode(0)"
+          :disable="pvc.rowColMode === 0"
+          flat
+          dense
+          class="col-auto bg-primary text-white rounded-borders"
+          :class="{ 'q-mr-xs' : ctrl.formatOpts }"
+          icon="mdi-view-module-outline"
+          :title="$t('Table view: always show rows and columns item')"
+          />
+      </template>
 
     <template v-if="ctrl.formatOpts && ctrl.formatOpts.isFloat">
       <q-btn
         @click="onShowMoreFormat"
-        :disable="!ctrl.formatOpts.isDoMore || edt.isEdit"
+        :disable="!ctrl.formatOpts.isDoMore"
         flat
         dense
         class="col-auto bg-primary text-white rounded-borders q-mr-xs"
@@ -547,7 +337,7 @@
         />
       <q-btn
         @click="onShowLessFormat"
-        :disable="!ctrl.formatOpts.isDoLess || edt.isEdit"
+        :disable="!ctrl.formatOpts.isDoLess"
         flat
         dense
         class="col-auto bg-primary text-white rounded-borders q-mr-xs"
@@ -558,12 +348,11 @@
     <q-btn
       v-if="ctrl.formatOpts && ctrl.formatOpts.isRawUse"
       @click="onToggleRawValue"
-      :disable="edt.isEdit"
-      :flat="!ctrl.formatOpts.isRawValue || edt.isEdit"
-      :outline="ctrl.formatOpts.isRawValue && !edt.isEdit"
+      :flat="!ctrl.formatOpts.isRawValue"
+      :outline="ctrl.formatOpts.isRawValue"
       dense
-      :class="(!ctrl.formatOpts.isRawValue || edt.isEdit) ? 'bar-button-on' : 'bar-button-off'"
-      class="col-auto rounded-borders q-mr-xs"
+      :class="!ctrl.formatOpts.isRawValue ? 'bar-button-on' : 'bar-button-off'"
+      class="col-auto rounded-borders"
       icon="mdi-loupe"
       :title="!ctrl.formatOpts.isRawValue ? $t('Show raw source value') : $t('Show formatted value')"
       />
@@ -574,7 +363,7 @@
       :outline="pvc.isShowNames"
       dense
       :class="!pvc.isShowNames ? 'bar-button-on' : 'bar-button-off'"
-      class="col-auto rounded-borders"
+      class="col-auto rounded-borders q-ml-xs"
       icon="mdi-label-outline"
       :title="pvc.isShowNames ? $t('Show labels') : $t('Show names')"
       />
@@ -583,122 +372,37 @@
 
     <q-btn
       @click="onSaveDefaultView"
-      :disable="edt.isEdit"
       flat
       dense
       class="col-auto bg-primary text-white rounded-borders q-mr-xs"
       icon="mdi-content-save-cog"
-      :title="$t('Save table view as default view of') + ' ' + parameterName"
+      :title="$t('Save microdata view as default view of') + ' ' + entityName"
       />
     <q-btn
       @click="onReloadDefaultView"
-      :disable="edt.isEdit"
       flat
       dense
       class="col-auto bg-primary text-white rounded-borders q-mr-xs"
       icon="mdi-cog-refresh-outline"
-      :title="$t('Reset table view to default and reload') + ' ' + parameterName"
+      :title="$t('Reset microdata view to default and reload') + ' ' + entityName"
       />
 
     <div
       class="col-auto"
       >
-      <span>{{ parameterName }}<br />
-      <span class="om-text-descr">{{ paramDescr }}</span></span>
+      <span>{{ entityName }}<br />
+      <span class="om-text-descr">{{ entityDescr }}</span></span>
     </div>
 
     </q-toolbar>
 
-    <q-card v-if="uploadFileSelect">
-
-      <div class="row q-mt-xs q-pa-sm">
-        <q-btn
-          @click="onUploadParameter"
-          v-if="uploadFileSelect"
-          :disable="!fileSelected"
-          flat
-          dense
-          class="col-auto bg-primary text-white rounded-borders"
-          icon="mdi-upload"
-          :title="$t('Upload selected file')"
-          />
-        <q-file
-          v-model="uploadFile"
-          v-if="uploadFileSelect"
-          accept='.csv'
-          outlined
-          dense
-          clearable
-          hide-bottom-space
-          class="col q-pl-xs"
-          color="primary"
-          :label="$t('Select') + ' ' + parameterName + '.csv'"
-          >
-        </q-file>
-      </div>
-
-      <div class="row items-center q-mt-xs q-pa-sm">
-        <span class="col-auto q-px-md"></span>
-        <span class="col-auto q-px-xs">{{ $t('Sub-values Count') }}:</span>
-        <q-input
-          v-model="subCountUpload"
-          type="number"
-          maxlength="4"
-          min="1"
-          max="8192"
-          :rules="[
-            val => val !== void 0,
-            val => val >= 1 && val <= 8192
-          ]"
-          outlined
-          dense
-          hide-bottom-space
-          class="upload-max-width-10"
-          input-class="col-auto upload-right"
-          :title="$t('Number of sub-values (a.k.a. members or replicas or sub-samples)')"
-          >
-        </q-input>
-
-        <span class="col-auto q-pl-md q-pr-xs">{{ $t('Default Sub-value') }}:</span>
-        <q-input
-          v-model="defaultSubUpload"
-          :disable="subCountUpload < 2"
-          type="number"
-          maxlength="4"
-          outlined
-          dense
-          hide-bottom-space
-          class="upload-max-width-10"
-          input-class="col-auto upload-right"
-          :title="$t('Default sub-value, if parameter has more than 1 sub-value')"
-          >
-        </q-input>
-      </div>
-    </q-card>
   </div>
-  <!-- end of parameter header -->
-
-  <div class="q-mx-sm q-mb-sm">
-
-  <markdown-editor
-    v-if="noteEditorShow"
-    ref="param-note-editor"
-    class="q-px-none q-py-xs"
-    :the-note="noteEditorNotes"
-    :lang-code="noteEditorLangCode"
-    :description-editable="false"
-    :notes-editable="true"
-    :is-hide-save="true"
-    :is-hide-cancel="true"
-    >
-  </markdown-editor>
-
-  </div>
+  <!-- end of output table header -->
 
   <!-- pivot table controls and view -->
   <div class="q-mx-sm">
 
-    <div v-show="ctrl.isRowColControls && !edt.isEdit"
+    <div v-show="ctrl.isRowColControls"
       :title="$t('Slicer dimensions')"
       class="other-panel"
       >
@@ -909,9 +613,7 @@
         :pv-control="pvc"
         :refreshViewTickle="ctrl.isPvTickle"
         :refreshDimsTickle="ctrl.isPvDimsTickle"
-        :pv-edit="edt"
         @pv-key-pos="onPvKeyPos"
-        @pv-edit="onPvEdit"
         >
       </pv-table>
 
@@ -929,41 +631,18 @@
     @wait="loadRunWait = true"
     >
   </refresh-run>
-  <refresh-workset v-if="(digest || '') !== '' && (worksetName || '') !== ''"
-    :model-digest="digest"
-    :workset-name="worksetName"
-    :refresh-tickle="refreshTickle"
-    :refresh-workset-tickle="refreshWsTickle"
-    @done="loadWsWait = false"
-    @wait="loadWsWait = true"
-    >
-  </refresh-workset>
 
-  <run-info-dialog v-if="isFromRun" :show-tickle="runInfoTickle" :model-digest="digest" :run-digest="runDigest"></run-info-dialog>
-  <workset-info-dialog v-if="!isFromRun" :show-tickle="worksetInfoTickle" :model-digest="digest" :workset-name="worksetName"></workset-info-dialog>
-  <parameter-info-dialog v-if="isFromRun" :show-tickle="paramInfoTickle" :param-name="parameterName" :run-digest="runDigest"></parameter-info-dialog>
-  <parameter-info-dialog v-if="!isFromRun" :show-tickle="paramInfoTickle" :param-name="parameterName" :workset-name="worksetName"></parameter-info-dialog>
-  <edit-discard-dialog
-    @discard-changes-yes="onYesDiscardChanges"
-    :show-tickle="showEditDiscardTickle"
-    :dialog-title="$t('Discard all changes') + '?'"
-    >
-  </edit-discard-dialog>
-  <edit-discard-dialog
-    @discard-changes-yes="onYesDiscardParamNote"
-    :show-tickle="showDiscardParamNoteTickle"
-    :dialog-title="$t('Discard changes to notes for') + ' ' + parameterName + '?'"
-    >
-  </edit-discard-dialog>
+  <run-info-dialog :show-tickle="runInfoTickle" :model-digest="digest" :run-digest="runDigest"></run-info-dialog>
+  <entity-run-info-dialog :show-tickle="entityInfoTickle" :entity-name="entityName" :run-digest="runDigest"></entity-run-info-dialog>
 
-  <q-inner-loading :showing="loadWait || loadRunWait || loadWsWait">
+  <q-inner-loading :showing="loadWait || loadRunWait">
     <q-spinner-gears size="md" color="primary" />
   </q-inner-loading>
 
 </div>
 </template>
 
-<script src="./parameter-page.js"></script>
+<script src="./entity-page.js"></script>
 
 <style lang="scss" scope="local">
   /* pivot vew controls: rows, columns, other dimensions and drag-drop area */
