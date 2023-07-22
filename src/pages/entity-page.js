@@ -13,6 +13,7 @@ import { openURL } from 'quasar'
 
 /* eslint-disable no-multi-spaces */
 const ATTR_DIM_NAME = 'ATTRIBUTES_DIM'          // attributes measure dimension name
+const KEY_DIM_NAME = 'ENTITY_KEY_DIM'           // entity key dimension name
 const SMALL_PAGE_SIZE = 10                      // small page size: do not show page controls
 const LAST_PAGE_OFFSET = 2 * 1024 * 1024 * 1024 // large page offset to get the last page
 /* eslint-enable no-multi-spaces */
@@ -35,7 +36,7 @@ export default {
       loadWait: false,
       isNullable: true,       // entity always nullabale, value can be NULL
       isScalar: false,        // microdata never scalar, it always has at least one attribute
-      rank: 0,                // number of enum-based attributes
+      rank: 0,                // entity key dimension + number of enum-based attributes
       attrCount: 0,           // number of attributes of built-in types: int, float, bool, string
       entityText: Mdf.emptyEntityText(),
       runEntity: Mdf.emptyRunEntity(),
@@ -62,7 +63,8 @@ export default {
         cellClass: 'pv-cell-right'            // default cell value style: right justified number
       },
       pvKeyPos: [],           // position of each dimension item in cell key
-      isDragging: false,      // if true then user is dragging dimension select control
+      isDragging: false,          // if true then user is dragging dimension select control
+      isOtherDropDisabled: false, // if true then others drop area disabled
       isPages: false,
       pageStart: 0,
       pageSize: 0,
@@ -144,11 +146,24 @@ export default {
       this.pvc.processValue = Pcvt.asIsPval // no value conversion required, only formatting
 
       // make dimensions:
-      //  [0, rank - 1] of enum-based dimensions
+      //  [0]           entity key dimension
+      //  [1, rank - 1] enum-based dimensions
       //  [rank]        measure attributes dimension: list of non-enum based attributes, e.g. int, double,... attributes
-      this.rank = 0
       this.attrCount = 0
+      this.rank = 0
       this.dimProp = []
+
+      // entity key dimension at [0] position: initially empty
+      const fk = {
+        name: KEY_DIM_NAME,
+        label: (Mdf.descrOfDescrNote(this.entityText) || this.$t('Entity')) + ' ' + this.$t('key'),
+        enums: [],
+        options: [],
+        selection: [],
+        singleSelection: {},
+        filter: (val, update, abort) => {}
+      }
+      this.dimProp.push(fk)
 
       // measure attributes dimension
       const fa = {
@@ -258,18 +273,23 @@ export default {
       this.pvc.cellClass = 'pv-cell-right' // numeric cell value style by default
       this.pvc.processValue = Pcvt.asIsPval // no value conversion required, only formatting
 
-      // read microdata rows, each row is src.Attr[] array of attributes:
+      // read microdata rows, each row is { Key: integer, Attr:[{IsNull: false, Value: 19},...] }
+      // array of attributes:
       //   dimensions are enum-based attributes
       //   meausre dimension values are values of built-in types attributes
       this.pvc.reader = (src) => {
         // no data to read: if source rows are empty or invalid return undefined reader
         if (!src || (src?.length || 0) <= 0) return void 0
 
-        // attribute id's: dimension at [rank] is an attributes measure dimension
-        const dimPos = Array(this.rank)
+        // entity key dimension is at [0] position
+        // attribute id's: [1, rank - 1] enum based dimensions
+        let dimPos = []
+        if (this.rank > 1) {
+          dimPos = Array(this.rank - 1)
 
-        for (let k = 0; k < this.rank; k++) {
-          dimPos[k] = this.dimProp[k].attrPos
+          for (let k = 1; k < this.rank; k++) {
+            dimPos[k - 1] = this.dimProp[k].attrPos
+          }
         }
 
         // measure dimension at [rank] position: attribute id's are enum values of measure dimension
@@ -295,19 +315,24 @@ export default {
               nAttr = 0
               nSrc++
             }
-            return (nSrc < srcLen) ? (src[nSrc]?.Attr || void 0) : void 0 // microdata row: enum-based attributes as dimensions and buit-in types attributes as values
+            return (nSrc < srcLen) ? (src[nSrc] || void 0) : void 0 // microdata row: key and array of enum-based attributes as dimensions and buit-in types attributes as values
           },
           readDim: {},
           readValue: (r) => {
-            const v = !r[attrPos[nAttr]].IsNull ? r[attrPos[nAttr]].Value : void 0 // measure value: built-in type attribute value
+            const a = r?.Attr || void 0
+            const v = (a && !a[attrPos[nAttr]].IsNull) ? a[attrPos[nAttr]].Value : void 0 // measure value: built-in type attribute value
             return v
           }
         }
 
-        // read dimension item value: enum id and measure dimension attribute id
-        for (let n = 0; n < this.rank; n++) {
+        // read entity key dimension
+        rd.readDim[KEY_DIM_NAME] = (r) => r?.Key
+
+        // read dimension item value: enum id for enum-based attributes
+        for (let n = 1; n < this.rank; n++) {
           rd.readDim[this.dimProp[n].name] = (r) => {
-            const cv = dimPos[n] < r.length ? r[dimPos[n]] : void 0
+            const a = r?.Attr || void 0
+            const cv = (a && dimPos[n - 1] < a.length) ? a[dimPos[n - 1]] : void 0
             return (cv && !cv.IsNull) ? cv.Value : void 0
           }
         }
@@ -370,6 +395,15 @@ export default {
         this.otherFields.push(f)
       }
 
+      // if entity key dimensions on others then move it to rows last position
+      const n = this.otherFields.findIndex(f => f.name === KEY_DIM_NAME)
+      if (n >= 0) {
+        this.otherFields.splice(n, 1)
+        this.dimProp[0].selection = Array.from(this.dimProp[0].enums)
+        this.dimProp[0].singleSelection = (this.dimProp[0].selection.length > 0) ? this.dimProp[0].selection[0] : {}
+        this.rowFields.push(this.dimProp[0])
+      }
+
       // restore controls view state
       this.ctrl.isRowColControls = !!mv.isRowColControls
       this.pvc.rowColMode = typeof mv.rowColMode === typeof 1 ? mv.rowColMode : Pcvt.SPANS_AND_DIMS_PVT
@@ -390,15 +424,16 @@ export default {
 
     // set initial page view for microdata
     setInitialPageView () {
-      // all dimensions on rows, measure dimension on columns
+      // all dimensions on rows, entity key dimension is at last row, measure dimension on columns
       const rf = []
       const cf = []
       const tf = []
 
       // rows: rank dimensions
-      for (let nDim = 0; nDim < this.rank; nDim++) {
+      for (let nDim = 1; nDim < this.rank; nDim++) {
         rf.push(this.dimProp[nDim])
       }
+      if (this.dimProp.length > 0) rf.push(this.dimProp[0]) // entity key dimension at rows on last position
 
       // columns: measure attribute dimension, it is at [rank] position in dimensions array
       if (this.dimProp.length > this.rank) cf.push(this.dimProp[this.rank])
@@ -483,29 +518,6 @@ export default {
         return false
       }
       return true
-    },
-
-    // store pivot view, reload data and refresh pivot view
-    storeViewAndRefreshData () {
-      // set new view kind and  store pivot view
-      const vs = Pcvt.pivotStateFromFields(this.rowFields, this.colFields, this.otherFields, this.ctrl.isRowColControls, this.pvc.rowColMode)
-      vs.pageStart = this.isPages ? this.pageStart : 0
-      vs.pageSize = this.isPages ? this.pageSize : 0
-
-      this.dispatchMicrodataView({
-        key: this.routeKey,
-        view: vs,
-        digest: this.digest || '',
-        modelName: Mdf.modelName(this.theModel),
-        runDigest: this.runDigest || '',
-        entityName: this.entityName || ''
-      })
-
-      // reload data and refresh pivot view: both dimensions labels and table body
-      this.doRefreshDataPage()
-
-      this.ctrl.isPvDimsTickle = !this.ctrl.isPvDimsTickle
-      this.ctrl.isPvTickle = !this.ctrl.isPvTickle
     },
 
     // show entity notes dialog
@@ -763,7 +775,15 @@ export default {
 
     // dimensions drag, drop and selection filter
     //
-    onDrag () {
+    onChoose (e) {
+      if (e?.item?.id === 'item-draggable-' + KEY_DIM_NAME) {
+        this.isOtherDropDisabled = true // disable drop of entity key dimension on others
+      }
+    },
+    onUnchoose (e) {
+      this.isOtherDropDisabled = false
+    },
+    onDrag (e) {
       // drag started
       this.isDragging = true
     },
@@ -794,7 +814,7 @@ export default {
       //  if other dimesion(s) filters same as before
       //  then update pivot table view now
       //  else refresh data
-      if (Puih.equalFilterState(this.filterState, this.otherFields, ATTR_DIM_NAME)) {
+      if (Puih.equalFilterState(this.filterState, this.otherFields, [KEY_DIM_NAME, ATTR_DIM_NAME])) {
         this.ctrl.isPvTickle = !this.ctrl.isPvTickle
         if (isMeasure) {
           this.filterState = Puih.makeFilterState(this.otherFields)
@@ -834,7 +854,7 @@ export default {
       // update pivot view:
       //   if other dimesions filters same as before then update pivot table view now
       //   else refresh data
-      if (panel !== 'other' || Puih.equalFilterState(this.filterState, this.otherFields, ATTR_DIM_NAME)) {
+      if (panel !== 'other' || Puih.equalFilterState(this.filterState, this.otherFields, [KEY_DIM_NAME, ATTR_DIM_NAME])) {
         this.ctrl.isPvTickle = !this.ctrl.isPvTickle
         if (name === ATTR_DIM_NAME) {
           this.filterState = Puih.makeFilterState(this.otherFields)
@@ -932,7 +952,7 @@ export default {
       this.filterState = Puih.makeFilterState(this.otherFields)
 
       // make microdata read layout and url
-      const layout = Puih.makeSelectLayout(this.entityName, this.otherFields, ATTR_DIM_NAME)
+      const layout = Puih.makeSelectLayout(this.entityName, this.otherFields, [KEY_DIM_NAME, ATTR_DIM_NAME])
       layout.Offset = 0
       layout.Size = 0
       layout.IsFullPage = false
@@ -964,9 +984,24 @@ export default {
           this.isLastPage = rsp?.Layout?.IsLastPage || false
         }
 
-        // update pivot table view
+        // update pivot table view and set entity key dimension enums
         this.inpData = Object.freeze(d)
+
+        const eLst = Array(this.inpData.length)
+        for (let j = 0; j < this.inpData.length; j++) {
+          eLst[j] = {
+            value: this.inpData[j]?.Key || 0,
+            name: this.inpData[j]?.Key.toString() || 'Invalid',
+            label: this.inpData[j]?.Key.toString() || this.$t('Invalid key')
+          }
+        }
+        this.dimProp[0].enums = Object.freeze(eLst)
+        this.dimProp[0].options = this.dimProp[0].enums
+        this.dimProp[0].selection = Array.from(eLst)
+        this.dimProp[0].singleSelection = (this.dimProp[0].selection.length > 0) ? this.dimProp[0].selection[0] : {}
+
         this.loadDone = true
+        this.ctrl.isPvDimsTickle = !this.ctrl.isPvDimsTickle
         this.ctrl.isPvTickle = !this.ctrl.isPvTickle
         isOk = true
       } catch (e) {

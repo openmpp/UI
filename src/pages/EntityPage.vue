@@ -409,12 +409,15 @@
       <draggable
         v-model="otherFields"
         group="fields"
+        :disabled="isOtherDropDisabled"
         @start="onDrag"
         @end="onDrop"
+        @choose="onChoose"
+        @unchoose="onUnchoose"
         class="other-fields other-drag"
-        :class="{'drag-area-hint': isDragging}"
+        :class="{'drag-area-hint': isDragging, 'drag-area-disabled': isOtherDropDisabled}"
         >
-        <div v-for="f in otherFields" :key="f.name" class="field-drag om-text-medium">
+        <div v-for="f in otherFields" :key="f.name" :id="'item-draggable-' + f.name" class="field-drag om-text-medium">
           <q-select
             v-model="f.singleSelection"
             :options="f.options"
@@ -474,10 +477,12 @@
         group="fields"
         @start="onDrag"
         @end="onDrop"
+        @choose="onChoose"
+        @unchoose="onUnchoose"
         class="col-fields col-drag"
         :class="{'drag-area-hint': isDragging}"
         >
-        <div v-for="f in colFields" :key="f.name" class="field-drag om-text-medium">
+        <div v-for="f in colFields" :key="f.name" :id="'item-draggable-' + f.name" class="field-drag om-text-medium">
           <q-select
             v-model="f.selection"
             :options="f.options"
@@ -543,10 +548,12 @@
         group="fields"
         @start="onDrag"
         @end="onDrop"
+        @choose="onChoose"
+        @unchoose="onUnchoose"
         class="row-fields row-drag"
         :class="{'drag-area-hint': isDragging}"
         >
-        <div v-for="f in rowFields" :key="f.name" class="field-drag om-text-medium">
+        <div v-for="f in rowFields" :key="f.name" :id="'item-draggable-' + f.name" class="field-drag om-text-medium">
           <q-select
             v-model="f.selection"
             :name="f.name"
@@ -682,10 +689,15 @@
   .drag-area-hint {
     background-color: whitesmoke;
   }
+  .drag-area-disabled {
+    background-color: lightgrey;
+    opacity: 0.75;
+    border: 1px solid grey;
+  }
   .sortable-ghost {
     opacity: 0.5;
   }
-  .col-drag {
+  .top-col-drag {
     @extend .flex-item;
     @extend .drag-area;
     flex-direction: row;
@@ -693,9 +705,12 @@
     justify-content: flex-start;
     width: 100%;
   }
+  .col-drag {
+    @extend .top-col-drag;
+    border-top-style: none;
+  }
   .other-drag {
-    @extend .col-drag;
-    border-bottom-style: none;
+    @extend .top-col-drag;
   }
   .row-drag {
     @extend .flex-item;
