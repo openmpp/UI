@@ -126,6 +126,28 @@ export default {
               this.loadDone = false // error during view write, it can be incorrect json
             }
           }
+
+          // write entity microdata view into indexed db
+          if (this.serverConfig.AllowMicrodata && Array.isArray(vs.model?.microdataViews) && vs.model?.microdataViews?.length) {
+            let eName = ''
+            try {
+              const dbCon = await Idb.connection()
+              const rw = await dbCon.openReadWrite(this.modelName)
+              for (const v of vs.model.microdataViews) {
+                if (!v?.name || !v?.view) continue
+
+                eName = v.name
+                if (this.theModel.EntityTxt.findIndex(e => e.Entity.Name === eName) < 0) continue // entity not exist that model version
+
+                await rw.put(v.name, v.view)
+                count++
+              }
+            } catch (e) {
+              console.warn('Unable to save default microdata view:', eName, e)
+              this.$q.notify({ type: 'negative', message: this.$t('Unable to save default microdata view') + ': ' + eName })
+              this.loadDone = false // error during view write, it can be incorrect json
+            }
+          }
         }
       }
 

@@ -156,9 +156,8 @@ export default {
       // entity key dimension at [0] position: initially empty
       const fk = {
         name: KEY_DIM_NAME,
-        label: (Mdf.descrOfDescrNote(this.entityText) || this.$t('Entity')) + ' ' + this.$t('key'),
+        label: (Mdf.descrOfDescrNote(this.entityText) || this.$t('Entity')) + ' ' + this.$t('keys'),
         enums: [],
-        options: [],
         selection: [],
         singleSelection: {},
         filter: (val, update, abort) => {}
@@ -399,9 +398,12 @@ export default {
       const n = this.otherFields.findIndex(f => f.name === KEY_DIM_NAME)
       if (n >= 0) {
         this.otherFields.splice(n, 1)
+        this.rowFields.push(this.dimProp[0])
+      }
+      // entity dimension page: all keys always selected
+      if (this.dimProp.length > 0) {
         this.dimProp[0].selection = Array.from(this.dimProp[0].enums)
         this.dimProp[0].singleSelection = (this.dimProp[0].selection.length > 0) ? this.dimProp[0].selection[0] : {}
-        this.rowFields.push(this.dimProp[0])
       }
 
       // restore controls view state
@@ -457,7 +459,7 @@ export default {
       this.pvc.rowColMode = !this.isScalar ? Pcvt.SPANS_AND_DIMS_PVT : Pcvt.NO_SPANS_NO_DIMS_PVT
 
       // store pivot view
-      const vs = Pcvt.pivotStateFromFields(this.rowFields, this.colFields, this.otherFields, this.ctrl.isRowColControls, this.pvc.rowColMode)
+      const vs = Pcvt.pivotStateFromFields(this.rowFields, this.colFields, this.otherFields, this.ctrl.isRowColControls, this.pvc.rowColMode, KEY_DIM_NAME)
       vs.pageStart = 0
       vs.pageSize = this.isPages ? this.pageSize : SMALL_PAGE_SIZE
 
@@ -641,17 +643,19 @@ export default {
           }
           let cArr = []
 
-          const eLen = Mdf.lengthOf(ed.values)
-          if (eLen > 0) {
-            cArr = Array(eLen)
-            let n = 0
-            for (let k = 0; k < eLen; k++) {
-              const i = f.enums.findIndex(e => e.value === ed.values[k])
-              if (i >= 0) {
-                cArr[n++] = f.enums[i].name
+          if (ed.name !== KEY_DIM_NAME) { // skip items if it is entity key dimension
+            const eLen = Mdf.lengthOf(ed.values)
+            if (eLen > 0) {
+              cArr = Array(eLen)
+              let n = 0
+              for (let k = 0; k < eLen; k++) {
+                const i = f.enums.findIndex(e => e.value === ed.values[k])
+                if (i >= 0) {
+                  cArr[n++] = f.enums[i].name
+                }
               }
+              cArr.length = n // remove size of not found
             }
-            cArr.length = n // remove size of not found
           }
 
           dst.push({
@@ -719,17 +723,19 @@ export default {
           }
           let eArr = []
 
-          const eLen = Mdf.lengthOf(ed.values)
-          if (eLen > 0) {
-            eArr = Array(eLen)
-            let n = 0
-            for (let k = 0; k < eLen; k++) {
-              const i = f.enums.findIndex(e => e.name === ed.values[k])
-              if (i >= 0) {
-                eArr[n++] = f.enums[i].value
+          if (ed.name !== KEY_DIM_NAME) { // skip items if it is entity key dimension
+            const eLen = Mdf.lengthOf(ed.values)
+            if (eLen > 0) {
+              eArr = Array(eLen)
+              let n = 0
+              for (let k = 0; k < eLen; k++) {
+                const i = f.enums.findIndex(e => e.name === ed.values[k])
+                if (i >= 0) {
+                  eArr[n++] = f.enums[i].value
+                }
               }
+              eArr.length = n // remove size of not found
             }
-            eArr.length = n // remove size of not found
           }
 
           dst.push({
@@ -996,7 +1002,6 @@ export default {
           }
         }
         this.dimProp[0].enums = Object.freeze(eLst)
-        this.dimProp[0].options = this.dimProp[0].enums
         this.dimProp[0].selection = Array.from(eLst)
         this.dimProp[0].singleSelection = (this.dimProp[0].selection.length > 0) ? this.dimProp[0].selection[0] : {}
 

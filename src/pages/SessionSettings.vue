@@ -97,8 +97,10 @@
             <q-radio v-model="fastDownload" val="yes" :disable="!serverConfig.AllowDownload" :label="$t('Fast, only to analyze output values')" />
             <br />
             <q-radio v-model="fastDownload" val="no" :disable="!serverConfig.AllowDownload" :label="$t('Full, compatible with desktop model')" />
-            <br />
-            <q-checkbox v-model="isMicroDownload" :disable="!serverConfig.AllowDownload || fastDownload === 'yes' || !serverConfig.AllowMicrodata" :label="$t('Do full downloads, including microdata')"/>
+            <template v-if="!!serverConfig.AllowMicrodata">
+              <br />
+              <q-checkbox v-model="isMicroDownload" :disable="!serverConfig.AllowDownload || fastDownload === 'yes'" :label="$t('Do full downloads, including microdata')"/>
+            </template>
           </td>
         </tr>
         <tr>
@@ -128,7 +130,7 @@
         <span class="col-auto">
           <q-btn
             @click="onDownloadViews"
-            :disable="!isModel || (!paramNames.length && !tableNames.length)"
+            :disable="!isModel || (!paramNames.length && !tableNames.length && !entityNames.length)"
             flat
             dense
             no-caps
@@ -139,7 +141,7 @@
             />
         </span>
         <span
-          :class="{ 'om-text-secondary' : !isModel || (!paramNames.length && !tableNames.length) }"
+          :class="{ 'om-text-secondary' : !isModel || (!paramNames.length && !tableNames.length && !entityNames.length) }"
           class="col-grow q-pl-sm"
         >{{ isModel ? $t('Download views of') + ' ' + modelTitle : $t('Download model views') }}</span>
       </q-card-section>
@@ -205,7 +207,9 @@
         >
         <span class="col-grow">{{ $t('Default views of output tables') + ': ' + (tableNames.length ? tableNames.length.toString() : $t('None')) }}</span>
       </q-card-section>
-      <q-list>
+      <q-list
+        class="q-mb-xs"
+        >
         <q-item v-for="tName of tableNames" :key="tName">
           <q-item-section avatar>
             <q-btn
@@ -223,6 +227,35 @@
           </q-item-section>
         </q-item>
       </q-list>
+
+      <template v-if="!!serverConfig.AllowMicrodata">
+        <q-card-section
+          class="row items-center bg-primary text-white q-py-sm q-mx-md"
+          :class="{ 'om-bg-inactive' : !entityNames.length }"
+          >
+          <span class="col-grow">{{ $t('Default microdata views') + ': ' + (entityNames.length ? entityNames.length.toString() : $t('None')) }}</span>
+        </q-card-section>
+        <q-list
+          class="q-mb-xs"
+          >
+          <q-item v-for="eName of entityNames" :key="eName">
+            <q-item-section avatar>
+              <q-btn
+                @click="onRemoveMicrodataView(eName)"
+                flat
+                dense
+                class="bg-primary text-white rounded-borders"
+                icon="delete"
+                :title="$t('Erase default microdata view') + ' ' + eName"
+                />
+            </q-item-section>
+            <q-item-section>
+              <q-item-label>{{ eName }}</q-item-label>
+              <q-item-label caption>{{ entityDescr(eName) }}</q-item-label>
+            </q-item-section>
+          </q-item>
+        </q-list>
+      </template>
 
     </q-card>
   </q-expansion-item>
@@ -254,6 +287,7 @@ export default {
       dbRows: [], // user views: parameter views or output table views
       paramNames: [], // parameter names from dbRows
       tableNames: [], // output table names from dbRows
+      entityNames: [], // microdata entity names from dbRows
       uploadFile: null,
       uploadUserViewsTickle: false,
       uploadUserViewsDone: false,
@@ -336,6 +370,7 @@ export default {
       this.dbRows = []
       this.paramNames = []
       this.tableNames = []
+      this.entityNames = []
       this.uploadFile = null
     },
     onRunTextListClear () { this.dispatchRunTextList([]) },
@@ -351,13 +386,20 @@ export default {
       return tt?.TableDescr || ''
     },
 
+    // return entity description by name
+    entityDescr (name) {
+      return this.serverConfig.AllowMicrodata ? Mdf.descrOfDescrNote(Mdf.entityTextByName(this.theModel, name)) : ''
+    },
+
     // download user views views
     onDownloadViews () {
       const fName = this.modelName + '.view.json'
 
-      // make parameter views and output table views json
+      // make parameter, output tables and microdata views json
       const pv = this.dbRows.filter(r => this.paramNames.findIndex(pName => pName === r.name) >= 0)
       const tv = this.dbRows.filter(r => this.tableNames.findIndex(tName => tName === r.name) >= 0)
+      let ev = []
+      if (this.serverConfig.AllowMicrodata) ev = this.dbRows.filter(r => this.entityNames.findIndex(eName => eName === r.name) >= 0)
 
       let vs = ''
       if (Mdf.isLength(pv) || Mdf.isLength(tv)) {
@@ -366,12 +408,13 @@ export default {
             model: {
               name: this.modelName,
               parameterViews: pv,
-              tableViews: tv
+              tableViews: tv,
+              microdataViews: ev
             }
           })
         } catch (e) {
           vs = ''
-          console.warn('Error at stringify of:', pv, tv)
+          console.warn('Error at stringify of:', pv, tv, ev)
         }
       }
       if (!vs) {
@@ -442,6 +485,23 @@ export default {
           return
         }
       }
+      if (this.serverConfig.AllowMicrodata && Array.isArray(vs.model?.microdataViews) && vs.model?.microdataViews?.length) {
+        let name = ''
+        try {
+          const dbCon = await Idb.connection()
+          const rw = await dbCon.openReadWrite(this.modelName)
+          for (const v of vs.model.microdataViews) {
+            if (!v?.name || !v?.view) continue
+            name = v.name
+            await rw.put(v.name, v.view)
+            nViews++
+          }
+        } catch (e) {
+          console.warn('Unable to save default microdata view:', name, e)
+          this.$q.notify({ type: 'negative', message: this.$t('Unable to save default microdata view') + ': ' + name })
+          return
+        }
+      }
 
       // refresh user views: read new version of views from database
       if (nViews) {
@@ -465,13 +525,17 @@ export default {
 
     // delete parameter default view
     onRemoveParamView (name) {
-      this.doRemoveView(true, name)
+      this.doRemoveView(1, name)
     },
     // delete output table default view
     onRemoveTableView (name) {
-      this.doRemoveView(false, name)
+      this.doRemoveView(2, name)
     },
-    async doRemoveView (isParam, name) {
+    // delete entity microdata default view
+    onRemoveMicrodataView (name) {
+      this.doRemoveView(3, name)
+    },
+    async doRemoveView (kind, name) {
       if (!this.modelName) return // model not selected
 
       try {
@@ -483,10 +547,20 @@ export default {
         this.$q.notify({ type: 'negative', message: this.$t('Unable to erase default view of') + ': ' + name })
         return
       }
-      if (isParam) {
-        this.paramNames = this.paramNames.filter(pn => pn !== name)
-      } else {
-        this.tableNames = this.tableNames.filter(tn => tn !== name)
+      switch (kind) {
+        case 1:
+          this.paramNames = this.paramNames.filter(pn => pn !== name)
+          break
+        case 2:
+          this.tableNames = this.tableNames.filter(tn => tn !== name)
+          break
+        case 3:
+          this.entityNames = this.entityNames.filter(en => en !== name)
+          break
+        default:
+          console.warn('Unable to erase default view of invalid kind:', kind, name)
+          this.$q.notify({ type: 'negative', message: this.$t('Unable to erase default view of') + ': ' + name })
+          return
       }
 
       this.$q.notify({
@@ -503,6 +577,7 @@ export default {
       this.dbRows = []
       this.paramNames = []
       this.tableNames = []
+      this.entityNames = []
 
       // select all rows from model indexed db
       this.dbRows = []
@@ -525,12 +600,15 @@ export default {
       }
       if (!Mdf.isLength(this.dbRows)) return // no rows in model db or all rows are empty
 
-      // refresh parameter names and table names list where view is exist
+      // refresh parameter names, table names and microdata entity list where view is exist
       for (const pt of this.theModel.ParamTxt) {
         if (this.dbRows.findIndex(r => r.name === pt.Param.Name) >= 0) this.paramNames.push(pt.Param.Name)
       }
       for (const tt of this.theModel.TableTxt) {
         if (this.dbRows.findIndex(r => r.name === tt.Table.Name) >= 0) this.tableNames.push(tt.Table.Name)
+      }
+      for (const et of this.theModel.EntityTxt) {
+        if (this.dbRows.findIndex(r => r.name === et.Entity.Name) >= 0) this.entityNames.push(et.Entity.Name)
       }
     },
 

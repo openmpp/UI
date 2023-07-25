@@ -483,59 +483,77 @@
         :class="{'drag-area-hint': isDragging}"
         >
         <div v-for="f in colFields" :key="f.name" :id="'item-draggable-' + f.name" class="field-drag om-text-medium">
-          <q-select
-            v-model="f.selection"
-            :options="f.options"
-            :option-label="pvc.isShowNames ? 'name' : 'label'"
-            @input="onSelectInput('col', f.name, f.selection)"
-            use-input
-            hide-selected
-            @filter="f.filter"
-            :label="selectLabel(pvc.isShowNames, f)"
-            multiple
-            outlined
-            dense
-            options-dense
-            bottom-slots
-            class="col-select"
-            options-selected-class="option-selected"
-            :title="$t('Select') + ' ' + (pvc.isShowNames ? f.name : f.label)"
-            >
-            <template v-slot:before>
-              <q-icon
-                name="mdi-hand-back-left"
-                size="xs"
-                class="bg-primary text-white rounded-borders select-handle-move"
-                :title="$t('Drag and drop')"
-                />
-              <div class="column">
-                <q-btn
-                  @click.stop="onSelectAll(f.name)"
-                  flat
-                  dense
-                  size="xs"
-                  class="row bg-primary text-white rounded-borders q-mb-xs"
-                  icon="check"
-                  :title="$t('Select all')"
+          <template v-if="f.name == 'ENTITY_KEY_DIM'">
+            <div
+              class="row nowrap col-select"
+              :title="pvc.isShowNames ? f.name : f.label"
+              >
+                <q-icon
+                  name="mdi-hand-back-left"
+                  size="md"
+                  class="col-1 q-px-sm q-mr-sm bg-primary text-white rounded-borders select-handle-move"
+                  :title="$t('Drag and drop')"
                   />
-                <q-btn
-                  @click.stop="onClearAll(f.name)"
-                  flat
-                  dense
+                <div id="key-dim-box" class="col-auto om-text-secondary om-text-body2 q-px-sm rounded-borders">
+                  <span>{{ (pvc.isShowNames ? f.name : f.label) }}: </span><span class="key-dim-count">{{ f.selection.length.toLocaleString() }}</span>
+                </div>
+            </div>
+          </template>
+          <template v-else>
+            <q-select
+              v-model="f.selection"
+              :options="f.options"
+              :option-label="pvc.isShowNames ? 'name' : 'label'"
+              @input="onSelectInput('col', f.name, f.selection)"
+              use-input
+              hide-selected
+              @filter="f.filter"
+              :label="selectLabel(pvc.isShowNames, f)"
+              multiple
+              outlined
+              dense
+              options-dense
+              bottom-slots
+              class="col-select"
+              options-selected-class="option-selected"
+              :title="$t('Select') + ' ' + (pvc.isShowNames ? f.name : f.label)"
+              >
+              <template v-slot:before>
+                <q-icon
+                  name="mdi-hand-back-left"
                   size="xs"
-                  class="row bg-primary text-white rounded-borders"
-                  icon="cancel"
-                  :title="$t('Clear all')"
+                  class="bg-primary text-white rounded-borders select-handle-move"
+                  :title="$t('Drag and drop')"
                   />
-              </div>
-            </template>
-            <template v-slot:hint>
-              <div class="row">
-                <span class="col ellipsis">{{ pvc.isShowNames ? f.name : f.label }}</span>
-                <span class="col-auto text-no-wrap">{{ f.selection ? f.selection.length : 0 }} / {{ f.enums ? f.enums.length : 0 }}</span>
-              </div>
-            </template>
-          </q-select>
+                <div class="column">
+                  <q-btn
+                    @click.stop="onSelectAll(f.name)"
+                    flat
+                    dense
+                    size="xs"
+                    class="row bg-primary text-white rounded-borders q-mb-xs"
+                    icon="check"
+                    :title="$t('Select all')"
+                    />
+                  <q-btn
+                    @click.stop="onClearAll(f.name)"
+                    flat
+                    dense
+                    size="xs"
+                    class="row bg-primary text-white rounded-borders"
+                    icon="cancel"
+                    :title="$t('Clear all')"
+                    />
+                </div>
+              </template>
+              <template v-slot:hint>
+                <div class="row">
+                  <span class="col ellipsis">{{ pvc.isShowNames ? f.name : f.label }}</span>
+                  <span class="col-auto text-no-wrap">{{ f.selection ? f.selection.length : 0 }} / {{ f.enums ? f.enums.length : 0 }}</span>
+                </div>
+              </template>
+            </q-select>
+          </template>
         </div>
       </draggable>
     </div>
@@ -554,60 +572,78 @@
         :class="{'drag-area-hint': isDragging}"
         >
         <div v-for="f in rowFields" :key="f.name" :id="'item-draggable-' + f.name" class="field-drag om-text-medium">
-          <q-select
-            v-model="f.selection"
-            :name="f.name"
-            :options="f.options"
-            :option-label="pvc.isShowNames ? 'name' : 'label'"
-            @input="onSelectInput('row', f.name, f.selection)"
-            use-input
-            hide-selected
-            @filter="f.filter"
-            :label="selectLabel(pvc.isShowNames, f)"
-            multiple
-            outlined
-            dense
-            options-dense
-            bottom-slots
-            class="row-select"
-            options-selected-class="option-selected"
-            :title="$t('Select') + ' ' + (pvc.isShowNames ? f.name : f.label)"
-            >
-            <template v-slot:before>
-              <q-icon
-                name="mdi-hand-back-left"
-                size="xs"
-                class="bg-primary text-white rounded-borders select-handle-move"
-                :title="$t('Drag and drop')"
-                />
-              <div class="column">
-                <q-btn
-                  @click.stop="onSelectAll(f.name)"
-                  flat
-                  dense
-                  size="xs"
-                  class="row bg-primary text-white rounded-borders q-mb-xs"
-                  icon="check"
-                  :title="$t('Select all')"
+          <template v-if="f.name == 'ENTITY_KEY_DIM'">
+            <div
+              class="row nowrap col-select"
+              :title="pvc.isShowNames ? f.name : f.label"
+              >
+                <q-icon
+                  name="mdi-hand-back-left"
+                  size="md"
+                  class="col-1 q-px-sm q-mr-sm bg-primary text-white rounded-borders select-handle-move"
+                  :title="$t('Drag and drop')"
                   />
-                <q-btn
-                  @click.stop="onClearAll(f.name)"
-                  flat
-                  dense
+                <div id="key-dim-box" class="col-auto om-text-secondary om-text-body2 q-px-sm rounded-borders">
+                  <span>{{ (pvc.isShowNames ? f.name : f.label) }}: </span><span class="key-dim-count">{{ f.selection.length.toLocaleString() }}</span>
+                </div>
+            </div>
+          </template>
+          <template v-else>
+            <q-select
+              v-model="f.selection"
+              :name="f.name"
+              :options="f.options"
+              :option-label="pvc.isShowNames ? 'name' : 'label'"
+              @input="onSelectInput('row', f.name, f.selection)"
+              use-input
+              hide-selected
+              @filter="f.filter"
+              :label="selectLabel(pvc.isShowNames, f)"
+              multiple
+              outlined
+              dense
+              options-dense
+              bottom-slots
+              class="row-select"
+              options-selected-class="option-selected"
+              :title="$t('Select') + ' ' + (pvc.isShowNames ? f.name : f.label)"
+              >
+              <template v-slot:before>
+                <q-icon
+                  name="mdi-hand-back-left"
                   size="xs"
-                  class="row bg-primary text-white rounded-borders"
-                  icon="cancel"
-                  :title="$t('Clear all')"
+                  class="bg-primary text-white rounded-borders select-handle-move"
+                  :title="$t('Drag and drop')"
                   />
-              </div>
-            </template>
-            <template v-slot:hint>
-              <div class="row">
-                <span class="col ellipsis">{{ pvc.isShowNames ? f.name : f.label }}</span>
-                <span class="col-auto text-no-wrap">{{ f.selection ? f.selection.length : 0 }} / {{ f.enums ? f.enums.length : 0 }}</span>
-              </div>
-            </template>
-          </q-select>
+                <div class="column">
+                  <q-btn
+                    @click.stop="onSelectAll(f.name)"
+                    flat
+                    dense
+                    size="xs"
+                    class="row bg-primary text-white rounded-borders q-mb-xs"
+                    icon="check"
+                    :title="$t('Select all')"
+                    />
+                  <q-btn
+                    @click.stop="onClearAll(f.name)"
+                    flat
+                    dense
+                    size="xs"
+                    class="row bg-primary text-white rounded-borders"
+                    icon="cancel"
+                    :title="$t('Clear all')"
+                    />
+                </div>
+              </template>
+              <template v-slot:hint>
+                <div class="row">
+                  <span class="col ellipsis">{{ pvc.isShowNames ? f.name : f.label }}</span>
+                  <span class="col-auto text-no-wrap">{{ f.selection ? f.selection.length : 0 }} / {{ f.enums ? f.enums.length : 0 }}</span>
+                </div>
+              </template>
+            </q-select>
+          </template>
         </div>
       </draggable>
 
@@ -680,7 +716,6 @@
     min-width: 2rem;
     text-align: center;
   }
-
   .drag-area {
     min-height: 2.5rem;
     padding: 0.125rem;
@@ -691,8 +726,8 @@
   }
   .drag-area-disabled {
     background-color: lightgrey;
-    opacity: 0.75;
-    border: 1px solid grey;
+    opacity: 0.5;
+    border: 1px solid red;
   }
   .sortable-ghost {
     opacity: 0.5;
@@ -728,6 +763,16 @@
     &:hover {
       cursor: move;
     }
+  }
+
+  #key-dim-box {
+    min-width: 14rem;
+    line-height: 2.5rem;
+    border: 1px solid lightgray;
+  }
+  .key-dim-count  {
+    float: right;
+    line-height: 2.5rem;
   }
 
   .option-selected {

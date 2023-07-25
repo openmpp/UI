@@ -113,11 +113,11 @@ export const pivotState = (rows, cols, others, isRowColControls, rowColMode) => 
 }
 
 // make pivot state by converting selected items for rows, columns, others dimensions into { name: ..., values: [...] }
-export const pivotStateFromFields = (rows, cols, others, isRowColControls, rowColMode) => {
+export const pivotStateFromFields = (rows, cols, others, isRowColControls, rowColMode, emptyDims) => {
   return pivotState(
-    pivotStateFields(rows),
-    pivotStateFields(cols),
-    pivotStateFields(others),
+    pivotStateFields(rows, emptyDims),
+    pivotStateFields(cols, emptyDims),
+    pivotStateFields(others, emptyDims),
     isRowColControls,
     rowColMode
   )
@@ -137,13 +137,21 @@ export const pivotStateFromFields = (rows, cols, others, isRowColControls, rowCo
     }
   ]
 */
-export const pivotStateFields = (fields) => {
+export const pivotStateFields = (fields, emptyDims) => {
   if (!fields) return []
   const dst = []
   for (const f of fields) {
     const p = { name: f.name, values: [] }
-    for (const v of f.selection) {
-      p.values.push(v.value)
+
+    let isEmptyDim = false
+    if (emptyDims) {
+      if (typeof emptyDims === typeof 'string' && p.name === emptyDims) isEmptyDim = true
+      if (Array.isArray(emptyDims) && emptyDims.indexOf(p.name) >= 0) isEmptyDim = true
+    }
+    if (!isEmptyDim) {
+      for (const v of f.selection) {
+        p.values.push(v.value)
+      }
     }
     dst.push(p)
   }
