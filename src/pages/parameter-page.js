@@ -88,6 +88,7 @@ export default {
       pageStart: 0,
       pageSize: 0,
       isLastPage: false,
+      isShowPageControls: false,
       loadRunWait: false,
       refreshRunTickle: false,
       loadWsWait: false,

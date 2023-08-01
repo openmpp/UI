@@ -44,7 +44,7 @@
       :aria-label="$t('Menu')"
       >
       <q-menu auto-close>
-        <q-list>
+        <q-list dense>
 
           <q-item
             @click="doShowParamNote"
@@ -55,6 +55,7 @@
             </q-item-section>
             <q-item-section>{{ $t('About') + ' ' + parameterName }}</q-item-section>
           </q-item>
+
           <q-separator />
 
           <template v-if="!isFromRun">
@@ -132,6 +133,7 @@
             </q-item-section>
             <q-item-section>{{ $t('Save notes for') + ' ' + parameterName }}</q-item-section>
           </q-item>
+
           <q-separator />
 
           <q-item
@@ -175,6 +177,7 @@
             </q-item-section>
             <q-item-section>{{ $t('Cancel upload') }}</q-item-section>
           </q-item>
+
           <q-separator />
 
           <q-item
@@ -273,6 +276,7 @@
             </q-item-section>
             <q-item-section>{{ pvc.isShowNames ? $t('Show labels') : $t('Show names') }}</q-item-section>
           </q-item>
+
           <q-separator />
 
           <q-item
@@ -309,64 +313,74 @@
       icon="mdi-information"
       :title="$t('About') + ' ' + parameterName"
       />
-
     <q-separator vertical inset spaced="sm" color="secondary" />
 
     <template v-if="isPages">
       <q-btn
-        @click="onFirstPage"
-        :disable="pageStart === 0"
-        flat
+        @click="isShowPageControls = !isShowPageControls"
+        :flat="!isShowPageControls"
+        :outline="isShowPageControls"
         dense
-        class="col-auto bg-primary text-white rounded-borders q-mr-xs"
-        icon="mdi-page-first"
-        :title="$t('First page')"
+        :class="!isShowPageControls ? 'bar-button-on' : 'bar-button-off'"
+        class="col-auto rounded-borders q-mr-xs"
+        icon="mdi-unfold-more-vertical"
+        :title="isShowPageControls ? $t('Hide pagination controls') : $t('Show pagination controls')"
         />
-      <q-btn
-        @click="onPrevPage"
-        :disable="pageStart === 0"
-        flat
-        dense
-        class="col-auto bg-primary text-white rounded-borders q-mr-xs"
-        icon="mdi-chevron-left"
-        :title="$t('Previous page')"
-        />
-      <div
-        class="page-start-item rounded-borders om-text-secondary q-px-xs q-py-xs q-mr-xs"
-        :title="$t('Position')"
-        >{{ (!!pageStart && typeof pageStart === typeof 1) ? pageStart.toLocaleString() : pageStart }}</div>
-      <q-btn
-        @click="onNextPage"
-        :disable="isLastPage"
-        flat
-        dense
-        class="col-auto bg-primary text-white rounded-borders q-mr-xs"
-        icon="mdi-chevron-right"
-        :title="$t('Next page')"
-        />
-      <q-btn
-        @click="onLastPage"
-        :disable="isLastPage"
-        flat
-        dense
-        class="col-auto bg-primary text-white rounded-borders q-mr-xs"
-        icon="mdi-page-last"
-        :title="$t('Last page')"
-        />
-      <q-select
-        v-model="pageSize"
-        @input="onPageSize"
-        :options="[10, 40, 100, 200, 400, 1000, 2000, 4000, 10000, 20000, 0]"
-        :option-label="(val) => (!val || typeof val !== typeof 1 || val <= 0) ? $t('All') : val.toLocaleString()"
-        outlined
-        options-dense
-        dense
-        :label="$t('Size')"
-        class="col-auto"
-        style="min-width: 6rem"
-        >
-      </q-select>
-
+      <template v-if="isShowPageControls">
+        <q-btn
+          @click="onFirstPage"
+          :disable="pageStart === 0"
+          flat
+          dense
+          class="col-auto bg-primary text-white rounded-borders q-mr-xs"
+          icon="mdi-page-first"
+          :title="$t('First page')"
+          />
+        <q-btn
+          @click="onPrevPage"
+          :disable="pageStart === 0"
+          flat
+          dense
+          class="col-auto bg-primary text-white rounded-borders q-mr-xs"
+          icon="mdi-chevron-left"
+          :title="$t('Previous page')"
+          />
+        <div
+          class="page-start-item rounded-borders om-text-secondary q-px-xs q-py-xs q-mr-xs"
+          :title="$t('Position')"
+          >{{ (!!pageStart && typeof pageStart === typeof 1) ? pageStart.toLocaleString() : pageStart }}</div>
+        <q-btn
+          @click="onNextPage"
+          :disable="isLastPage"
+          flat
+          dense
+          class="col-auto bg-primary text-white rounded-borders q-mr-xs"
+          icon="mdi-chevron-right"
+          :title="$t('Next page')"
+          />
+        <q-btn
+          @click="onLastPage"
+          :disable="isLastPage"
+          flat
+          dense
+          class="col-auto bg-primary text-white rounded-borders q-mr-xs"
+          icon="mdi-page-last"
+          :title="$t('Last page')"
+          />
+        <q-select
+          v-model="pageSize"
+          @input="onPageSize"
+          :options="[10, 40, 100, 200, 400, 1000, 2000, 4000, 10000, 20000, 0]"
+          :option-label="(val) => (!val || typeof val !== typeof 1 || val <= 0) ? $t('All') : val.toLocaleString()"
+          outlined
+          options-dense
+          dense
+          :label="$t('Size')"
+          class="col-auto"
+          style="min-width: 6rem"
+          >
+        </q-select>
+      </template>
       <q-separator vertical inset spaced="sm" color="secondary" />
     </template>
 
@@ -407,7 +421,6 @@
         icon="mdi-redo-variant"
         :title="$t('Redo') + ': Ctrl+Y'"
         />
-
       <q-separator vertical inset spaced="sm" color="secondary" />
     </template>
 
@@ -439,7 +452,6 @@
       icon="mdi-content-save-edit"
       :title="$t('Save notes for') + ' ' + parameterName"
       />
-
     <q-separator vertical inset spaced="sm" color="secondary" />
 
     <q-btn
@@ -468,7 +480,7 @@
       flat
       dense
       class="col-auto text-white rounded-borders q-ml-xs bg-primary text-white rounded-borders"
-      icon='mdi-upload'
+      icon="mdi-upload"
       :title="$t('Upload') + ' ' + parameterName + '.csv'"
       />
     <q-btn
@@ -477,10 +489,9 @@
       flat
       dense
       class="col-auto text-white rounded-borders q-ml-xs bg-primary text-white rounded-borders"
-      icon='mdi-close-circle'
+      icon="mdi-close-circle"
       :title="$t('Cancel upload')"
       />
-
     <q-separator vertical inset spaced="sm" color="secondary" />
 
     <q-btn
@@ -578,7 +589,6 @@
       icon="mdi-label-outline"
       :title="pvc.isShowNames ? $t('Show labels') : $t('Show names')"
       />
-
     <q-separator vertical inset spaced="sm" color="secondary" />
 
     <q-btn
