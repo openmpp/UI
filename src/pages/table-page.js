@@ -642,15 +642,7 @@ export default {
 
       // restore calculated expressions dimension: update name and label for calculated items
       if (this.ctrl.kind === Puih.kind.CALC) {
-        const fc = this.dimProp[this.rank + 4] // [rank + 4]: calculated expression dimension index in dimesions list
-
-        for (const ec of fc.enums) {
-          if (ec.value >= CALCULATED_ID_OFFSET) { // if this is calculted item
-            ec.name = this.srcCalc + ' ' + fc.enums[ec.exIdx].name
-            ec.label = this.srcCalc + ' ' + fc.enums[ec.exIdx].label
-          }
-        }
-
+        this.setCalcEnumsNameLabel(this.srcCalc) // update name and label for calculated items
         this.setCalcDecimals(this.srcCalc) // decimals format: zero decimals if calculation is count else max decimals
       }
 
@@ -954,17 +946,9 @@ export default {
       }
       this.srcCalc = src
 
-      // build calculated expressions dimension: update name and label for calculated items
+      // build calculated expressions dimension
       const mNewIdx = this.rank + 4
-      const fc = this.dimProp[mNewIdx] // [rank + 4]: calculated expression dimension index in dimesions list
-
-      for (const ec of fc.enums) {
-        if (ec.value >= CALCULATED_ID_OFFSET) { // if this is calculted item
-          ec.name = src + ' ' + fc.enums[ec.exIdx].name
-          ec.label = src + ' ' + fc.enums[ec.exIdx].label
-        }
-      }
-
+      this.setCalcEnumsNameLabel(src) // update name and label for calculated items
       this.setCalcDecimals(src) // decimals format: zero decimals if calculation is count else max decimals
 
       // replace measure dimension by calculation measure
@@ -1008,6 +992,17 @@ export default {
         if (cId >= CALCULATED_ID_OFFSET && this.ctrl.formatOpts.itemsFormat[cId] !== void 0) {
           this.ctrl.formatOpts.itemsFormat[cId].nDecimal = src === 'COUNT' ? 0 : Pcvt.maxDecimalDefault
           this.ctrl.formatOpts.itemsFormat[cId].maxDecimal = src === 'COUNT' ? 0 : Pcvt.maxDecimalDefault
+        }
+      }
+    },
+    // update name and label for calculated items
+    setCalcEnumsNameLabel (src) {
+      const fc = this.dimProp[this.rank + 4] // [rank + 4]: calculated expression dimension index in dimesions list
+
+      for (const ec of fc.enums) {
+        if (ec.value >= CALCULATED_ID_OFFSET) { // if this is calculted item
+          ec.name = src + ' ' + fc.enums[ec.exIdx].name
+          ec.label = src + ' ' + fc.enums[ec.exIdx].label
         }
       }
     },
