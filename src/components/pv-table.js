@@ -27,6 +27,7 @@ pvControl: {
                   2 = use spans, show dim names
                   1 = use spans, hide dim names
                   0 = no spans, hide dim names
+
   isShowNames:  if true then show item names (enums[k].name) instead of labels (enums[k].label) by default
 
   reader: (src) => { // row reader: methods to read next row, read() dimension items and readValue()
@@ -40,14 +41,18 @@ pvControl: {
       read table cell value from row (r), for example: (r) => (!r.IsNull ? r.Value : void 0)
     }
   },
+
   processValue: functions are used to aggregate cell value(s)
+
   formatter: {
+    options():  function to return formatter options
     format():   function (if defined) to convert cell value to string
     parse():    function (if defined) to convert cell string to value, ex: parseFloat(), used by editor only
     isValid():  function to validate cell value, used by editor only
+    enumIdByLabel(): function to return enum id by enum label, used by editor only
   }
 
-  processValue{}: // object with two methods:
+  processValue: { // object with two methods:
     doNext() applied to each input row readValue() return, for example:
     {
       // sum
@@ -59,6 +64,14 @@ pvControl: {
       }
     }
     default processValue{} return value as is, (no conversion or aggregation)
+  }
+
+  dimItemKeys: {  // optional, undefined by default
+                  // interface to find dimension item key (enum id) by row or column number
+                  // used to find value cell format by measure dimension enum id
+  }
+
+  cellClass: 'pv-cell-right'  // cell value style: by default right justified number
 }
 
 refreshViewTickle: watch true/false, on change pivot table view updated
