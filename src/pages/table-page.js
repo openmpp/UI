@@ -15,8 +15,10 @@ import { openURL } from 'quasar'
 const EXPR_DIM_NAME = 'EXPRESSIONS_DIM'         // expressions measure dimension name
 const ACC_DIM_NAME = 'ACCUMULATORS_DIM'         // accuimulators measure dimension name
 const ALL_ACC_DIM_NAME = 'ALL_ACCUMULATORS_DIM' // all accuimulators measure dimension name
+const CALC_DIM_NAME = 'CALCULATED_DIM'          // calculated expressions measure dimension name
 const SMALL_PAGE_SIZE = 100                     // small page size: do not show page controls
 const LAST_PAGE_OFFSET = 2 * 1024 * 1024 * 1024 // large page offset to get the last page
+const CALCULATED_ID_OFFSET = 1200               // calculated exprssion id offset, for example for Expr1 calculated expression id is 1201
 /* eslint-enable no-multi-spaces */
 
 export default {
@@ -66,7 +68,9 @@ export default {
       readerExpr: void 0,     // expression row reader
       readerAcc: void 0,      // accumulators row reader: one row for each accumulator
       readerAllAcc: void 0,   // all accumulators row reader: all acumulators in single row
+      readerCalc: void 0,     // calculated expressions row reader
       pvKeyPos: [],           // position of each dimension item in cell key
+      srcCalc: '',            // calculation source name, ex.: MEAN
       isDragging: false,      // if true then user is dragging dimension select control
       exprDimPos: 0,          // expression dimension position: table ExprPos
       totalEnumLabel: '',     // total enum item label, language-specific, ex.: All
@@ -74,10 +78,39 @@ export default {
       pageStart: 0,
       pageSize: 0,
       isLastPage: false,
+      isShowPageControls: false,
       loadRunWait: false,
       refreshRunTickle: false,
       runInfoTickle: false,
-      tableInfoTickle: false
+      tableInfoTickle: false,
+      calcList: [{            // list of calculations
+        code: 'MEAN',
+        label: 'Average'
+      }, {
+        code: 'COUNT',
+        label: 'Count'
+      }, {
+        code: 'SUM',
+        label: 'Sum'
+      }, {
+        code: 'MAX',
+        label: 'Maximum'
+      }, {
+        code: 'MIN',
+        label: 'Minimum'
+      }, {
+        code: 'VAR',
+        label: 'Variance'
+      }, {
+        code: 'SD',
+        label: 'Standard deviation'
+      }, {
+        code: 'SE',
+        label: 'Standard error'
+      }, {
+        code: 'CV',
+        label: 'Coefficient of variation'
+      }]
     }
   },
   /* eslint-enable no-multi-spaces */
@@ -141,15 +174,18 @@ export default {
       this.ctrl.isRowColModeToggle = !this.isScalar
       this.ctrl.isRowColControls = !this.isScalar
       this.pvKeyPos = []
+      this.srcCalc = ''
 
       // make dimensions:
       //  [0, rank - 1] of enum-based dimensions
-      //  [rank]        expressions measure dimension: expressions as enums
-      //  [rank + 1]    accumulators measure dimension: accumulators as enums
-      //  [rank + 2]    all accumulators measure dimension: all accumulators, including derived as enums
-      //  [rank + 3]    sub-value dimension: enum labebls same as enum id's
-      this.dimProp = Array(this.rank + 4)
+      //  [rank]:       expressions measure dimension: expressions as enums
+      //  [rank + 1]:   accumulators measure dimension: accumulators as enums
+      //  [rank + 2]:   all accumulators measure dimension: all accumulators, including derived as enums
+      //  [rank + 3]:   sub-value dimension: enum labebls same as enum id's
+      //  [rank + 4]:   calculated expressions dimension: "normal" and calculated expressions as enums
+      this.dimProp = Array(this.rank + 5)
 
+      // [0, rank - 1] of enum-based dimensions
       for (let n = 0; n < this.rank; n++) {
         const dt = this.tableText.TableDimsTxt[n]
         const t = Mdf.typeTextById(this.theModel, (dt.Dim.TypeId || 0))
@@ -202,7 +238,8 @@ export default {
         this.dimProp[n] = f
       }
 
-      // expression measure dimension: items are output expressions
+      // at [rank]:     expressions measure dimension: expressions as enums
+      // at [rank + 4]: calculated expressions dimension: "normal" and calculated expressions as enums
       const exprFmt = {}
       let maxDec = -1
 
@@ -217,7 +254,19 @@ export default {
         totalId: 0,
         filter: (val, update, abort) => {}
       }
+      const fc = {
+        name: CALC_DIM_NAME,
+        label: this.tableText.ExprDescr || this.$t('Measure'),
+        enums: [],
+        options: [],
+        selection: [],
+        singleSelection: {},
+        isTotal: false,
+        totalId: 0,
+        filter: (val, update, abort) => {}
+      }
       const eLst = []
+      const cLst = []
 
       for (let j = 0; j < this.tableText.TableExprTxt.length; j++) {
         if (!this.tableText.TableExprTxt[j].hasOwnProperty('Expr')) continue
@@ -229,6 +278,14 @@ export default {
           name: e.Name || eId.toString(),
           label: Mdf.descrOfDescrNote(this.tableText.TableExprTxt[j]) || e.SrcExpr || e.Name || eId.toString()
         })
+        const ceIdx = cLst.length
+        cLst.push({
+          value: eLst[j].value,
+          name: eLst[j].name,
+          label: eLst[j].label,
+          exIdx: ceIdx, // index of source expression
+          calc: e.Name // calculation: table expression name
+        })
 
         // format value handlers: output table values are always float and nullable
         const nDec = e.Decimals || 0
@@ -238,14 +295,40 @@ export default {
           maxDecimal: (nDec >= 0 ? nDec : Pcvt.maxDecimalDefault)
         }
         if (maxDec < nDec) maxDec = nDec
+
+        // find derived accumulator by expression name
+        const na = this.tableText.TableAccTxt.findIndex(t => t.Acc.Name === e.Name && !!t.Acc.IsDerived && !!t.Acc?.SrcAcc)
+        if (na < 0) {
+          continue // derived accumulator not found
+        }
+
+        const cId = e.ExprId + CALCULATED_ID_OFFSET
+        cLst.push({
+          value: cId,
+          name: 'CALC_' + eLst[j].name,
+          label: 'CALC_' + eLst[j].label,
+          exIdx: ceIdx, // index of source expression
+          calc: this.tableText.TableAccTxt[na].Acc.SrcAcc // calculation: derived accumulator
+        })
+
+        // format expression value handlers: always float, nullable and max decimals
+        exprFmt[cId] = {
+          isAllDecimal: true,
+          nDecimal: Pcvt.maxDecimalDefault,
+          maxDecimal: Pcvt.maxDecimalDefault
+        }
       }
       if (maxDec < 0) maxDec = Pcvt.maxDecimalDefault // if model decimals=-1, which is display all then limit decimals = 4
 
       fe.enums = Object.freeze(eLst)
       fe.options = fe.enums
       fe.filter = Puih.makeFilter(fe)
-
       this.dimProp[this.rank] = fe // expression measure dimension at [rank] position
+
+      fc.enums = Object.freeze(cLst)
+      fc.options = fc.enums
+      fc.filter = Puih.makeFilter(fc)
+      this.dimProp[this.rank + 4] = fc // calculated measure dimension at [rank + 4] position
 
       // accumulators measure dimension: items are output table accumulators
       const makeAccDim = (isAll) => {
@@ -307,6 +390,33 @@ export default {
 
         // read measure dimension: expression id
         rd.readDim[EXPR_DIM_NAME] = (r) => (r.ExprId)
+
+        return rd
+      }
+
+      // read calculated expressions rows: one row for each calculation
+      this.readerCalc = (src) => {
+        // no data to read: if source rows are empty or invalid return undefined reader
+        if (!src || (src?.length || 0) <= 0) return void 0
+
+        const srcLen = src.length
+        let nSrc = 0
+
+        const rd = { // reader to return
+          readRow: () => {
+            return (nSrc < srcLen) ? src[nSrc++] : void 0 // expression row: one row for each calculation
+          },
+          readDim: {},
+          readValue: (r) => (!r.IsNull ? r.Value : void 0) // calculated value
+        }
+
+        // read dimension item value: enum id, expression id
+        for (let n = 0; n < this.rank; n++) {
+          rd.readDim[this.dimProp[n].name] = (r) => (r.DimIds.length > n ? r.DimIds[n] : void 0)
+        }
+
+        // read calculation dimension: calculation id
+        rd.readDim[CALC_DIM_NAME] = (r) => (r.CalcId)
 
         return rd
       }
@@ -423,11 +533,11 @@ export default {
         locale: lc,
         nDecimal: maxDec,
         maxDecimal: maxDec,
-        isByKey: (this.ctrl.kind === Puih.kind.EXPR) || false,
+        isByKey: (this.ctrl.kind === Puih.kind.EXPR || this.ctrl.kind === Puih.kind.CALC),
         itemsFormat: exprFmt
       })
-      this.pvc.dimItemKeys = Pcvt.dimItemKeys(EXPR_DIM_NAME)
       this.ctrl.formatOpts = this.pvc.formatter.options()
+      this.pvc.dimItemKeys = Pcvt.dimItemKeys(EXPR_DIM_NAME)
       this.pvc.cellClass = 'pv-cell-right'
     },
 
@@ -444,7 +554,8 @@ export default {
         }
       }
       // else: restore previous view
-      this.ctrl.kind = (typeof tv?.kind === typeof 1) ? (tv.kind % 3 || Puih.kind.EXPR) : Puih.kind.EXPR // there are only 3 kinds of view possible for output table
+      this.ctrl.kind = (typeof tv?.kind === typeof 1) ? (tv.kind % 4 || Puih.kind.EXPR) : Puih.kind.EXPR // there are only 4 kinds of view possible for output table
+      this.srcCalc = (this.ctrl.kind === Puih.kind.CALC && typeof tv?.calc === typeof 'string') ? (tv?.calc || '') : ''
 
       // restore rows, columns, others layout and items selection
       const restore = (edSrc) => {
@@ -493,10 +604,23 @@ export default {
         this.otherFields.push(f)
       }
 
+      // if calcualted expression dimension on others then select first calculated item, skip source exprtession
+      if (this.ctrl.kind === Puih.kind.CALC) {
+        const nc = this.otherFields.findIndex(f => f.name === CALC_DIM_NAME)
+        if (nc >= 0) {
+          const fc = this.otherFields[nc]
+          if (fc.selection.length > 0 && (fc.singleSelection?.value || 0) < CALCULATED_ID_OFFSET) {
+            const n = fc.selection.findIndex(e => e.value >= CALCULATED_ID_OFFSET)
+            if (n >= 0) fc.singleSelection = fc.selection
+          }
+        }
+      }
+
       // restore rows reader
       switch (this.ctrl.kind) {
         case Puih.kind.EXPR:
           this.pvc.reader = this.readerExpr
+          this.pvc.dimItemKeys = Pcvt.dimItemKeys(EXPR_DIM_NAME)
           break
         case Puih.kind.ACC:
           this.pvc.reader = this.readerAcc
@@ -504,13 +628,31 @@ export default {
         case Puih.kind.ALL:
           this.pvc.reader = this.readerAllAcc
           break
+        case Puih.kind.CALC:
+          this.pvc.reader = this.readerCalc
+          this.pvc.dimItemKeys = Pcvt.dimItemKeys(CALC_DIM_NAME)
+          break
         default:
           this.pvc.reader = void 0 // default empty reader: no data
           console.warn('Inavlid table view kind:', this.ctrl.kind)
       }
 
       // restore formatter and controls view state
-      this.pvc.formatter.byKey((this.ctrl.kind === Puih.kind.EXPR) || false)
+      this.pvc.formatter.byKey(this.ctrl.kind === Puih.kind.EXPR || this.ctrl.kind === Puih.kind.CALC)
+
+      // restore calculated expressions dimension: update name and label for calculated items
+      if (this.ctrl.kind === Puih.kind.CALC) {
+        const fc = this.dimProp[this.rank + 4] // [rank + 4]: calculated expression dimension index in dimesions list
+
+        for (const ec of fc.enums) {
+          if (ec.value >= CALCULATED_ID_OFFSET) { // if this is calculted item
+            ec.name = this.srcCalc + ' ' + fc.enums[ec.exIdx].name
+            ec.label = this.srcCalc + ' ' + fc.enums[ec.exIdx].label
+          }
+        }
+
+        this.setCalcDecimals(this.srcCalc) // decimals format: zero decimals if calculation is count else max decimals
+      }
 
       this.ctrl.isRowColControls = !!tv.isRowColControls
       this.pvc.rowColMode = typeof tv.rowColMode === typeof 1 ? tv.rowColMode : Pcvt.NO_SPANS_NO_DIMS_PVT
@@ -532,11 +674,13 @@ export default {
     isDimKindValid (kind, name) {
       switch (kind) {
         case Puih.kind.EXPR:
-          return name !== ACC_DIM_NAME && name !== ALL_ACC_DIM_NAME && name !== Puih.SUB_ID_DIM // skip sub-value and accumulators measure
+          return name !== CALC_DIM_NAME && name !== ACC_DIM_NAME && name !== ALL_ACC_DIM_NAME && name !== Puih.SUB_ID_DIM
         case Puih.kind.ACC:
-          return name !== EXPR_DIM_NAME && name !== ALL_ACC_DIM_NAME // skip other measure dimensions
+          return name !== EXPR_DIM_NAME && name !== CALC_DIM_NAME && name !== ALL_ACC_DIM_NAME
         case Puih.kind.ALL:
-          return name !== EXPR_DIM_NAME && name !== ACC_DIM_NAME // skip other measure dimensions
+          return name !== EXPR_DIM_NAME && name !== CALC_DIM_NAME && name !== ACC_DIM_NAME
+        case Puih.kind.CALC:
+          return name !== EXPR_DIM_NAME && name !== ACC_DIM_NAME && name !== ALL_ACC_DIM_NAME && name !== Puih.SUB_ID_DIM
       }
       return false // invalid view kind
     },
@@ -551,6 +695,7 @@ export default {
       //   dimensions (including measure) on other, last-1 dimension on rows, last dimension on columns
       //   dimensions count: rank  + 1 = rank is a count of normal dimensions + 1 measure dimension
       this.ctrl.kind = Puih.kind.EXPR
+      this.srcCalc = '' // clear calculation function name
       const rf = []
       const cf = []
       const tf = []
@@ -622,6 +767,7 @@ export default {
       // store pivot view
       const vs = Pcvt.pivotStateFromFields(this.rowFields, this.colFields, this.otherFields, this.ctrl.isRowColControls, this.pvc.rowColMode)
       vs.kind = this.ctrl.kind || Puih.kind.EXPR // view kind is specific to output tables
+      vs.calc = this.srcCalc || ''
       vs.pageStart = 0
       vs.pageSize = this.isPages ? this.pageSize : SMALL_PAGE_SIZE
 
@@ -635,7 +781,8 @@ export default {
       })
 
       // refresh pivot view: both dimensions labels and table body
-      this.pvc.formatter.byKey((this.ctrl.kind === Puih.kind.EXPR) || false)
+      this.pvc.formatter.byKey(this.ctrl.kind === Puih.kind.EXPR || this.ctrl.kind === Puih.kind.CALC)
+      this.pvc.dimItemKeys = Pcvt.dimItemKeys(EXPR_DIM_NAME)
 
       this.ctrl.isPvDimsTickle = !this.ctrl.isPvDimsTickle
       this.ctrl.isPvTickle = !this.ctrl.isPvTickle
@@ -688,15 +835,17 @@ export default {
     // show output table expressions
     doExpressionPage () {
       // replace measure dimension by expressions measure
-      const kind = this.ctrl.kind
-      const mName = kind === Puih.kind.ACC ? ACC_DIM_NAME : ALL_ACC_DIM_NAME
+      let mName = CALC_DIM_NAME
+      if (this.ctrl.kind === Puih.kind.ACC) mName = ACC_DIM_NAME
+      if (this.ctrl.kind === Puih.kind.ALL) mName = ALL_ACC_DIM_NAME
+
       const mNewIdx = this.rank // expression dimension index in dimesions list
 
       let n = this.replaceMeasureDim(mName, mNewIdx, this.rowFields, false)
       if (n < 0) n = this.replaceMeasureDim(mName, mNewIdx, this.colFields, false)
       if (n < 0) n = this.replaceMeasureDim(mName, mNewIdx, this.otherFields, true)
       if (n < 0) {
-        console.warning('Measure dimension not found:', mName)
+        console.warn('Measure dimension not found:', mName)
         this.$q.notify({ type: 'negative', message: this.$t('Measure dimension not found') })
         return
       }
@@ -711,8 +860,10 @@ export default {
       if (!isFound) isFound = removeSubValueDim(this.colFields)
       if (!isFound) isFound = removeSubValueDim(this.otherFields)
 
-      // use expression reader
+      // use expression reader and format by key on expresson dimension
       this.pvc.reader = this.readerExpr
+      this.pvc.dimItemKeys = Pcvt.dimItemKeys(EXPR_DIM_NAME)
+      this.srcCalc = ''
 
       // set new view kind and  store pivot view
       this.ctrl.kind = Puih.kind.EXPR
@@ -730,12 +881,16 @@ export default {
     // switch to output table accumulators or all accumulators view
     switchToAccumulatorPage (isToAll) {
       // replace current measure dimension mName by accumulators measure
-      // and insert sub-value dimension after accumulators, if current measure is expressions
-      const isFromExpr = this.ctrl.kind === Puih.kind.EXPR
-      const mName = isFromExpr ? EXPR_DIM_NAME : (isToAll ? ACC_DIM_NAME : ALL_ACC_DIM_NAME)
+      // and insert sub-value dimension after accumulators, if current measure is expressions or claculated expressions
+      const isFromExpr = this.ctrl.kind === Puih.kind.EXPR || this.ctrl.kind === Puih.kind.CALC
+
+      let mName = EXPR_DIM_NAME
+      if (this.ctrl.kind === Puih.kind.CALC) mName = CALC_DIM_NAME
+      if (this.ctrl.kind === Puih.kind.ACC) mName = ACC_DIM_NAME
+      if (this.ctrl.kind === Puih.kind.ALL) mName = ALL_ACC_DIM_NAME
+
       const mNewIdx = isToAll ? this.rank + 2 : this.rank + 1 // new accumulators dimension index in dimesions list
       const subIdx = this.rank + 3 // sub-values dimension index in dimensions list
-      let isSubOther = false
 
       let n = this.replaceMeasureDim(mName, mNewIdx, this.rowFields, false)
       if (n >= 0 && isFromExpr) this.rowFields.splice(n + 1, 0, this.dimProp[subIdx])
@@ -745,17 +900,16 @@ export default {
       }
       if (n < 0) {
         n = this.replaceMeasureDim(mName, mNewIdx, this.otherFields, true)
-        isSubOther = n >= 0 && isFromExpr
-        if (isSubOther) this.otherFields.splice(n + 1, 0, this.dimProp[subIdx])
+        if (n >= 0 && isFromExpr) this.otherFields.splice(n + 1, 0, this.dimProp[subIdx])
       }
       if (n < 0) {
-        console.warning('Measure dimension not found:', mName)
+        console.warn('Measure dimension not found:', mName)
         this.$q.notify({ type: 'negative', message: this.$t('Measure dimension not found') })
         return
       }
 
-      // select sub-value items: all items if dimesion on rows or columns or first item if it is on othres
-      if (isSubOther) {
+      // select sub-value items: first item if it is on othres or select all items if dimesion on rows or columns
+      if (this.otherFields.findIndex(f => f.name === Puih.SUB_ID_DIM) >= 0) {
         this.dimProp[subIdx].selection = [this.dimProp[subIdx].enums[0]]
       } else {
         this.dimProp[subIdx].selection = Array.from(this.dimProp[subIdx].enums)
@@ -764,13 +918,13 @@ export default {
 
       // use accumulators or all accumulators reader
       this.pvc.reader = isToAll ? this.readerAllAcc : this.readerAcc
+      this.srcCalc = ''
 
       // set new view kind and reload data
       this.ctrl.kind = isToAll ? Puih.kind.ALL : Puih.kind.ACC
       this.pvc.formatter.byKey(false)
       this.storeViewAndRefreshData()
     },
-
     // replace measure dimension in rows, columns or othres list by new dimension
     // for example replace expressions dimension with accumulators measure
     replaceMeasureDim (mName, newDimIdx, dims, isOther) {
@@ -780,7 +934,7 @@ export default {
 
       dims[n] = this.dimProp[newDimIdx] // replace existing measure with new
 
-      // select all items if it rows or colums, select first item if it is others slicer
+      // select all items if it rows or columns, select first item if it is others slicer
       if (isOther) {
         this.dimProp[newDimIdx].selection = [this.dimProp[newDimIdx].enums[0]]
       } else {
@@ -790,12 +944,80 @@ export default {
 
       return n
     },
+    // show calculated output table expressions
+    doCalcPage (src) {
+      const fnc = Puih.toCalcFnc(src)
+      if (!fnc) {
+        console.warn('Invalid calculation name:', src)
+        this.$q.notify({ type: 'negative', message: this.$t('Invalid calculation name') + ' ' + (src || '') })
+        return
+      }
+      this.srcCalc = src
+
+      // build calculated expressions dimension: update name and label for calculated items
+      const mNewIdx = this.rank + 4
+      const fc = this.dimProp[mNewIdx] // [rank + 4]: calculated expression dimension index in dimesions list
+
+      for (const ec of fc.enums) {
+        if (ec.value >= CALCULATED_ID_OFFSET) { // if this is calculted item
+          ec.name = src + ' ' + fc.enums[ec.exIdx].name
+          ec.label = src + ' ' + fc.enums[ec.exIdx].label
+        }
+      }
+
+      this.setCalcDecimals(src) // decimals format: zero decimals if calculation is count else max decimals
+
+      // replace measure dimension by calculation measure
+      if (this.ctrl.kind !== Puih.kind.CALC) {
+        let mName = EXPR_DIM_NAME
+        if (this.ctrl.kind === Puih.kind.ACC) mName = ACC_DIM_NAME
+        if (this.ctrl.kind === Puih.kind.ALL) mName = ALL_ACC_DIM_NAME
+
+        let n = this.replaceMeasureDim(mName, mNewIdx, this.rowFields, false)
+        if (n < 0) n = this.replaceMeasureDim(mName, mNewIdx, this.colFields, false)
+        if (n < 0) n = this.replaceMeasureDim(mName, mNewIdx, this.otherFields, true)
+        if (n < 0) {
+          console.warn('Measure dimension not found:', mName)
+          this.$q.notify({ type: 'negative', message: this.$t('Measure dimension not found') })
+          return
+        }
+
+        // remove sub-values dimension
+        const removeSubValueDim = (dims) => {
+          const n = dims.findIndex(d => d.name === Puih.SUB_ID_DIM)
+          if (n >= 0) dims.splice(n, 1)
+          return n >= 0
+        }
+        let isFound = removeSubValueDim(this.rowFields)
+        if (!isFound) isFound = removeSubValueDim(this.colFields)
+        if (!isFound) isFound = removeSubValueDim(this.otherFields)
+      }
+
+      // use calculation reader and format by key on calculation dimension
+      this.pvc.reader = this.readerCalc
+      this.pvc.dimItemKeys = Pcvt.dimItemKeys(CALC_DIM_NAME)
+
+      // set new view kind and  store pivot view
+      this.ctrl.kind = Puih.kind.CALC
+      this.pvc.formatter.byKey(true)
+      this.storeViewAndRefreshData()
+    },
+    // set calculation items decimals: zero decimals if calculation is count else max decimals
+    setCalcDecimals (src) {
+      for (const cId in this.ctrl.formatOpts.itemsFormat) {
+        if (cId >= CALCULATED_ID_OFFSET && this.ctrl.formatOpts.itemsFormat[cId] !== void 0) {
+          this.ctrl.formatOpts.itemsFormat[cId].nDecimal = src === 'COUNT' ? 0 : Pcvt.maxDecimalDefault
+          this.ctrl.formatOpts.itemsFormat[cId].maxDecimal = src === 'COUNT' ? 0 : Pcvt.maxDecimalDefault
+        }
+      }
+    },
 
     // store pivot view, reload data and refresh pivot view
     storeViewAndRefreshData () {
       // set new view kind and  store pivot view
       const vs = Pcvt.pivotStateFromFields(this.rowFields, this.colFields, this.otherFields, this.ctrl.isRowColControls, this.pvc.rowColMode)
       vs.kind = this.ctrl.kind
+      vs.calc = this.srcCalc || ''
       vs.pageStart = this.isPages ? this.pageStart : 0
       vs.pageSize = this.isPages ? this.pageSize : 0
 
@@ -900,9 +1122,21 @@ export default {
         '/run/' + encodeURIComponent(this.runDigest) +
         '/table/' + encodeURIComponent(this.tableName)
 
+      let c = ''
+      if (this.ctrl.kind === Puih.kind.CALC) {
+        c = Puih.toCsvFnc(this.srcCalc)
+        if (!c) {
+          console.warn('Invalid calculation name:', this.srcCalc)
+          this.$q.notify({ type: 'negative', message: this.$t('Invalid calculation name') + ' ' + (this.srcCalc || '') })
+          return
+        }
+      }
       switch (this.ctrl.kind) {
         case Puih.kind.EXPR:
           u += '/expr'
+          break
+        case Puih.kind.CALC:
+          u += '/calc/' + c
           break
         case Puih.kind.ACC:
           u += '/acc'
@@ -949,6 +1183,7 @@ export default {
             console.warn('Error: dimension not found:', ed.name)
             continue
           }
+          const isCd = f.name === CALC_DIM_NAME
           let cArr = []
 
           const eLen = Mdf.lengthOf(ed.values)
@@ -958,7 +1193,11 @@ export default {
             for (let k = 0; k < eLen; k++) {
               const i = f.enums.findIndex(e => e.value === ed.values[k])
               if (i >= 0) {
-                cArr[n++] = f.enums[i].name
+                if (!isCd) {
+                  cArr[n++] = f.enums[i].name
+                } else {
+                  cArr[n++] = f.enums[i].value < CALCULATED_ID_OFFSET ? f.enums[i].name : ('CALC_' + f.enums[f.enums[i].exIdx].name) // calculated item
+                }
               }
             }
             cArr.length = n // remove size of not found
@@ -980,6 +1219,7 @@ export default {
         isRowColControls: this.ctrl.isRowColControls,
         rowColMode: this.pvc.rowColMode,
         kind: this.ctrl.kind || Puih.kind.EXPR,
+        calc: this.ctrl.kind === Puih.kind.CALC ? (this.srcCalc || '') : '',
         pageStart: this.isPages ? this.pageStart : 0,
         pageSize: this.isPages ? this.pageSize : 0
       }
@@ -1017,11 +1257,18 @@ export default {
         return
       }
 
-      // restore view kind
-      this.ctrl.kind = (typeof dv?.kind === typeof 1) ? ((dv.kind % 3) || Puih.kind.EXPR) : Puih.kind.EXPR // there are only 3 kinds of view possible for output table
+      // restore view kind and calculation name
+      this.ctrl.kind = (typeof dv?.kind === typeof 1) ? ((dv.kind % 4) || Puih.kind.EXPR) : Puih.kind.EXPR // there are only 4 kinds of view possible for output table
+      if (this.ctrl.kind !== Puih.kind.CALC) {
+        this.srcCalc = ''
+      } else {
+        this.srcCalc = (this.ctrl.kind === Puih.kind.CALC && typeof dv?.calc === typeof 'string') ? (dv?.calc || '') : ''
+      }
 
       // convert output table view from "default" view: replace enum codes with enum Ids
       const enumCodesToIds = (edSrc) => {
+        const ncp = 'CALC_'.length
+
         const dst = []
         for (const ed of edSrc) {
           if (!ed.values) continue // empty selection
@@ -1031,16 +1278,26 @@ export default {
             console.warn('Error: dimension not found:', ed.name)
             continue
           }
+          const isCd = f.name === CALC_DIM_NAME // it is calculated expressions dimension
           let eArr = []
 
           const eLen = Mdf.lengthOf(ed.values)
           if (eLen > 0) {
             eArr = Array(eLen)
+
             let n = 0
             for (let k = 0; k < eLen; k++) {
-              const i = f.enums.findIndex(e => e.name === ed.values[k])
-              if (i >= 0) {
-                eArr[n++] = f.enums[i].value
+              // if it is a name of calculated item then find enum id of source expression
+              if (isCd && ed.values[k].startsWith('CALC_')) {
+                const i = f.enums.findIndex(e => e.name === ed.values[k].substring(ncp))
+                if (i >= 0) {
+                  eArr[n++] = f.enums[i].value + CALCULATED_ID_OFFSET
+                }
+              } else { // it is not calculated item
+                const i = f.enums.findIndex(e => e.name === ed.values[k])
+                if (i >= 0) {
+                  eArr[n++] = f.enums[i].value
+                }
               }
             }
             eArr.length = n // remove size of not found
@@ -1071,6 +1328,7 @@ export default {
       if (Mdf.isLength(rows) || Mdf.isLength(cols) || Mdf.isLength(others)) {
         const vs = Pcvt.pivotState(rows, cols, others, dv.isRowColControls, dv.rowColMode || Pcvt.SPANS_AND_DIMS_PVT)
         vs.kind = this.ctrl.kind || Puih.kind.EXPR
+        vs.calc = this.srcCalc || ''
         vs.pageStart = this.isPages ? this.pageStart : 0
         vs.pageSize = this.isPages ? this.pageSize : 0
 
@@ -1113,8 +1371,13 @@ export default {
           let n = 0
           if (f.isTotal) {
             n = f.selection.findIndex(e => e.value === f.totalId)
-            if (n < 0) n = 0
+          } else { // if this is calculated dimension then select first calculated item
+            if (f.name === CALC_DIM_NAME) {
+              n = f.selection.findIndex(e => e.value >= CALCULATED_ID_OFFSET)
+            }
           }
+          if (n < 0) n = 0
+
           f.selection = [f.selection[n]]
           if (f.name === ALL_ACC_DIM_NAME) isAllAcc = true
         }
@@ -1259,14 +1522,15 @@ export default {
     async doRefreshDataPage (isFullPage = false) {
       if (!this.checkRunTable()) return // exit on error
 
-      this.loadDone = false
-      this.loadWait = true
-
       // save filters: other dimensions selected items
       this.filterState = Puih.makeFilterState(this.otherFields)
 
       // make output table read layout and url
-      const layout = Puih.makeSelectLayout(this.tableName, this.otherFields, [Puih.SUB_ID_DIM, EXPR_DIM_NAME, ACC_DIM_NAME, ALL_ACC_DIM_NAME])
+      const layout = Puih.makeSelectLayout(
+        this.tableName,
+        this.otherFields,
+        [Puih.SUB_ID_DIM, EXPR_DIM_NAME, CALC_DIM_NAME, ACC_DIM_NAME, ALL_ACC_DIM_NAME]
+      )
 
       // if sub_id on other dimensions then add filter by sub-value id
       const fSub = this.filterState?.[Puih.SUB_ID_DIM]
@@ -1307,6 +1571,65 @@ export default {
         }
       }
 
+      // make calculated page layout: all calculated expressions or single calculation
+      if (this.ctrl.kind === Puih.kind.CALC) {
+        const fnc = Puih.toCalcFnc(this.srcCalc)
+        if (!fnc) {
+          console.warn('Invalid calculation name:', this.srcCalc)
+          this.$q.notify({ type: 'negative', message: this.$t('Invalid calculation name') + ' ' + (this.srcCalc || '') })
+          return
+        }
+        const cArr = []
+
+        const fCalc = this.filterState?.[CALC_DIM_NAME]
+        if (fCalc) {
+          if (Array.isArray(fCalc) && fCalc.length > 0) {
+            // rank + 4: calculated dimension index in dimesions list
+            for (const ec of this.dimProp[this.rank + 4].enums) {
+              if (ec.value === fCalc[0]) {
+                if (ec.value < CALCULATED_ID_OFFSET) {
+                  cArr.push({
+                    Calculate: ec.calc,
+                    CalcId: ec.value, // table expression
+                    IsAggr: false
+                  })
+                } else {
+                  cArr.push({
+                    Calculate: fnc + '(' + ec.calc + ')', // derived accumulator aggregation
+                    CalcId: ec.value,
+                    IsAggr: true
+                  })
+                }
+              }
+            }
+          }
+        } else { // all calculated items
+          // rank + 4: calculated dimension index in dimesions list
+          for (const ec of this.dimProp[this.rank + 4].enums) {
+            if (ec.value < CALCULATED_ID_OFFSET) {
+              cArr.push({
+                Calculate: ec.calc,
+                CalcId: ec.value, // table expression
+                IsAggr: false
+              })
+            } else {
+              cArr.push({
+                Calculate: fnc + '(' + ec.calc + ')', // derived accumulator aggregation
+                CalcId: ec.value,
+                IsAggr: true
+              })
+            }
+          }
+        }
+
+        if (cArr.length <= 0) {
+          console.warn('Invalid (empty) list of calculations:', this.srcCalc)
+          this.$q.notify({ type: 'negative', message: this.$t('Invalid (empty) list of calculations') + ' ' + (this.srcCalc || '') })
+          return
+        }
+        layout.Calculation = cArr
+      }
+
       layout.IsAllAccum = this.ctrl.kind === Puih.kind.ALL
       layout.IsAccum = layout.IsAllAccum || this.ctrl.kind === Puih.kind.ACC
       layout.Offset = 0
@@ -1318,9 +1641,14 @@ export default {
         layout.IsFullPage = !!isFullPage
       }
 
+      // validation completed: build url and post query
+      this.loadDone = false
+      this.loadWait = true
+
       const u = this.omsUrl +
         '/api/model/' + encodeURIComponent(this.digest) +
-        '/run/' + encodeURIComponent(this.runDigest) + '/table/value-id'
+        '/run/' + encodeURIComponent(this.runDigest) + '/table/' +
+        (this.ctrl.kind !== Puih.kind.CALC ? 'value-id' : 'calc-id')
 
       // retrieve page from server, it must be: {Layout: {...}, Page: [...]}
       let isOk = false

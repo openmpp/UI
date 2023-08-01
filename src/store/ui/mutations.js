@@ -194,6 +194,9 @@ export const tableView = (state, tv) => {
   if (typeof tv?.kind === typeof 1) {
     state.tableViews[tv.key].view.kind = tv.kind % 4 || 0 // table has only 4 possible view kinds
   }
+  if (typeof tv?.calc === typeof 'string') {
+    state.tableViews[tv.key].view.calc = tv.calc
+  }
   if (typeof tv?.pageStart === typeof 1) {
     state.tableViews[tv.key].view.pageStart = tv.pageStart
   }

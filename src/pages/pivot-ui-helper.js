@@ -10,7 +10,8 @@ export const SUB_ID_DIM = 'SubId' // sub-value id dminesion name
 export const kind = {
   EXPR: 0,  // output table expression(s)
   ACC: 1,   // output table accumulator(s)
-  ALL: 2    // output table all-accumultors view
+  ALL: 2,   // output table all-accumultors view
+  CALC: 3   // output table calculated measure view
 }
 /* eslint-enable no-multi-spaces */
 
@@ -95,7 +96,7 @@ export const makeSelectLayout = (name, otherFields, skipDims) => {
 }
 
 // prepare page of parameter data for save
-// all dimension items are packed ino cell key ordered by dimension name
+// all dimension items are packed into cell key ordered by dimension name
 export const makePageForSave = (dimProp, keyPos, rank, subIdName, defaultSubId, isNullable, updated) => {
   // sub-id value is zero by default
   // if parameter has multiple sub-values
@@ -167,4 +168,54 @@ export const makeFilter = (f) => (val, update, abort) => {
       }
     }
   )
+}
+
+// return calculation function name by source name, ex: MEAN => OM_AVG or return empty '' string on error
+export const toCalcFnc = (src) => {
+  switch (src) {
+    case 'MEAN':
+      return 'OM_AVG'
+    case 'COUNT':
+      return 'OM_COUNT'
+    case 'SUM':
+      return 'OM_SUM'
+    case 'MAX':
+      return 'OM_MAX'
+    case 'MIN':
+      return 'OM_MIN'
+    case 'VAR':
+      return 'OM_VAR'
+    case 'SD':
+      return 'OM_SD'
+    case 'SE':
+      return 'OM_SE'
+    case 'CV':
+      return 'OM_CV'
+  }
+  return ''
+}
+
+// return csv calculation name by source function name, ex: MEAN => avg or return empty '' string on error
+export const toCsvFnc = (src) => {
+  switch (src) {
+    case 'MEAN':
+      return 'avg'
+    case 'COUNT':
+      return 'count'
+    case 'SUM':
+      return 'sum'
+    case 'MAX':
+      return 'max'
+    case 'MIN':
+      return 'min'
+    case 'VAR':
+      return 'var'
+    case 'SD':
+      return 'sd'
+    case 'SE':
+      return 'se'
+    case 'CV':
+      return 'cv'
+  }
+  return ''
 }

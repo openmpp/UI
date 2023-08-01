@@ -27,12 +27,13 @@
       :title="$t('Menu')"
       :aria-label="$t('Menu')"
       >
-      <q-menu auto-close>
-        <q-list>
+      <q-menu>
+        <q-list dense>
 
           <q-item
             @click="doShowTableNote"
             clickable
+            v-close-popup
             >
             <q-item-section avatar>
               <q-icon color="primary" name="mdi-information-outline" />
@@ -46,9 +47,10 @@
             @click="doExpressionPage"
             :disable="ctrl.kind === 0"
             clickable
+            v-close-popup
             >
             <q-item-section avatar>
-              <q-icon color="primary" name="mdi-function-variant" />
+              <q-icon color="primary" name="mdi-sigma" />
             </q-item-section>
             <q-item-section>{{ $t('View table expressions') }}</q-item-section>
           </q-item>
@@ -56,6 +58,7 @@
             @click="doAccumulatorPage"
             :disable="ctrl.kind === 1"
             clickable
+            v-close-popup
             >
             <q-item-section avatar>
               <q-icon color="primary" name="mdi-variable" />
@@ -66,6 +69,7 @@
             @click="doAllAccumulatorPage"
             :disable="ctrl.kind === 2"
             clickable
+            v-close-popup
             >
             <q-item-section avatar>
               <q-icon color="primary" name="mdi-application-variable-outline" />
@@ -73,11 +77,40 @@
             <q-item-section>{{ $t('View all accumulators and sub-values (sub-samples)') }}</q-item-section>
           </q-item>
 
+          <!-- calculated measures menu -->
+          <q-item
+            clickable
+            >
+            <q-item-section avatar>
+              <q-icon color="primary" name="mdi-function-variant" />
+            </q-item-section>
+            <q-item-section>{{ $t('Calculate expression') }}</q-item-section>
+            <q-item-section side>
+              <q-icon name="mdi-menu-right" />
+            </q-item-section>
+            <q-menu auto-close anchor="top end" self="top start">
+              <q-list dense>
+                <q-item
+                  v-for="c in calcList"
+                  :key="c.code"
+                  @click="doCalcPage(c.code)"
+                  :class="{ 'text-primary' : srcCalc === c.code }"
+                  clickable
+                  >
+                  <q-item-section>{{ $t(c.label) }}</q-item-section>
+                  <q-item-section :class="{ 'text-primary' : srcCalc === c.code }" side>{{ c.code }}</q-item-section>
+                </q-item>
+              </q-list>
+            </q-menu>
+          </q-item>
+          <!-- end of calculated measures menu -->
+
           <q-separator />
 
           <q-item
             @click="onCopyToClipboard"
             clickable
+            v-close-popup
             >
             <q-item-section avatar>
               <q-icon color="primary" name="mdi-content-copy" />
@@ -87,18 +120,21 @@
           <q-item
             @click="onDownload"
             clickable
+            v-close-popup
             >
             <q-item-section avatar>
               <q-icon color="primary" name="mdi-download" />
             </q-item-section>
             <q-item-section>{{ $t('Download') + ' '  + tableName + ' ' + $t('as CSV') }}</q-item-section>
           </q-item>
+
           <q-separator />
 
           <q-item
             @click="onToggleRowColControls"
             :disable="!ctrl.isRowColModeToggle"
             clickable
+            v-close-popup
             >
             <q-item-section avatar>
               <q-icon color="primary" name="mdi-tune" />
@@ -111,6 +147,7 @@
               @click="onSetRowColMode(2)"
               :disable="pvc.rowColMode === 2"
               clickable
+              v-close-popup
               >
               <q-item-section avatar>
                 <q-icon color="primary" name="mdi-view-quilt-outline" />
@@ -121,6 +158,7 @@
               @click="onSetRowColMode(1)"
               :disable="pvc.rowColMode === 1"
               clickable
+              v-close-popup
               >
               <q-item-section avatar>
                 <q-icon color="primary" name="mdi-view-list-outline" />
@@ -131,6 +169,7 @@
               @click="onSetRowColMode(3)"
               :disable="pvc.rowColMode === 3"
               clickable
+              v-close-popup
               >
               <q-item-section avatar>
                 <q-icon color="primary" name="mdi-view-compact-outline" />
@@ -141,6 +180,7 @@
               @click="onSetRowColMode(0)"
               :disable="pvc.rowColMode === 0"
               clickable
+              v-close-popup
               >
               <q-item-section avatar>
                 <q-icon color="primary" name="mdi-view-module-outline" />
@@ -154,6 +194,7 @@
               @click="onShowMoreFormat"
               :disable="!ctrl.formatOpts.isDoMore"
               clickable
+              v-close-popup
               >
               <q-item-section avatar>
                 <q-icon color="primary" name="mdi-decimal-increase" />
@@ -164,6 +205,7 @@
               @click="onShowLessFormat"
               :disable="!ctrl.formatOpts.isDoLess"
               clickable
+              v-close-popup
               >
               <q-item-section avatar>
                 <q-icon color="primary" name="mdi-decimal-decrease" />
@@ -175,6 +217,7 @@
             v-if="ctrl.formatOpts && ctrl.formatOpts.isRawUse"
             @click="onToggleRawValue"
             clickable
+            v-close-popup
             >
             <q-item-section avatar>
               <q-icon color="primary" name="mdi-loupe" />
@@ -185,17 +228,20 @@
             @click="onShowItemNames"
             :disable="isScalar"
             clickable
+            v-close-popup
             >
             <q-item-section avatar>
               <q-icon color="primary" name="mdi-label-outline" />
             </q-item-section>
             <q-item-section>{{ pvc.isShowNames ? $t('Show labels') : $t('Show names') }}</q-item-section>
           </q-item>
+
           <q-separator />
 
           <q-item
             @click="onSaveDefaultView"
             clickable
+            v-close-popup
             >
             <q-item-section avatar>
               <q-icon color="primary" name="mdi-content-save-cog" />
@@ -205,6 +251,7 @@
           <q-item
             @click="onReloadDefaultView"
             clickable
+            v-close-popup
             >
             <q-item-section avatar>
               <q-icon color="primary" name="mdi-cog-refresh-outline" />
@@ -225,64 +272,74 @@
       icon="mdi-information"
       :title="$t('About') + ' ' + tableName"
       />
-
     <q-separator vertical inset spaced="sm" color="secondary" />
 
     <template v-if="isPages">
       <q-btn
-        @click="onFirstPage"
-        :disable="pageStart === 0"
-        flat
+        @click="isShowPageControls = !isShowPageControls"
+        :flat="!isShowPageControls"
+        :outline="isShowPageControls"
         dense
-        class="col-auto bg-primary text-white rounded-borders q-mr-xs"
-        icon="mdi-page-first"
-        :title="$t('First page')"
+        :class="!isShowPageControls ? 'bar-button-on' : 'bar-button-off'"
+        class="col-auto rounded-borders q-mr-xs"
+        icon="mdi-unfold-more-vertical"
+        :title="isShowPageControls ? $t('Hide pagination controls') : $t('Show pagination controls')"
         />
-      <q-btn
-        @click="onPrevPage"
-        :disable="pageStart === 0"
-        flat
-        dense
-        class="col-auto bg-primary text-white rounded-borders q-mr-xs"
-        icon="mdi-chevron-left"
-        :title="$t('Previous page')"
-        />
-      <div
-        class="page-start-item rounded-borders om-text-secondary q-px-xs q-py-xs q-mr-xs"
-        :title="$t('Position')"
-        >{{ (!!pageStart && typeof pageStart === typeof 1) ? pageStart.toLocaleString() : pageStart }}</div>
-      <q-btn
-        @click="onNextPage"
-        :disable="isLastPage"
-        flat
-        dense
-        class="col-auto bg-primary text-white rounded-borders q-mr-xs"
-        icon="mdi-chevron-right"
-        :title="$t('Next page')"
-        />
-      <q-btn
-        @click="onLastPage"
-        :disable="isLastPage"
-        flat
-        dense
-        class="col-auto bg-primary text-white rounded-borders q-mr-xs"
-        icon="mdi-page-last"
-        :title="$t('Last page')"
-        />
-      <q-select
-        v-model="pageSize"
-        @input="onPageSize"
-        :options="[10, 40, 100, 200, 400, 1000, 2000, 4000, 10000, 20000, 0]"
-        :option-label="(val) => (!val || typeof val !== typeof 1 || val <= 0) ? $t('All') : val.toLocaleString()"
-        outlined
-        options-dense
-        dense
-        :label="$t('Size')"
-        class="col-auto"
-        style="min-width: 6rem"
-        >
-      </q-select>
-
+      <template v-if="isShowPageControls">
+        <q-btn
+          @click="onFirstPage"
+          :disable="pageStart === 0"
+          flat
+          dense
+          class="col-auto bg-primary text-white rounded-borders q-mr-xs"
+          icon="mdi-page-first"
+          :title="$t('First page')"
+          />
+        <q-btn
+          @click="onPrevPage"
+          :disable="pageStart === 0"
+          flat
+          dense
+          class="col-auto bg-primary text-white rounded-borders q-mr-xs"
+          icon="mdi-chevron-left"
+          :title="$t('Previous page')"
+          />
+        <div
+          class="page-start-item rounded-borders om-text-secondary q-px-xs q-py-xs q-mr-xs"
+          :title="$t('Position')"
+          >{{ (!!pageStart && typeof pageStart === typeof 1) ? pageStart.toLocaleString() : pageStart }}</div>
+        <q-btn
+          @click="onNextPage"
+          :disable="isLastPage"
+          flat
+          dense
+          class="col-auto bg-primary text-white rounded-borders q-mr-xs"
+          icon="mdi-chevron-right"
+          :title="$t('Next page')"
+          />
+        <q-btn
+          @click="onLastPage"
+          :disable="isLastPage"
+          flat
+          dense
+          class="col-auto bg-primary text-white rounded-borders q-mr-xs"
+          icon="mdi-page-last"
+          :title="$t('Last page')"
+          />
+        <q-select
+          v-model="pageSize"
+          @input="onPageSize"
+          :options="[10, 40, 100, 200, 400, 1000, 2000, 4000, 10000, 20000, 0]"
+          :option-label="(val) => (!val || typeof val !== typeof 1 || val <= 0) ? $t('All') : val.toLocaleString()"
+          outlined
+          options-dense
+          dense
+          :label="$t('Size')"
+          class="col-auto"
+          style="min-width: 6rem"
+          >
+        </q-select>
+      </template>
       <q-separator vertical inset spaced="sm" color="secondary" />
     </template>
 
@@ -292,7 +349,7 @@
       flat
       dense
       class="col-auto bg-primary text-white rounded-borders q-mr-xs"
-      icon="mdi-function-variant"
+      icon="mdi-sigma"
       :title="$t('View table expressions')"
       />
     <q-btn
@@ -309,10 +366,37 @@
       :disable="ctrl.kind === 2"
       flat
       dense
-      class="col-auto bg-primary text-white rounded-borders"
+      class="col-auto bg-primary text-white rounded-borders q-mr-xs"
       icon="mdi-application-variable-outline"
       :title="$t('View all accumulators and sub-values (sub-samples)')"
       />
+    <!-- calculated measures menu -->
+    <q-btn
+      :flat="ctrl.kind !== 3"
+      :outline="ctrl.kind === 3"
+      dense
+      :class="ctrl.kind !== 3 ? 'bar-button-on' : 'bar-button-off'"
+      class="col-auto rounded-borders"
+      icon="mdi-function-variant"
+      :title="$t('Calculate expression')"
+      :aria-label="$t('Calculate expression')"
+      >
+      <q-menu auto-close>
+        <q-list dense>
+          <q-item
+            v-for="c in calcList"
+            :key="c.code"
+            @click="doCalcPage(c.code)"
+            :class="{ 'text-primary' : srcCalc === c.code }"
+            clickable
+            >
+            <q-item-section>{{ $t(c.label) }}</q-item-section>
+            <q-item-section :class="{ 'text-primary' : srcCalc === c.code }" side>{{ c.code }}</q-item-section>
+          </q-item>
+        </q-list>
+      </q-menu>
+    </q-btn>
+    <!-- end of calculated measures menu -->
 
     <q-separator vertical inset spaced="sm" color="secondary" />
 
@@ -332,7 +416,6 @@
       icon="mdi-download"
       :title="$t('Download') + ' '  + tableName + ' ' + $t('as CSV')"
       />
-
     <q-separator vertical inset spaced="sm" color="secondary" />
 
     <q-btn
@@ -429,7 +512,6 @@
       icon="mdi-label-outline"
       :title="pvc.isShowNames ? $t('Show labels') : $t('Show names')"
       />
-
     <q-separator vertical inset spaced="sm" color="secondary" />
 
     <q-btn
