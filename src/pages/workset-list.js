@@ -79,7 +79,7 @@ export default {
       showParamFromRunTickle: false,
       showGroupFromRunTickle: false,
       showGroupFromWorkTickle: false,
-      bodyMsg: '',
+      confirmMsg: '',
       sourceParams: [],
       replaceParams: [],
       isShowNoteEditor: false,
@@ -510,7 +510,7 @@ export default {
       if (this.replaceParams.length > 0) {
         this.groupInfoName = groupName
         this.showGroupFromRunTickle = !this.showGroupFromRunTickle
-        this.bodyMsg = this.$t('Replace {count} parameter(s) of', { count: this.replaceParams.length })
+        this.confirmMsg = this.$t('Replace {count} parameter(s) of', { count: this.replaceParams.length })
         return
       }
       // else copy group of parameters from run
@@ -540,7 +540,7 @@ export default {
       if (this.replaceParams.length > 0) {
         this.groupInfoName = groupName
         this.showGroupFromWorkTickle = !this.showGroupFromWorkTickle
-        this.bodyMsg = this.$t('Replace {count} parameter(s) of', { count: this.replaceParams.length })
+        this.confirmMsg = this.$t('Replace {count} parameter(s) of', { count: this.replaceParams.length })
         return
       }
       // else copy group of parameters from other workset

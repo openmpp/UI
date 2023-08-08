@@ -649,7 +649,7 @@
     :show-tickle="showGroupFromRunTickle"
     :item-name="groupInfoName"
     :dialog-title="$t('Parameter(s) already exist')"
-    :body-text="bodyMsg"
+    :body-text="confirmMsg"
     :icon-name="'mdi-content-copy'"
     >
   </confirm-dialog>
@@ -658,7 +658,7 @@
     :show-tickle="showGroupFromWorkTickle"
     :item-name="groupInfoName"
     :dialog-title="$t('Parameter(s) already exist')"
-    :body-text="bodyMsg"
+    :body-text="confirmMsg"
     :icon-name="'mdi-content-copy'"
     >
   </confirm-dialog>
