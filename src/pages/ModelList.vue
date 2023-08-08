@@ -69,7 +69,7 @@
             />
           <q-btn
             v-if="serverConfig.AllowDownload"
-            @click.stop="doModelDownload(prop.node.digest)"
+            @click.stop="onModelDownload(prop.node.digest, prop.node.label)"
             flat
             round
             dense
@@ -94,6 +94,17 @@
 
   <model-info-dialog :show-tickle="modelInfoTickle" :digest="modelInfoDigest"></model-info-dialog>
 
+  <confirm-dialog
+    @confirm-yes="onYesDownload"
+    :show-tickle="showDownloadConfirmTickle"
+    :item-id="downloadDigest"
+    :item-name="downloadLabel"
+    :dialog-title="$t('Download model data' + '?')"
+    :body-text="$t('Download')"
+    :icon-name="'mdi-download-circle'"
+    >
+  </confirm-dialog>
+
   <q-inner-loading :showing="loadWait">
     <q-spinner-gears size="lg" color="primary" />
   </q-inner-loading>
@@ -105,10 +116,11 @@
 import { mapState, mapGetters, mapActions } from 'vuex'
 import * as Mdf from 'src/model-common'
 import ModelInfoDialog from 'components/ModelInfoDialog.vue'
+import ConfirmDialog from 'components/ConfirmDialog.vue'
 
 export default {
   name: 'ModelList',
-  components: { ModelInfoDialog },
+  components: { ModelInfoDialog, ConfirmDialog },
 
   props: {
     refreshTickle: { type: Boolean, default: false }
@@ -131,6 +143,9 @@ export default {
       },
       modelInfoTickle: false,
       modelInfoDigest: '',
+      showDownloadConfirmTickle: false,
+      downloadDigest: '',
+      downloadLabel: '',
       loadDone: false,
       loadWait: false
     }
@@ -231,10 +246,17 @@ export default {
       this.modelInfoTickle = !this.modelInfoTickle
     },
 
-    // click on model download: start model download and show download list page
-    doModelDownload (digest) {
+    // show yes/no dialog to confirm model download
+    onModelDownload (digest, label) {
+      this.downloadDigest = digest
+      this.downloadLabel = label
+      this.showDownloadConfirmTickle = !this.showDownloadConfirmTickle
+    },
+    // user answer yes to confirm model download: start model download and show download list page
+    onYesDownload (label, digest, kind) {
       if (!digest) {
-        this.$q.notify({ type: 'negative', message: this.$t('Unable to download model') })
+        console.warn('Unable to download model:', digest, label)
+        this.$q.notify({ type: 'negative', message: this.$t('Unable to download model') + ' ' + (label || '') })
         return
       }
       this.startModelDownload(digest) // start model download and show download page on success
