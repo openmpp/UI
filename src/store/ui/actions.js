@@ -32,9 +32,27 @@ export const runDigestSelected = ({ commit }, modelView) => {
   commit('runDigestSelected', modelView)
 }
 
-// update or clear run digest to compare
-export const runDigestCompare = ({ commit }, modelView) => {
-  commit('runDigestCompare', modelView)
+// add digest to the list of runs to compare
+export const addRunCompareDigest = ({ commit }, modelRunDigest) => {
+  const mDgst = (typeof modelRunDigest?.digest === typeof 'string') ? modelRunDigest.digest : ''
+  const rDgst = (typeof modelRunDigest?.runDigest === typeof 'string') ? modelRunDigest.runDigest : ''
+  if (!mDgst || !rDgst) return
+
+  commit('runCompareDigest', { isAdd: true, digest: mDgst, runDigest: rDgst })
+}
+
+// remove digest from the list of runs to compare
+export const deleteRunCompareDigest = ({ commit }, modelRunDigest) => {
+  const mDgst = (typeof modelRunDigest?.digest === typeof 'string') ? modelRunDigest.digest : ''
+  const rDgst = (typeof modelRunDigest?.runDigest === typeof 'string') ? modelRunDigest.runDigest : ''
+  if (!mDgst || !rDgst) return
+
+  commit('runCompareDigest', { isAdd: false, digest: mDgst, runDigest: rDgst })
+}
+
+// update or clear list of runs digest to compare
+export const runCompareDigestList = ({ commit }, modelView) => {
+  commit('runCompareDigestList', modelView)
 }
 
 // update or clear selected workset name

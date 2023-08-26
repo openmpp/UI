@@ -52,7 +52,7 @@
               <q-item-section avatar>
                 <q-icon color="primary" name="mdi-notebook-plus-outline" />
               </q-item-section>
-              <q-item-section>{{ paramDiff.length > 0 ? ($t('Create new input scenario with {count} parameter(s) from', { count: paramDiff.length }) + ': ' + runCompare.Name) : $t('Create new input scenario') }}</q-item-section>
+              <q-item-section>{{ paramDiff.length > 0 ? ($t('Create new input scenario with {count} parameter(s) from', { count: paramDiff.length }) + ': ' + firstCompareName) : $t('Create new input scenario') }}</q-item-section>
             </q-item>
 
             <template v-if="serverConfig.AllowUpload">
@@ -112,7 +112,7 @@
         dense
         class="col-auto bg-primary text-white rounded-borders q-ml-xs"
         icon="mdi-notebook-plus"
-        :title="paramDiff.length > 0 ? ($t('Create new input scenario with {count} parameter(s) from', { count: paramDiff.length }) + ': ' + runCompare.Name) : $t('Create new input scenario')"
+        :title="paramDiff.length > 0 ? ($t('Create new input scenario with {count} parameter(s) from', { count: paramDiff.length }) + ': ' + firstCompareName) : $t('Create new input scenario')"
         />
 
       <template v-if="serverConfig.AllowUpload">
@@ -436,9 +436,9 @@
               round
               dense
               class="col-auto"
-              :class="(!isSuccess(prop.node.status) || prop.node.digest === runDigestSelected) ? 'text-secondary' : (prop.node.digest !== runCompare.RunDigest ? 'text-primary' : 'text-white bg-primary')"
+              :class="(!isSuccess(prop.node.status) || prop.node.digest === runDigestSelected) ? 'text-secondary' : (isDigestCompare(prop.node.digest) ? 'text-white bg-primary' : 'text-primary')"
               icon="mdi-not-equal-variant"
-              :title="(prop.node.digest !== runCompare.RunDigest ? $t('Compare this model run with') : $t('Clear run comparison with')) + ' ' + runCurrent.Name"
+              :title="(isDigestCompare(prop.node.digest) ? $t('Clear run comparison with') : $t('Compare this model run with')) + ' ' + runCurrent.Name"
               />
             <q-btn
               :disable="!prop.node.digest || isNowArchive(prop.node.digest)"
@@ -484,15 +484,24 @@
   <entity-run-info-dialog :show-tickle="entityInfoTickle" :entity-name="entityInfoName" :run-digest="runDigestSelected"></entity-run-info-dialog>
   <entity-attr-info-dialog :show-tickle="attrInfoTickle" :entity-name="entityInfoName" :attr-name="attrInfoName"></entity-attr-info-dialog>
 
-  <refresh-run v-if="(digest || '') !== '' && (runDigestRefresh || '') !== ''"
+  <refresh-run v-if="(digest || '') !== ''"
     :model-digest="digest"
-    :run-digest="this.runDigestRefresh"
+    :run-digest="runDigestRefresh"
     :refresh-tickle="refreshTickle"
     :refresh-run-tickle="refreshRunTickle"
     @done="doneRunLoad"
     @wait="loadRunWait = true"
     >
   </refresh-run>
+  <refresh-run-array v-if="(digest || '') !== ''"
+    :model-digest="digest"
+    :run-digest-array="compareDigestArray"
+    :refresh-tickle="refreshTickle"
+    :refresh-all-tickle="refreshRunArrayTickle"
+    @done="doneRunArrayLoad"
+    @wait="loadRunArrayWait = true"
+    >
+  </refresh-run-array>
   <delete-confirm-dialog
     @delete-yes="onYesRunDelete"
     :show-tickle="showDeleteDialogTickle"
@@ -507,7 +516,7 @@
     :create-now="isCreateWorksetNow"
     :model-digest="digest"
     :new-name="nameOfNewWorkset"
-    :current-run-digest="runCompare.RunDigest"
+    :current-run-digest="copyDigestNewWorkset"
     :copy-from-run="copyParamNewWorkset"
     :descr-notes="newDescrNotes"
     @done="doneWorksetCreate"
@@ -515,7 +524,7 @@
     >
   </create-workset>
 
-  <q-inner-loading :showing="loadWait || loadRunWait || loadWorksetCreate">
+  <q-inner-loading :showing="loadWait || loadRunWait || loadRunArrayWait || loadWorksetCreate">
     <q-spinner-gears size="md" color="primary" />
   </q-inner-loading>
 
@@ -530,11 +539,6 @@
   }
   .tab-switch-button {
     border-top-right-radius: 1rem;
-  }
-  .tab-compare-boder {
-    border-width: 1px;
-    border-style: solid;
-    border-color: currentColor;
   }
   .primary-border-025 {
     border: 0.25rem solid $primary;

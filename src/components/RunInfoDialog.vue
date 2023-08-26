@@ -41,8 +41,51 @@
           <span class="om-note-cell q-pr-sm">{{ $t('Value Digest') }}:</span><span class="om-note-cell">{{ runText.ValueDigest }}</span>
         </div>
       </div>
+    </q-card-section>
 
-      <div v-if="notes" v-html="notes" />
+    <q-card-section v-if="isCompare" class="q-pt-none text-body1">
+      <table class="pt-table">
+        <tbody>
+          <tr v-if="!!compareRuns && compareRuns.length">
+            <th class="pt-row-head" colspan="2">{{ $t('Model runs to compare') }}</th>
+          </tr>
+          <tr v-for="crt of compareRuns" :key="'cr-' + crt.name">
+            <td class="pt-cell-left">{{ crt.name }}</td>
+            <td class="pt-cell-left om-text-descr">{{ crt.descr }}</td>
+          </tr>
+          <tr v-if="!!diffParam && diffParam.length">
+            <th class="pt-row-head" colspan="2">{{ $t('Different parameters') }}</th>
+          </tr>
+          <tr v-else>
+            <th class="pt-row-head" colspan="2">{{ $t('All parameters values identical') }}</th>
+          </tr>
+          <tr v-for="par of diffParam" :key="'dp-' + par.name">
+            <td class="pt-cell-left">{{ par.name }}</td>
+            <td class="pt-cell-left om-text-descr">{{ par.descr }}</td>
+          </tr>
+          <tr v-if="!!diffTable && diffTable.length">
+            <th class="pt-row-head" colspan="2">{{ $t('Different output tables') }}</th>
+          </tr>
+          <tr v-if="(!diffTable || !diffTable.length) && (!suppTable || !suppTable.length)">
+            <th class="pt-row-head" colspan="2">{{ $t('All output tables values identical') }}</th>
+          </tr>
+          <tr v-for="tbl of diffTable" :key="'dt-' + tbl.name">
+            <td class="pt-cell-left">{{ tbl.name }}</td>
+            <td class="pt-cell-left om-text-descr">{{ tbl.descr }}</td>
+          </tr>
+          <tr v-if="!!suppTable && suppTable.length">
+            <th class="pt-row-head" colspan="2">{{ $t('Suppressed output tables') }}</th>
+          </tr>
+          <tr v-for="tbl of suppTable" :key="'ds-' + tbl.name">
+            <td class="pt-cell-left">{{ tbl.name }}</td>
+            <td class="pt-cell-left om-text-descr">{{ tbl.descr }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </q-card-section>
+
+    <q-card-section v-if="notes" class="q-pt-none text-body1">
+      <div v-html="notes" />
     </q-card-section>
 
     <q-card-actions align="right">
@@ -82,13 +125,28 @@ export default {
       duration: '',
       isDeleted: false,
       isNowArchive: false,
-      isSoonArchive: false
+      isSoonArchive: false,
+      isCompare: false,
+      compareRuns: [],
+      diffParam: [],
+      diffTable: [],
+      suppTable: []
     }
   },
 
   computed: {
+    ...mapState('model', {
+      theModel: state => state.theModel,
+      runTextList: state => state.runTextList
+    }),
     ...mapGetters('model', {
       runTextByDigest: 'runTextByDigest'
+    }),
+    ...mapState('uiState', {
+      runDigestSelected: state => state.runDigestSelected
+    }),
+    ...mapGetters('uiState', {
+      modelViewSelected: 'modelViewSelected'
     }),
     ...mapState('serverState', {
       archiveState: state => state.archive
@@ -119,6 +177,48 @@ export default {
         this.isSoonArchive = Mdf.isArchiveAlertRun(this.archiveState, this.modelDigest, this.runDigest)
       }
 
+      // if it is a base run of run comparison (if there is not empty list of digests to compare)
+      // then make run compare info
+      this.isCompare = false
+      this.compareRuns = []
+      this.diffParam = []
+      this.diffTable = []
+      this.suppTable = []
+
+      if (this.runDigest === this.runDigestSelected) {
+        const mv = this.modelViewSelected(this.modelDigest)
+        this.isCompare = !!mv && Array.isArray(mv?.digestCompareList) && mv.digestCompareList.length > 0
+
+        if (this.isCompare) {
+          const rc = Mdf.runCompare(this.runText, mv.digestCompareList, Mdf.tableCount(this.theModel), this.runTextList)
+
+          for (const dg of mv.digestCompareList) {
+            const rt = this.runTextList.find(r => r.RunDigest === dg)
+            if (rt) {
+              this.compareRuns.push({ name: rt.Name, descr: Mdf.descrOfTxt(rt) })
+            }
+          }
+          for (const name of rc.paramDiff) {
+            const pt = this.theModel.ParamTxt.find(p => p.Param.Name === name)
+            if (pt) {
+              this.diffParam.push({ name: pt.Param.Name, descr: Mdf.descrOfDescrNote(pt) })
+            }
+          }
+          for (const name of rc.tableDiff) {
+            const tt = this.theModel.TableTxt.find(t => t.Table.Name === name)
+            if (tt) {
+              this.diffTable.push({ name: tt.Table.Name, descr: (tt.TableDescr || '') })
+            }
+          }
+          for (const name of rc.tableSupp) {
+            const tt = this.theModel.TableTxt.find(t => t.Table.Name === name)
+            if (tt) {
+              this.suppTable.push({ name: tt.Table.Name, descr: (tt.TableDescr || '') })
+            }
+          }
+        }
+      }
+
       // run notes: convert from markdown to html
       marked.setOptions({
         renderer: new marked.Renderer(),
@@ -141,6 +241,38 @@ export default {
 }
 </script>
 
+<style lang="scss" scope="local">
+  .pt-table {
+    text-align: left;
+    border-collapse: collapse;
+  }
+  .pt-cell {
+    padding: 0.25rem;
+    border: 1px solid lightgrey;
+    font-size: 0.875rem;
+  }
+  .pt-head {
+    @extend .pt-cell;
+    text-align: center;
+    background-color: whitesmoke;
+  }
+  .pt-row-head {
+    @extend .pt-cell;
+    background-color: whitesmoke;
+  }
+  .pt-cell-left {
+    text-align: left;
+    @extend .pt-cell;
+  }
+  .pt-cell-right {
+    text-align: right;
+    @extend .pt-cell;
+  }
+  .pt-cell-center {
+    text-align: center;
+    @extend .pt-cell;
+  }
+</style>
 <style scope="local">
   @import '~highlight.js/styles/github.css'
 </style>

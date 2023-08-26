@@ -27,20 +27,38 @@ export const runDigestSelected = (state, modelView) => {
 
   if (typeof modelView?.runDigest === typeof 'string') {
     state.runDigestSelected = modelView.runDigest
-    if (!state.modelView[mDgst]) state.modelView[mDgst] = Mdf.emptyModelView()
+    if (!state.modelView[mDgst]) state.modelView[mDgst] = Mdf.emptyModelView() // create model view state if not exist
     state.modelView[mDgst].runDigest = modelView.runDigest
-    // state.modelView[mDgst].runCompare = ''
+    // state.modelView[mDgst].digestCompareList = []
   }
 }
 
-// assign new value to run digest to compare with base run
-export const runDigestCompare = (state, modelView) => {
+// add or remove digest from the list of run digests to compare with base run
+export const runCompareDigest = (state, amr) => {
+  const mDgst = (typeof amr?.digest === typeof 'string') ? amr.digest : ''
+  const rDgst = (typeof amr?.runDigest === typeof 'string') ? amr.runDigest : ''
+
+  if (!mDgst || !rDgst || typeof amr?.isAdd !== typeof true) return
+  if (!state.modelView[mDgst]) state.modelView[mDgst] = Mdf.emptyModelView() // create model view state if not exist
+
+  if (amr.isAdd) {
+    if (!state.modelView[mDgst].digestCompareList.includes(rDgst)) state.modelView[mDgst].digestCompareList.push(rDgst)
+  } else {
+    const n = state.modelView[mDgst].digestCompareList.indexOf(rDgst)
+    if (n >= 0) {
+      state.modelView[mDgst].digestCompareList.splice(n, 1)
+    }
+  }
+}
+
+// assign new value to the list of runs digest to compare with base run
+export const runCompareDigestList = (state, modelView) => {
   const mDgst = (typeof modelView?.digest === typeof 'string') ? modelView.digest : ''
   if (!mDgst) return
 
-  if (typeof modelView?.runCompare === typeof 'string') {
-    if (!state.modelView[mDgst]) state.modelView[mDgst] = Mdf.emptyModelView()
-    state.modelView[mDgst].runCompare = modelView.runCompare
+  if (Array.isArray(modelView?.digestCompareList)) {
+    if (!state.modelView[mDgst]) state.modelView[mDgst] = Mdf.emptyModelView() // create model view state if not exist
+    state.modelView[mDgst].digestCompareList = modelView.digestCompareList
   }
 }
 
@@ -51,7 +69,7 @@ export const worksetNameSelected = (state, modelView) => {
 
   if (typeof modelView?.worksetName === typeof 'string') {
     state.worksetNameSelected = modelView.worksetName
-    if (!state.modelView[mDgst]) state.modelView[mDgst] = Mdf.emptyModelView()
+    if (!state.modelView[mDgst]) state.modelView[mDgst] = Mdf.emptyModelView() // create model view state if not exist
     state.modelView[mDgst].worksetName = modelView.worksetName
   }
 }
@@ -64,7 +82,7 @@ export const modelViewDelete = (state, modelDigest) => {
   if (state.modelView[mDgst]) {
     if ((state.runDigestSelected || '') !== '' && (state.modelView[mDgst]?.runDigest || '') === state.runDigestSelected) {
       state.runDigestSelected = ''
-      state.modelView[mDgst].runCompare = ''
+      state.modelView[mDgst].digestCompareList = []
     }
     if ((state.worksetNameSelected || '') !== '' && (state.modelView[mDgst]?.worksetName || '') === state.worksetNameSelected) {
       state.worksetNameSelected = ''
@@ -88,7 +106,7 @@ export const tabsView = (state, modelView) => {
   const mDgst = (typeof modelView?.digest === typeof 'string') ? modelView.digest : ''
   if (!mDgst || !Array.isArray(modelView?.tabs)) return
 
-  if (!state.modelView[mDgst]) state.modelView[mDgst] = Mdf.emptyModelView()
+  if (!state.modelView[mDgst]) state.modelView[mDgst] = Mdf.emptyModelView() // create model view state if not exist
 
   state.modelView[mDgst].tabs = []
   for (const t of modelView.tabs) {

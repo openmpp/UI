@@ -4,6 +4,7 @@ import RunParameterList from 'components/RunParameterList.vue'
 import TableList from 'components/TableList.vue'
 import EntityList from 'components/EntityList.vue'
 import RefreshRun from 'components/RefreshRun.vue'
+import RefreshRunArray from 'components/RefreshRunArray.vue'
 import RunInfoDialog from 'components/RunInfoDialog.vue'
 import ParameterInfoDialog from 'components/ParameterInfoDialog.vue'
 import TableInfoDialog from 'components/TableInfoDialog.vue'
@@ -22,6 +23,7 @@ export default {
     TableList,
     EntityList,
     RefreshRun,
+    RefreshRunArray,
     RunInfoDialog,
     ParameterInfoDialog,
     TableInfoDialog,
@@ -43,25 +45,30 @@ export default {
     return {
       loadWait: false,
       loadRunWait: false,
+      loadRunArrayWait: false,
       runCurrent: Mdf.emptyRunText(), // currently selected run
       isRunTreeCollapsed: false,
       isAnyRunGroup: false,
       runTreeData: [],
       runFilter: '',
-      runCompare: Mdf.emptyRunText(), // run to compare
+      firstCompareName: '', // run name of first run to compare
+      compareDigestArray: [], // array of run digests to compare
       paramDiff: [], // name list of different parameters
       tableDiff: [], // name list of different tables
+      tableSupp: [], // name list of tables which are not found in one of the runs to compare
       isNewWorksetShow: false,
       isCreateWorksetNow: false,
       loadWorksetCreate: false,
       nameOfNewWorkset: '',
+      copyDigestNewWorkset: '',
       copyParamNewWorkset: [],
       newDescrNotes: [], // new workset description and notes
-      runDigestRefresh: '',
-      refreshRunTickle: false,
       isParamTreeShow: false,
       paramTreeCount: 0,
       paramVisibleCount: 0,
+      refreshRunTickle: false,
+      runDigestRefresh: '',
+      refreshRunArrayTickle: false,
       refreshParamTreeTickle: false,
       isTableTreeShow: false,
       tableTreeCount: 0,
@@ -98,7 +105,7 @@ export default {
   computed: {
     isNotEmptyRunCurrent () { return Mdf.isNotEmptyRunText(this.runCurrent) },
     descrRunCurrent () { return Mdf.descrOfTxt(this.runCurrent) },
-    isCompare () { return !!this.runCompare && (this.runCompare?.RunDigest || '') !== '' },
+    isCompare () { return Mdf.lengthOf(this.compareDigestArray) > 0 },
     fileSelected () { return !(this.uploadFile === null) },
     isMicrodata () { return !!this.serverConfig.AllowMicrodata && Mdf.entityCount(this.theModel) > 0 },
     isArchive () { return !!this?.archiveState?.IsArchive },
@@ -147,6 +154,7 @@ export default {
     dateTimeStr (dt) { return Mdf.dtStr(dt) },
     runCurrentDescr () { return Mdf.descrOfTxt(this.runCurrent) },
     runCurrentNote () { return Mdf.noteOfTxt(this.runCurrent) },
+    isDigestCompare (dgst) { return this.compareDigestArray.includes(dgst) },
     isNowArchive (dgst) { return Mdf.isArchiveNowRun(this.archiveState, this.digest, dgst) },
     isSoonArchive (dgst) { return Mdf.isArchiveAlertRun(this.archiveState, this.digest, dgst) },
 
@@ -168,13 +176,18 @@ export default {
     // update run comparison view
     refreshRunCompare () {
       const mv = this.modelViewSelected(this.digest)
-      if (!!mv && (mv?.runCompare || '') !== '') this.runDigestRefresh = mv.runCompare
+      if (!!mv && Array.isArray(mv?.digestCompareList)) {
+        this.compareDigestArray = mv.digestCompareList
+        this.refreshRunArrayTickle = !this.refreshRunArrayTickle
+      }
     },
 
     // click on run: select this run as current run
     onRunLeafClick (dgst) {
+      if (this.runDigestSelected === dgst) return // double click on the same run
+
       this.clearRunCompare()
-      if (this.runDigestSelected !== dgst) this.$emit('run-select', dgst)
+      this.$emit('run-select', dgst)
     },
     // expand or collapse all run tree nodes
     doToogleExpandRunTree () {
@@ -228,11 +241,69 @@ export default {
       this.isShowNoteEditor = false
     },
 
+    // array of runs to compare loaded from the server
+    doneRunArrayLoad (isSuccess, count) {
+      this.loadRunArrayWait = false
+      if (!isSuccess || !Mdf.isRunTextList(this.runTextList)) return
+
+      // check if all runs to compare exists in run list
+      const isCmp = this.compareDigestArray.length > 0
+      const dArr = []
+      for (const dg of this.compareDigestArray) {
+        if (this.runTextList.findIndex((rt) => { return rt.RunDigest === dg }) >= 0) {
+          dArr.push(dg)
+        }
+      }
+
+      // update run comparison state
+      if (dArr.length <= 0) {
+        if (isCmp) this.clearRunCompare()
+      } else {
+        this.compareDigestArray = dArr
+        this.updateRunCompare()
+        this.dispatchRunCompareDigestList({ digest: this.digest, digestCompareList: dArr })
+      }
+    },
+    // update run comparison: list of different parameters, different tables and suppressed tables
+    updateRunCompare () {
+      if (!Mdf.isLength(this.compareDigestArray)) return
+
+      const rc = Mdf.runCompare(this.runCurrent, this.compareDigestArray, Mdf.tableCount(this.theModel), this.runTextList)
+
+      // notify user about results
+      if (rc.paramDiff.length) {
+        this.paramVisibleCount = Mdf.paramCount(this.theModel)
+        this.$q.notify({ type: 'info', message: this.$t('Number of different parameters') + ': ' + rc.paramDiff.length })
+      } else {
+        this.$q.notify({ type: 'info', message: this.$t('All parameters values identical') })
+      }
+      if (rc.tableDiff.length) {
+        this.tableVisibleCount = Mdf.tableCount(this.theModel)
+        this.$q.notify({ type: 'info', message: this.$t('Number of different output tables') + ': ' + rc.tableDiff.length })
+      } else {
+        if (!rc.tableSupp.length) this.$q.notify({ type: 'info', message: this.$t('All output tables values identical') })
+      }
+      if (rc.tableSupp.length) {
+        this.$q.notify({ type: 'info', message: this.$t('Number of output tables which are not found') + ': ' + rc.tableSupp.length })
+      }
+
+      this.firstCompareName = rc.firstRunName
+      this.paramDiff = Object.freeze(rc.paramDiff)
+      this.tableDiff = Object.freeze(rc.tableDiff)
+      this.tableSupp = Object.freeze(rc.tableSupp)
+      this.refreshParamTreeTickle = !this.refreshParamTreeTickle
+      this.refreshTableTreeTickle = !this.refreshTableTreeTickle
+    },
+
     // run comparison click: set or clear run comparison
     onRunCompareClick (dgst) {
       // if clear run comparison filter
-      if (dgst === this.runCompare.RunDigest) {
-        this.clearRunCompare()
+      if (this.removeRunCompareDigest(dgst)) {
+        if (this.compareDigestArray.length > 0) {
+          this.updateRunCompare()
+        } else {
+          this.clearRunCompare()
+        }
         return
       }
       // esle: start run comparison by refresh run
@@ -241,77 +312,50 @@ export default {
       this.isNewWorksetShow = false // clear new workset create panel
       this.resetNewWorkset()
     },
+    // remove run digest from run compare list
+    removeRunCompareDigest (dgst) {
+      const nPos = this.compareDigestArray.indexOf(dgst)
+      if (nPos < 0) return false
+
+      this.compareDigestArray.splice(nPos, 1)
+      this.dispatchDeleteRunCompareDigest({ digest: this.digest, runDigest: dgst })
+      return true
+    },
+
     // run to compare loaded from the server
     doneRunLoad (isSuccess, dgst) {
       this.loadRunWait = false
       if (!isSuccess) return
 
-      this.runCompare = this.runTextByDigest({ ModelDigest: this.digest, RunDigest: dgst })
-      if (!Mdf.isNotEmptyRunText(this.runCompare)) {
-        this.runDigestRefresh = ''
+      const rt = this.runTextByDigest({ ModelDigest: this.digest, RunDigest: dgst })
+      if (!Mdf.isNotEmptyRunText(rt)) {
         console.warn('Unable to compare run:', dgst, this.runDigestRefresh)
         this.$q.notify({ type: 'negative', message: this.$t('Unable to compare model run') + ' ' + this.runDigestRefresh })
+        this.runDigestRefresh = ''
         return
       }
+      this.runDigestRefresh = ''
 
-      // compare parameters by value digest: both Param[] arrays must contain all parameters
-      const pn = []
-      for (let k = 0; k < this.runCurrent.Param.length; k++) {
-        if (this.runCurrent.Param[k].ValueDigest !== this.runCompare.Param[k].ValueDigest) pn.push(this.runCurrent.Param[k].Name)
+      // update run compare names
+      if (this.compareDigestArray.indexOf(dgst) < 0) {
+        this.compareDigestArray.push(dgst)
+        this.updateRunCompare()
       }
-
-      // compare output tables by value digest:
-      // Table[] arrays can contain diffrent tables or both can have full table list
-      const tn = []
-      const nCur = this.runCurrent.Table.length
-      const nCmp = this.runCompare.Table.length
-
-      if (nCur === nCmp && nCur === Mdf.tableCount(this.theModel)) { // both runs contain all output tables
-        for (let k = 0; k < this.runCurrent.Table.length; k++) {
-          if (this.runCurrent.Table[k].ValueDigest !== this.runCompare.Table[k].ValueDigest) tn.push(this.runCurrent.Table[k].Name)
-        }
-      } else {
-        // at least one table of the Table[] arrays does not contain all model tables
-        const tm = nCur > nCmp ? this.runCurrent.Table : this.runCompare.Table
-        const ts = nCur > nCmp ? this.runCompare.Table : this.runCurrent.Table
-
-        for (let k = 0; k < tm.length; k++) {
-          const j = ts.findIndex((t) => { return t.Name === tm[k].Name })
-          if (j >= 0 && ts[j].ValueDigest !== tm[k].ValueDigest) tn.push(tm[k].Name)
-        }
-      }
-
-      // notify user about results
-      if (pn.length) {
-        this.paramVisibleCount = Mdf.paramCount(this.theModel)
-        this.$q.notify({ type: 'info', message: this.$t('Number of different parameters') + ': ' + pn.length })
-      } else {
-        this.$q.notify({ type: 'info', message: this.$t('All parameters values identical') })
-      }
-      if (tn.length) {
-        this.tableVisibleCount = Mdf.tableCount(this.theModel)
-        this.$q.notify({ type: 'info', message: this.$t('Number of different output tables') + ': ' + tn.length })
-      } else {
-        this.$q.notify({ type: 'info', message: this.$t('All output tables  values identical') })
-      }
-
-      this.paramDiff = Object.freeze(pn)
-      this.tableDiff = Object.freeze(tn)
-      this.refreshParamTreeTickle = !this.refreshParamTreeTickle
-      this.refreshTableTreeTickle = !this.refreshTableTreeTickle
-      this.dispatchRunDigestCompare({ digest: this.digest, runCompare: this.runDigestRefresh })
+      this.dispatchAddRunCompareDigest({ digest: this.digest, runDigest: dgst })
     },
     // clear run comparison
     clearRunCompare () {
       this.runDigestRefresh = ''
-      this.runCompare = Mdf.emptyRunText()
+      this.compareDigestArray = []
+      this.firstCompareName = ''
       this.paramDiff = []
       this.tableDiff = []
+      this.tableSupp = []
       this.paramVisibleCount = this.paramTreeCount
       this.tableVisibleCount = this.tableTreeCount
       this.refreshParamTreeTickle = !this.refreshParamTreeTickle
       this.refreshTableTreeTickle = !this.refreshTableTreeTickle
-      this.dispatchRunDigestCompare({ digest: this.digest, runCompare: '' })
+      this.dispatchRunCompareDigestList({ digest: this.digest, digestCompareList: [] })
       // clear new workset create panel
       this.isNewWorksetShow = false
       this.resetNewWorkset()
@@ -322,6 +366,7 @@ export default {
     // return true to disable new workset create button click
     isNewWorksetDisabled () {
       return !this.isCompare ||
+        this.compareDigestArray.length !== 1 || // allow to create new workset only from single run
         !Array.isArray(this.paramDiff) ||
         this.paramDiff.length <= 0 ||
         this.isNewWorksetShow ||
@@ -344,16 +389,22 @@ export default {
     // send request to create new workset
     onNewWorksetSave (dgst, name, txt) {
       this.nameOfNewWorkset = name || ''
+      this.copyDigestNewWorkset = ''
+      this.copyParamNewWorkset = []
 
-      // parameters to copy into the new workset
-      const pLst = []
-      for (const pn of this.paramDiff) {
-        pLst.push({
-          name: pn,
-          isGroup: false
-        })
+      // parameters to copy into the new workset from run compare
+      if (this.compareDigestArray.length === 1) {
+        this.copyDigestNewWorkset = this.compareDigestArray[0]
+
+        const pLst = []
+        for (const pn of this.paramDiff) {
+          pLst.push({
+            name: pn,
+            isGroup: false
+          })
+        }
+        this.copyParamNewWorkset = Object.freeze(pLst)
       }
-      this.copyParamNewWorkset = Object.freeze(pLst)
 
       this.newDescrNotes = txt || []
       this.isCreateWorksetNow = true
@@ -375,6 +426,7 @@ export default {
     resetNewWorkset () {
       this.isCreateWorksetNow = false
       this.nameOfNewWorkset = ''
+      this.copyDigestNewWorkset = ''
       this.copyParamNewWorkset = []
       this.newDescrNotes = []
     },
@@ -390,9 +442,18 @@ export default {
     },
     // user answer yes to confirm delete model run
     onYesRunDelete (runName, dgst) {
-      if (dgst === this.runCompare.RunDigest) {
-        this.clearRunCompare()
+      let isClear = this.runDigestSelected === dgst
+      let isCmp = false
+      if (!isClear) {
+        isCmp = this.removeRunCompareDigest(dgst)
+        isClear = this.compareDigestArray.length <= 0
       }
+      if (isClear) {
+        this.clearRunCompare()
+      } else {
+        if (isCmp) this.updateRunCompare()
+      }
+
       this.doRunDeleteStart(dgst, runName)
     },
 
@@ -681,7 +742,9 @@ export default {
     },
 
     ...mapActions('uiState', {
-      dispatchRunDigestCompare: 'runDigestCompare'
+      dispatchAddRunCompareDigest: 'addRunCompareDigest',
+      dispatchDeleteRunCompareDigest: 'deleteRunCompareDigest',
+      dispatchRunCompareDigestList: 'runCompareDigestList'
     })
   },
 

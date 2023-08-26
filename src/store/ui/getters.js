@@ -7,7 +7,7 @@ export const modelViewSelected = (state) => (modelDigest) => {
     ? Mdf.emptyModelView()
     : {
         runDigest: state.modelView[modelDigest]?.runDigest || '',
-        runCompare: state.modelView[modelDigest]?.runCompare || '',
+        digestCompareList: Array.isArray(state.modelView[modelDigest]?.digestCompareList) ? state.modelView[modelDigest]?.digestCompareList : [],
         worksetName: state.modelView[modelDigest]?.worksetName || '',
         taskName: state.modelView[modelDigest]?.taskName || ''
       }

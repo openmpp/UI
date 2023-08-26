@@ -115,6 +115,64 @@ export const runTableByName = (rt, name) => {
   return emptyRunTable() // not found
 }
 
+// compare runs and return: names of different parameters, different tables, suppressed tables and name of the first run
+export const runCompare = (runCurrent, compareDigestLst, tableCount, runTextLst) => {
+  if (!isNotEmptyRunText(runCurrent) || !Hlpr.isLength(compareDigestLst) || !tableCount || !Hlpr.isLength(runTextLst) || !isRunTextList(runTextLst)) {
+    return { firstRunName: '', paramDiff: [], tableDiff: [], tableSupp: [] }
+  }
+
+  const pn = []
+  let tn = []
+  const sn = []
+  let firstName = ''
+  const isAllTbl = runCurrent.Table.length === tableCount
+
+  for (const dg of compareDigestLst) {
+    const rt = runTextLst.find(r => r.RunDigest === dg)
+    if (!rt) continue
+
+    // compare parameters by value digest: both Param[] arrays must contain all parameters
+    for (let k = 0; k < runCurrent.Param.length; k++) {
+      if (runCurrent.Param[k].ValueDigest !== rt.Param[k].ValueDigest) {
+        if (!pn.includes(runCurrent.Param[k].Name)) pn.push(runCurrent.Param[k].Name)
+      }
+    }
+
+    // compare output tables by value digest:
+    // Table[] arrays can contain diffrent tables or both can have full table list
+    if (isAllTbl && rt.Table.length === tableCount) { // both runs contain all output tables
+      for (let k = 0; k < runCurrent.Table.length; k++) {
+        if (runCurrent.Table[k].ValueDigest !== rt.Table[k].ValueDigest) {
+          if (!tn.includes(runCurrent.Table[k].Name)) tn.push(runCurrent.Table[k].Name)
+        }
+      }
+    } else {
+      // at least one of the Table[] arrays does not contain all model tables
+      for (let k = 0; k < runCurrent.Table.length; k++) {
+        const j = rt.Table.findIndex((t) => { return t.Name === runCurrent.Table[k].Name })
+        if (j >= 0) {
+          if (rt.Table[j].ValueDigest !== runCurrent.Table[k].ValueDigest) {
+            if (!tn.includes(runCurrent.Table[k].Name)) tn.push(runCurrent.Table[k].Name)
+          }
+        } else {
+          if (!sn.includes(runCurrent.Table[k].Name)) sn.push(runCurrent.Table[k].Name)
+        }
+      }
+    }
+
+    if (!firstName) firstName = rt.Name // first run name to compare
+  }
+
+  tn = tn.filter(name => !sn.includes(name)) // remove missing tables name from the list of different tables
+
+  return {
+    firstRunName: firstName,
+    paramDiff: pn,
+    tableDiff: tn,
+    tableSupp: sn
+  }
+}
+
 /* eslint-disable no-multi-spaces */
 export const RUN_SUCCESS = 's'      // run completed successfuly
 export const RUN_IN_PROGRESS = 'p'  // run in progress
