@@ -112,7 +112,7 @@
         <!-- row headers: row dimension(s) item label -->
         <template v-for="(rf, nFld) in rowFields">
           <th
-            :key="pvt.rowKeys[nRow] + '-' + nFld"
+            :key="pvt.rowKeys[nRow] + ':' + nFld"
             v-if="pvControl.rowColMode === 0 || pvControl.rowColMode === 3 || !!pvt.rowSpans[nRow * rowFields.length + nFld]"
             :rowspan="(pvControl.rowColMode === 2 || pvControl.rowColMode === 1) && pvt.rowSpans[nRow * rowFields.length + nFld]"
             :colspan="((pvControl.rowColMode === 2 || pvControl.rowColMode === 3) && !!colFields.length && nFld === rowFields.length - 1) ? 2 : 1"
@@ -141,7 +141,7 @@
         <!-- row headers: row dimension(s) item label -->
         <template v-for="(rf, nFld) in rowFields">
           <th
-            :key="pvt.rowKeys[nRow] + '-' + nFld"
+            :key="pvt.rowKeys[nRow] + ':' + nFld"
             v-if="pvControl.rowColMode === 0 || pvControl.rowColMode === 3 || !!pvt.rowSpans[nRow * rowFields.length + nFld]"
             :rowspan="(pvControl.rowColMode === 2 || pvControl.rowColMode === 1) && pvt.rowSpans[nRow * rowFields.length + nFld]"
             :colspan="((pvControl.rowColMode === 2 || pvControl.rowColMode === 3) && !!colFields.length && nFld === rowFields.length - 1) ? 2 : 1"
