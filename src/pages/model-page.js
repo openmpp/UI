@@ -117,6 +117,7 @@ export default {
     }),
     ...mapGetters('uiState', {
       paramViewUpdatedCount: 'paramViewUpdatedCount',
+      paramViewWorksetUpdatedCount: 'paramViewWorksetUpdatedCount',
       tabsView: 'tabsView'
     })
   },
@@ -332,13 +333,13 @@ export default {
       if (dgst !== this.digest || !name) return
 
       if (isReadonly) {
-        // if there are any edited and unsaved parameters for current model
-        const n = this.paramViewUpdatedCount(this.digest)
+        // if there are any edited and unsaved parameters for this workset
+        const n = this.paramViewWorksetUpdatedCount({ digest: this.digest, worksetName: name })
         if (n > 0) {
-          console.warn('Unable to save input scenario: unsaved parameters count:', n)
+          console.warn('Unable to save input scenario: unsaved parameters count:', name, n)
           this.$q.notify({
             type: 'negative',
-            message: this.$t('Unable to save input scenario because you have {count} unsaved parameter(s)', { count: n })
+            message: this.$t('Unable to save input scenario {setName} because you have {count} unsaved parameter(s)', { setName: name, count: n })
           })
           return
         }

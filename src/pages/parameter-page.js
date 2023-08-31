@@ -139,6 +139,7 @@ export default {
       uiLang: state => state.uiLang
     }),
     ...mapGetters('uiState', {
+      paramViewWorksetUpdatedCount: 'paramViewWorksetUpdatedCount',
       paramView: 'paramView'
     }),
     ...mapState('serverState', {
@@ -174,21 +175,35 @@ export default {
     doShowWorksetNote (modelDgst, name) {
       this.worksetInfoTickle = !this.worksetInfoTickle
     },
-    // on button click "toggle workset readonly status": pass event from child up to the next level
-    onWorksetReadonlyToggle (dgst, name, isReadonly) {
-      this.$emit('set-update-readonly', dgst, name, isReadonly)
-    },
     // on button click "new model run": pass event from child up to the next level
     onNewRunClick () {
       this.$emit('new-run-select', this.worksetName)
     },
 
+    // on button click "toggle workset readonly status": pass event from child up to the next level
+    onWorksetReadonlyToggle (dgst, name, isReadonly) {
+      this.$emit('set-update-readonly', dgst, name, isReadonly)
+    },
+    // update workset read only status:
+    //   set read-write if argument isReadonly is false
+    //   set read-only if all parameters edit saved and parameter note editor closed
+    updateWorksetReadonly (isReadonly) {
+      if (this.isFromRun || (this.worksetName || '') === '') return // exit: this is not a workset parameter
+
+      if (isReadonly) {
+        if (this.paramViewWorksetUpdatedCount({ digest: this.digest, worksetName: this.worksetName }) > 0) {
+          return // not all parameters saved for current workset
+        }
+        if (this.noteEditorShow) return // note editor active
+      }
+      this.$emit('set-update-readonly', this.digest, this.worksetName, isReadonly)
+    },
     // workset updated: check read-only status and adjust controls
     // if sub-values count changed as result of parameter upload then reset view and reload data
     onWorksetUpdated () {
       const nSub = this.subCount
       const { isFound, src } = this.initParamRunSet()
-      this.edt.isEnabled = this.isUploadEnabled = !this.isFromRun && isFound && Mdf.isNotEmptyWorksetText(src) && !src.IsReadonly
+      this.edt.isEnabled = this.isUploadEnabled = !this.isFromRun && isFound && Mdf.isNotEmptyWorksetText(src) // && !src.IsReadonly
 
       if (!this.isFromRun) {
         this.isNowArchive = Mdf.isArchiveNowWorkset(this.archiveState, this.digest, this.worksetName)
@@ -473,6 +488,7 @@ export default {
       }
 
       this.dispatchParamView({ key: this.routeKey, edit: this.edt })
+      this.updateWorksetReadonly(!this.edt.isEdit)
     },
     // parameter editor question: "Discard all changes?", user answer: "yes"
     onYesDiscardChanges () {
@@ -482,6 +498,7 @@ export default {
       if (this.edt.kind === Pcvt.EDIT_NUMBER && this.pvc.formatter) {
         if (this.ctrl.formatOpts.isRawValue !== this.ctrl.isRawShow) this.pvc.formatter.doRawValue() // switch back to formatted value on edit complete
       }
+      this.updateWorksetReadonly(true) // set workset read only if all parameters saved and workset note editor closed
     },
 
     // save if data editied
@@ -686,7 +703,7 @@ export default {
       this.isScalar = this.rank <= 0 && this.subCount <= 1
 
       // adjust controls
-      this.edt.isEnabled = this.isUploadEnabled = !this.isFromRun && Mdf.isNotEmptyWorksetText(src) && !src.IsReadonly
+      this.edt.isEnabled = this.isUploadEnabled = !this.isFromRun && Mdf.isNotEmptyWorksetText(src) // && !src.IsReadonly
       Pcvt.resetEdit(this.edt) // clear editor state
 
       const isRc = !this.isScalar
@@ -1023,6 +1040,7 @@ export default {
       this.noteEditorNotes = Mdf.noteOfTxt(this.paramRunSet)
       this.noteEditorLangCode = this.uiLang || this.$q.lang.getLocale() || ''
       this.noteEditorShow = true
+      this.updateWorksetReadonly(false) // set workset read-write
     },
     // ask user to confirm cancel if notes changed
     onCancelParamNote () {
@@ -1033,10 +1051,12 @@ export default {
       }
       // else: close notes editor (no changes in data)
       this.noteEditorShow = false
+      this.updateWorksetReadonly(true) // set workset read only if all parameters saved and workset note editor closed
     },
     // on user selecting "Yes" from "discard changes?" pop-up alert
     onYesDiscardParamNote () {
       this.noteEditorShow = false
+      this.updateWorksetReadonly(true) // set workset read only if all parameters saved and workset note editor closed
     },
     // save parameter value notes
     onSaveParamNote () {
@@ -1182,6 +1202,8 @@ export default {
         this.$q.notify({ type: 'negative', message: this.$t('Server offline or parameter save failed') + ': ' + this.parameterName })
       }
       this.saveWait = false
+
+      this.updateWorksetReadonly(true) // set workset read only if all parameters saved and workset note editor closed
     },
 
     // upload csv file to replace workset parameter value
@@ -1322,6 +1344,8 @@ export default {
         this.$q.notify({ type: 'negative', message: this.$t('Unable to save parameter value notes') + (msg ? (': ' + msg) : '') })
         return
       }
+
+      this.updateWorksetReadonly(true) // set workset read only if all parameters saved and workset note editor closed
 
       this.$q.notify({ type: 'info', message: this.$t('Parameter value notes saved') + ': ' + this.parameterName })
       this.refreshWsTickle = !this.refreshWsTickle

@@ -530,6 +530,7 @@ export default {
   'Unable to save default output table view': "Impossible d'enregistrer la vue par défaut de la table de résultats",
   'Unable to save default parameter view': "Impossible d'enregistrer la vue des paramètres par défaut",
   'Unable to save input scenario because you have {count} unsaved parameter(s)': "Impossible d'enregistrer le scénario d'entrée car vous avez {count} paramètre(s) non enregistré(s)",
+  'Unable to save input scenario {setName} because you have {count} unsaved parameter(s)': "Impossible d'enregistrer le scénario {setName} d'entrée car vous avez {count} paramètre(s) non enregistré(s)",
   'Unable to save input scenario description and notes': "Impossible d'enregistrer la description et les notes du scénario d'entrée",
   'Unable to save input scenario description and notes, language is unknown': "Impossible d'enregistrer la description et les notes du scénario d'entrée, la langue est inconnue",
   'Unable to save model run description and notes': "Impossible d'enregistrer la description et les notes d'exécution du modèle",

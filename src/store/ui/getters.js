@@ -47,6 +47,22 @@ export const paramViewUpdatedCount = (state) => (modelDigest) => {
   return n
 }
 
+// count updated parameters by model digest and workset name
+export const paramViewWorksetUpdatedCount = (state) => (mw) => {
+  if (!mw || !mw?.digest || !mw?.worksetName) return 0
+  if (typeof mw.digest !== typeof 'string' || mw.digest === '') return 0
+  if (typeof mw.worksetName !== typeof 'string' || mw.worksetName === '') return 0
+
+  let n = 0
+  for (const key in state.paramViews) {
+    if (state.paramViews?.[key]?.digest === mw.digest && state.paramViews?.[key]?.worksetName === mw.worksetName) {
+      const pv = state.paramViews?.[key]?.view
+      if (!!pv && pv.edit?.isUpdated && !!pv.edit.isUpdated) n++
+    }
+  }
+  return n
+}
+
 // return copy of table view by key
 export const tableView = (state) => (key) => {
   return state.tableViews?.[key]?.view ? Mdf._cloneDeep(state.tableViews[key].view) : undefined

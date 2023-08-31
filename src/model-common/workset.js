@@ -50,7 +50,7 @@ export const worksetParamCount = (ws) => {
   return isWorkset(ws) ? Hlpr.lengthOf(ws.Param) : 0
 }
 
-// if this is workset status row
+// if this is a workset status db row
 export const isWorksetStatus = (ws) => {
   if (!ws) return false
   if (!ws.hasOwnProperty('ModelDigest')) return false
