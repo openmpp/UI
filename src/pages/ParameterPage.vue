@@ -61,7 +61,7 @@
           <template v-if="!isFromRun">
             <q-item
               @click="doEditToogle"
-              :disable="!edt.isEnabled || (isNowArchive || isSoonArchive)"
+              :disable="!edt.isEnabled || noteEditorShow || (isNowArchive || isSoonArchive)"
               clickable
               >
               <q-item-section avatar>
@@ -105,7 +105,7 @@
           <q-item
             v-if="!noteEditorShow"
             @click="onEditParamNote()"
-            :disable="!isFromRun && (!edt.isEnabled || isNowArchive || isSoonArchive)"
+            :disable="!isFromRun && (!edt.isEnabled || edt.isEdit || isNowArchive || isSoonArchive)"
             clickable
             >
             <q-item-section avatar>
@@ -125,7 +125,7 @@
           </q-item>
           <q-item
             @click="onSaveParamNote()"
-            :disable="!noteEditorShow || (!isFromRun && (!edt.isEnabled || isNowArchive || isSoonArchive))"
+            :disable="!noteEditorShow || (!isFromRun && (!edt.isEnabled || edt.isEdit || isNowArchive || isSoonArchive))"
             clickable
             >
             <q-item-section avatar>
@@ -387,7 +387,7 @@
     <template v-if="!isFromRun">
       <q-btn
         @click="doEditToogle"
-        :disable="!edt.isEnabled || (isNowArchive || isSoonArchive)"
+        :disable="!edt.isEnabled || noteEditorShow || (isNowArchive || isSoonArchive)"
         flat
         dense
         class="col-auto bg-primary text-white rounded-borders"
@@ -427,7 +427,7 @@
     <q-btn
       v-if="!noteEditorShow"
       @click="onEditParamNote()"
-      :disable="!isFromRun && (!edt.isEnabled || isNowArchive || isSoonArchive)"
+      :disable="!isFromRun && (!edt.isEnabled || edt.isEdit || isNowArchive || isSoonArchive)"
       flat
       dense
       class="col-auto bg-primary text-white rounded-borders"
@@ -445,7 +445,7 @@
       />
     <q-btn
       @click="onSaveParamNote()"
-      :disable="!noteEditorShow || (!isFromRun && (!edt.isEnabled || isNowArchive || isSoonArchive))"
+      :disable="!noteEditorShow || (!isFromRun && (!edt.isEnabled || edt.isEdit || isNowArchive || isSoonArchive))"
       flat
       dense
       class="col-auto bg-primary text-white rounded-borders q-ml-xs"
