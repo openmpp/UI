@@ -16,7 +16,7 @@ const EXPR_DIM_NAME = 'EXPRESSIONS_DIM'         // expressions measure dimension
 const ACC_DIM_NAME = 'ACCUMULATORS_DIM'         // accuimulators measure dimension name
 const ALL_ACC_DIM_NAME = 'ALL_ACCUMULATORS_DIM' // all accuimulators measure dimension name
 const CALC_DIM_NAME = 'CALCULATED_DIM'          // calculated expressions measure dimension name
-const SMALL_PAGE_SIZE = 100                     // small page size: do not show page controls
+const SMALL_PAGE_SIZE = 1000                    // small page size: do not show page controls
 const LAST_PAGE_OFFSET = 2 * 1024 * 1024 * 1024 // large page offset to get the last page
 const CALCULATED_ID_OFFSET = 1200               // calculated exprssion id offset, for example for Expr1 calculated expression id is 1201
 /* eslint-enable no-multi-spaces */
@@ -163,6 +163,7 @@ export default {
       this.isPages = tblSize?.dimTotal > SMALL_PAGE_SIZE // disable pages for small table
       this.pageStart = 0
       this.pageSize = 0 // by default show all rows
+      this.isShowPageControls = this.pageSize > 0
 
       this.isNullable = true // output table always nullable
       this.isScalar = false // output table view never scalar: there is always a measure dimension
@@ -652,11 +653,12 @@ export default {
       // restore page offset and size
       if (this.isPages) {
         this.pageStart = (typeof tv?.pageStart === typeof 1) ? (tv?.pageStart || 0) : 0
-        this.pageSize = (typeof tv?.pageSize === typeof 1) ? (tv?.pageSize || SMALL_PAGE_SIZE) : SMALL_PAGE_SIZE
+        this.pageSize = (typeof tv?.pageSize === typeof 1 && tv?.pageSize >= 0) ? tv.pageSize : SMALL_PAGE_SIZE
       } else {
         this.pageStart = 0
         this.pageSize = 0
       }
+      this.isShowPageControls = this.pageSize > 0
 
       // refresh pivot view: both dimensions labels and table body
       this.ctrl.isPvDimsTickle = !this.ctrl.isPvDimsTickle
@@ -761,7 +763,7 @@ export default {
       vs.kind = this.ctrl.kind || Puih.kind.EXPR // view kind is specific to output tables
       vs.calc = this.srcCalc || ''
       vs.pageStart = 0
-      vs.pageSize = this.isPages ? this.pageSize : SMALL_PAGE_SIZE
+      vs.pageSize = this.isPages ? ((typeof this.pageSize === typeof 1 && this.pageSize >= 0) ? this.pageSize : SMALL_PAGE_SIZE) : 0
 
       this.dispatchTableView({
         key: this.routeKey,
@@ -1103,6 +1105,7 @@ export default {
         this.$q.notify({ type: 'info', message: this.$t('Size reduced to') + ': ' + this.pageSize })
       }
       this.pageStart = LAST_PAGE_OFFSET
+      this.isShowPageControls = this.pageSize > 0
 
       this.doRefreshDataPage(true)
     },
@@ -1312,11 +1315,12 @@ export default {
       // restore default page offset and size
       if (this.isPages) {
         this.pageStart = (typeof dv?.pageStart === typeof 1) ? (dv?.pageStart || 0) : 0
-        this.pageSize = (typeof dv?.pageSize === typeof 1) ? (dv?.pageSize || SMALL_PAGE_SIZE) : SMALL_PAGE_SIZE
+        this.pageSize = (typeof dv?.pageSize === typeof 1 && dv?.pageSize >= 0) ? dv.pageSize : SMALL_PAGE_SIZE
       } else {
         this.pageStart = 0
         this.pageSize = 0
       }
+      this.isShowPageControls = this.pageSize > 0
 
       // if is not empty any of selection rows, columns, other dimensions
       // then store pivot view: do insert or replace of the view

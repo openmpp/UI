@@ -17,7 +17,7 @@ import MarkdownEditor from 'components/MarkdownEditor.vue'
 import { openURL } from 'quasar'
 
 /* eslint-disable no-multi-spaces */
-const SMALL_PAGE_SIZE = 100                     // small page size: do not show page controls
+const SMALL_PAGE_SIZE = 1000                    // small page size: do not show page controls
 const LAST_PAGE_OFFSET = 2 * 1024 * 1024 * 1024 // large page offset to get the last page
 /* eslint-enable no-multi-spaces */
 
@@ -291,6 +291,7 @@ export default {
         this.$q.notify({ type: 'info', message: this.$t('Size reduced to') + ': ' + this.pageSize })
       }
       this.pageStart = LAST_PAGE_OFFSET
+      this.isShowPageControls = this.pageSize > 0
 
       this.doRefreshDataPage(true)
     },
@@ -435,11 +436,12 @@ export default {
       // restore default page offset and size
       if (this.isPages) {
         this.pageStart = (typeof dv?.pageStart === typeof 1) ? (dv?.pageStart || 0) : 0
-        this.pageSize = (typeof dv?.pageSize === typeof 1) ? (dv?.pageSize || SMALL_PAGE_SIZE) : SMALL_PAGE_SIZE
+        this.pageSize = (typeof dv?.pageSize === typeof 1 && dv?.pageSize >= 0) ? dv.pageSize : SMALL_PAGE_SIZE
       } else {
         this.pageStart = 0
         this.pageSize = 0
       }
+      this.isShowPageControls = this.pageSize > 0
 
       // if is not empty any of selection rows, columns, other dimensions
       // then store pivot view: do insert or replace of the view
@@ -697,6 +699,7 @@ export default {
       this.isPages = paramSize?.dimTotal > SMALL_PAGE_SIZE // disable pages for small table
       this.pageStart = 0
       this.pageSize = 0 // by default show all rows
+      this.isShowPageControls = this.pageSize > 0
 
       this.isNullable = this.paramText.Param?.IsExtendable || false
       this.subCount = this.paramRunSet.SubCount || 0
@@ -919,11 +922,12 @@ export default {
       // restore page offset and size
       if (this.isPages) {
         this.pageStart = (typeof pv?.pageStart === typeof 1) ? (pv?.pageStart || 0) : 0
-        this.pageSize = (typeof pv?.pageSize === typeof 1) ? (pv?.pageSize || SMALL_PAGE_SIZE) : SMALL_PAGE_SIZE
+        this.pageSize = (typeof pv?.pageSize === typeof 1 && pv?.pageSize >= 0) ? pv.pageSize : SMALL_PAGE_SIZE
       } else {
         this.pageStart = 0
         this.pageSize = 0
       }
+      this.isShowPageControls = this.pageSize > 0
 
       // refresh pivot view: both dimensions labels and table body
       this.ctrl.isPvDimsTickle = !this.ctrl.isPvDimsTickle
@@ -972,7 +976,7 @@ export default {
       const vs = Pcvt.pivotStateFromFields(this.rowFields, this.colFields, this.otherFields, this.ctrl.isRowColControls, this.pvc.rowColMode)
       vs.edit = this.edt // edit state exist only for parameters
       vs.pageStart = 0
-      vs.pageSize = this.isPages ? SMALL_PAGE_SIZE : 0
+      vs.pageSize = this.isPages ? ((typeof this.pageSize === typeof 1 && this.pageSize >= 0) ? this.pageSize : SMALL_PAGE_SIZE) : 0
 
       this.dispatchParamView({
         key: this.routeKey,

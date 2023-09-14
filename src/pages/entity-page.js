@@ -159,6 +159,7 @@ export default {
         name: KEY_DIM_NAME,
         label: (Mdf.descrOfDescrNote(this.entityText) || this.$t('Entity')) + ' ' + this.$t('keys'),
         enums: [],
+        isBool: false,
         selection: [],
         singleSelection: {},
         filter: (val, update, abort) => {}
@@ -170,6 +171,7 @@ export default {
         name: ATTR_DIM_NAME,
         label: Mdf.descrOfDescrNote(this.entityText) || this.$t('Attribute'),
         enums: [],
+        isBool: false,
         options: [],
         selection: [],
         singleSelection: {},
@@ -186,11 +188,12 @@ export default {
         // find attribute type text
         const tTxt = Mdf.typeTextById(this.theModel, ea.Attr.TypeId)
 
-        if (!Mdf.isBuiltIn(tTxt.Type)) { // enum based attribute: use it as dimension
+        if (!Mdf.isBuiltIn(tTxt.Type) || Mdf.isBool(tTxt.Type)) { // enum based attribute or bool: use it as dimension
           const f = {
             name: ea.Attr.Name || '',
             label: Mdf.descrOfDescrNote(ea) || ea.Attr.Name || '',
             enums: [],
+            isBool: Mdf.isBool(tTxt.Type),
             options: [],
             selection: [],
             singleSelection: {},
@@ -275,7 +278,7 @@ export default {
 
       // read microdata rows, each row is { Key: integer, Attr:[{IsNull: false, Value: 19},...] }
       // array of attributes:
-      //   dimensions are enum-based attributes
+      //   dimensions are enum-based attributes or boolean
       //   meausre dimension values are values of built-in types attributes
       this.pvc.reader = (src) => {
         // no data to read: if source rows are empty or invalid return undefined reader
@@ -330,10 +333,18 @@ export default {
 
         // read dimension item value: enum id for enum-based attributes
         for (let n = 1; n < this.rank; n++) {
-          rd.readDim[this.dimProp[n].name] = (r) => {
-            const a = r?.Attr || void 0
-            const cv = (a && dimPos[n - 1] < a.length) ? a[dimPos[n - 1]] : void 0
-            return (cv && !cv.IsNull) ? cv.Value : void 0
+          if (!this.dimProp[n].isBool) { // enum-based dimension
+            rd.readDim[this.dimProp[n].name] = (r) => {
+              const a = r?.Attr || void 0
+              const cv = (a && dimPos[n - 1] < a.length) ? a[dimPos[n - 1]] : void 0
+              return (cv && !cv.IsNull) ? cv.Value : void 0
+            }
+          } else { // boolean dimension: enum id's: 0 = false, 1 = true
+            rd.readDim[this.dimProp[n].name] = (r) => {
+              const a = r?.Attr || void 0
+              const cv = (a && dimPos[n - 1] < a.length) ? a[dimPos[n - 1]] : void 0
+              return (cv && !cv.IsNull) ? (cv.Value ? 1 : 0) : void 0
+            }
           }
         }
 
@@ -414,7 +425,7 @@ export default {
       // restore page offset and size
       if (this.isPages) {
         this.pageStart = (typeof mv?.pageStart === typeof 1) ? (mv?.pageStart || 0) : 0
-        this.pageSize = (typeof mv?.pageSize === typeof 1) ? (mv?.pageSize || SMALL_PAGE_SIZE) : SMALL_PAGE_SIZE
+        this.pageSize = (typeof mv?.pageSize === typeof 1 && mv.pageSize >= 0) ? mv.pageSize : SMALL_PAGE_SIZE
       } else {
         this.pageStart = 0
         this.pageSize = 0
@@ -462,7 +473,7 @@ export default {
       // store pivot view
       const vs = Pcvt.pivotStateFromFields(this.rowFields, this.colFields, this.otherFields, this.ctrl.isRowColControls, this.pvc.rowColMode, KEY_DIM_NAME)
       vs.pageStart = 0
-      vs.pageSize = this.isPages ? this.pageSize : SMALL_PAGE_SIZE
+      vs.pageSize = this.isPages ? ((typeof this.pageSize === typeof 1 && this.pageSize >= 0) ? this.pageSize : SMALL_PAGE_SIZE) : 0
 
       this.dispatchMicrodataView({
         key: this.routeKey,
@@ -753,7 +764,7 @@ export default {
       // restore default page offset and size
       if (this.isPages) {
         this.pageStart = (typeof dv?.pageStart === typeof 1) ? (dv?.pageStart || 0) : 0
-        this.pageSize = (typeof dv?.pageSize === typeof 1) ? (dv?.pageSize || SMALL_PAGE_SIZE) : SMALL_PAGE_SIZE
+        this.pageSize = (typeof dv?.pageSize === typeof 1 && dv?.pageSize >= 0) ? dv.pageSize : SMALL_PAGE_SIZE
       } else {
         this.pageStart = 0
         this.pageSize = 0
