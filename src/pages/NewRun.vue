@@ -102,7 +102,7 @@
 
         <tr>
           <td
-            :disabled="!isCompletedRunCurrent || isRunNowArchive"
+            :disabled="!isCompletedRunCurrent || isRunNowArchive || isRunDeleted"
             class="q-pr-xs"
             >
             <q-checkbox

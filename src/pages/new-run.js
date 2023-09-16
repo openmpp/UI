@@ -117,10 +117,11 @@ export default {
       return this.worksetCurrent?.Name && this.worksetCurrent?.IsReadonly
     },
     // return true if current run is completed: success, error or exit
-    // if run not successfully completed then it we don't know is it possible to use as base run
+    // if run not successfully completed then it we don't know is it possible or not to use it as base run
     isCompletedRunCurrent () {
       return this.runCurrent?.RunDigest && Mdf.isRunCompleted(this.runCurrent)
     },
+    isRunDeleted () { return Mdf.isNotEmptyRunText(this.runCurrent) && Mdf.isRunDeletedStatus(this.runCurrent.Status, this.runCurrent.Name) },
     isNoTables () { return !this.tablesRetain || this.tablesRetain.length <= 0 },
     isMicrodata () { return !!this.serverConfig.AllowMicrodata && Mdf.entityCount(this.theModel) > 0 },
     isNoEntityAttrsUse () { return !this.entityAttrsUse || this.entityAttrsUse.length <= 0 },
@@ -185,7 +186,7 @@ export default {
       this.runOpts.worksetName = ''
       this.runOpts.baseRunDigest = ''
       this.useWorkset = this.isReadonlyWorksetCurrent && !this.isWorksetNowArchive
-      this.useBaseRun = this.isUseCurrentAsBaseRun() && !this.isRunNowArchive
+      this.useBaseRun = this.isUseCurrentAsBaseRun() && !this.isRunNowArchive && !this.isRunDeleted
       this.runOpts.sparseOutput = false
       this.mpiNpCount = 0
       this.runOpts.mpiUseJobs = false // this.serverConfig.IsJobControl
