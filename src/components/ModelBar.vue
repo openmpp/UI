@@ -1,7 +1,7 @@
 <!-- model info bar: show model info in flex bar -->
 <template>
   <div
-    class="row reverse-wrap items-center"
+    class="row items-center"
     >
 
     <q-btn

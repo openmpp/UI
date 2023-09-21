@@ -162,7 +162,7 @@
 
     <q-card-section class="q-pb-sm">
       <div
-        class="row reverse-wrap items-center"
+        class="row items-center"
         >
         <q-btn
           v-if="!isDeleteKind(uds.Kind)"
@@ -355,7 +355,7 @@
 
     <q-card-section class="q-pb-sm">
       <div
-        class="row reverse-wrap items-center"
+        class="row items-center"
         >
         <q-btn
           v-if="!isDeleteKind(uds.Kind)"
