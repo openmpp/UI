@@ -387,7 +387,7 @@
     <template v-if="!isFromRun">
       <q-btn
         @click="doEditToogle"
-        :disable="!edt.isEnabled || noteEditorShow || (isNowArchive || isSoonArchive)"
+        :disable="!edt.isEnabled || uploadFileSelect || noteEditorShow || (isNowArchive || isSoonArchive)"
         flat
         dense
         class="col-auto bg-primary text-white rounded-borders"
@@ -476,7 +476,7 @@
       v-if="!isFromRun"
       @click="doShowFileSelect()"
       v-show="!uploadFileSelect"
-      :disable="!isUploadEnabled || edt.isEdit || (isNowArchive || isSoonArchive)"
+      :disable="!isUploadEnabled || edt.isEdit || noteEditorShow || (isNowArchive || isSoonArchive)"
       flat
       dense
       class="col-auto text-white rounded-borders q-ml-xs bg-primary text-white rounded-borders"

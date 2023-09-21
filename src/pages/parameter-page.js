@@ -302,11 +302,13 @@ export default {
     // show parameter csv upload dialog
     doShowFileSelect () {
       this.uploadFileSelect = true
+      this.updateWorksetReadonly(false) // set workset read-write
     },
     // hides input parameter csv upload dialog
     doCancelFileSelect () {
       this.uploadFileSelect = false
       this.uploadFile = null
+      this.updateWorksetReadonly(true) // set workset read only if all parameters saved and workset note editor closed
     },
 
     // reload parameter data and reset pivot view to default
