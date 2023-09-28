@@ -161,7 +161,7 @@
               v-close-popup
               >
               <q-item-section avatar>
-                <q-icon color="primary" name="mdi-view-list-outline" />
+                <q-icon color="primary" name="mdi-view-compact-outline" />
               </q-item-section>
               <q-item-section>{{ $t('Table view: hide rows and columns name') }}</q-item-section>
             </q-item>
@@ -172,7 +172,7 @@
               v-close-popup
               >
               <q-item-section avatar>
-                <q-icon color="primary" name="mdi-view-compact-outline" />
+                <q-icon color="primary" name="mdi-view-list-outline" />
               </q-item-section>
               <q-item-section>{{ $t('Table view: always show rows and columns item and name') }}</q-item-section>
             </q-item>
@@ -446,7 +446,7 @@
         flat
         dense
         class="col-auto bg-primary text-white rounded-borders q-mr-xs"
-        icon="mdi-view-list-outline"
+        icon="mdi-view-compact-outline"
         :title="$t('Table view: hide rows and columns name')"
         />
       <q-btn
@@ -455,7 +455,7 @@
         flat
         dense
         class="col-auto bg-primary text-white rounded-borders q-mr-xs"
-        icon="mdi-view-compact-outline"
+        icon="mdi-view-list-outline"
         :title="$t('Table view: always show rows and columns item and name')"
         />
       <q-btn
