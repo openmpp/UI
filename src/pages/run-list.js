@@ -55,7 +55,8 @@ export default {
       compareDigestArray: [], // array of run digests to compare
       paramDiff: [], // name list of different parameters
       tableDiff: [], // name list of different tables
-      tableSupp: [], // name list of tables which are not found in one of the runs to compare
+      entityDiff: [], // name list of different microdata entities
+      entityAttrsUse: [], // entity.attribute names included in current run, filtered by run compare
       isNewWorksetShow: false,
       isCreateWorksetNow: false,
       loadWorksetCreate: false,
@@ -75,8 +76,8 @@ export default {
       tableVisibleCount: 0,
       refreshTableTreeTickle: false,
       isEntityTreeShow: false,
-      entityTreeCount: 0,
-      entityVisibleCount: 0,
+      entityTreeCount: 0, // total number of entities in current run
+      entityVisibleCount: 0, // number of entities visible after run compare
       refreshEntityTreeTickle: false,
       runInfoTickle: false,
       runInfoDigest: '',
@@ -165,6 +166,9 @@ export default {
       this.paramVisibleCount = this.paramTreeCount
       this.tableTreeCount = Mdf.tableCount(this.theModel)
       this.tableVisibleCount = this.tableTreeCount
+      this.entityTreeCount = this.runCurrent.Entity.length
+      this.entityVisibleCount = this.entityTreeCount
+      this.entityAttrsUse = []
       this.refreshRunCompare()
     },
     // run list updated: update run list tree and current run
@@ -286,13 +290,38 @@ export default {
       if (rc.tableSupp.length) {
         this.$q.notify({ type: 'info', message: this.$t('Number of output tables which are not found') + ': ' + rc.tableSupp.length })
       }
+      if (this.isMicrodata && !!this.runCurrent.Entity.length) {
+        // update list of visible microdata attributes:
+        // include all entity.attribute from current run if entity is missing in variant run(s)
+        this.entityAttrsUse = []
+
+        for (const e of this.runCurrent.Entity) {
+          if (rc.entityMiss.findIndex((em) => { return em === e.Name }) >= 0) continue // skip missing entity
+          if (e?.Name && Array.isArray(e?.Attr)) {
+            for (const a of e.Attr) {
+              this.entityAttrsUse.push(e.Name + '.' + a)
+            }
+          }
+        }
+
+        if (rc.entityDiff.length) {
+          this.entityVisibleCount = this.runCurrent.Entity.length
+          this.$q.notify({ type: 'info', message: this.$t('Number of different microdata') + ': ' + rc.entityDiff.length })
+        } else {
+          if (!rc.entityMiss.length) this.$q.notify({ type: 'info', message: this.$t('All microdata values identical') })
+        }
+        if (rc.entityMiss.length) {
+          this.$q.notify({ type: 'info', message: this.$t('Number of microdata entities which are not found') + ': ' + rc.entityMiss.length })
+        }
+      }
 
       this.firstCompareName = rc.firstRunName
       this.paramDiff = Object.freeze(rc.paramDiff)
       this.tableDiff = Object.freeze(rc.tableDiff)
-      this.tableSupp = Object.freeze(rc.tableSupp)
+      this.entityDiff = Object.freeze(rc.entityDiff)
       this.refreshParamTreeTickle = !this.refreshParamTreeTickle
       this.refreshTableTreeTickle = !this.refreshTableTreeTickle
+      this.refreshEntityTreeTickle = !this.refreshEntityTreeTickle
     },
 
     // run comparison click: set or clear run comparison
@@ -350,11 +379,14 @@ export default {
       this.firstCompareName = ''
       this.paramDiff = []
       this.tableDiff = []
-      this.tableSupp = []
+      this.entityDiff = []
+      this.entityAttrsUse = []
       this.paramVisibleCount = this.paramTreeCount
       this.tableVisibleCount = this.tableTreeCount
+      this.entityVisibleCount = this.entityTreeCount
       this.refreshParamTreeTickle = !this.refreshParamTreeTickle
       this.refreshTableTreeTickle = !this.refreshTableTreeTickle
+      this.refreshEntityTreeTickle = !this.refreshEntityTreeTickle
       this.dispatchRunCompareDigestList({ digest: this.digest, digestCompareList: [] })
       // clear new workset create panel
       this.isNewWorksetShow = false
@@ -530,7 +562,7 @@ export default {
     // entity tree updated and leafs counted
     onEntityTreeUpdated  (entCount, leafCount) {
       this.entityTreeCount = entCount || 0
-      this.entityVisibleCount = this.entityTreeCount
+      this.entityVisibleCount = !this.isCompare ? this.entityTreeCount : this.runCurrent.Entity.length
     },
     // show run entity info dialog: entity and attributes
     doShowEntityRunNote (entName) {

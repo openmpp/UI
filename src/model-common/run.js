@@ -118,12 +118,15 @@ export const runTableByName = (rt, name) => {
 // compare runs and return: names of different parameters, different tables, suppressed tables and name of the first run
 export const runCompare = (runCurrent, compareDigestLst, tableCount, runTextLst) => {
   if (!isNotEmptyRunText(runCurrent) || !Hlpr.isLength(compareDigestLst) || !tableCount || !Hlpr.isLength(runTextLst) || !isRunTextList(runTextLst)) {
-    return { firstRunName: '', paramDiff: [], tableDiff: [], tableSupp: [] }
+    return { firstRunName: '', paramDiff: [], tableDiff: [], tableSupp: [], entityDiff: [], entityMiss: [] }
   }
 
   const pn = []
   let tn = []
   const sn = []
+  let en = []
+  const ems = []
+
   let firstName = ''
   const isAllTbl = runCurrent.Table.length === tableCount
 
@@ -160,16 +163,31 @@ export const runCompare = (runCurrent, compareDigestLst, tableCount, runTextLst)
       }
     }
 
+    // compare microdata run entity by value digest
+    for (let k = 0; k < runCurrent.Entity.length; k++) {
+      const j = rt.Entity.findIndex((e) => { return e.Name === runCurrent.Entity[k].Name })
+      if (j >= 0) {
+        if (rt.Entity[j].ValueDigest !== runCurrent.Entity[k].ValueDigest) {
+          if (!en.includes(runCurrent.Entity[k].Name)) en.push(runCurrent.Entity[k].Name)
+        }
+      } else {
+        if (!ems.includes(runCurrent.Entity[k].Name)) ems.push(runCurrent.Entity[k].Name)
+      }
+    }
+
     if (!firstName) firstName = rt.Name // first run name to compare
   }
 
   tn = tn.filter(name => !sn.includes(name)) // remove missing tables name from the list of different tables
+  en = en.filter(name => !ems.includes(name)) // remove missing entities name from the list of different microdata entities
 
   return {
     firstRunName: firstName,
     paramDiff: pn,
     tableDiff: tn,
-    tableSupp: sn
+    tableSupp: sn,
+    entityDiff: en,
+    entityMiss: ems
   }
 }
 

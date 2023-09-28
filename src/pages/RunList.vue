@@ -186,7 +186,7 @@
         </q-btn>
       </span>
 
-      <span v-if="isMicrodata" v-show="entityVisibleCount > 0" class="col-auto no-wrap tab-switch-container">
+      <span v-if="isMicrodata" v-show="runCurrent.Entity.length > 0" class="col-auto no-wrap tab-switch-container">
         <q-btn
           :disable="!isSuccess(runCurrent.Status)"
           @click="onToogleShowEntityTree"
@@ -200,6 +200,14 @@
           <q-icon :name="isEntityTreeShow ? 'keyboard_arrow_up' : 'keyboard_arrow_down'" />
           <span>{{ $t('Microdata') }}</span>
           <q-badge outline class="q-ml-sm q-mr-xs">{{ entityVisibleCount }}</q-badge>
+          <q-separator
+            vertical dark v-if="isCompare && entityDiff.length > 0"
+            />
+          <span
+            v-if="isCompare && entityDiff.length > 0"
+            >
+            <q-icon name="mdi-not-equal-variant"/><q-badge outline class="q-mx-xs">{{ entityDiff.length }}</q-badge>
+          </span>
         </q-btn>
       </span>
 
@@ -267,7 +275,12 @@
         :run-digest="runDigestSelected"
         :refresh-tickle="refreshTickle"
         :refresh-entity-tree-tickle="refreshEntityTreeTickle"
+        :name-filter="entityAttrsUse"
         :is-entity-click="true"
+        :is-in-list-enable="isCompare"
+        in-list-icon="mdi-not-equal-variant"
+        in-list-on-label="Show only different microdata entities"
+        in-list-off-label="Show all microdata entities"
         @entity-select="onEntityClick"
         @entity-info-show="doShowEntityRunNote"
         @entity-attr-info-show="doShowEntityAttrNote"

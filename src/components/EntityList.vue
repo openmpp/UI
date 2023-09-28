@@ -21,6 +21,9 @@
     :no-results-label="$t('No entity attributes found')"
     :no-nodes-label="$t('No model entities found or server offline')"
     :is-any-in-list="isAnyEntity"
+    :in-list-on-label="inListOnLabel"
+    :in-list-off-label="inListOffLabel"
+    :in-list-icon="inListIcon"
     :is-in-list-clear="isInListClear"
     :in-list-clear-label="inListClearLabel"
     :in-list-clear-icon="inListClearIcon"
@@ -63,6 +66,9 @@ export default {
     isRemoveDisabled: { type: Boolean, default: false },
     nameFilter: { type: Array, default: () => [] }, // if not empty then use only entity.attribute included in this list
     isInListEnable: { type: Boolean, default: false },
+    inListOnLabel: { type: String, default: '' },
+    inListOffLabel: { type: String, default: '' },
+    inListIcon: { type: String, default: '' },
     isInListClear: { type: Boolean, default: false },
     inListClearLabel: { type: String, default: '' },
     inListClearIcon: { type: String, default: '' }
@@ -224,7 +230,7 @@ export default {
             const n = this.nameFilter.indexOf(name)
             if (n < 0) {
               this.isAnyFiltered = true
-              continue // skip filtered out entity
+              continue // skip filtered out entity attribute
             }
           }
 

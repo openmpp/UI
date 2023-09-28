@@ -80,6 +80,25 @@
             <td class="pt-cell-left">{{ tbl.name }}</td>
             <td class="pt-cell-left om-text-descr">{{ tbl.descr }}</td>
           </tr>
+          <template v-if="isMicrodata && !!runText.Entity.length">
+            <tr v-if="!!diffEntity && diffEntity.length">
+              <th class="pt-row-head" colspan="2">{{ $t('Different microdata') }}</th>
+            </tr>
+            <tr v-if="(!diffEntity || !diffEntity.length) && (!missEntity || !missEntity.length)">
+              <th class="pt-row-head" colspan="2">{{ $t('All microdata values identical') }}</th>
+            </tr>
+            <tr v-for="ent of diffEntity" :key="'de-' + ent.name">
+              <td class="pt-cell-left">{{ ent.name }}</td>
+              <td class="pt-cell-left om-text-descr">{{ ent.descr }}</td>
+            </tr>
+            <tr v-if="!!missEntity && missEntity.length">
+              <th class="pt-row-head" colspan="2">{{ $t('Microdata not found') }}</th>
+            </tr>
+            <tr v-for="ent of missEntity" :key="'em-' + ent.name">
+              <td class="pt-cell-left">{{ ent.name }}</td>
+              <td class="pt-cell-left om-text-descr">{{ ent.descr }}</td>
+            </tr>
+          </template>
         </tbody>
       </table>
     </q-card-section>
@@ -130,11 +149,15 @@ export default {
       compareRuns: [],
       diffParam: [],
       diffTable: [],
-      suppTable: []
+      suppTable: [],
+      diffEntity: [],
+      missEntity: []
     }
   },
 
   computed: {
+    isMicrodata () { return !!this.serverConfig.AllowMicrodata && Mdf.entityCount(this.theModel) > 0 },
+
     ...mapState('model', {
       theModel: state => state.theModel,
       runTextList: state => state.runTextList
@@ -149,6 +172,7 @@ export default {
       modelViewSelected: 'modelViewSelected'
     }),
     ...mapState('serverState', {
+      serverConfig: state => state.config,
       archiveState: state => state.archive
     })
   },
@@ -184,6 +208,8 @@ export default {
       this.diffParam = []
       this.diffTable = []
       this.suppTable = []
+      this.diffEntity = []
+      this.missEntity = []
 
       if (this.runDigest === this.runDigestSelected) {
         const mv = this.modelViewSelected(this.modelDigest)
@@ -214,6 +240,20 @@ export default {
             const tt = this.theModel.TableTxt.find(t => t.Table.Name === name)
             if (tt) {
               this.suppTable.push({ name: tt.Table.Name, descr: (tt.TableDescr || '') })
+            }
+          }
+          if (this.isMicrodata) {
+            for (const name of rc.entityDiff) {
+              const et = this.theModel.EntityTxt.find(t => t.Entity.Name === name)
+              if (et) {
+                this.diffEntity.push({ name: et.Entity.Name, descr: Mdf.descrOfDescrNote(et) })
+              }
+            }
+            for (const name of rc.entityMiss) {
+              const et = this.theModel.EntityTxt.find(t => t.Entity.Name === name)
+              if (et) {
+                this.missEntity.push({ name: et.Entity.Name, descr: Mdf.descrOfDescrNote(et) })
+              }
             }
           }
         }
