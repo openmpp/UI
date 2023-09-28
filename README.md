@@ -9,6 +9,10 @@ git clone https://github.com/openmpp/UI.git ompp-ui
 cd ompp-ui
 npm install
 ```
+(optional) audit packages:
+```
+npm audit --omit=dev
+```
 
 ### Start the app in development mode (hot-code reloading, error reporting, etc.)
 Linux or MacOS:
