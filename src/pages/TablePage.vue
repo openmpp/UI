@@ -90,15 +90,28 @@
             </q-item-section>
             <q-menu auto-close anchor="top end" self="top start">
               <q-list dense>
+                <template v-if="isCompare">
+                  <q-item
+                    v-for="c in compareCalcList"
+                    :key="c.code"
+                    @click="doCalcPage(c.code, true)"
+                    :class="{ 'text-primary' : srcCalc === c.code }"
+                    clickable
+                    >
+                    <q-item-section>{{ $t(c.label) }}</q-item-section>
+                    <q-item-section class="mono" :class="{ 'text-primary' : srcCalc === c.code }" side>{{ c.code }}</q-item-section>
+                  </q-item>
+                  <q-separator />
+                </template>
                 <q-item
-                  v-for="c in calcList"
+                  v-for="c in aggrCalcList"
                   :key="c.code"
-                  @click="doCalcPage(c.code)"
+                  @click="doCalcPage(c.code, false)"
                   :class="{ 'text-primary' : srcCalc === c.code }"
                   clickable
                   >
                   <q-item-section>{{ $t(c.label) }}</q-item-section>
-                  <q-item-section :class="{ 'text-primary' : srcCalc === c.code }" side>{{ c.code }}</q-item-section>
+                  <q-item-section class="mono" :class="{ 'text-primary' : srcCalc === c.code }" side>{{ c.code }}</q-item-section>
                 </q-item>
               </q-list>
             </q-menu>
@@ -372,10 +385,10 @@
       />
     <!-- calculated measures menu -->
     <q-btn
-      :flat="ctrl.kind !== 3"
-      :outline="ctrl.kind === 3"
+      :flat="ctrl.kind !== 3 && ctrl.kind !== 4"
+      :outline="ctrl.kind === 3 || ctrl.kind === 4"
       dense
-      :class="ctrl.kind !== 3 ? 'bar-button-on' : 'bar-button-off'"
+      :class="(ctrl.kind !== 3 && ctrl.kind !== 4) ? 'bar-button-on' : 'bar-button-off'"
       class="col-auto rounded-borders"
       icon="mdi-function-variant"
       :title="$t('Calculate expression')"
@@ -383,15 +396,28 @@
       >
       <q-menu auto-close>
         <q-list dense>
+          <template v-if="isCompare">
+            <q-item
+              v-for="c in compareCalcList"
+              :key="c.code"
+              @click="doCalcPage(c.code, true)"
+              :class="{ 'text-primary' : srcCalc === c.code }"
+              clickable
+              >
+              <q-item-section>{{ $t(c.label) }}</q-item-section>
+              <q-item-section class="mono" :class="{ 'text-primary' : srcCalc === c.code }" side>{{ c.code }}</q-item-section>
+            </q-item>
+            <q-separator />
+          </template>
           <q-item
-            v-for="c in calcList"
+            v-for="c in aggrCalcList"
             :key="c.code"
-            @click="doCalcPage(c.code)"
+            @click="doCalcPage(c.code, false)"
             :class="{ 'text-primary' : srcCalc === c.code }"
             clickable
             >
             <q-item-section>{{ $t(c.label) }}</q-item-section>
-            <q-item-section :class="{ 'text-primary' : srcCalc === c.code }" side>{{ c.code }}</q-item-section>
+            <q-item-section class="mono" :class="{ 'text-primary' : srcCalc === c.code }" side>{{ c.code }}</q-item-section>
           </q-item>
         </q-list>
       </q-menu>

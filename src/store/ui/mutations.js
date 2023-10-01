@@ -210,7 +210,7 @@ export const tableView = (state, tv) => {
     state.tableViews[tv.key].view.rowColMode = tv.rowColMode
   }
   if (typeof tv?.kind === typeof 1) {
-    state.tableViews[tv.key].view.kind = tv.kind % 4 || 0 // table has only 4 possible view kinds
+    state.tableViews[tv.key].view.kind = tv.kind % 5 || 0 // table has only 5 possible view kinds
   }
   if (typeof tv?.calc === typeof 'string') {
     state.tableViews[tv.key].view.calc = tv.calc

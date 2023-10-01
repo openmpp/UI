@@ -21,9 +21,9 @@ export const isRunTextList = (rtl) => {
 export const isRunText = (rt) => {
   if (!rt) return false
   if (!rt.hasOwnProperty('ModelName') || !rt.hasOwnProperty('ModelDigest')) return false
-  if (!rt.hasOwnProperty('Name') || !rt.hasOwnProperty('RunDigest') || !rt.hasOwnProperty('ValueDigest')) return false
-  if (!rt.hasOwnProperty('RunStamp') || !rt.hasOwnProperty('SubCount') || !rt.hasOwnProperty('Status')) return false
-  if (!rt.hasOwnProperty('CreateDateTime') || !rt.hasOwnProperty('UpdateDateTime')) return false
+  if (!rt.hasOwnProperty('Name') || !rt.hasOwnProperty('SubCount')) return false
+  if (!rt.hasOwnProperty('CreateDateTime') || !rt.hasOwnProperty('Status') || !rt.hasOwnProperty('UpdateDateTime')) return false
+  if (!rt.hasOwnProperty('RunId') || !rt.hasOwnProperty('RunDigest') || !rt.hasOwnProperty('ValueDigest') || !rt.hasOwnProperty('RunStamp')) return false
   if (!Array.isArray(rt.Param) || !Array.isArray(rt.Table) || !Array.isArray(rt.Entity) || !Array.isArray(rt.Txt)) return false
   return true
 }
@@ -42,13 +42,14 @@ export const emptyRunText = () => {
     ModelName: '',
     ModelDigest: '',
     Name: '',
+    SubCount: 0,
+    CreateDateTime: '',
+    Status: '',
+    UpdateDateTime: '',
+    RunId: 0,
     RunDigest: '',
     ValueDigest: '',
     RunStamp: '',
-    SubCount: 0,
-    Status: '',
-    CreateDateTime: '',
-    UpdateDateTime: '',
     Param: [],
     Table: [],
     Entity: [],

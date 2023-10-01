@@ -108,7 +108,6 @@ export default {
     }),
     ...mapGetters('model', {
       runTextByDigest: 'runTextByDigest',
-      isExistInRunTextList: 'isExistInRunTextList',
       isExistInWorksetTextList: 'isExistInWorksetTextList'
     }),
     ...mapState('uiState', {
