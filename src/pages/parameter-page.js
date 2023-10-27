@@ -103,6 +103,8 @@ export default {
       noteEditorNotes: '',
       noteEditorLangCode: '',
       showDiscardParamNoteTickle: false,
+      pathToRouteLeave: '',       // router component leave guard: path-to leave if user confirm changes discard
+      isYesToLeave: false,        // if true then do router push to leave the page
       isUploadEnabled: false,
       uploadFileSelect: false,
       subCountUpload: 1,
@@ -1049,20 +1051,29 @@ export default {
       this.updateWorksetReadonly(false) // set workset read-write
     },
     // ask user to confirm cancel if notes changed
+    // return true if no changes in parameter notes
     onCancelParamNote () {
+      if (!this.noteEditorShow) return true // note editor not active: allow to leave parameter tab
+
       const udn = this.$refs['param-note-editor'].getDescrNote()
       if (udn.isUpdated) { // redirect to dialog to confirm "discard changes?"
         this.showDiscardParamNoteTickle = !this.showDiscardParamNoteTickle
-        return
+        return false // notes updated and not saved: disable route to other page or tab
       }
-      // else: close notes editor (no changes in data)
+      // else:
+      // close notes editor (no changes in data)
       this.noteEditorShow = false
       this.updateWorksetReadonly(true) // set workset read only if all parameters saved and workset note editor closed
+      return true // no changes: allow to leave parameter tab
     },
     // on user selecting "Yes" from "discard changes?" pop-up alert
     onYesDiscardParamNote () {
       this.noteEditorShow = false
       this.updateWorksetReadonly(true) // set workset read only if all parameters saved and workset note editor closed
+      this.isYesToLeave = (this.pathToRouteLeave || '') !== ''
+      if (this.isYesToLeave) {
+        this.$router.push(this.pathToRouteLeave)
+      }
     },
     // save parameter value notes
     onSaveParamNote () {
@@ -1361,6 +1372,29 @@ export default {
       dispatchParamView: 'paramView',
       dispatchParamViewDelete: 'paramViewDelete'
     })
+  },
+
+  // route leave guard: on leaving parameter page check
+  // if parameter notes edited and not saved then ask user to coonfirm "discard all changes?"
+  beforeRouteLeave (to, from, next) {
+    // if user already confimed "yes" to leave the page
+    if (this.isYesToLeave) {
+      this.isYesToLeave = false
+      next() // leave parameter page and route to next page
+      return
+    }
+    // else:
+    //  if there edited and unsaved parameter notes
+    this.isYesToLeave = this.onCancelParamNote()
+    if (this.isYesToLeave) {
+      this.isYesToLeave = false
+      next() // no unsaved changes: leave parameter page and route to next page
+      return
+    }
+    // else:
+    //  redirect to dialog to confirm "discard all changes?"
+    this.pathToRouteLeave = to.path || '' // store path-to leave if user confirm "yes" to "discard changes?"
+    next(false)
   },
 
   mounted () {
