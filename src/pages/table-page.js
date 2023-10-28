@@ -117,13 +117,13 @@ export default {
       }],
       compareCalcList: [{  // comparison calculations: additional measures as aggregation over accumulators
         code: 'DIFF',
-        label: 'Runs difference'
+        label: 'Variant - Base'
       }, {
         code: 'RATIO',
-        label: 'Runs ratio'
+        label: 'Variant / Base'
       }, {
         code: 'PERCENT',
-        label: 'Runs percentage'
+        label: '100 * (Variant - Base) / Base'
       }]
     }
   },
