@@ -42,6 +42,31 @@
         </div>
       </div>
 
+      <div v-if="paramSize.rank > 0" class="om-note-row">
+        <table class="pt-table q-mb-sm">
+          <thead>
+            <tr>
+              <th class="pt-head text-weight-medium">{{ $t('Dimension') }}</th>
+              <th class="pt-head text-weight-medium">{{ $t('Size') }}</th>
+              <th class="pt-head text-weight-medium">{{ $t('Type of') }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="d of dimSizeTxt" :key="d.name">
+              <td class="pt-cell q-pa-sm">
+                <span class="mono">{{ d.name }}</span>
+                <template v-if="!!d.descr && d.name !== d.descr"><br /><span>{{ d.descr }}</span></template>
+              </td>
+              <td class="pt-cell-right q-pa-sm">{{ d.size }}</td>
+              <td class="pt-cell q-pa-sm">
+                <span class="mono">{{ d.typeName }}</span>
+                <template v-if="!!d.typeDescr && d.typeName !== d.typeDescr"><br /><span>{{ d.typeDescr }}</span></template>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
       <div v-if="valueNotes" v-html="valueNotes" />
       <div v-if="notes" v-html="notes" />
     </q-card-section>
@@ -80,6 +105,7 @@ export default {
       valueNotes: '',
       typeTitle: '',
       paramSize: Mdf.emptyParamSize(),
+      dimSizeTxt: [],
       paramRunSet: Mdf.emptyParamRunSet()
     }
   },
@@ -146,6 +172,21 @@ export default {
       // find parameter size info
       this.paramSize = Mdf.paramSizeByName(this.theModel, this.paramName)
 
+      // find dimension names, description, size, type names and description
+      this.dimSizeTxt = Array(this.paramSize.rank)
+
+      for (let k = 0; k < this.paramSize.rank; k++) {
+        const dt = Mdf.typeTextById(this.theModel, (this.paramText.ParamDimsTxt[k].Dim.TypeId || 0))
+
+        this.dimSizeTxt[k] = {
+          name: this.paramText.ParamDimsTxt[k].Dim.Name,
+          descr: Mdf.descrOfDescrNote(this.paramText.ParamDimsTxt[k]),
+          size: this.paramSize.dimSize[k],
+          typeName: dt.Type.Name || '',
+          typeDescr: Mdf.descrOfDescrNote(dt)
+        }
+      }
+
       this.showDlg = true
     }
   }
@@ -154,4 +195,36 @@ export default {
 
 <style scope="local">
   @import '~highlight.js/styles/github.css'
+</style>
+
+<style lang="scss" scoped>
+  .pt-table {
+    border-collapse: collapse;
+    text-align: left;
+  }
+  .pt-cell {
+    border: 1px solid lightgrey;
+    padding: 0.25rem;
+  }
+  .pt-head {
+    @extend .pt-cell;
+    text-align: center;
+    background-color: whitesmoke;
+  }
+  .pt-row-head {
+    @extend .pt-cell;
+    background-color: whitesmoke;
+  }
+  .pt-cell-left {
+    text-align: left;
+    @extend .pt-cell;
+  }
+  .pt-cell-right {
+    text-align: right;
+    @extend .pt-cell;
+  }
+  .pt-cell-center {
+    text-align: center;
+    @extend .pt-cell;
+  }
 </style>

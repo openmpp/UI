@@ -43,6 +43,51 @@
         </template>
       </div>
 
+      <div v-if="tableSize.rank > 0" class="om-note-row">
+        <table class="pt-table q-mb-sm">
+          <thead>
+            <tr>
+              <th class="pt-head text-weight-medium">{{ $t('Dimension') }}</th>
+              <th class="pt-head text-weight-medium">{{ $t('Size') }}</th>
+              <th class="pt-head text-weight-medium">{{ $t('Type of') }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="d of dimSizeTxt" :key="d.name">
+              <td class="pt-cell q-pa-sm">
+                <span class="mono">{{ d.name }}</span>
+                <template v-if="!!d.descr && d.name !== d.descr"><br /><span>{{ d.descr }}</span></template>
+              </td>
+              <td class="pt-cell-right q-pa-sm">{{ d.size }}</td>
+              <td class="pt-cell q-pa-sm">
+                <span class="mono">{{ d.typeName }}</span>
+                <template v-if="!!d.typeDescr && d.typeName !== d.typeDescr"><br /><span>{{ d.typeDescr }}</span></template>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div v-if="tableSize.exprCount > 0" class="om-note-row">
+        <table class="pt-table q-mb-sm">
+          <thead>
+            <tr>
+              <th class="pt-head text-weight-medium">{{ $t('Measure') }}</th>
+              <th v-if="isAnyExprNote" class="pt-head text-weight-medium">{{ $t('Notes') }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="ex of exprTxt" :key="ex.name">
+              <td class="pt-cell q-pa-sm">
+                <span class="mono">{{ ex.name }}</span>
+                <template v-if="!!ex.descr && ex.name !== ex.descr"><br /><span>{{ ex.descr }}</span></template>
+              </td>
+              <td v-if="!!ex.note" class="pt-cell q-pa-sm"><span v-html="ex.note"></span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
       <div v-if="runDigest && !isRunHasTable" class="q-pb-md">{{ $t('This table is excluded from model run results') }}</div>
       <div v-if="tableText.ExprDescr" class="q-pb-md">{{ tableText.ExprDescr }}</div>
 
@@ -82,6 +127,9 @@ export default {
       notes: '',
       exprNotes: '',
       tableSize: Mdf.emptyTableSize(),
+      dimSizeTxt: [],
+      exprTxt: [],
+      isAnyExprNote: false,
       isRunHasTable: false,
       valueDigest: '',
       runText: Mdf.emptyRunText()
@@ -134,6 +182,33 @@ export default {
 
       // find table size info and check is this table included into the run
       this.tableSize = Mdf.tableSizeByName(this.theModel, this.tableName)
+
+      // find dimension names, description, size, type names and description
+      this.dimSizeTxt = Array(this.tableSize.rank)
+
+      for (let k = 0; k < this.tableSize.rank; k++) {
+        const dt = Mdf.typeTextById(this.theModel, (this.tableText.TableDimsTxt[k].Dim.TypeId || 0))
+
+        this.dimSizeTxt[k] = {
+          name: this.tableText.TableDimsTxt[k].Dim.Name,
+          descr: Mdf.descrOfDescrNote(this.tableText.TableDimsTxt[k]),
+          size: this.tableSize.dimSize[k],
+          typeName: dt.Type.Name || '',
+          typeDescr: Mdf.descrOfDescrNote(dt)
+        }
+      }
+
+      this.exprTxt = Array(this.tableSize.exprCount)
+      this.isAnyExprNote = false
+
+      for (let k = 0; k < this.tableSize.exprCount; k++) {
+        this.exprTxt[k] = {
+          name: this.tableText.TableExprTxt[k].Expr.Name,
+          descr: Mdf.descrOfDescrNote(this.tableText.TableExprTxt[k]),
+          note: marked.parse(sanitizeHtml(Mdf.noteOfDescrNote(this.tableText.TableExprTxt[k])))
+        }
+        this.isAnyExprNote = this.isAnyExprNote && (this.exprTxt[k].note || '') !== ''
+      }
 
       if (this.runDigest) {
         const rTbl = Mdf.runTableByName(this.runText, this.tableName)

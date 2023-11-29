@@ -106,6 +106,7 @@ export default {
   'Different output tables': 'Différentes tables de résultats',
   'Different parameters': 'Différents paramètres',
   'Digest': 'Digest',
+  'Dimension': 'Dimension',
   'Discard all changes': 'Annuler toutes les modifications',
   'Discard changes and stop editing': "Ignorer les modifications et arrêter l'édition",
   'Discard changes of': 'Annuler les modifications de',
