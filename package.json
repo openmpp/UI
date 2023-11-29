@@ -20,7 +20,7 @@
   "dependencies": {
     "@fontsource/roboto-mono": "^4.5.10",
     "@quasar/extras": "^1.0.0",
-    "axios": "^0.21.1",
+    "axios": "^1.2.1",
     "core-js": "^3.6.5",
     "easymde": "^2.18.0",
     "highlight.js": "^11.7.0",
