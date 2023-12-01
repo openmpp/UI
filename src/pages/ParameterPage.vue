@@ -708,12 +708,13 @@
   <!-- pivot table controls and view -->
   <div class="q-mx-sm">
 
-    <div v-show="ctrl.isRowColControls && !edt.isEdit"
+    <div v-show="ctrl.isRowColControls"
       :title="$t('Slicer dimensions')"
       class="other-panel"
       >
       <draggable
         v-model="otherFields"
+        :disabled="edt.isEdit"
         group="fields"
         @start="onDrag"
         @end="onDrop"
@@ -723,6 +724,7 @@
         <div v-for="f in otherFields" :key="f.name" class="field-drag om-text-medium">
           <q-select
             v-model="f.singleSelection"
+            :disable="edt.isEdit"
             :options="f.options"
             :option-label="pvc.isShowNames ? 'name' : 'label'"
             @input="onSelectInput('other', f.name, f.singleSelection)"
@@ -741,6 +743,7 @@
             <template v-slot:before>
               <q-icon
                 name="mdi-hand-back-left"
+                :disabled="edt.isEdit"
                 size="xs"
                 class="bg-primary text-white rounded-borders select-handle-move"
                 :title="$t('Drag and drop')"
@@ -748,12 +751,14 @@
               <div class="column">
                 <q-icon
                   name="check"
+                  :disabled="edt.isEdit"
                   size="xs"
                   class="row bg-primary text-white rounded-borders select-handle-button om-bg-inactive q-mb-xs"
                   :title="$t('Select all')"
                   />
                 <q-icon
                   name="cancel"
+                  :disabled="edt.isEdit"
                   size="xs"
                   class="row bg-primary text-white rounded-borders select-handle-button om-bg-inactive"
                   :title="$t('Clear all')"
