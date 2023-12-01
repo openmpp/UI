@@ -49,13 +49,17 @@
             <td class="pt-head-left text-weight-medium">{{ $t('Output Tables') }}</td>
             <td class="pt-cell-left">{{ jobItem.Tables.join(', ') }}</td>
           </tr>
-          <tr v-if="jobInfo.nProc > 1 || jobItem.Threads > 1">
+          <tr v-if="jobInfo.nProc > 1 || jobItem.Res.ThreadCount > 1">
             <td class="pt-head-left text-weight-medium">{{ $t('Processes / Threads') }}</td>
-            <td class="pt-cell-left">{{ jobInfo.nProc }} / {{ jobItem.Threads }}</td>
+            <td class="pt-cell-left">{{ jobInfo.nProc }} / {{ jobItem.Res.ThreadCount }}</td>
           </tr>
           <tr v-if="!!jobItem.IsMpi || jobItem.Res.Cpu >= 1">
             <td class="pt-head-left text-weight-medium">{{ $t('CPU Cores') }}</td>
             <td class="pt-cell-left">{{ jobItem.Res.Cpu }} {{ jobItem.IsMpi ? 'MPI' : '' }}</td>
+          </tr>
+          <tr v-if="jobItem.Res.Mem !== 0">
+            <td class="pt-head-left text-weight-medium">{{ $t('Memory') }}</td>
+            <td class="pt-cell-left">{{ jobItem.Res.Mem }} {{ $t('GByte(s)') }}</td>
           </tr>
           <tr v-if="jobItem.Template">
             <td class="pt-head-left text-weight-medium">{{ $t('Model Run Template') }}</td>
@@ -211,7 +215,8 @@ export default {
         if (klc.endsWith('OpenM.BaseRunDigest'.toLowerCase())) rji.OptBaseRunDigest = v
       }
 
-      if (this.jobItem.Mpi.Np > 1) rji.nProc = this.jobItem.Mpi.Np
+      rji.nProc = this.jobItem.Res.ProcessCount
+      if (this.jobItem.IsMpi && this.jobItem.Mpi.IsNotOnRoot && this.jobItem.Res.ProcessCount > 0) rji.nProc = this.jobItem.Res.ProcessCount + 1
 
       // run notes: sanitize and convert from markdown to html
       // rji.RunNotes = jc.RunNotes || []

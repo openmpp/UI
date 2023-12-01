@@ -434,7 +434,12 @@ export const isNotEmptyRunProgress = (rpi) => {
   },
   Template: "",
   Res: {
-    Cpu: 1
+    Cpu: 4,
+    Mem: 4,
+    ProcessCount: 2,
+    ThreadCount: 2,
+    ProcessMemMb: 32,
+    ThreadMemMb: 512
   },
   Tables: [],
   Microdata: {
@@ -477,7 +482,14 @@ export const emptyJobItem = (stamp) => {
       Entity: []
     },
     RunNotes: [],
-    Res: { Cpu: 1 },
+    Res: {
+      Cpu: 1,
+      Mem: 0,
+      ProcessCount: 1,
+      ThreadCount: 1,
+      ProcessMemMb: 0,
+      ThreadMemMb: 0
+    },
     IsOverLimit: false,
     QueuePos: 0,
     LogFileName: '',
@@ -497,7 +509,15 @@ export const isJobItem = (jc) => {
 
   if (!jc.Mpi.hasOwnProperty('IsNotByJob') || typeof jc.Mpi.IsNotByJob !== typeof true) return false
   if (!jc.hasOwnProperty('IsOverLimit') || typeof jc.IsOverLimit !== typeof true) return false
-  if (!jc.hasOwnProperty('Res') || !jc.Res.hasOwnProperty('Cpu') || typeof jc.Res.Cpu !== typeof 1) return false
+  if (!jc.hasOwnProperty('Res') ||
+    !jc.Res.hasOwnProperty('Cpu') || typeof jc.Res.Cpu !== typeof 1 ||
+    !jc.Res.hasOwnProperty('Mem') || typeof jc.Res.Mem !== typeof 1 ||
+    !jc.Res.hasOwnProperty('ProcessCount') || typeof jc.Res.ProcessCount !== typeof 1 ||
+    !jc.Res.hasOwnProperty('ThreadCount') || typeof jc.Res.ThreadCount !== typeof 1 ||
+    !jc.Res.hasOwnProperty('ProcessMemMb') || typeof jc.Res.ProcessMemMb !== typeof 1 ||
+    !jc.Res.hasOwnProperty('ThreadMemMb') || typeof jc.Res.ThreadMemMb !== typeof 1) {
+    return false
+  }
   if (!jc.hasOwnProperty('QueuePos') || typeof jc.QueuePos !== typeof 1) return false
 
   if (!jc.hasOwnProperty('LogFileName') || !jc.hasOwnProperty('RunStatus') || !jc.hasOwnProperty('Lines')) {
