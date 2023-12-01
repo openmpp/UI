@@ -9,7 +9,7 @@ import RunInfoDialog from 'components/RunInfoDialog.vue'
 import ParameterInfoDialog from 'components/ParameterInfoDialog.vue'
 import TableInfoDialog from 'components/TableInfoDialog.vue'
 import GroupInfoDialog from 'components/GroupInfoDialog.vue'
-import EntityRunInfoDialog from 'components/EntityRunInfoDialog.vue'
+import EntityInfoDialog from 'components/EntityInfoDialog.vue'
 import EntityAttrInfoDialog from 'components/EntityAttrInfoDialog.vue'
 import DeleteConfirmDialog from 'components/DeleteConfirmDialog.vue'
 import NewWorkset from 'components/NewWorkset.vue'
@@ -28,7 +28,7 @@ export default {
     ParameterInfoDialog,
     TableInfoDialog,
     GroupInfoDialog,
-    EntityRunInfoDialog,
+    EntityInfoDialog,
     EntityAttrInfoDialog,
     DeleteConfirmDialog,
     NewWorkset,

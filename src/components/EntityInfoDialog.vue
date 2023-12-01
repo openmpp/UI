@@ -29,7 +29,40 @@
           </div>
         </template>
       </div>
-      <div v-if="notes" v-html="notes" />
+    </q-card-section>
+
+    <table class="pt-table q-ma-md">
+        <thead>
+          <tr>
+            <th class="pt-head text-weight-medium">{{ $t('Attribute') }}</th>
+            <th class="pt-head text-weight-medium">{{ $t('Type of') }}</th>
+            <th class="pt-head text-weight-medium">{{ $t('Description and Notes') }}</th>
+          </tr>
+        </thead>
+      <tbody>
+
+        <tr v-for="ea in attrs" :key="'ea-' + (ea.name || 'no-name')">
+          <td class="pt-cell">{{ ea.name }}</td>
+          <td class="pt-cell">
+            <span class="mono">{{ ea.typeName }}</span>
+            <template v-if="ea.isInternal">
+              <br/>
+              <span>{{ $t('Internal attribute') }}</span>
+            </template>
+          </td>
+          <td class="pt-cell">
+            <span>{{ ea.descr }}</span>
+            <template v-if="ea.notes">
+              <div class="om-text-descr" v-html="ea.notes" />
+            </template>
+          </td>
+        </tr>
+
+      </tbody>
+    </table>
+
+    <q-card-section  v-if="notes" class="text-body1">
+      <div v-html="notes" />
     </q-card-section>
 
     <q-card-actions align="right">
@@ -66,7 +99,8 @@ export default {
       internalRunAttrCount: 0,
       rowCount: 0,
       notes: '',
-      runCurrent: Mdf.emptyRunText() // currently selected run
+      runCurrent: Mdf.emptyRunText(), // currently selected run
+      attrs: []
     }
   },
 
@@ -103,23 +137,38 @@ export default {
         }
       }
 
+      // make attriburtes list: name, type, description, notes, isInternal bool flag
       // count regular attributes and internal attributes
       if (entText?.EntityAttrTxt && Array.isArray(entText?.EntityAttrTxt)) {
         this.totalAttrCount = 0
         this.internalAttrCount = 0
         this.runAttrCount = 0
         this.internalRunAttrCount = 0
+        this.attrs = []
 
         for (const ea of entText.EntityAttrTxt) {
           this.totalAttrCount++
-          const isInternal = ea?.Attr?.IsInternal
+          const isInt = ea?.Attr?.IsInternal
 
-          if (isInternal) this.internalAttrCount++
+          if (isInt) this.internalAttrCount++
 
-          if (isRun && aUse[ea?.Attr?.Name]) {
+          if (isRun && !aUse[ea?.Attr?.Name]) continue // skip: this attribute not used for the run microdata
+          if (isRun) {
             this.runAttrCount++
-            if (isInternal) this.internalRunAttrCount++
+            if (isInt) this.internalRunAttrCount++
           }
+
+          // find attribute type
+          const t = Mdf.typeTextById(this.theModel, ea.Attr.TypeId)
+          this.typeName = t.Type.Name
+
+          this.attrs.push({
+            name: ea.Attr.Name,
+            isInternal: isInt,
+            typeName: t.Type.Name,
+            descr: Mdf.descrOfDescrNote(ea),
+            notes: marked.parseInline(sanitizeHtml(Mdf.noteOfDescrNote(ea)))
+          })
         }
       }
 
@@ -136,7 +185,6 @@ export default {
         smartLists: true
         // smartypants: true
       })
-
       this.notes = marked.parse(sanitizeHtml(Mdf.noteOfDescrNote(entText)))
 
       this.showDlg = true

@@ -4,7 +4,7 @@ import * as Idb from 'src/idb/idb'
 import RunBar from 'components/RunBar.vue'
 import RefreshRun from 'components/RefreshRun.vue'
 import RunInfoDialog from 'components/RunInfoDialog.vue'
-import EntityRunInfoDialog from 'components/EntityRunInfoDialog.vue'
+import EntityInfoDialog from 'components/EntityInfoDialog.vue'
 import draggable from 'vuedraggable'
 import * as Pcvt from 'components/pivot-cvt'
 import * as Puih from './pivot-ui-helper'
@@ -20,7 +20,7 @@ const LAST_PAGE_OFFSET = 2 * 1024 * 1024 * 1024 // large page offset to get the 
 
 export default {
   name: 'EntityPage',
-  components: { draggable, PvTable, RunBar, RefreshRun, RunInfoDialog, EntityRunInfoDialog },
+  components: { draggable, PvTable, RunBar, RefreshRun, RunInfoDialog, EntityInfoDialog },
 
   props: {
     digest: { type: String, default: '' },

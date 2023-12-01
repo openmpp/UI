@@ -686,7 +686,7 @@
   </refresh-run>
 
   <run-info-dialog :show-tickle="runInfoTickle" :model-digest="digest" :run-digest="runDigest"></run-info-dialog>
-  <entity-run-info-dialog :show-tickle="entityInfoTickle" :entity-name="entityName" :run-digest="runDigest"></entity-run-info-dialog>
+  <entity-info-dialog :show-tickle="entityInfoTickle" :entity-name="entityName" :run-digest="runDigest"></entity-info-dialog>
 
   <q-inner-loading :showing="loadWait || loadRunWait">
     <q-spinner-gears size="md" color="primary" />
