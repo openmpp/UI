@@ -573,7 +573,6 @@
   <div class="q-mx-sm">
 
     <div v-show="ctrl.isRowColControls"
-      :title="$t('Slicer dimensions')"
       class="other-panel"
       >
       <draggable
@@ -633,10 +632,10 @@
           </q-select>
         </div>
       </draggable>
+      <q-tooltip anchor="center right" content-class="om-tooltip">{{ $t('Slicer dimensions') }}</q-tooltip>
     </div>
 
     <div v-show="ctrl.isRowColControls"
-      :title="$t('Column dimensions')"
       class="col-panel"
       >
       <draggable
@@ -703,6 +702,7 @@
           </q-select>
         </div>
       </draggable>
+      <q-tooltip anchor="center right" content-class="om-tooltip">{{ $t('Column dimensions') }}</q-tooltip>
     </div>
 
     <div class="pv-panel">
@@ -772,6 +772,7 @@
             </template>
           </q-select>
         </div>
+        <q-tooltip content-class="om-tooltip">{{ $t('Row dimensions') }}</q-tooltip>
       </draggable>
 
       <pv-table

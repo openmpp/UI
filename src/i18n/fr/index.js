@@ -378,6 +378,7 @@ export default {
   'Retain group of output tables': 'Conserver le groupe de tableaux de résultat',
   'Retain output table': 'Conserver la tableau de résultat',
   'Required': 'Obligatoire',
+  'Row dimensions': 'Dimensions des lignes',
   'rows': 'lignes',
   'Run': 'Exécuter',
   'Run again': 'Exécutez à nouveau',
