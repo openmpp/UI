@@ -82,7 +82,10 @@
                 <span class="mono">{{ ex.name }}</span>
                 <template v-if="!!ex.descr && ex.name !== ex.descr"><br /><span>{{ ex.descr }}</span></template>
               </td>
-              <td v-if="!!ex.note" class="pt-cell q-pa-sm"><span v-html="ex.note"></span></td>
+              <td v-if="isAnyExprNote" class="pt-cell q-pa-sm">
+                <span v-if="!!ex.note" v-html="ex.note"></span>
+                <span v-else>&nbsp;</span>
+              </td>
             </tr>
           </tbody>
         </table>
@@ -207,7 +210,7 @@ export default {
           descr: Mdf.descrOfDescrNote(this.tableText.TableExprTxt[k]),
           note: marked.parse(sanitizeHtml(Mdf.noteOfDescrNote(this.tableText.TableExprTxt[k])))
         }
-        this.isAnyExprNote = this.isAnyExprNote && (this.exprTxt[k].note || '') !== ''
+        this.isAnyExprNote = this.isAnyExprNote || ((this.exprTxt[k].note || '') !== '')
       }
 
       if (this.runDigest) {

@@ -62,7 +62,7 @@ export default {
         formatter: Pcvt.formatDefault,        // disable format(), parse() and validation by default
         cellClass: 'pv-cell-right'            // default cell value style: right justified number
       },
-      pvKeyPos: [],           // position of each dimension item in cell key
+      pvKeyPos: [],               // position of each dimension item in cell key
       isDragging: false,          // if true then user is dragging dimension select control
       isOtherDropDisabled: false, // if true then others drop area disabled
       isPages: false,
