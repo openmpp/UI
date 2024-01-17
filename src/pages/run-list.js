@@ -618,7 +618,7 @@ export default {
       let isOk = false
       const u = this.omsUrl +
         '/api/model/' + encodeURIComponent(this.digest) +
-        '/unlink/run/' + encodeURIComponent((dgst || ''))
+        '/run/' + encodeURIComponent((dgst || ''))
       try {
         await this.$axios.delete(u) // response expected to be empty on success
         isOk = true
@@ -636,7 +636,7 @@ export default {
       }
 
       // refresh run list from the server
-      this.$q.notify({ type: 'info', message: this.$t('Start deleting') + ': ' + dgst + ' ' + (runName || '') })
+      // this.$q.notify({ type: 'info', message: this.$t('Start deleting') + ': ' + dgst + ' ' + (runName || '') })
       setTimeout(() => this.$emit('run-list-refresh'), 521)
     },
 
