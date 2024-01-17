@@ -68,6 +68,17 @@
             :title="$t('About') + ' ' + prop.node.label"
             />
           <q-btn
+            @click.stop="doModelDocLink(prop.node.digest)"
+            :disable="!isModelDocLink(prop.node.digest)"
+            flat
+            round
+            dense
+            :color="isModelDocLink(prop.node.digest) ? 'primary' : 'secondary'"
+            class="col-auto"
+            icon="mdi-book-open-outline"
+            :title="$t('Model Documentation') + ' ' + prop.node.label"
+            />
+          <q-btn
             v-if="serverConfig.AllowDownload"
             @click.stop="onModelDownload(prop.node.digest, prop.node.label)"
             flat
@@ -117,6 +128,7 @@ import { mapState, mapGetters, mapActions } from 'vuex'
 import * as Mdf from 'src/model-common'
 import ModelInfoDialog from 'components/ModelInfoDialog.vue'
 import ConfirmDialog from 'components/ConfirmDialog.vue'
+import { openURL } from 'quasar'
 
 export default {
   name: 'ModelList',
@@ -159,7 +171,8 @@ export default {
       theModel: state => state.theModel
     }),
     ...mapGetters('model', {
-      modelCount: 'modelListCount'
+      modelCount: 'modelListCount',
+      modelLanguage: 'modelLanguage'
     }),
     ...mapState('uiState', {
       uiLang: state => state.uiLang,
@@ -244,6 +257,15 @@ export default {
     doShowModelNote (digest) {
       this.modelInfoDigest = digest
       this.modelInfoTickle = !this.modelInfoTickle
+    },
+    isModelDocLink (digest) {
+      const u = Mdf.modelDocLink(digest, this.modelList, this.uiLang, this.modelLanguage)
+      return u && u !== ''
+    },
+    // show model notes dialog
+    doModelDocLink (digest) {
+      const u = Mdf.modelDocLink(digest, this.modelList, this.uiLang, this.modelLanguage)
+      if (u) openURL(u)
     },
 
     // show yes/no dialog to confirm model download

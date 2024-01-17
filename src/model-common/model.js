@@ -38,6 +38,50 @@ export const modelExtraByDigest = (dgst, ml) => {
   return {}
 }
 
+// get link to model documentation in current language from ModelName.extra.json
+export const modelDocLink = (dgst, ml, uiLang, modelLang) => {
+  const me = modelExtraByDigest(dgst, ml) // content of ModelName.extra.json file
+
+  const docLst = me?.ModelDoc
+  if (!Array.isArray(docLst) || docLst.length <= 0) return ''
+
+  let docLink = ''
+  const uilc = uiLang.toLowerCase() // find link to model documentation in UI language
+  const pLst = uilc.split(/[-_]/)
+  const flc = (Array.isArray(pLst) && pLst.length > 0) ? pLst[0] : ''
+  let fLink = ''
+
+  for (let k = 0; k < docLst.length; k++) {
+    const dlc = (docLst[k]?.LangCode || '')
+    if (typeof dlc === typeof 'string') {
+      if (dlc.toLowerCase() === uilc) {
+        docLink = docLst[k]?.Link || ''
+        break
+      }
+      if (fLink === '') fLink = (dlc.toLowerCase() === flc) ? (docLst[k]?.Link || '') : ''
+    }
+  }
+  if (docLink === '' && fLink !== '') {
+    docLink = fLink // match UI language by code: en-US => en
+  }
+  if (docLink !== '') return docLink
+
+  const mlc = modelLang.LangCode.toLowerCase() // find link to model documentation in model language
+
+  for (let k = 0; k < docLst.length; k++) {
+    const dlc = (docLst[k]?.LangCode || '')
+    if ((typeof dlc === typeof 'string') && dlc.toLowerCase() === mlc) {
+      docLink = docLst[k]?.Link || ''
+      break
+    }
+  }
+
+  // if link to model documentation not found by language then use first link
+  if (docLink === '') docLink = docLst[0]?.Link || ''
+
+  return docLink
+}
+
 // return empty Model
 export const emptyModel = () => {
   return {

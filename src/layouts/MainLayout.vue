@@ -34,6 +34,17 @@
         class="q-ml-sm"
         :title="$t('About') + ' ' + modelName"
         />
+      <q-btn
+        v-if="isModel && modelDocLink"
+        :href="modelDocLink"
+        target="_blank"
+        flat
+        round
+        dense
+        icon="mdi-book-open-outline"
+        class="text-white"
+        :title="$t('Model Documentation') + ' ' + modelName"
+        />
 
       <q-toolbar-title class="q-pl-xs">
         <router-link

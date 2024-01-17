@@ -27,7 +27,7 @@
       </div>
 
       <div v-if="docLink" class="q-pb-md">
-        <a target="blank" :href="docLink">{{ $t('Model Documentation') }}</a>
+        <a target="_blank" :href="docLink" class="file-link"><q-icon name="mdi-book-open" size="md" color="primary"/>&nbsp;{{ $t('Model Documentation') }}</a>
       </div>
 
       <div v-if="notes" v-html="notes" />
@@ -116,44 +116,7 @@ export default {
       this.notes = marked.parse(sanitizeHtml(Mdf.noteOfDescrNote(m)))
 
       // get link to model documentation
-      this.docLink = ''
-      const me = Mdf.modelExtraByDigest(this.digest, this.modelList) // content of ModelName.extra.json file
-      const docLst = me?.ModelDoc
-
-      if (Array.isArray(docLst) && docLst.length > 0) {
-        const uilc = this.uiLang.toLowerCase() // find link to model documentation in UI language
-        const pLst = uilc.split(/[-_]/)
-        const flc = (Array.isArray(pLst) && pLst.length > 0) ? pLst[0] : ''
-        let fLink = ''
-
-        for (let k = 0; k < docLst.length; k++) {
-          const dlc = (docLst[k]?.LangCode || '')
-          if (typeof dlc === typeof 'string') {
-            if (dlc.toLowerCase() === uilc) {
-              this.docLink = docLst[k]?.Link || ''
-              break
-            }
-            if (fLink === '') fLink = (dlc.toLowerCase() === flc) ? (docLst[k]?.Link || '') : ''
-          }
-        }
-        if (this.docLink === '' && fLink !== '') {
-          this.docLink = fLink // match UI language by code: en-US => en
-        }
-
-        if (this.docLink === '') {
-          const mlc = this.modelLanguage.LangCode.toLowerCase() // find link to model documentation in model language
-
-          for (let k = 0; k < docLst.length; k++) {
-            const dlc = (docLst[k]?.LangCode || '')
-            if ((typeof dlc === typeof 'string') && dlc.toLowerCase() === mlc) {
-              this.docLink = docLst[k]?.Link || ''
-              break
-            }
-          }
-        }
-        // if link to model documentation not found by language then use first link
-        if (this.docLink === '') this.docLink = docLst[0]?.Link || ''
-      }
+      this.docLink = Mdf.modelDocLink(this.digest, this.modelList, this.uiLang, this.modelLanguage)
 
       this.showDlg = true
     }
@@ -163,4 +126,11 @@ export default {
 
 <style scope="local">
   @import '~highlight.js/styles/github.css'
+</style>
+
+<style lang="scss" scope="local">
+  .file-link {
+    text-decoration: none;
+    // display: inline-block;
+  }
 </style>

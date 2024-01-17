@@ -35,6 +35,9 @@ export default {
     isModel () { return Mdf.isModel(this.theModel) },
     modelDigest () { return Mdf.modelDigest(this.theModel) },
     modelName () { return Mdf.modelName(this.theModel) },
+    modelDocLink () {
+      return Mdf.modelDocLink(this.modelDigest, this.modelList, this.uiLang, this.modelLanguage)
+    },
     runTextCount () { return Mdf.runTextCount(this.runTextList) },
     worksetTextCount () { return Mdf.worksetTextCount(this.worksetTextList) },
     loginUrl () { return Mdf.configEnvValue(this.serverConfig, 'OM_CFG_LOGIN_URL') },
@@ -45,12 +48,14 @@ export default {
 
     ...mapState('model', {
       theModel: state => state.theModel,
+      modelList: state => state.modelList,
       theModelDir: state => state.theModelDir,
       runTextList: state => state.runTextList,
       worksetTextList: state => state.worksetTextList
     }),
     ...mapGetters('model', {
-      modelCount: 'modelListCount'
+      modelCount: 'modelListCount',
+      modelLanguage: 'modelLanguage'
     }),
     ...mapState('serverState', {
       omsUrl: state => state.omsUrl,
