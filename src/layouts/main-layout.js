@@ -222,20 +222,27 @@ export default {
     // find fallback locale (assuming fallback is available)
     let ln = this.langCode
 
-    if (this.$i18n.availableLocales.indexOf(ln) < 0) {
-      const fbLoc = this.$i18n.fallbackLocale
+    // spilt language code and return first portion of: fr-CA => fr
+    const firstLangCode = (lc) => {
+      const pLc = lc.split(/[-_]/)
+      return (Array.isArray(pLc) && pLc.length > 0) ? pLc[0].toLowerCase() : lc
+    }
 
-      let isFound = false
-      for (const lc in fbLoc) {
-        isFound = lc === ln
-        if (isFound) {
-          ln = fbLoc[lc] // assume only one fallback and it is available
+    // match first par of lanuage code to avaliable locales
+    if (this.$i18n.availableLocales.indexOf(ln) < 0) {
+      const firstLn = firstLangCode(ln)
+
+      for (const lcIdx in this.$i18n.availableLocales) {
+        const lc = this.$i18n.availableLocales[lcIdx]
+        if (firstLn === firstLangCode(lc)) {
+          ln = lc
           break
         }
       }
-      if (!isFound) ln = fbLoc.default || '' // use default fallback
     }
 
-    if (ln && this.langCode !== ln) this.langCode = ln // switch app language
+    if (ln && this.langCode !== ln) {
+      this.langCode = ln // switch app language
+    }
   }
 }
