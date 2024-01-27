@@ -5,6 +5,6 @@ export const serverConfig = (state, cfg) => {
   if (Mdf.isConfig(cfg)) state.config = cfg
 }
 
-export const archiveState = (state, st) => {
-  if (Mdf.isArchiveState(st)) state.archive = st
+export const diskUse = (state, st) => {
+  if (Mdf.isDiskUseInfo(st)) state.diskUse = st
 }

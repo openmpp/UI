@@ -34,6 +34,22 @@ export const wordByCode = (mw, code) => {
   return code // not found: return original code
 }
 
+// from language code retrun the code in lower case and first part of it: en_US => en or fr-CA => fr
+export const splitLangCode = (langCode) => {
+  const r = {
+    lower: '', // language code in lower case
+    first: '', // first part of language code to match fr-CA to FR model language
+    isEmpty: true
+  }
+  if (langCode && typeof langCode === typeof 'string' && langCode !== '') {
+    r.lower = langCode.toLowerCase()
+    const pLst = r.lower.split(/[-_]/)
+    r.first = (Array.isArray(pLst) && pLst.length > 0) ? pLst[0] : ''
+    r.isEmpty = !r.lower && !r.first
+  }
+  return r
+}
+
 // return empty list of model languages
 /*
 [{

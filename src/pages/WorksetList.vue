@@ -25,16 +25,16 @@
               >
               <q-item-section avatar>
                 <q-icon
-                  :color="isNowArchive(worksetNameSelected) ? 'negative' : (isSoonArchive(worksetNameSelected) ? 'warning' : 'primary')"
+                  color="primary"
                   name="mdi-information-outline"
                   />
               </q-item-section>
-              <q-item-section>{{ (isNowArchive(worksetNameSelected) ? $t('Archiving now') : (isSoonArchive(worksetNameSelected) ? $t('Archiving soon') : ($t('About')))) + ': ' + worksetNameSelected }}</q-item-section>
+              <q-item-section>{{ $t('About') + ': ' + worksetNameSelected }}</q-item-section>
             </q-item>
             <q-separator />
 
             <q-item
-              :disable="uploadFileSelect || isReadonlyWorksetCurrent || isEdit() || isNowArchive(worksetNameSelected)"
+              :disable="uploadFileSelect || isReadonlyWorksetCurrent || isEdit()"
               @click="onShowNoteEditor"
               clickable
               >
@@ -80,7 +80,7 @@
             <q-separator />
 
             <q-item
-              :disable="isEdit() || isReadonlyWorksetCurrent || !isRunSuccess || isNowArchive(worksetNameSelected)"
+              :disable="isEdit() || isReadonlyWorksetCurrent || !isRunSuccess"
               @click="onFromRunShow"
               clickable
               >
@@ -90,7 +90,7 @@
               <q-item-section>{{ $t('Copy parameters from model run') + (isRunSuccess ? ': ' + runCurrent.Name : '') }}</q-item-section>
             </q-item>
             <q-item
-              :disable="isEdit() || isReadonlyWorksetCurrent || !isNotEmptyFrom || !isReadonlyFrom || isNowArchive(worksetNameSelected)"
+              :disable="isEdit() || isReadonlyWorksetCurrent || !isNotEmptyFrom || !isReadonlyFrom"
               @click="onFromWorksetShow"
               clickable
               >
@@ -103,7 +103,7 @@
 
             <q-item
               @click="onNewRunClick(worksetNameSelected)"
-              :disable="!isReadonlyWorksetCurrent || isNowArchive(worksetNameSelected)"
+              :disable="!isReadonlyWorksetCurrent"
               clickable
               >
               <q-item-section avatar>
@@ -113,7 +113,7 @@
             </q-item>
             <q-item
               @click="onWorksetReadonlyToggle"
-              :disable="isEdit() || !isNotEmptyWorksetCurrent || isNowArchive(worksetNameSelected)"
+              :disable="isEdit() || !isNotEmptyWorksetCurrent"
               clickable
               >
               <q-item-section avatar>
@@ -131,15 +131,14 @@
         @click="doShowWorksetNote(worksetNameSelected)"
         flat
         dense
-        class="col-auto text-white rounded-borders q-ml-xs"
-        :class="isNowArchive(worksetNameSelected) ? 'bg-negative' : (isSoonArchive(worksetNameSelected) ? 'bg-warning' : 'bg-primary')"
+        class="col-auto text-white bg-primary rounded-borders q-ml-xs"
         icon="mdi-information"
-        :title="(isNowArchive(worksetNameSelected) ? $t('Archiving now') : (isSoonArchive(worksetNameSelected) ? $t('Archiving soon') : ($t('About')))) + ': ' + worksetNameSelected"
+        :title="$t('About') + ': ' + worksetNameSelected"
         />
       <q-separator vertical inset spaced="sm" color="secondary" />
 
       <q-btn
-        :disable="uploadFileSelect || isReadonlyWorksetCurrent || isEdit() || isNowArchive(worksetNameSelected)"
+        :disable="uploadFileSelect || isReadonlyWorksetCurrent || isEdit()"
         @click="onShowNoteEditor"
         flat
         dense
@@ -182,7 +181,7 @@
       <q-separator vertical inset spaced="sm" color="secondary" />
 
       <q-btn
-        :disable="isEdit() || isReadonlyWorksetCurrent || !isRunSuccess || isNowArchive(worksetNameSelected)"
+        :disable="isEdit() || isReadonlyWorksetCurrent || !isRunSuccess"
         @click="onFromRunShow"
         flat
         dense
@@ -191,7 +190,7 @@
         :title="$t('Copy parameters from model run') + (isRunSuccess ? ': ' + runCurrent.Name : '')"
        />
       <q-btn
-        :disable="isEdit() || isReadonlyWorksetCurrent || !isNotEmptyFrom || !isReadonlyFrom || isNowArchive(worksetNameSelected)"
+        :disable="isEdit() || isReadonlyWorksetCurrent || !isNotEmptyFrom || !isReadonlyFrom"
         @click="onFromWorksetShow"
         flat
         dense
@@ -203,7 +202,7 @@
 
       <q-btn
         @click="onNewRunClick(worksetNameSelected)"
-        :disable="!isReadonlyWorksetCurrent || isNowArchive(worksetNameSelected)"
+        :disable="!isReadonlyWorksetCurrent"
         flat
         dense
         class="col-auto bg-primary text-white rounded-borders"
@@ -212,7 +211,7 @@
         />
       <q-btn
         @click="onWorksetReadonlyToggle"
-        :disable="isEdit() || !isNotEmptyWorksetCurrent || isNowArchive(worksetNameSelected)"
+        :disable="isEdit() || !isNotEmptyWorksetCurrent"
         flat
         dense
         class="col-auto bg-primary text-white rounded-borders q-ml-xs"
@@ -505,14 +504,14 @@
               :outline="prop.node.label === worksetNameSelected"
               round
               dense
-              :color="isNowArchive(prop.node.label) ? 'negative' : (isSoonArchive(prop.node.label) ? 'warning' : 'primary')"
+              color="primary"
               class="col-auto"
               :icon="prop.node.label === worksetNameSelected ? 'mdi-information' : 'mdi-information-outline'"
-              :title="(isNowArchive(prop.node.label) ? $t('Archiving now') : (isSoonArchive(prop.node.label) ? $t('Archiving soon') : ($t('About')))) + ': ' + prop.node.label"
+              :title="$t('About') + ': ' + prop.node.label"
               />
             <q-btn
               v-if="prop.node.label"
-              :disable="!prop.node.isReadonly || prop.node.label === worksetNameSelected || isReadonlyWorksetCurrent || isNowArchive(prop.node.label)"
+              :disable="!prop.node.isReadonly || prop.node.label === worksetNameSelected || isReadonlyWorksetCurrent"
               @click.stop="onWorksetFromClick(prop.node.label)"
               flat
               round
@@ -524,7 +523,7 @@
               />
             <q-btn
               v-if="prop.node.label"
-              :disable="!prop.node.isReadonly || isEdit() || isNowArchive(prop.node.label)"
+              :disable="!prop.node.isReadonly || isEdit()"
               @click.stop="onNewRunClick(prop.node.label)"
               flat
               round
@@ -536,7 +535,7 @@
               />
             <q-btn
               v-if="prop.node.label"
-              :disable="prop.node.isReadonly || isEdit() || isNowArchive(prop.node.label)"
+              :disable="prop.node.isReadonly || isEdit()"
               @click.stop="onDeleteWorkset(prop.node.label)"
               flat
               round
@@ -548,7 +547,7 @@
               />
             <q-btn
               v-if="serverConfig.AllowDownload"
-              :disable="!prop.node.isReadonly || isEdit() || isNowArchive(prop.node.label)"
+              :disable="!prop.node.isReadonly || isEdit()"
               @click.stop="onDownloadWorkset(prop.node.label)"
               flat
               round

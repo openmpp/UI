@@ -1,6 +1,7 @@
 // db structures common functions: model and model list
 
 import * as Dnf from './descr-note'
+import * as Mlang from './language'
 
 // return true if each list element isModel()
 export const isModelList = (ml) => {
@@ -45,20 +46,18 @@ export const modelDocLink = (dgst, ml, uiLang, modelLang) => {
   const docLst = me?.ModelDoc
   if (!Array.isArray(docLst) || docLst.length <= 0) return ''
 
+  const ui2p = Mlang.splitLangCode(uiLang)
   let docLink = ''
-  const uilc = uiLang.toLowerCase() // find link to model documentation in UI language
-  const pLst = uilc.split(/[-_]/)
-  const flc = (Array.isArray(pLst) && pLst.length > 0) ? pLst[0] : ''
   let fLink = ''
 
   for (let k = 0; k < docLst.length; k++) {
     const dlc = (docLst[k]?.LangCode || '')
     if (typeof dlc === typeof 'string') {
-      if (dlc.toLowerCase() === uilc) {
+      if (dlc.toLowerCase() === ui2p.lower) {
         docLink = docLst[k]?.Link || ''
         break
       }
-      if (fLink === '') fLink = (dlc.toLowerCase() === flc) ? (docLst[k]?.Link || '') : ''
+      if (fLink === '') fLink = (dlc.toLowerCase() === ui2p.first) ? (docLst[k]?.Link || '') : ''
     }
   }
   if (docLink === '' && fLink !== '') {

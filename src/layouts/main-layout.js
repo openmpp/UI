@@ -3,7 +3,8 @@ import languages from 'quasar/lang/index.json'
 import * as Mdf from 'src/model-common'
 import ModelInfoDialog from 'components/ModelInfoDialog.vue'
 
-const ARCHIVE_REFRESH_TIME = 5107 // (61 * 60 * 1000) // msec, archive state refresh interval
+const DISK_USE_REFRESH_TIME = 5701 // msec, disk space usage refresh interval
+// const DISK_USE_REFRESH_TIME = (131 * 1000) // msec, disk space usage refresh interval
 
 export default {
   name: 'MainLayout',
@@ -17,11 +18,9 @@ export default {
       isBeta: true,
       modelInfoTickle: false,
       toUpDownSection: 'down',
-      loadArchiveDone: false,
-      isArchive: false,
-      nowArchiveCount: 0,
-      alertArchiveCount: 0,
-      archiveRefreshInt: '',
+      loadDiskUseDone: false,
+      isDiskUse: false,
+      diskUseRefreshInt: '',
       langCode: this.$q.lang.getLocale(),
       appLanguages: languages.filter(lang => ['fr', 'en-us'].includes(lang.isoName))
     }
@@ -36,14 +35,14 @@ export default {
     modelDigest () { return Mdf.modelDigest(this.theModel) },
     modelName () { return Mdf.modelName(this.theModel) },
     modelDocLink () {
-      return Mdf.modelDocLink(this.modelDigest, this.modelList, this.uiLang, this.modelLanguage)
+      return this.serverConfig.IsModelDoc ? Mdf.modelDocLink(this.modelDigest, this.modelList, this.uiLang, this.modelLanguage) : ''
     },
     runTextCount () { return Mdf.runTextCount(this.runTextList) },
     worksetTextCount () { return Mdf.worksetTextCount(this.worksetTextList) },
     loginUrl () { return Mdf.configEnvValue(this.serverConfig, 'OM_CFG_LOGIN_URL') },
     logoutUrl () { return Mdf.configEnvValue(this.serverConfig, 'OM_CFG_LOGOUT_URL') },
     loadWait () {
-      return !this.loadConfigDone // || (!this.loadArchiveDone && this.isArchive)
+      return !this.loadConfigDone // || (!this.loadDiskUseDone && this.isDiskUse)
     },
 
     ...mapState('model', {
@@ -60,7 +59,7 @@ export default {
     ...mapState('serverState', {
       omsUrl: state => state.omsUrl,
       serverConfig: state => state.config,
-      archiveState: state => state.archive
+      diskUseState: state => state.diskUse
     }),
     ...mapState('uiState', {
       uiLang: state => state.uiLang,
@@ -95,7 +94,7 @@ export default {
         console.warn('Error at loading language:', lc, err)
       })
     },
-    isArchive () { this.restartArchiveRefresh() }
+    isDiskUse () { this.restartDiskUseRefresh() }
   },
 
   methods: {
@@ -114,15 +113,15 @@ export default {
 
     doRefresh () {
       this.doConfigRefresh()
-      this.restartArchiveRefresh()
+      this.restartDiskUseRefresh()
       this.refreshTickle = !this.refreshTickle
     },
-    restartArchiveRefresh () {
-      clearInterval(this.archiveRefreshInt)
-      // refersh archive state now and setup refresh by timer
-      this.doArchiveRefresh()
-      if (this.isArchive) {
-        this.archiveRefreshInt = setInterval(this.doArchiveRefresh, ARCHIVE_REFRESH_TIME)
+    restartDiskUseRefresh () {
+      clearInterval(this.diskUseRefreshInt)
+      // refersh disk space usage now and setup refresh by timer
+      this.doDiskUseRefresh()
+      if (this.isDiskUse) {
+        this.diskUseRefreshInt = setInterval(this.doDiskUseRefresh, DISK_USE_REFRESH_TIME)
       }
     },
 
@@ -166,39 +165,30 @@ export default {
       }
       this.loadConfigDone = true
 
-      // update archive state if necessary
-      this.isArchive = !!this?.serverConfig?.IsArchive
+      // update disk space usage if necessary
+      this.isDiskUse = !!this?.serverConfig?.IsDiskUse
     },
 
-    // receive archive state from server
-    async doArchiveRefresh () {
-      this.loadArchiveDone = false
+    // receive disk space usage from server
+    async doDiskUseRefresh () {
+      this.loadDiskUseDone = false
 
-      const u = this.omsUrl + '/api/archive/state'
+      const u = this.omsUrl + '/api/disk-use'
       try {
         // send request to the server
         const response = await this.$axios.get(u)
-        this.dispatchArchiveState(response.data) // update archive state in store
+        this.dispatchDiskUseState(response.data) // update disk space usage in store
       } catch (e) {
         let em = ''
         try {
           if (e.response) em = e.response.data || ''
         } finally {}
-        console.warn('Server offline or archive state retrieve failed.', em)
-        this.$q.notify({ type: 'negative', message: this.$t('Server offline or archive state retrieve failed.') })
+        console.warn('Server offline or disk usage retrieve failed.', em)
+        this.$q.notify({ type: 'negative', message: this.$t('Server offline or disk space usage retrieve failed.') })
       }
-      this.loadArchiveDone = true
+      this.loadIsDiskUseDone = true
 
-      // update archive counts to notify user
-      this.nowArchiveCount = 0
-      this.alertArchiveCount = 0
-
-      if (Mdf.isArchiveState(this.archiveState)) {
-        for (const m of this.archiveState.Model) {
-          this.nowArchiveCount = this.nowArchiveCount + m.Run.length + m.Set.length
-          this.alertArchiveCount = this.alertArchiveCount + m.RunAlert.length + m.SetAlert.length
-        }
-      }
+      // update disk space usage to notify user
     },
 
     ...mapActions('uiState', {
@@ -206,7 +196,7 @@ export default {
     }),
     ...mapActions('serverState', {
       dispatchServerConfig: 'serverConfig',
-      dispatchArchiveState: 'archiveState'
+      dispatchDiskUseState: 'diskUseState'
     })
   },
 
@@ -214,7 +204,7 @@ export default {
     this.doConfigRefresh()
   },
   beforeDestroy () {
-    clearInterval(this.archiveRefreshInt)
+    clearInterval(this.diskUseRefreshInt)
   },
 
   created () {
@@ -222,21 +212,19 @@ export default {
     // find fallback locale (assuming fallback is available)
     let ln = this.langCode
 
-    // spilt language code and return first portion of: fr-CA => fr
-    const firstLangCode = (lc) => {
-      const pLc = lc.split(/[-_]/)
-      return (Array.isArray(pLc) && pLc.length > 0) ? pLc[0].toLowerCase() : lc
-    }
-
-    // match first par of lanuage code to avaliable locales
+    // match first part of lanuage code to avaliable locales
     if (this.$i18n.availableLocales.indexOf(ln) < 0) {
-      const firstLn = firstLangCode(ln)
+      const ui2p = Mdf.splitLangCode(ln)
 
-      for (const lcIdx in this.$i18n.availableLocales) {
-        const lc = this.$i18n.availableLocales[lcIdx]
-        if (firstLn === firstLangCode(lc)) {
-          ln = lc
-          break
+      if (ui2p.first !== '') {
+        for (const lcIdx in this.$i18n.availableLocales) {
+          const lc = this.$i18n.availableLocales[lcIdx]
+
+          const av2p = Mdf.splitLangCode(lc)
+          if (av2p.first === ui2p.first) {
+            ln = lc
+            break
+          }
         }
       }
     }

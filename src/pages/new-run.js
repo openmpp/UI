@@ -43,8 +43,6 @@ export default {
       worksetCurrent: Mdf.emptyWorksetText(), // currently selected workset
       useWorkset: false,
       useBaseRun: false,
-      isRunNowArchive: false,
-      isWorksetNowArchive: false,
       runTemplateLst: [],
       mpiTemplateLst: [],
       presetLst: [],
@@ -125,8 +123,6 @@ export default {
     isNoTables () { return !this.tablesRetain || this.tablesRetain.length <= 0 },
     isMicrodata () { return !!this.serverConfig.AllowMicrodata && Mdf.entityCount(this.theModel) > 0 },
     isNoEntityAttrsUse () { return !this.entityAttrsUse || this.entityAttrsUse.length <= 0 },
-    isArchive () { return !!this?.archiveState?.IsArchive },
-    archiveUpdateDateTime () { return this?.archiveState?.UpdateDateTime || '' },
 
     ...mapState('model', {
       theModel: state => state.theModel,
@@ -141,24 +137,18 @@ export default {
     }),
     ...mapState('uiState', {
       runDigestSelected: state => state.runDigestSelected,
-      worksetNameSelected: state => state.worksetNameSelected
+      worksetNameSelected: state => state.worksetNameSelected,
+      uiLang: state => state.uiLang
     }),
     ...mapState('serverState', {
       omsUrl: state => state.omsUrl,
-      serverConfig: state => state.config,
-      archiveState: state => state.archive
+      serverConfig: state => state.config
     })
   },
 
   watch: {
     digest () { this.doRefresh() },
-    refreshTickle () { this.doRefresh() },
-    archiveUpdateDateTime () {
-      this.isWorksetNowArchive = Mdf.isArchiveNowWorkset(this.archiveState, this.digest, this.worksetCurrent.Name)
-      this.isRunNowArchive = Mdf.isArchiveNowRun(this.archiveState, this.digest, this.runCurrent.RunDigest)
-      if (this.isWorksetNowArchive) this.useWorkset = false
-      if (this.isRunNowArchive) this.useBaseRun = false
-    }
+    refreshTickle () { this.doRefresh() }
   },
 
   methods: {
@@ -179,14 +169,11 @@ export default {
       // reset run options and state
       this.isInitRun = false
 
-      this.isWorksetNowArchive = Mdf.isArchiveNowWorkset(this.archiveState, this.digest, this.worksetCurrent.Name)
-      this.isRunNowArchive = Mdf.isArchiveNowRun(this.archiveState, this.digest, this.runCurrent.RunDigest)
-
       this.runOpts.runName = ''
       this.runOpts.worksetName = ''
       this.runOpts.baseRunDigest = ''
-      this.useWorkset = this.isReadonlyWorksetCurrent && !this.isWorksetNowArchive
-      this.useBaseRun = this.isUseCurrentAsBaseRun() && !this.isRunNowArchive && !this.isRunDeleted
+      this.useWorkset = this.isReadonlyWorksetCurrent
+      this.useBaseRun = this.isUseCurrentAsBaseRun() && !this.isRunDeleted
       this.runOpts.sparseOutput = false
       this.mpiNpCount = 0
       this.runOpts.mpiUseJobs = false // this.serverConfig.IsJobControl
@@ -301,7 +288,7 @@ export default {
       }
 
       // get run options presets as array of { name, label, descr, opts{....} }
-      this.presetLst = Mdf.configRunOptsPresets(this.serverConfig, this.theModel.Model.Name, this.modelLanguage.LangCode)
+      this.presetLst = Mdf.configRunOptsPresets(this.serverConfig, this.theModel.Model.Name, this.uiLang, this.modelLanguage.LangCode)
 
       // if previous run request resubmitted then apply settings from run request
       // else if first preset starts with "current-model-name." then apply preset

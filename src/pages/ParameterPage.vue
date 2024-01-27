@@ -61,7 +61,7 @@
           <template v-if="!isFromRun">
             <q-item
               @click="doEditToogle"
-              :disable="!edt.isEnabled || noteEditorShow || (isNowArchive || isSoonArchive)"
+              :disable="!edt.isEnabled || noteEditorShow"
               clickable
               >
               <q-item-section avatar>
@@ -71,7 +71,7 @@
             </q-item>
             <q-item
               @click="onEditSave"
-              :disable="!edt.isEnabled || !edt.isUpdated || isNowArchive"
+              :disable="!edt.isEnabled || !edt.isUpdated"
               clickable
               >
               <q-item-section avatar>
@@ -81,7 +81,7 @@
             </q-item>
             <q-item
               @click="onUndo"
-              :disable="!edt.isEnabled || edt.lastHistory <= 0 || isNowArchive"
+              :disable="!edt.isEnabled || edt.lastHistory <= 0"
               clickable
               >
               <q-item-section avatar>
@@ -91,7 +91,7 @@
             </q-item>
             <q-item
               @click="onRedo"
-              :disable="!edt.isEnabled || edt.lastHistory >= edt.history.length || isNowArchive"
+              :disable="!edt.isEnabled || edt.lastHistory >= edt.history.length"
               clickable
               >
               <q-item-section avatar>
@@ -105,7 +105,7 @@
           <q-item
             v-if="!noteEditorShow"
             @click="onEditParamNote()"
-            :disable="!isFromRun && (!edt.isEnabled || edt.isEdit || isNowArchive || isSoonArchive)"
+            :disable="!isFromRun && (!edt.isEnabled || edt.isEdit)"
             clickable
             >
             <q-item-section avatar>
@@ -125,7 +125,7 @@
           </q-item>
           <q-item
             @click="onSaveParamNote()"
-            :disable="!noteEditorShow || (!isFromRun && (!edt.isEnabled || edt.isEdit || isNowArchive || isSoonArchive))"
+            :disable="!noteEditorShow || (!isFromRun && (!edt.isEnabled || edt.isEdit))"
             clickable
             >
             <q-item-section avatar>
@@ -159,7 +159,7 @@
             v-if="!isFromRun"
             @click="doShowFileSelect()"
             v-show="!uploadFileSelect"
-            :disable="!isUploadEnabled || edt.isEdit || (isNowArchive || isSoonArchive)"
+            :disable="!isUploadEnabled || edt.isEdit"
             clickable
             >
             <q-item-section avatar>
@@ -387,7 +387,7 @@
     <template v-if="!isFromRun">
       <q-btn
         @click="doEditToogle"
-        :disable="!edt.isEnabled || uploadFileSelect || noteEditorShow || (isNowArchive || isSoonArchive)"
+        :disable="!edt.isEnabled || uploadFileSelect || noteEditorShow"
         flat
         dense
         class="col-auto bg-primary text-white rounded-borders"
@@ -396,7 +396,7 @@
         />
       <q-btn
         @click="onEditSave"
-        :disable="!edt.isEnabled || !edt.isUpdated || isNowArchive"
+        :disable="!edt.isEnabled || !edt.isUpdated"
         flat
         dense
         class="col-auto bg-primary text-white rounded-borders q-ml-xs"
@@ -405,7 +405,7 @@
         />
       <q-btn
         @click="onUndo"
-        :disable="!edt.isEnabled || edt.lastHistory <= 0 || isNowArchive"
+        :disable="!edt.isEnabled || edt.lastHistory <= 0"
         flat
         dense
         class="col-auto bg-primary text-white rounded-borders q-ml-xs"
@@ -414,7 +414,7 @@
         />
       <q-btn
         @click="onRedo"
-        :disable="!edt.isEnabled || edt.lastHistory >= edt.history.length || isNowArchive"
+        :disable="!edt.isEnabled || edt.lastHistory >= edt.history.length"
         flat
         dense
         class="col-auto bg-primary text-white rounded-borders q-ml-xs"
@@ -427,7 +427,7 @@
     <q-btn
       v-if="!noteEditorShow"
       @click="onEditParamNote()"
-      :disable="!isFromRun && (!edt.isEnabled || edt.isEdit || isNowArchive || isSoonArchive)"
+      :disable="!isFromRun && (!edt.isEnabled || edt.isEdit)"
       flat
       dense
       class="col-auto bg-primary text-white rounded-borders"
@@ -445,7 +445,7 @@
       />
     <q-btn
       @click="onSaveParamNote()"
-      :disable="!noteEditorShow || (!isFromRun && (!edt.isEnabled || edt.isEdit || isNowArchive || isSoonArchive))"
+      :disable="!noteEditorShow || (!isFromRun && (!edt.isEnabled || edt.isEdit))"
       flat
       dense
       class="col-auto bg-primary text-white rounded-borders q-ml-xs"
@@ -476,7 +476,7 @@
       v-if="!isFromRun"
       @click="doShowFileSelect()"
       v-show="!uploadFileSelect"
-      :disable="!isUploadEnabled || edt.isEdit || noteEditorShow || (isNowArchive || isSoonArchive)"
+      :disable="!isUploadEnabled || edt.isEdit || noteEditorShow"
       flat
       dense
       class="col-auto text-white rounded-borders q-ml-xs bg-primary text-white rounded-borders"

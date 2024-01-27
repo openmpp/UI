@@ -216,7 +216,7 @@
           v-if="isRunKind(uds.Kind)"
           :model-digest="uds.ModelDigest"
           :run-digest="uds.RunDigest"
-          @run-info-click="doShowRunNote(uds.ModelDigest,uds.RunDigest)"
+          @run-info-click="doShowRunNote(uds.ModelDigest, uds.RunDigest)"
           >
         </run-bar>
         <workset-bar

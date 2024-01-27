@@ -85,7 +85,7 @@
 
         <tr>
           <td
-            :disabled="!isReadonlyWorksetCurrent || isWorksetNowArchive"
+            :disabled="!isReadonlyWorksetCurrent"
             class="q-pr-xs"
             >
             <q-checkbox v-model="useWorkset" :disable="!isReadonlyWorksetCurrent" :label="$t('Use Scenario') + ':'"/>
@@ -102,7 +102,7 @@
 
         <tr>
           <td
-            :disabled="!isCompletedRunCurrent || isRunNowArchive || isRunDeleted"
+            :disabled="!isCompletedRunCurrent || isRunDeleted"
             class="q-pr-xs"
             >
             <q-checkbox

@@ -10,9 +10,9 @@
       flat
       dense
       class="col-auto text-white rounded-borders q-mr-xs"
-      :class="(isNowArchive || isDeleted) ? 'bg-negative' : ((!isSoonArchive && !isDeleted && (isSuccess || isInProgress)) ? 'bg-primary' : 'bg-warning')"
+      :class="isDeleted ? 'bg-negative' : ((!isDeleted && (isSuccess || isInProgress)) ? 'bg-primary' : 'bg-warning')"
       :icon="isSuccess ? 'mdi-information' : (isInProgress ? 'mdi-run' : 'mdi-alert-circle-outline')"
-      :title="(isNowArchive ? $t('Archiving now') : (isSoonArchive ? $t('Archiving soon') : (isDeleted ? $t('Deleted') : $t('About')))) + ': ' + runText.Name"
+      :title="(isDeleted ? $t('Deleted') : $t('About')) + ': ' + runText.Name"
       />
 
     <div
@@ -41,9 +41,7 @@ export default {
 
   data () {
     return {
-      runText: Mdf.emptyRunText(),
-      isNowArchive: false,
-      isSoonArchive: false
+      runText: Mdf.emptyRunText()
     }
   },
 
@@ -54,8 +52,6 @@ export default {
     isDeleted () { return Mdf.isRunDeletedStatus(this.runText.Status, this.runText.Name) },
     lastDateTimeStr () { return Mdf.dtStr(this.runText.UpdateDateTime) },
     descrOfRun () { return Mdf.descrOfTxt(this.runText) },
-    isArchive () { return !!this?.archiveState?.IsArchive },
-    archiveUpdateDateTime () { return this?.archiveState?.UpdateDateTime || '' },
 
     ...mapState('model', {
       runTextListUpdated: state => state.runTextListUpdated
@@ -64,8 +60,7 @@ export default {
       runTextByDigest: 'runTextByDigest'
     }),
     ...mapState('serverState', {
-      serverConfig: state => state.config,
-      archiveState: state => state.archive
+      serverConfig: state => state.config
     })
   },
 
@@ -73,18 +68,12 @@ export default {
     modelDigest () { this.doRefresh() },
     runDigest () { this.doRefresh() },
     refreshRunTickle () { this.doRefresh() },
-    runTextListUpdated () { this.doRefresh() },
-    isArchive () { this.doRefresh() },
-    archiveUpdateDateTime () { this.doRefresh() }
+    runTextListUpdated () { this.doRefresh() }
   },
 
   methods: {
     doRefresh () {
       this.runText = this.runTextByDigest({ ModelDigest: this.modelDigest, RunDigest: this.runDigest })
-
-      // if archive is enabled then check run archive status
-      this.isNowArchive = Mdf.isArchiveNowRun(this.archiveState, this.modelDigest, this.runDigest)
-      this.isSoonArchive = Mdf.isArchiveAlertRun(this.archiveState, this.modelDigest, this.runDigest)
     },
     onShowRunNote () {
       this.$emit('run-info-click', this.modelDigest, this.runDigest)

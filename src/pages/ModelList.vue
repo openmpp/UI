@@ -259,13 +259,15 @@ export default {
       this.modelInfoTickle = !this.modelInfoTickle
     },
     isModelDocLink (digest) {
+      if (!this.serverConfig.IsModelDoc) return ''
       const u = Mdf.modelDocLink(digest, this.modelList, this.uiLang, this.modelLanguage)
       return u && u !== ''
     },
     // show model notes dialog
     doModelDocLink (digest) {
+      if (!this.serverConfig.IsModelDoc) return
       const u = Mdf.modelDocLink(digest, this.modelList, this.uiLang, this.modelLanguage)
-      if (u) openURL(u)
+      if (u) openURL('doc/' + u)
     },
 
     // show yes/no dialog to confirm model download

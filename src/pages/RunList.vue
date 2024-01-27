@@ -25,16 +25,16 @@
               >
               <q-item-section avatar>
                 <q-icon
-                  :color="(isNowArchive(runDigestSelected) || isRunDeleted(runCurrent.Status, runCurrent.Name))? 'negative' : (!isSoonArchive(runDigestSelected) && (isSuccess(runCurrent.Status) || isInProgress(runCurrent.Status)) ? 'primary' : 'warning')"
+                  :color="isRunDeleted(runCurrent.Status, runCurrent.Name) ? 'negative' : ((isSuccess(runCurrent.Status) || isInProgress(runCurrent.Status)) ? 'primary' : 'warning')"
                   :name="isSuccess(runCurrent.Status) ? 'mdi-information-outline' : (isInProgress(runCurrent.Status) ? 'mdi-run' : 'mdi-alert-circle-outline')"
                   />
               </q-item-section>
-              <q-item-section>{{ (isNowArchive(runDigestSelected) ? $t('Archiving now') : (isSoonArchive(runDigestSelected) ? $t('Archiving soon') : (isRunDeleted(runCurrent.Status, runCurrent.Name) ? $t('Deleted') : $t('About')))) + ': ' + runCurrent.Name }}</q-item-section>
+              <q-item-section>{{ isRunDeleted(runCurrent.Status, runCurrent.Name) ? $t('Deleted') : ($t('About') + ': ' + runCurrent.Name) }}</q-item-section>
             </q-item>
             <q-separator />
 
             <q-item
-              :disable="isShowNoteEditor || isCompare || uploadFileSelect || isNowArchive(runDigestSelected) || isRunDeleted(runCurrent.Status, runCurrent.Name)"
+              :disable="isShowNoteEditor || isCompare || uploadFileSelect || isRunDeleted(runCurrent.Status, runCurrent.Name)"
               @click="onEditRunNote(runDigestSelected)"
               clickable
               >
@@ -89,14 +89,14 @@
         flat
         dense
         class="col-auto text-white rounded-borders q-ml-xs"
-        :class="(isNowArchive(runDigestSelected) || isRunDeleted(runCurrent.Status, runCurrent.Name)) ? 'bg-negative' : ((!isSoonArchive(runDigestSelected) && (isSuccess(runCurrent.Status) || isInProgress(runCurrent.Status))) ? 'bg-primary' : 'bg-warning')"
+        :class="isRunDeleted(runCurrent.Status, runCurrent.Name) ? 'bg-negative' : ((isSuccess(runCurrent.Status) || isInProgress(runCurrent.Status)) ? 'bg-primary' : 'bg-warning')"
         :icon="isSuccess(runCurrent.Status) ? 'mdi-information' : (isInProgress(runCurrent.Status) ? 'mdi-run' : 'mdi-alert-circle-outline')"
-        :title="(isNowArchive(runDigestSelected) ? $t('Archiving now') : (isSoonArchive(runDigestSelected) ? $t('Archiving soon') : (isRunDeleted(runCurrent.Status, runCurrent.Name) ? $t('Deleted') : $t('About')))) + ': ' + runCurrent.Name"
+        :title="(isRunDeleted(runCurrent.Status, runCurrent.Name) ? $t('Deleted') : $t('About')) + ': ' + runCurrent.Name"
         />
       <q-separator vertical inset spaced="sm" color="secondary" />
 
       <q-btn
-        :disable="isShowNoteEditor || isCompare || uploadFileSelect || isNowArchive(runDigestSelected) || isRunDeleted(runCurrent.Status, runCurrent.Name)"
+        :disable="isShowNoteEditor || isCompare || uploadFileSelect || isRunDeleted(runCurrent.Status, runCurrent.Name)"
         @click="onEditRunNote(runDigestSelected)"
         flat
         dense
@@ -426,10 +426,10 @@
               :outline="prop.node.digest === runDigestSelected"
               round
               dense
-              :color="(isNowArchive(prop.node.digest) || isRunDeleted(prop.node.status, prop.node.label)) ? 'negative' : (!isSoonArchive(prop.node.digest) && (isSuccess(prop.node.status) || isInProgress(prop.node.status)) ? 'primary' : 'warning')"
+              :color="isRunDeleted(prop.node.status, prop.node.label) ? 'negative' : (isSuccess(prop.node.status) || isInProgress(prop.node.status) ? 'primary' : 'warning')"
               class="col-auto"
               :icon="isSuccess(prop.node.status) ? (prop.node.digest === runDigestSelected ? 'mdi-information' : 'mdi-information-outline') : (isInProgress(prop.node.status) ? 'mdi-run' : 'mdi-alert-circle-outline')"
-              :title="(isNowArchive(prop.node.digest) ? $t('Archiving now') : (isSoonArchive(prop.node.digest) ? $t('Archiving soon') : (isRunDeleted(prop.node.status, prop.node.label) ? $t('Deleted') : $t('About')))) + ': ' + prop.node.label"
+              :title="(isRunDeleted(prop.node.status, prop.node.label) ? $t('Deleted') : $t('About')) + ': ' + prop.node.label"
               />
             <q-btn
               :disable="!prop.node.stamp"
@@ -443,7 +443,7 @@
               :title="$t('Run Log') + ': ' + prop.node.label"
               />
             <q-btn
-              :disable="!isSuccess(prop.node.status) || prop.node.digest === runDigestSelected || isNowArchive(prop.node.digest) || isRunDeleted(prop.node.status, prop.node.label)"
+              :disable="!isSuccess(prop.node.status) || prop.node.digest === runDigestSelected || isRunDeleted(prop.node.status, prop.node.label)"
               @click.stop="onRunCompareClick(prop.node.digest)"
               flat
               round
@@ -454,7 +454,7 @@
               :title="(isDigestCompare(prop.node.digest) ? $t('Clear run comparison with') : $t('Compare this model run with')) + ' ' + runCurrent.Name"
               />
             <q-btn
-              :disable="!prop.node.digest || isNowArchive(prop.node.digest)"
+              :disable="!prop.node.digest"
               @click.stop="onRunDelete(prop.node.label, prop.node.digest, prop.node.status)"
               flat
               round
@@ -466,7 +466,7 @@
               />
             <q-btn
               v-if="serverConfig.AllowDownload"
-              :disable="!isSuccess(prop.node.status) || isNowArchive(prop.node.digest) || isRunDeleted(prop.node.status, prop.node.label)"
+              :disable="!isSuccess(prop.node.status) || isRunDeleted(prop.node.status, prop.node.label)"
               @click.stop="onDownloadRun(prop.node.digest)"
               flat
               round

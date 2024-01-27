@@ -5,6 +5,6 @@ export default function () {
   return {
     omsUrl: (process.env.OMS_URL || ''), // oms web-service url
     config: Mdf.emptyConfig(), // server state and configuration
-    archive: Mdf.emptyArchiveState() // archive state and configuration
+    diskUse: Mdf.emptyDiskUse() // disk space usage
   }
 }

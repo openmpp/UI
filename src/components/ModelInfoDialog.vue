@@ -6,31 +6,41 @@
       <div>{{ title }}</div><q-space /><q-btn icon="mdi-close" flat dense round v-close-popup />
     </q-card-section>
 
-    <q-card-section class="q-pt-none text-body1">
+    <q-card-section class="text-body1">
 
-      <div class="om-note-table mono q-pb-md">
-        <div class="om-note-row">
-          <span class="om-note-cell q-pr-sm">{{ $t('Name') }}:</span><span class="om-note-cell">{{ modelName }}</span>
-        </div>
-        <div class="om-note-row">
-          <span class="om-note-cell q-pr-sm">{{ $t('Version') }}:</span><span class="om-note-cell">{{ version }}</span>
-        </div>
-        <div class="om-note-row">
-          <span class="om-note-cell q-pr-sm">{{ $t('Created') }}:</span><span class="om-note-cell">{{ createDateTime }}</span>
-        </div>
-        <div class="om-note-row">
-          <span class="om-note-cell q-pr-sm">{{ $t('Digest') }}:</span><span class="om-note-cell">{{ digest }}</span>
-        </div>
-        <div v-if="dir" class="om-note-row">
-          <span class="om-note-cell q-pr-sm">{{ $t('Folder') }}:</span><span class="om-note-cell">{{ dir }}</span>
-        </div>
-      </div>
+      <table class="pt-table">
+        <tbody>
+          <tr>
+            <td class="pt-col-head-left">{{ $t('Name') }}</td>
+            <td class="pt-cell-left mono">{{ modelName }}</td>
+          </tr>
+          <tr>
+            <td class="pt-col-head-left">{{ $t('Version') }}</td>
+            <td class="pt-cell-left mono">{{ version }}</td>
+          </tr>
+          <tr>
+            <td class="pt-col-head-left">{{ $t('Created') }}</td>
+            <td class="pt-cell-left mono">{{ createDateTime }}</td>
+          </tr>
+          <tr>
+            <td class="pt-col-head-left">{{ $t('Digest') }}</td>
+            <td class="pt-cell-left mono">{{ digest }}</td>
+          </tr>
+          <tr v-if="dir">
+            <td class="pt-col-head-left">{{ $t('Folder') }}</td>
+            <td class="pt-cell-left mono">{{ dir }}</td>
+          </tr>
+          <tr v-if="docLink">
+            <td class="pt-col-head-center"><q-icon name="mdi-book-open" size="md" color="primary"/></td>
+            <td class="pt-cell-left">
+              <a target="_blank" :href="'doc/' +docLink" class="file-link"><q-icon name="mdi-book-open" size="md" color="primary" class="q-pr-sm"/>{{ $t('Model Documentation') }}</a>
+            </td>
+          </tr>
+        </tbody>
+      </table>
 
-      <div v-if="docLink" class="q-pb-md">
-        <a target="_blank" :href="docLink" class="file-link"><q-icon name="mdi-book-open" size="md" color="primary"/>&nbsp;{{ $t('Model Documentation') }}</a>
-      </div>
+      <div v-if="notes" class="q-pt-md" v-html="notes" />
 
-      <div v-if="notes" v-html="notes" />
     </q-card-section>
 
     <q-card-actions align="right">
@@ -77,6 +87,9 @@ export default {
       modelByDigest: 'modelByDigest',
       modelLanguage: 'modelLanguage'
     }),
+    ...mapState('serverState', {
+      serverConfig: state => state.config
+    }),
     ...mapState('uiState', {
       uiLang: state => state.uiLang
     })
@@ -116,7 +129,7 @@ export default {
       this.notes = marked.parse(sanitizeHtml(Mdf.noteOfDescrNote(m)))
 
       // get link to model documentation
-      this.docLink = Mdf.modelDocLink(this.digest, this.modelList, this.uiLang, this.modelLanguage)
+      this.docLink = this.serverConfig.IsModelDoc ? Mdf.modelDocLink(this.digest, this.modelList, this.uiLang, this.modelLanguage) : ''
 
       this.showDlg = true
     }
@@ -131,6 +144,47 @@ export default {
 <style lang="scss" scope="local">
   .file-link {
     text-decoration: none;
-    // display: inline-block;
+  }
+  .pt-table {
+    text-align: left;
+    border-collapse: collapse;
+  }
+  .pt-cell {
+    padding: 0.25rem;
+    // font-size: 0.875rem;
+    border: 1px solid lightgrey;
+  }
+  .pt-head {
+    @extend .pt-cell;
+    text-align: center;
+    background-color: whitesmoke;
+  }
+  .pt-row-head {
+    @extend .pt-cell;
+    background-color: whitesmoke;
+  }
+  .pt-col-head {
+    @extend .pt-cell;
+    background-color: whitesmoke;
+  }
+  .pt-col-head-left {
+    @extend .pt-col-head;
+    background-color: whitesmoke;
+  }
+  .pt-col-head-center {
+    @extend .pt-col-head;
+    background-color: whitesmoke;
+  }
+  .pt-cell-left {
+    text-align: left;
+    @extend .pt-cell;
+  }
+  .pt-cell-right {
+    text-align: right;
+    @extend .pt-cell;
+  }
+  .pt-cell-center {
+    text-align: center;
+    @extend .pt-cell;
   }
 </style>

@@ -93,8 +93,6 @@ export default {
       refreshRunTickle: false,
       loadWsWait: false,
       refreshWsTickle: false,
-      isSoonArchive: false,
-      isNowArchive: false,
       showEditDiscardTickle: false,
       runInfoTickle: false,
       worksetInfoTickle: false,
@@ -122,8 +120,6 @@ export default {
         : Mdf.parameterWorksetPath(this.digest, this.worksetName, this.parameterName)
     },
     paramDescr () { return Mdf.descrOfDescrNote(this.paramText) },
-    isArchive () { return !!this?.archiveState?.IsArchive },
-    archiveUpdateDateTime () { return this?.archiveState?.UpdateDateTime || '' },
 
     fileSelected () { return !(this.uploadFile === null) },
 
@@ -146,8 +142,7 @@ export default {
     }),
     ...mapState('serverState', {
       omsUrl: state => state.omsUrl,
-      serverConfig: state => state.config,
-      archiveState: state => state.archive
+      serverConfig: state => state.config
     })
   },
 
@@ -155,13 +150,7 @@ export default {
     routeKey () { this.doRefresh() },
     refreshTickle () { this.doRefresh() },
     isEditUpdated () { this.$emit('edit-updated', this.edt.isUpdated, this.routeKey) },
-    worksetTextListUpdated () { this.onWorksetUpdated() },
-    archiveUpdateDateTime () {
-      if (!this.isFromRun) {
-        this.isNowArchive = Mdf.isArchiveNowWorkset(this.archiveState, this.digest, this.worksetName)
-        this.isSoonArchive = Mdf.isArchiveAlertWorkset(this.archiveState, this.digest, this.worksetName)
-      }
-    }
+    worksetTextListUpdated () { this.onWorksetUpdated() }
   },
 
   methods: {
@@ -207,10 +196,6 @@ export default {
       const { isFound, src } = this.initParamRunSet()
       this.edt.isEnabled = this.isUploadEnabled = !this.isFromRun && isFound && Mdf.isNotEmptyWorksetText(src) // && !src.IsReadonly
 
-      if (!this.isFromRun) {
-        this.isNowArchive = Mdf.isArchiveNowWorkset(this.archiveState, this.digest, this.worksetName)
-        this.isSoonArchive = Mdf.isArchiveAlertWorkset(this.archiveState, this.digest, this.worksetName)
-      }
       if (isFound && nSub !== (this.paramRunSet.SubCount || 0)) {
         this.dispatchParamViewDelete(this.routeKey)
         this.doRefresh()

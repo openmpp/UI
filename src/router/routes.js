@@ -64,7 +64,6 @@ const routes = [
       },
       { path: 'service-state', component: () => import('pages/ServiceState') },
       { path: 'settings', component: () => import('pages/SessionSettings') },
-      { path: 'archive', component: () => import('pages/ArchivePage') },
       { path: 'license', component: () => import('pages/LicensePage') }
     ]
   },

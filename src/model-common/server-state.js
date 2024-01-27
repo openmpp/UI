@@ -1,5 +1,7 @@
 // server state and configuration
 
+import * as Mlang from './language'
+
 // return empty service configuration
 export const emptyConfig = () => {
   return {
@@ -9,7 +11,8 @@ export const emptyConfig = () => {
     AllowUpload: false,
     AllowMicrodata: false,
     IsJobControl: false,
-    IsArchive: false,
+    IsModelDoc: false,
+    IsDiskUse: false,
     Env: {},
     ModelCatalog: {
       ModelDir: '',
@@ -31,7 +34,7 @@ export const isConfig = (c) => {
   if (!c) return false
   if (!c.hasOwnProperty('OmsName') || !c.hasOwnProperty('AllowUserHome') ||
     !c.hasOwnProperty('AllowDownload') || !c.hasOwnProperty('AllowUpload') || !c.hasOwnProperty('AllowMicrodata') ||
-    !c.hasOwnProperty('IsJobControl') || !c.hasOwnProperty('IsArchive') ||
+    !c.hasOwnProperty('IsJobControl') || !c.hasOwnProperty('IsModelDoc') || !c.hasOwnProperty('IsDiskUse') ||
     !c.hasOwnProperty('Env') || !c.hasOwnProperty('ModelCatalog') || !c.hasOwnProperty('RunCatalog')) {
     return false
   }
@@ -52,7 +55,7 @@ export const configEnvValue = (c, key) => {
 // return run options presets as array of objects: [{ name, label, descr, opts{....} }, ....]
 // name is either starts from 'modelName.' or 'any_model.'
 // result sorted by name and 'modelName.' is before 'any_model.'
-export const configRunOptsPresets = (c, modelName, langCode) => {
+export const configRunOptsPresets = (c, modelName, uiLang, modelLc) => {
   if (!modelName || typeof modelName !== typeof 'string' || !isConfig(c)) return []
 
   const pLst = []
@@ -66,7 +69,7 @@ export const configRunOptsPresets = (c, modelName, langCode) => {
     if (!p?.Name || typeof p.Name !== typeof 'string') continue
     if (!p?.Options || typeof p.Options !== typeof 'string') continue
 
-    if (!p.Name.startsWith(mnDot) && !p.Name.startsWith(amDot)) continue // must start from model name or 'any_model.'
+    if (!p.Name.startsWith(mnDot) && !p.Name.startsWith(amDot)) continue // must start from 'model_name.' or 'any_model.'
 
     // parse options json string
     let iOpts = {}
@@ -77,22 +80,62 @@ export const configRunOptsPresets = (c, modelName, langCode) => {
     }
     if (!iOpts || !(iOpts instanceof Object) || Array.isArray(iOpts)) continue // must be an object with properties
 
-    // find preset description in current model language or use first description or preset name
+    // find preset label and description in UI language or current model language
+    // if not found then use first label and description
     let descr = ''
-    let label
+    let label = ''
 
-    if (Array.isArray(iOpts?.Text)) {
-      for (let j = 0; j < iOpts.Text.length; j++) {
-        const lc = iOpts.Text[j]?.LangCode || ''
-        const lb = iOpts.Text[j]?.ShortLabel || ''
-        const td = iOpts.Text[j]?.Descr || ''
+    if (Array.isArray(iOpts?.Text) && iOpts.Text.length > 0) {
+      let isFound = false
+      let isFirst = false
+      let fL = ''
+      let fD = ''
 
-        if (j === 0 || lc === langCode) {
-          label = label || lb
-          descr = td || descr
+      // find label and description by UI language
+      const ui2p = Mlang.splitLangCode(uiLang)
+
+      for (let j = 0; !isFound && j < iOpts.Text.length; j++) {
+        let lc = iOpts.Text[j]?.LangCode || ''
+        if (lc && typeof lc === typeof 'string' && lc !== '') lc = lc.toLowerCase()
+
+        isFound = lc === ui2p.lower
+        if (isFound) {
+          label = iOpts.Text[j]?.ShortLabel || ''
+          descr = iOpts.Text[j]?.Descr || ''
+          break // UI language found
         }
-        if (lc === langCode) break // current model language found
+        if (lc === ui2p.first) {
+          fL = iOpts.Text[j]?.ShortLabel || ''
+          fD = iOpts.Text[j]?.Descr || ''
+          isFirst = true // first part of UI language found: fr-CA == FR
+        }
       }
+      // if full language code not found then check if there is matching first part of language code
+      if (!isFound && isFirst) {
+        label = fL
+        descr = fD
+        isFound = true
+      }
+
+      // if not found then search label and description by current model language
+      if (!isFound) {
+        const mLc = modelLc.toLowerCase()
+
+        for (let j = 0; !isFound && j < iOpts.Text.length; j++) {
+          let lc = iOpts.Text[j]?.LangCode || ''
+          if (lc && typeof lc === typeof 'string' && lc !== '') lc = lc.toLowerCase()
+
+          isFound = lc === mLc
+          if (isFound) {
+            label = iOpts.Text[j]?.ShortLabel || ''
+            descr = iOpts.Text[j]?.Descr || ''
+          }
+        }
+      }
+
+      // if not found then use first label and description
+      if (label === '') label = iOpts.Text[0]?.ShortLabel || ''
+      if (descr === '') descr = iOpts.Text[0]?.Descr || ''
     }
 
     pLst.push({ name: p.Name, label: (label || p.Name), descr: (descr || label || p.Name), opts: iOpts })
@@ -378,175 +421,8 @@ export const isUpDownFileTree = (pLst) => {
   return true
 }
 
-/* Archive state:
-{
-  "IsArchive": true,
-  "ArchiveDays": 3,
-  "AlertDays": 2,
-  "ArchiveDateTime": "2023-04-17 10:36:17.364",
-  "AlertDateTime": "2023-04-18 10:36:17.364",
-  "UpdateDateTime": "2023-04-20 10:36:17.364",
-  "Model": [
-    {
-      "ModelDigest": "6ea6d7fe44b76493c5d13ae6d01bdd35",
-      "ModelName": "RiskPaths",
-      "Version": "3.0.0.0",
-      "Run": [
-        {
-          "ModelName": "RiskPaths",
-          "ModelDigest": "6ea6d7fe44b76493c5d13ae6d01bdd35",
-          "ModelVersion": "3.0.0.0",
-          "ModelCreateDateTime": "2023-02-01 01:37:28.697",
-          "Name": "Microdata to CSV",
-          "SubCount": 1,
-          "SubStarted": 1,
-          "SubCompleted": 1,
-          "CreateDateTime": "2023-02-01 01:37:54.114",
-          "Status": "s",
-          "UpdateDateTime": "2023-02-01 01:37:54.910",
-          "RunDigest": "ecfbf3f5268dfcf7e346ac7586e8bfff",
-          "ValueDigest": "0f454b3af0d30f9f0614a9ce23e5cbfd",
-          "RunStamp": "2023_02_01_01_37_54_077",
-          "Txt": [],
-          "Opts": {},
-          "Param": [],
-          "Table": [],
-          "Entity": [],
-          "Progress": []
-        }
-      ],
-      "Set": [
-        {
-          "ModelName": "RiskPaths",
-          "ModelDigest": "6ea6d7fe44b76493c5d13ae6d01bdd35",
-          "ModelVersion": "3.0.0.0",
-          "ModelCreateDateTime": "2023-02-01 01:37:28.697",
-          "Name": "New cases",
-          "BaseRunDigest": "",
-          "IsReadonly": true,
-          "UpdateDateTime": "2023-04-03 12:20:37.450",
-          "IsCleanBaseRun": false,
-          "Txt": [],
-          "Param": []
-        }
-      ],
-      "RunAlert": [],
-      "SetAlert": []
-    }
-  ]
-}
-*/
-// return empty archive state
-export const emptyArchiveState = () => {
-  return {
-    IsArchive: false,
-    ArchiveDays: 0,
-    ArchiveDateTime: '',
-    AlertDateTime: '',
-    UpdateDateTime: '',
-    Model: []
-  }
-}
+// return empty disk space usage info
+export const emptyDiskUse = () => { return {} }
 
-// return true if this is archive state (it can be empty)
-export const isArchiveState = (ast) => {
-  if (!ast) return false
-  if (!Array.isArray(ast.Model)) return false
-
-  if (!ast.hasOwnProperty('IsArchive') || typeof ast.IsArchive !== typeof true) return false
-  if (!ast.hasOwnProperty('ArchiveDays') || typeof ast.ArchiveDays !== typeof 1) return false
-  if (!ast.hasOwnProperty('ArchiveDateTime') || typeof ast.ArchiveDateTime !== typeof 'string') return false
-  if (!ast.hasOwnProperty('AlertDateTime') || typeof ast.AlertDateTime !== typeof 'string') return false
-  if (!ast.hasOwnProperty('UpdateDateTime') || typeof ast.UpdateDateTime !== typeof 'string') return false
-
-  for (const m of ast.Model) {
-    if (!m.hasOwnProperty('ModelName') || typeof m.ModelName !== typeof 'string') return false
-    if (!m.hasOwnProperty('ModelDigest') || typeof m.ModelDigest !== typeof 'string') return false
-    if (!m.hasOwnProperty('Version') || typeof m.Version !== typeof 'string') return false
-
-    if (!Array.isArray(m.Run) || !Array.isArray(m.Set) || !Array.isArray(m.RunAlert) || !Array.isArray(m.SetAlert)) return false
-
-    for (const ar of m.Run) {
-      if (!isArchiveRun(ar)) return false
-    }
-    for (const ar of m.RunAlert) {
-      if (!isArchiveRun(ar)) return false
-    }
-    for (const aw of m.Set) {
-      if (!isArchiveWorkset(aw)) return false
-    }
-    for (const aw of m.SetAlert) {
-      if (!isArchiveWorkset(aw)) return false
-    }
-  }
-  return true
-}
-
-// return true if this is archive run or run alert item
-export const isArchiveRun = (ar) => {
-  if (!ar) return false
-
-  if (!ar.hasOwnProperty('ModelName') || typeof ar.ModelName !== typeof 'string') return false
-  if (!ar.hasOwnProperty('ModelDigest') || typeof ar.ModelDigest !== typeof 'string') return false
-  if (!ar.hasOwnProperty('Name') || typeof ar.Name !== typeof 'string') return false
-  if (!ar.hasOwnProperty('CreateDateTime') || typeof ar.CreateDateTime !== typeof 'string') return false
-  if (!ar.hasOwnProperty('Status') || typeof ar.Status !== typeof 'string') return false
-  if (!ar.hasOwnProperty('UpdateDateTime') || typeof ar.UpdateDateTime !== typeof 'string') return false
-  if (!ar.hasOwnProperty('RunDigest') || typeof ar.RunDigest !== typeof 'string') return false
-  if (!ar.hasOwnProperty('RunStamp') || typeof ar.RunStamp !== typeof 'string') return false
-
-  return true
-}
-
-// return true if this is archive workset or workset alert item
-export const isArchiveWorkset = (aw) => {
-  if (!aw) return false
-
-  if (!aw.hasOwnProperty('ModelName') || typeof aw.ModelName !== typeof 'string') return false
-  if (!aw.hasOwnProperty('ModelDigest') || typeof aw.ModelDigest !== typeof 'string') return false
-  if (!aw.hasOwnProperty('Name') || typeof aw.Name !== typeof 'string') return false
-  if (!aw.hasOwnProperty('IsReadonly') || typeof aw.IsReadonly !== typeof true) return false
-  if (!aw.hasOwnProperty('UpdateDateTime') || typeof aw.UpdateDateTime !== typeof 'string') return false
-
-  return true
-}
-
-// return true if run archiving now: find model digest and run digest in archive state Run array
-export const isArchiveNowRun = (ast, md, rd) => {
-  if (!md || !rd || !ast || !ast?.IsArchive) return false
-
-  const im = ast.Model.findIndex(m => m.ModelDigest === md)
-  if (im < 0) return false
-
-  return ast.Model[im].Run.findIndex(r => r.RunDigest === rd) >= 0
-}
-
-// return true if run archiving soon: find model digest and run digest in archive state RunAlert array
-export const isArchiveAlertRun = (ast, md, rd) => {
-  if (!md || !rd || !ast || !ast?.IsArchive) return false
-
-  const im = ast.Model.findIndex(m => m.ModelDigest === md)
-  if (im < 0) return false
-
-  return ast.Model[im].RunAlert.findIndex(r => r.RunDigest === rd) >= 0
-}
-
-// return true if workset archiving now: find model digest and workset name in archive state Set array
-export const isArchiveNowWorkset = (ast, md, name) => {
-  if (!md || !name || !ast || !ast?.IsArchive) return false
-
-  const im = ast.Model.findIndex(m => m.ModelDigest === md)
-  if (im < 0) return false
-
-  return ast.Model[im].Set.findIndex(w => w.Name === name) >= 0
-}
-
-// return true if workset archiving soon: find model digest and workset name in archive state SetAlert array
-export const isArchiveAlertWorkset = (ast, md, name) => {
-  if (!md || !name || !ast || !ast?.IsArchive) return false
-
-  const im = ast.Model.findIndex(m => m.ModelDigest === md)
-  if (im < 0) return false
-
-  return ast.Model[im].SetAlert.findIndex(w => w.Name === name) >= 0
-}
+// retrun true if this is disk space usage info
+export const isDiskUseInfo = () => { return true }

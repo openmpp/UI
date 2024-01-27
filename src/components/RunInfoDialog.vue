@@ -14,7 +14,7 @@
         </div>
         <div class="om-note-row">
           <span class="om-note-cell q-pr-sm">{{ $t('Status') }}:</span>
-          <span class="om-note-cell" :class="isDeleted ? 'text-white bg-negative' : ''">{{ statusDescr }}<span v-if="isNowArchive" class="text-white bg-negative"> {{ $t('Archiving now') }}</span><span v-if="isSoonArchive" class="bg-warning"> {{ $t('Archiving soon') }}</span></span>
+          <span class="om-note-cell" :class="isDeleted ? 'text-white bg-negative' : ''">{{ statusDescr }}</span>
         </div>
         <div class="om-note-row">
           <span class="om-note-cell q-pr-sm">{{ $t('Sub-values Count') }}:</span><span class="om-note-cell">{{ runText.SubCount || 0 }}</span>
@@ -143,8 +143,6 @@ export default {
       lastDateTime: '',
       duration: '',
       isDeleted: false,
-      isNowArchive: false,
-      isSoonArchive: false,
       isCompare: false,
       compareRuns: [],
       diffParam: [],
@@ -172,8 +170,7 @@ export default {
       modelViewSelected: 'modelViewSelected'
     }),
     ...mapState('serverState', {
-      serverConfig: state => state.config,
-      archiveState: state => state.archive
+      serverConfig: state => state.config
     })
   },
 
@@ -194,12 +191,6 @@ export default {
       this.lastDateTime = Mdf.dtStr(this.runText.UpdateDateTime)
       this.duration = Mdf.toIntervalStr(this.createDateTime, this.lastDateTime)
       this.isDeleted = Mdf.isRunDeletedStatus(this.runText.Status, this.runText.Name)
-
-      // if archive is enabled then check run archive status
-      if (this?.archiveState?.IsArchive) {
-        this.isNowArchive = Mdf.isArchiveNowRun(this.archiveState, this.modelDigest, this.runDigest)
-        this.isSoonArchive = Mdf.isArchiveAlertRun(this.archiveState, this.modelDigest, this.runDigest)
-      }
 
       // if it is a base run of run comparison (if there is not empty list of digests to compare)
       // then make run compare info

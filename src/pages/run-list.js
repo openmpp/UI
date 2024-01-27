@@ -109,8 +109,6 @@ export default {
     isCompare () { return Mdf.lengthOf(this.compareDigestArray) > 0 },
     fileSelected () { return !(this.uploadFile === null) },
     isMicrodata () { return !!this.serverConfig.AllowMicrodata && Mdf.entityCount(this.theModel) > 0 },
-    isArchive () { return !!this?.archiveState?.IsArchive },
-    archiveUpdateDateTime () { return this?.archiveState?.UpdateDateTime || '' },
 
     ...mapState('model', {
       theModel: state => state.theModel,
@@ -131,8 +129,7 @@ export default {
     }),
     ...mapState('serverState', {
       omsUrl: state => state.omsUrl,
-      serverConfig: state => state.config,
-      archiveState: state => state.archive
+      serverConfig: state => state.config
     })
   },
 
@@ -143,9 +140,7 @@ export default {
     runDigestSelected () {
       this.runCurrent = this.runTextByDigest({ ModelDigest: this.digest, RunDigest: this.runDigestSelected })
       this.refreshRunCompare()
-    },
-    isArchive () { this.doRefresh() },
-    archiveUpdateDateTime () { this.doRefresh() }
+    }
   },
 
   methods: {
@@ -156,8 +151,6 @@ export default {
     runCurrentDescr () { return Mdf.descrOfTxt(this.runCurrent) },
     runCurrentNote () { return Mdf.noteOfTxt(this.runCurrent) },
     isDigestCompare (dgst) { return this.compareDigestArray.includes(dgst) },
-    isNowArchive (dgst) { return Mdf.isArchiveNowRun(this.archiveState, this.digest, dgst) },
-    isSoonArchive (dgst) { return Mdf.isArchiveAlertRun(this.archiveState, this.digest, dgst) },
 
     // update page view
     doRefresh () {
@@ -403,7 +396,6 @@ export default {
         this.paramDiff.length <= 0 ||
         this.isNewWorksetShow ||
         this.isShowNoteEditor ||
-        this.isNowArchive(this.runDigestSelected) ||
         Mdf.isRunDeletedStatus(this.runCurrent.Status, this.runCurrent.Name)
     },
     // start create new workset

@@ -14,17 +14,6 @@
         :aria-label="$t('Menu')"
         />
       <q-btn
-        v-if="nowArchiveCount > 0 || alertArchiveCount > 0"
-        to="/archive"
-        flat
-        round
-        dense
-        icon="mdi-archive-alert"
-        :color="(nowArchiveCount > 0) ? 'negative' : 'warning'"
-        class="bg-white q-ml-sm"
-        :title="(nowArchiveCount > 0 ? $t('Archiving now') + ': ' + nowArchiveCount : '') + ((nowArchiveCount > 0 && alertArchiveCount > 0) ? '. ' : '') + (alertArchiveCount > 0 ? $t('Archiving soon') + ': ' + alertArchiveCount : '')"
-        />
-      <q-btn
         v-if="isModel"
         @click="doShowModelNote"
         flat
@@ -36,7 +25,7 @@
         />
       <q-btn
         v-if="isModel && modelDocLink"
-        :href="modelDocLink"
+        :href="'doc/' + modelDocLink"
         target="_blank"
         flat
         round
@@ -308,26 +297,6 @@
         <q-item-section>
           <q-item-label>{{ $t('Service Status') }}</q-item-label>
           <q-item-label caption>{{ $t('Service status and model(s) run queue') }}</q-item-label>
-        </q-item-section>
-      </q-item>
-
-      <q-item
-        clickable
-        :disable="!serverConfig.IsArchive"
-        to="/archive"
-        >
-        <q-item-section avatar>
-          <q-icon
-            :name="(nowArchiveCount > 0 || alertArchiveCount > 0) ? 'mdi-archive-alert' : 'mdi-archive'"
-            :color="nowArchiveCount > 0 ? 'negative' : (alertArchiveCount > 0 ? 'warning' : '')"
-            />
-        </q-item-section>
-        <q-item-section>
-          <q-item-label>{{ $t('Archive') }}</q-item-label>
-          <q-item-label caption>{{ $t('Archive of model runs and input scenarios') }}</q-item-label>
-        </q-item-section>
-        <q-item-section avatar>
-          <q-badge v-if="nowArchiveCount > 0 || alertArchiveCount > 0" color="secondary" :label="nowArchiveCount + '/' + alertArchiveCount"  />
         </q-item-section>
       </q-item>
 
