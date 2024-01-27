@@ -169,10 +169,12 @@ export default {
   }
   .pt-col-head-left {
     @extend .pt-col-head;
+    text-align: left;
     background-color: whitesmoke;
   }
   .pt-col-head-center {
     @extend .pt-col-head;
+    text-align: center;
     background-color: whitesmoke;
   }
   .pt-cell-left {

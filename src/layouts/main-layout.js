@@ -119,8 +119,8 @@ export default {
     restartDiskUseRefresh () {
       clearInterval(this.diskUseRefreshInt)
       // refersh disk space usage now and setup refresh by timer
-      this.doDiskUseRefresh()
       if (this.isDiskUse) {
+        this.doDiskUseRefresh()
         this.diskUseRefreshInt = setInterval(this.doDiskUseRefresh, DISK_USE_REFRESH_TIME)
       }
     },
