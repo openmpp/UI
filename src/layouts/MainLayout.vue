@@ -164,7 +164,7 @@
               <q-item-section avatar>
                 <q-icon name="link" />
               </q-item-section>
-              <q-item-section>OpenM++ {{ $t('wiki') }}</q-item-section>
+              <q-item-section>{{ $t('OpenM++ wiki') }}</q-item-section>
             </q-item>
             <q-item
               clickable
@@ -175,7 +175,7 @@
               <q-item-section avatar>
                 <q-icon name="link" />
               </q-item-section>
-              <q-item-section>OpenM++ {{ $t('website') }}</q-item-section>
+              <q-item-section>{{ $t('OpenM++ website') }}</q-item-section>
             </q-item>
 
           </q-list>
