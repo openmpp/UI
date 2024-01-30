@@ -51,6 +51,8 @@ export default {
       isAnyRunGroup: false,
       runTreeData: [],
       runFilter: '',
+      runTreeExpanded: [],
+      runTreeTicked: [],
       firstCompareName: '', // run name of first run to compare
       compareDigestArray: [], // array of run digests to compare
       paramDiff: [], // name list of different parameters
@@ -91,11 +93,12 @@ export default {
       entityInfoName: '',
       attrInfoTickle: false,
       entityInfoTickle: false,
-      nextId: 100,
       runNameToDelete: '',
       runDigestToDelete: '',
       runStatusToDelete: '',
       showDeleteDialogTickle: false,
+      runMultipleCount: 0,
+      showDeleteMultipleDialogTickle: false,
       uploadFileSelect: false,
       uploadFile: null,
       isShowNoteEditor: false,
@@ -168,6 +171,18 @@ export default {
     onRunTextListUpdated () { this.doRunTextListUpdated() },
     doRunTextListUpdated () {
       this.runTreeData = this.makeRunTreeData(this.runTextList)
+      if (this.runTreeData?.length > 0) {
+        const rtTop = this.runTreeData[0]
+        this.runTreeExpanded = [rtTop.key]
+
+        const tn = []
+        for (const rt of rtTop.children) {
+          if (this.runTreeTicked.findIndex((rtKey) => { return rtKey === rt.key }) >= 0) {
+            tn.push(rt.key)
+          }
+        }
+        this.runTreeTicked = tn
+      }
       if (this.runDigestSelected) this.runCurrent = this.runTextByDigest({ ModelDigest: this.digest, RunDigest: this.runDigestSelected })
     },
     // update run comparison view
@@ -181,8 +196,11 @@ export default {
 
     // click on run: select this run as current run
     onRunLeafClick (dgst) {
-      if (this.runDigestSelected === dgst) return // double click on the same run
-
+      this.doRunDigestSelect(dgst)
+    },
+    // select a new run digest
+    doRunDigestSelect (dgst) {
+      if (!dgst || this.runDigestSelected === dgst) return // there is no new run digest
       this.clearRunCompare()
       this.$emit('run-select', dgst)
     },
@@ -480,6 +498,60 @@ export default {
 
       this.doRunDeleteStart(dgst, runName)
     },
+    // delete multiple selected runs
+    onRunMultipleDelete () {
+      if (!this.runTreeTicked?.length) return // no runs selected
+
+      this.runMultipleCount = this.runTreeTicked.length
+      this.showDeleteMultipleDialogTickle = !this.showDeleteMultipleDialogTickle
+    },
+    // user answer yes to confirm delete multiple selected model runs
+    onYesRunMultipleDelete () {
+      if (!this.runTreeData?.length || !this.runTreeTicked?.length) {
+        console.warn('Unable to delete: invalid (empty) run digest', this.runTreeData?.length, this.runTreeTicked?.length)
+        this.$q.notify({ type: 'negative', message: this.$t('Unable to delete: model runs list is empty') })
+        return
+      }
+
+      // collect list of run digests to delete
+      const rmLst = []
+      let isCmp = false
+      let isCur = false
+      let firstDgst = ''
+      const rtTop = this.runTreeData[0]
+
+      for (const rt of rtTop.children) {
+        if (!rt.digest || rt.children.length > 0) continue // it is not a model run
+
+        if (this.runTreeTicked.findIndex((rtKey) => { return rtKey === rt.key }) < 0) { // this model run is not selected
+          if (firstDgst === '') firstDgst = rt.digest
+          continue
+        }
+        if (!isCur) {
+          isCur = this.runDigestSelected === rt.digest
+        }
+        if (!isCur) {
+          isCmp = this.removeRunCompareDigest(rt.digest)
+        }
+
+        rmLst.push(rt.digest)
+      }
+
+      this.doRunDeleteMultipleStart(rmLst) // start delete
+
+      // clear selection
+      // clear or update run comparison if current run deleted or any comparison runs deleted
+      this.runTreeTicked = []
+
+      if (isCur || this.compareDigestArray.length <= 0) {
+        this.clearRunCompare()
+      } else {
+        if (isCmp) this.updateRunCompare()
+      }
+      if (isCur) {
+        this.doRunDigestSelect(firstDgst)
+      }
+    },
 
     // click on run download: start run download and show download list page
     onDownloadRun (dgst) {
@@ -581,10 +653,22 @@ export default {
 
       // add runs which are not included in any group
       const td = []
+      const tdTop = {
+        key: 'rtl-top-node',
+        digest: 'rtl-top-digest',
+        label: '',
+        stamp: '',
+        status: '',
+        lastTime: '',
+        descr: '',
+        children: [],
+        disabled: false
+      }
+      td.push(tdTop)
 
       for (const r of rLst) {
-        td.push({
-          key: 'rtl-' + r.RunDigest + '-' + this.nextId++,
+        tdTop.children.push({
+          key: 'rtl-' + r.RunDigest,
           digest: r.RunDigest,
           label: r.Name,
           stamp: r.RunStamp,
@@ -630,6 +714,39 @@ export default {
       // refresh run list from the server
       // this.$q.notify({ type: 'info', message: this.$t('Start deleting') + ': ' + dgst + ' ' + (runName || '') })
       setTimeout(() => this.$emit('run-list-refresh'), 521)
+    },
+
+    // start to delete multiple model runs
+    async doRunDeleteMultipleStart (dgLst) {
+      if (!dgLst || !Array.isArray(dgLst) || !dgLst?.length) {
+        console.warn('Unable to delete: invalid (or empty) list of runs, length:', dgLst?.length)
+        return
+      }
+      const nLen = dgLst.length
+      this.$q.notify({ type: 'info', message: this.$t('Deleting multiple model runs') + ': [ ' + nLen.toString() + ' ]' })
+      this.loadWait = true
+
+      let isOk = false
+      const u = this.omsUrl + '/api/model/' + encodeURIComponent(this.digest) + '/delete-runs'
+      try {
+        await this.$axios.post(u, dgLst) // ignore response on success
+        isOk = true
+      } catch (e) {
+        let em = ''
+        try {
+          if (e.response) em = e.response.data || ''
+        } finally {}
+        console.warn('Error at delete model runs, length:', nLen, em)
+      }
+      this.loadWait = false
+      if (!isOk) {
+        this.$q.notify({ type: 'negative', message: this.$t('Unable to delete multiple model runs') + ' [ ' + nLen.toString() + ' ]' })
+        return
+      }
+
+      // refresh run list from the server
+      // this.$q.notify({ type: 'info', message: this.$t('Start deleting') + ': ' + dgst + ' ' + (runName || '') })
+      setTimeout(() => this.$emit('run-list-refresh'), 1021)
     },
 
     // start run download

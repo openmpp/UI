@@ -398,6 +398,10 @@
         default-expand-all
         :nodes="runTreeData"
         node-key="key"
+        tick-strategy="leaf-filtered"
+        no-connectors
+        :expanded.sync="runTreeExpanded"
+        :ticked.sync="runTreeTicked"
         :filter="runFilter"
         :filter-method="doRunTreeFilter"
         :no-results-label="$t('No model runs found')"
@@ -410,8 +414,17 @@
             class="row no-wrap items-center"
             >
             <div class="col">
-              <span>{{ prop.node.label }}<br />
-              <span class="om-text-descr">{{ prop.node.descr }}</span></span>
+              <q-btn
+                :disable="!runTreeTicked.length"
+                @click.stop="onRunMultipleDelete"
+                unelevated
+                no-caps
+                color="primary"
+                class="col-auto"
+                :icon="!!runTreeTicked.length ? 'mdi-delete' : 'mdi-delete-outline'"
+                :label="!!runTreeTicked.length ? $t('Delete') + ' [ ' + runTreeTicked.length.toString() + ' ]' : $t('Delete selected')"
+                :title="$t('Delete') + (!!runTreeTicked.length ? ' [ ' + runTreeTicked.length.toString() + ' ]' : '')"
+                />
             </div>
           </div>
 
@@ -522,6 +535,15 @@
     :item-id="runDigestToDelete"
     :bodyText="isInProgress(runStatusToDelete) ? $t('This model run is NOT completed.') : ''"
     :dialog-title="$t('Delete model run') + '?'"
+    >
+  </delete-confirm-dialog>
+  <delete-confirm-dialog
+    @delete-yes="onYesRunMultipleDelete"
+    :show-tickle="showDeleteMultipleDialogTickle"
+    :item-name="'[ ' + runMultipleCount.toString() + ' ] ' + $t('model runs to be deleted')"
+    :item-id="!!runMultipleCount ? runMultipleCount.toString() : 'empty'"
+    :bodyText="$t('Model would be unavaliable until delete is completed.')"
+    :dialog-title="$t('Delete multiple model runs') + '?'"
     >
   </delete-confirm-dialog>
 
