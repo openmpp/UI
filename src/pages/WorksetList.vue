@@ -441,43 +441,18 @@
   </q-card>
 
   <q-card class="q-ma-sm">
-    <div class="row items-center full-width q-pt-sm q-px-sm">
-
-      <q-btn
-        v-if="isAnyGroup"
-        flat
-        dense
-        class="col-auto bg-primary text-white rounded-borders q-mr-xs om-tree-control-button"
-        :icon="isTreeCollapsed ? 'keyboard_arrow_down' : 'keyboard_arrow_up'"
-        :title="isTreeCollapsed ? $t('Expand all') : $t('Collapse all')"
-        @click="doToogleExpandTree"
-        />
-      <span class="col-grow">
-        <q-input
-          ref="filterInput"
-          debounce="500"
-          v-model="treeFilter"
-          outlined
-          dense
-          :placeholder="$t('Find input scenario...')"
-          >
-          <template v-slot:append>
-            <q-icon v-if="treeFilter !== ''" name="cancel" class="cursor-pointer" @click="resetFilter" />
-            <q-icon v-else name="search" />
-          </template>
-        </q-input>
-      </span>
-
-    </div>
-
     <div class="q-pa-sm">
       <q-tree
         ref="worksetTree"
         default-expand-all
-        :nodes="treeData"
+        :nodes="wsTreeData"
         node-key="key"
-        :filter="treeFilter"
-        :filter-method="doTreeFilter"
+        tick-strategy="leaf-filtered"
+        no-connectors
+        :expanded.sync="wsTreeExpanded"
+        :ticked.sync="wsTreeTicked"
+        :filter="wsTreeFilter"
+        :filter-method="doWsTreeFilter"
         :no-results-label="$t('No input scenarios found')"
         :no-nodes-label="$t('No input scenarios published or server offline')"
         >
@@ -485,12 +460,40 @@
 
           <div
             v-if="prop.node.children && prop.node.children.length"
-            class="row no-wrap items-center"
+            class="row no-wrap items-center full-width"
             >
-            <div class="col">
-              <span>{{ prop.node.label }}<br />
-              <span class="om-text-descr">{{ prop.node.descr }}</span></span>
+            <div class="col-auto">
+              <q-btn
+                :disable="!wsTreeTicked.length || isEdit() || isReadOnlyTicked()"
+                @click.stop="onWsMultipleDelete"
+                :unelevated="!!wsTreeTicked.length || !isEdit() || !isReadOnlyTicked()"
+                :outline="!wsTreeTicked.length || isEdit() || isReadOnlyTicked()"
+                no-caps
+                color="primary"
+                class="col-auto"
+                :icon="!!wsTreeTicked.length ? 'mdi-delete' : 'mdi-delete-outline'"
+                :label="$t('Delete') + (!!wsTreeTicked.length ? ' [ ' + wsTreeTicked.length.toString() + ' ]' : '\u2026')"
+                :title="$t('Delete') + (!!wsTreeTicked.length ? ' [ ' + wsTreeTicked.length.toString() + ' ]' : '\u2026')"
+                />
             </div>
+            <span
+              @click.stop="() => {}"
+              class="col-grow q-pl-sm"
+              >
+              <q-input
+                ref="filterInput"
+                debounce="500"
+                v-model="wsTreeFilter"
+                outlined
+                dense
+                :placeholder="$t('Find input scenario...')"
+                >
+                <template v-slot:append>
+                  <q-icon v-if="wsTreeFilter !== ''" name="cancel" class="cursor-pointer" @click="resetFilter" />
+                  <q-icon v-else name="search" />
+                </template>
+              </q-input>
+            </span>
           </div>
 
           <div v-else
@@ -624,6 +627,15 @@
     :dialog-title="$t('Delete group from input scenario') + '?'"
     >
   </delete-confirm-dialog>
+  <delete-confirm-dialog
+    @delete-yes="onYesWsMultipleDelete"
+    :show-tickle="showDeleteMultipleDialogTickle"
+    :item-name="'[ ' + wsMultipleCount.toString() + ' ] ' + $t('input scenarios to be deleted')"
+    :item-id="!!wsMultipleCount ? wsMultipleCount.toString() : 'empty'"
+    :bodyText="$t('Model may be unavaliable until delete is completed.')"
+    :dialog-title="$t('Delete multiple input scenarios') + '?'"
+    >
+  </delete-confirm-dialog>
 
   <confirm-dialog
     @confirm-yes="onYesParamFromRun"
@@ -672,7 +684,7 @@
     >
   </create-workset>
 
-  <q-inner-loading :showing="loadWait || loadWsWait || loadWorksetDelete || loadWorksetCreate">
+  <q-inner-loading :showing="loadWait || loadWsWait || loadWorksetDelete || loadWsMultipletDelete || loadWorksetCreate">
     <q-spinner-gears size="md" color="primary" />
   </q-inner-loading>
 

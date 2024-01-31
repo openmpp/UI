@@ -424,5 +424,5 @@ export const isUpDownFileTree = (pLst) => {
 // return empty disk space usage info
 export const emptyDiskUse = () => { return {} }
 
-// retrun true if this is disk space usage info
+// return true if this is disk space usage info
 export const isDiskUseInfo = () => { return true }

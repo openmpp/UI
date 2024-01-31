@@ -34,7 +34,7 @@ export const wordByCode = (mw, code) => {
   return code // not found: return original code
 }
 
-// from language code retrun the code in lower case and first part of it: en_US => en or fr-CA => fr
+// from language code return the code in lower case and first part of it: en_US => en or fr-CA => fr
 export const splitLangCode = (langCode) => {
   const r = {
     lower: '', // language code in lower case

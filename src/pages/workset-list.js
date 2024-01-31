@@ -45,9 +45,10 @@ export default {
       refreshParamTreeFromTickle: false,
       worksetCurrent: Mdf.emptyWorksetText(), // currently selected workset
       isTreeCollapsed: false,
-      isAnyGroup: false,
-      treeData: [],
-      treeFilter: '',
+      wsTreeData: [],
+      wsTreeFilter: '',
+      wsTreeExpanded: [],
+      wsTreeTicked: [],
       isFromRunShow: false,
       isParamTreeShow: false,
       paramTreeCount: 0,
@@ -65,7 +66,6 @@ export default {
       groupInfoName: '',
       paramInfoTickle: false,
       paramInfoName: '',
-      nextId: 100,
       worksetNameToDelete: ',',
       showDeleteWorksetTickle: false,
       isDeleteWorksetNow: false,
@@ -85,6 +85,9 @@ export default {
       isShowNoteEditor: false,
       showDeleteParameterTickle: false,
       showDeleteGroupTickle: false,
+      wsMultipleCount: 0,
+      showDeleteMultipleDialogTickle: false,
+      loadWsMultipletDelete: false,
       uploadFileSelect: false,
       uploadFile: null,
       isNoDigestCheck: false,
@@ -143,7 +146,21 @@ export default {
     // update page view
     doRefresh () {
       this.worksetCurrent = this.worksetTextByName({ ModelDigest: this.digest, Name: this.worksetNameSelected })
-      this.treeData = this.makeWorksetTreeData(this.worksetTextList)
+
+      this.wsTreeData = this.makeWorksetTreeData(this.worksetTextList)
+      if (this.wsTreeData?.length > 0) {
+        const wsTop = this.wsTreeData[0]
+        this.wsTreeExpanded = [wsTop.key]
+
+        const tn = []
+        for (const ws of wsTop.children) {
+          if (this.wsTreeTicked.findIndex((wsKey) => { return wsKey === ws.key }) >= 0) {
+            tn.push(ws.key)
+          }
+        }
+        this.wsTreeTicked = tn
+      }
+
       this.paramTreeCount = Mdf.worksetParamCount(this.worksetCurrent)
 
       this.worksetFrom = this.worksetTextByName({ ModelDigest: this.digest, Name: this.worksetNameFrom })
@@ -175,6 +192,10 @@ export default {
 
     // click on workset: select this workset as current workset
     onWorksetLeafClick (name) {
+      this.doWorksetNameSelect(name)
+    },
+    // select this workset as current workset
+    doWorksetNameSelect (name) {
       // disable workset change during editing
       if (this.isNewWorksetShow || this.isShowNoteEditor || this.isFromRunShow || this.isFromWorksetShow) return
 
@@ -190,7 +211,7 @@ export default {
       this.isTreeCollapsed = !this.isTreeCollapsed
     },
     // filter workset tree nodes by name (label), update date-time or description
-    doTreeFilter (node, filter) {
+    doWsTreeFilter (node, filter) {
       const flt = filter.toLowerCase()
       return (node.label && node.label.toLowerCase().indexOf(flt) > -1) ||
         ((node.lastTime || '') !== '' && node.lastTime.indexOf(flt) > -1) ||
@@ -198,7 +219,7 @@ export default {
     },
     // clear workset tree filter value
     resetFilter () {
-      this.treeFilter = ''
+      this.wsTreeFilter = ''
       this.$refs.filterInput.focus()
     },
     // parameters tree updated and leafs counted
@@ -242,6 +263,20 @@ export default {
     // toggle current workset readonly status: pass event from child up to the next level
     onWorksetReadonlyToggle () {
       this.$emit('set-update-readonly', this.digest, this.worksetNameSelected, !this.worksetCurrent.IsReadonly)
+    },
+    // return true if any ticked workset is read only
+    isReadOnlyTicked () {
+      if (!this.wsTreeTicked?.length) return false // no selection, nothing is ticked
+
+      const wsTop = this.wsTreeData[0]
+      for (const ws of wsTop.children) {
+        if (!ws.label || ws.children.length > 0) continue // it is not a workset
+
+        if (this.wsTreeTicked.findIndex((wsKey) => { return wsKey === ws.key }) >= 0) { // workset is ticked
+          if (ws.isReadonly) return true
+        }
+      }
+      return false // all ticked worksets are unlocked for delete
     },
 
     // show or hide parameters tree
@@ -310,6 +345,83 @@ export default {
       if (isSuccess && dgst && name && dgst === this.digest) {
         this.$emit('set-list-refresh')
       }
+    },
+    // delete multiple selected worksets
+    onWsMultipleDelete () {
+      if (!this.wsTreeTicked?.length) return // empty selection
+
+      this.wsMultipleCount = this.wsTreeTicked.length
+      this.showDeleteMultipleDialogTickle = !this.showDeleteMultipleDialogTickle
+    },
+    // user answer yes to confirm delete multiple selected model worksets
+    onYesWsMultipleDelete () {
+      if (!this.wsTreeData?.length || !this.wsTreeTicked?.length) {
+        console.warn('Unable to delete: invalid (empty) wokset tree or ticked list', this.runTreeData?.length, this.runTreeTicked?.length)
+        this.$q.notify({ type: 'negative', message: this.$t('Unable to delete: input scenarios list is empty') })
+        return
+      }
+
+      // collect list of names to delete
+      const nameLst = []
+      let isCur = false
+      let firstName = ''
+      const wsTop = this.wsTreeData[0]
+
+      for (const ws of wsTop.children) {
+        if (!ws.label || ws.children.length > 0) continue // it is not a workset
+
+        if (this.wsTreeTicked.findIndex((wsKey) => { return wsKey === ws.key }) < 0) { // this workset is not selected
+          if (firstName === '') firstName = ws.label
+          continue
+        }
+        if (!isCur) {
+          isCur = this.worksetNameSelected === ws.label
+        }
+
+        nameLst.push(ws.label)
+      }
+
+      this.doWsDeleteMultiple(nameLst) // delete worksets
+
+      // clear selection
+      // change current workset if current workset deleted
+      this.wsTreeTicked = []
+      if (isCur) {
+        this.doWorksetNameSelect(firstName)
+      }
+    },
+
+    // delete multiple worksets worksets
+    async doWsDeleteMultiple (nameLst) {
+      if (!nameLst || !Array.isArray(nameLst) || !nameLst?.length) {
+        console.warn('Unable to delete: invalid (or empty) list of names, length:', nameLst?.length)
+        return
+      }
+      const nLen = nameLst.length
+      this.$q.notify({ type: 'info', message: this.$t('Deleting multiple input scenarios') + ': [ ' + nLen.toString() + ' ]' })
+      this.loadWsMultipletDelete = true
+
+      let isOk = false
+      const u = this.omsUrl + '/api/model/' + encodeURIComponent(this.digest) + '/delete-worksets'
+      try {
+        await this.$axios.post(u, nameLst) // ignore response on success
+        isOk = true
+      } catch (e) {
+        let em = ''
+        try {
+          if (e.response) em = e.response.data || ''
+        } finally {}
+        console.warn('Error at delete worksets, length:', nLen, em)
+      }
+      this.loadWsMultipletDelete = false
+      if (!isOk) {
+        this.$q.notify({ type: 'negative', message: this.$t('Unable to delete multiple input scenarios') + ' [ ' + nLen.toString() + ' ]' })
+        return
+      }
+
+      // refresh workset list from the server
+      this.$q.notify({ type: 'info', message: this.$t('Deleted') + ': ' + ' [ ' + nLen.toString() + ' ]' })
+      this.$emit('set-list-refresh')
     },
 
     // click on  workset download: start workset download and show download list page
@@ -550,8 +662,7 @@ export default {
 
     // return tree of model worksets
     makeWorksetTreeData (wLst) {
-      this.isAnyGroup = false
-      this.treeFilter = ''
+      this.wsTreeFilter = ''
 
       if (!Mdf.isLength(wLst)) return [] // empty workset list
       if (!Mdf.isWorksetTextList(wLst)) {
@@ -561,10 +672,20 @@ export default {
 
       // add worksets which are not included in any group
       const td = []
+      const tdTop = {
+        key: 'wsl-top-node',
+        label: 'wsl-top-name',
+        isReadonly: true,
+        lastTime: '',
+        descr: '',
+        children: [],
+        disabled: false
+      }
+      td.push(tdTop)
 
       for (const wt of wLst) {
-        td.push({
-          key: 'wtl-' + wt.Name + '-' + this.nextId++,
+        tdTop.children.push({
+          key: 'wtl-' + wt.Name,
           label: wt.Name,
           isReadonly: wt.IsReadonly,
           lastTime: Mdf.dtStr(wt.UpdateDateTime),

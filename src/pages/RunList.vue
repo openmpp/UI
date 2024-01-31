@@ -363,35 +363,6 @@
   </q-card>
 
   <q-card class="q-ma-sm">
-    <div class="row items-center full-width q-pt-sm q-px-sm">
-
-      <q-btn
-        v-if="isAnyRunGroup"
-        flat
-        dense
-        class="col-auto bg-primary text-white rounded-borders q-mr-xs om-tree-control-button"
-        :icon="isRunTreeCollapsed ? 'keyboard_arrow_down' : 'keyboard_arrow_up'"
-        :title="isRunTreeCollapsed ? $t('Expand all') : $t('Collapse all')"
-        @click="doToogleExpandRunTree"
-        />
-      <span class="col-grow">
-        <q-input
-          ref="runFilterInput"
-          debounce="500"
-          v-model="runFilter"
-          outlined
-          dense
-          :placeholder="$t('Find model run...')"
-          >
-          <template v-slot:append>
-            <q-icon v-if="runFilter !== ''" name="cancel" class="cursor-pointer" @click="resetRunFilter" />
-            <q-icon v-else name="search" />
-          </template>
-        </q-input>
-      </span>
-
-    </div>
-
     <div class="q-pa-sm">
       <q-tree
         ref="runTree"
@@ -411,21 +382,40 @@
 
           <div
             v-if="prop.node.children && prop.node.children.length"
-            class="row no-wrap items-center"
+            class="row no-wrap items-center full-width"
             >
-            <div class="col">
+            <div class="col-auto">
               <q-btn
                 :disable="!runTreeTicked.length"
                 @click.stop="onRunMultipleDelete"
-                unelevated
+                :unelevated="!!runTreeTicked.length"
+                :outline="!runTreeTicked.length"
                 no-caps
                 color="primary"
                 class="col-auto"
                 :icon="!!runTreeTicked.length ? 'mdi-delete' : 'mdi-delete-outline'"
-                :label="!!runTreeTicked.length ? $t('Delete') + ' [ ' + runTreeTicked.length.toString() + ' ]' : $t('Delete selected')"
-                :title="$t('Delete') + (!!runTreeTicked.length ? ' [ ' + runTreeTicked.length.toString() + ' ]' : '')"
+                :label="$t('Delete') + (!!runTreeTicked.length ? ' [ ' + runTreeTicked.length.toString() + ' ]' : '\u2026')"
+                :title="$t('Delete') + (!!runTreeTicked.length ? ' [ ' + runTreeTicked.length.toString() + ' ]' : '\u2026')"
                 />
             </div>
+            <span
+              @click.stop="() => {}"
+              class="col-grow q-pl-sm"
+              >
+              <q-input
+                ref="runFilterInput"
+                debounce="500"
+                v-model="runFilter"
+                outlined
+                dense
+                :placeholder="$t('Find model run...')"
+                >
+                <template v-slot:append>
+                  <q-icon v-if="runFilter !== ''" name="cancel" class="cursor-pointer" @click="resetRunFilter" />
+                  <q-icon v-else name="search" />
+                </template>
+              </q-input>
+            </span>
           </div>
 
           <div v-else
@@ -542,7 +532,7 @@
     :show-tickle="showDeleteMultipleDialogTickle"
     :item-name="'[ ' + runMultipleCount.toString() + ' ] ' + $t('model runs to be deleted')"
     :item-id="!!runMultipleCount ? runMultipleCount.toString() : 'empty'"
-    :bodyText="$t('Model would be unavaliable until delete is completed.')"
+    :bodyText="$t('Model may be unavaliable until delete is completed.')"
     :dialog-title="$t('Delete multiple model runs') + '?'"
     >
   </delete-confirm-dialog>

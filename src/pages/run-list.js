@@ -48,7 +48,6 @@ export default {
       loadRunArrayWait: false,
       runCurrent: Mdf.emptyRunText(), // currently selected run
       isRunTreeCollapsed: false,
-      isAnyRunGroup: false,
       runTreeData: [],
       runFilter: '',
       runTreeExpanded: [],
@@ -508,7 +507,7 @@ export default {
     // user answer yes to confirm delete multiple selected model runs
     onYesRunMultipleDelete () {
       if (!this.runTreeData?.length || !this.runTreeTicked?.length) {
-        console.warn('Unable to delete: invalid (empty) run digest', this.runTreeData?.length, this.runTreeTicked?.length)
+        console.warn('Unable to delete: invalid (empty) run tree or ticked runs', this.runTreeData?.length, this.runTreeTicked?.length)
         this.$q.notify({ type: 'negative', message: this.$t('Unable to delete: model runs list is empty') })
         return
       }
@@ -642,7 +641,6 @@ export default {
 
     // return tree of model runs
     makeRunTreeData (rLst) {
-      this.isAnyRunGroup = false
       this.runFilter = ''
 
       if (!Mdf.isLength(rLst)) return [] // empty run list
@@ -746,7 +744,7 @@ export default {
 
       // refresh run list from the server
       // this.$q.notify({ type: 'info', message: this.$t('Start deleting') + ': ' + dgst + ' ' + (runName || '') })
-      setTimeout(() => this.$emit('run-list-refresh'), 1021)
+      setTimeout(() => this.$emit('run-list-refresh'), 2011)
     },
 
     // start run download
