@@ -466,13 +466,14 @@
               <q-btn
                 :disable="!wsTreeTicked.length || isEdit() || isReadOnlyTicked()"
                 @click.stop="onWsMultipleDelete"
-                :unelevated="!!wsTreeTicked.length || !isEdit() || !isReadOnlyTicked()"
+                :round="!wsTreeTicked.length"
                 :outline="!wsTreeTicked.length || isEdit() || isReadOnlyTicked()"
+                :rounded="!!wsTreeTicked.length || isEdit() || isReadOnlyTicked()"
                 no-caps
                 color="primary"
                 class="col-auto"
                 :icon="!!wsTreeTicked.length ? 'mdi-delete' : 'mdi-delete-outline'"
-                :label="$t('Delete') + (!!wsTreeTicked.length ? ' [ ' + wsTreeTicked.length.toString() + ' ]' : '\u2026')"
+                :label="!!wsTreeTicked.length ? '[ ' + wsTreeTicked.length.toString() + ' ]' : ''"
                 :title="$t('Delete') + (!!wsTreeTicked.length ? ' [ ' + wsTreeTicked.length.toString() + ' ]' : '\u2026')"
                 />
             </div>

@@ -45,6 +45,8 @@ export default {
       readyUpCount: 0,
       progressUpCount: 0,
       errorUpCount: 0,
+      downloadAllFileCount: 1,
+      uploadAllFileCount: 1,
       loadWait: false,
       loadWsListWait: false,
       refreshWsListTickle: false,
@@ -65,6 +67,7 @@ export default {
       showDeleteDialogTickle: false,
       folderToDelete: '',
       upDownToDelete: '',
+      showAllDeleteDialogTickle: false,
       folderTreeData: [],
       isAnyFolderDir: false,
       folderTreeFilter: '',
@@ -81,6 +84,10 @@ export default {
     lastLogTimeStamp () {
       return this.lastLogDt ? Mdf.dtToTimeStamp(new Date(this.lastLogDt)) : ''
     },
+    modelNameVer () {
+      return Mdf.modelNameVer(this.theModel)
+    },
+    isDiskUse () { return !!this?.serverConfig?.IsDiskUse },
     isDownloadEnabled () { return this.serverConfig.AllowDownload },
     isUploadEnabled () { return this.serverConfig.AllowUpload && this.digest },
     wsFileSelected () { return !(this.wsUploadFile === null) && (this.wsUploadFile?.name || '') !== '' },
@@ -231,9 +238,26 @@ export default {
       this.upDownToDelete = upDown
       this.showDeleteDialogTickle = !this.showDeleteDialogTickle
     },
-    // delete download or upload results by folder name
+    // user answer Yes to delete download or upload results by folder name
     onYesUpDownDelete (folder, itemId, upDown) {
       this.doDeleteUpDown(upDown, folder)
+      this.logRefreshPauseToggle()
+      this.isLogRefreshPaused = false
+    },
+
+    // delete all download files for all models
+    onAllDownloadDelete () {
+      this.upDownToDelete = 'down'
+      this.showAllDeleteDialogTickle = !this.showAllDeleteDialogTickle
+    },
+    // delete all upload files for all models
+    onAllUploadDelete () {
+      this.upDownToDelete = 'up'
+      this.showAllDeleteDialogTickle = !this.showAllDeleteDialogTickle
+    },
+    // user answer Yes to delete all download files or all upload files
+    onYesAllUpDownDelete (itemName, itemId, upDown) {
+      this.doAllDeleteUpDown(upDown)
       this.logRefreshPauseToggle()
       this.isLogRefreshPaused = false
     },
@@ -719,6 +743,39 @@ export default {
       }
 
       this.$q.notify({ type: 'info', message: this.$t('Deleted') + ': ' + folder })
+    },
+
+    // delete all download files or all upload files
+    async doAllDeleteUpDown (upDown) {
+      if (!upDown) {
+        console.warn('Unable to delete: invalid (empty) upload-download direction')
+        return
+      }
+      this.$q.notify({ type: 'info', message: (upDown === 'up' ? this.$t('Deleting all upload files') : this.$t('Deleting all download files')) })
+
+      this.loadWait = true
+      let isOk = false
+
+      const u = this.omsUrl + '/api/' + (upDown === 'up' ? 'upload' : 'download') + '/delete-all'
+      try {
+        // send delete request to the server, response expected to be empty on success
+        await this.$axios.delete(u)
+        isOk = true
+      } catch (e) {
+        let em = ''
+        try {
+          if (e.response) em = e.response.data || ''
+        } finally {}
+        console.warn('Error at delete all files:', em)
+      }
+      this.loadWait = false
+
+      if (!isOk) {
+        this.$q.notify({ type: 'negative', message: (upDown === 'up' ? this.$t('Unable to delete upload files') : this.$t('Unable to delete download files')) })
+        return
+      }
+
+      this.$q.notify({ type: 'info', message: this.$t('Files deleted.') })
     },
 
     ...mapActions('uiState', {

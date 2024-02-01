@@ -128,6 +128,11 @@ export const modelName = (md) => {
   return (md.Model.Name || '')
 }
 
+// model name and version
+export const modelNameVer = (md) => {
+  return isModel(md) ? md.Model.Name + ((md.Model.Version || '') ? ': ' + md.Model.Version : '') : ''
+}
+
 // make model title
 export const modelTitle = (md) => {
   if (!isModel(md)) return ''

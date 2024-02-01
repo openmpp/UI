@@ -388,13 +388,14 @@
               <q-btn
                 :disable="!runTreeTicked.length"
                 @click.stop="onRunMultipleDelete"
-                :unelevated="!!runTreeTicked.length"
+                :round="!runTreeTicked.length"
                 :outline="!runTreeTicked.length"
+                :rounded="!!runTreeTicked.length"
                 no-caps
                 color="primary"
                 class="col-auto"
                 :icon="!!runTreeTicked.length ? 'mdi-delete' : 'mdi-delete-outline'"
-                :label="$t('Delete') + (!!runTreeTicked.length ? ' [ ' + runTreeTicked.length.toString() + ' ]' : '\u2026')"
+                :label="!!runTreeTicked.length ? '[ ' + runTreeTicked.length.toString() + ' ]' : ''"
                 :title="$t('Delete') + (!!runTreeTicked.length ? ' [ ' + runTreeTicked.length.toString() + ' ]' : '\u2026')"
                 />
             </div>

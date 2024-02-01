@@ -9,6 +9,9 @@
       <table class="pt-table">
         <thead>
           <tr>
+            <th colspan="6" class="pt-title text-weight-medium">{{ modelNameVer }}</th>
+          </tr>
+          <tr>
             <th class="pt-cell">
               <q-btn
                 v-if="serverConfig.AllowDownload"
@@ -29,7 +32,7 @@
                 :title="$t('Refresh')"
                 />
             </th>
-            <td class="pt-cell-left  mono">{{ lastLogTimeStamp }}</td>
+            <th class="pt-cell-left mono">{{ lastLogTimeStamp }}</th>
             <th class="pt-head text-weight-medium">{{ $t('Ready') }}</th>
             <th class="pt-head text-weight-medium">{{ $t('In progress') }}</th>
             <th class="pt-head text-weight-medium">{{ $t('Failed') }}</th>
@@ -146,12 +149,77 @@
   </q-card>
 
   <q-expansion-item
+    v-if="isDiskUse"
+    group="up-down-expand"
+    switch-toggle-side
+    expand-separator
+    :label="$t('All models storage use')"
+    header-class="bg-primary text-white"
+    class="q-ma-sm"
+    >
+  <q-card
+    class="up-down-card q-my-sm"
+    >
+      <table class="pt-table">
+        <thead>
+          <tr>
+            <th class="pt-cell"></th>
+            <th class="pt-head text-weight-medium">{{ $t('Total Size') }}</th>
+            <th class="pt-head text-weight-medium">{{ $t('File Count') }}</th>
+            <th class="pt-cell"></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="pt-row-head">{{ $t('Downloads') }}</td>
+            <td class="pt-cell-right mono">{{  }}</td>
+            <td class="pt-cell-right mono">{{  }}</td>
+            <td class="pt-cell-center">
+              <q-btn
+                :disable="!downloadAllFileCount"
+                @click="onAllDownloadDelete"
+                :outline="!downloadAllFileCount"
+                :unelevated="!!downloadAllFileCount"
+                no-caps
+                color="primary"
+                class="col-auto"
+                :icon="!!downloadAllFileCount ? 'mdi-delete' : 'mdi-delete-outline'"
+                :label="$t('Delete all')"
+                :title="$t('Delete all')"
+                />
+            </td>
+          </tr>
+          <tr>
+            <td class="pt-row-head">{{ $t('Uploads') }}</td>
+            <td class="pt-cell-right mono">{{  }}</td>
+            <td class="pt-cell-right mono">{{  }}</td>
+            <td class="pt-cell-center">
+              <q-btn
+                :disable="!uploadAllFileCount"
+                @click="onAllUploadDelete"
+                :outline="!uploadAllFileCount"
+                :unelevated="!!uploadAllFileCount"
+                no-caps
+                color="primary"
+                class="col-auto"
+                :icon="!!uploadAllFileCount ? 'mdi-delete' : 'mdi-delete-outline'"
+                :label="$t('Delete all')"
+                :title="$t('Delete all')"
+                />
+            </td>
+          </tr>
+        </tbody>
+      </table>
+  </q-card>
+  </q-expansion-item>
+
+  <q-expansion-item
     :disable="!isDownloadEnabled"
     v-model="downloadExpand"
     group="up-down-expand"
     switch-toggle-side
     expand-separator
-    :label="$t('Downloads')"
+    :label="$t('Downloads of') + (modelNameVer ? ': ' + modelNameVer : modelNameVer)"
     header-class="bg-primary text-white"
     class="q-ma-sm"
     >
@@ -344,7 +412,7 @@
     group="up-down-expand"
     switch-toggle-side
     expand-separator
-    :label="$t('Uploads')"
+    :label="$t('Uploads of') + (modelNameVer ? ': ' + modelNameVer : modelNameVer)"
     header-class="bg-primary text-white"
     class="q-ma-sm"
     >
@@ -535,7 +603,16 @@
     :show-tickle="showDeleteDialogTickle"
     :item-name="folderToDelete"
     :kind="upDownToDelete"
-    :dialog-title="$t('Delete download files') + '?'"
+    :dialog-title="(upDownToDelete === 'up' ? $t('Delete upload files') :  $t('Delete download files')) + '?'"
+    >
+  </delete-confirm-dialog>
+  <delete-confirm-dialog
+    @delete-yes="onYesAllUpDownDelete"
+    :show-tickle="showAllDeleteDialogTickle"
+    :item-name="(upDownToDelete === 'up' ? $t('All upload files') :  $t('All download files'))"
+    :kind="upDownToDelete"
+    :bodyText="upDownToDelete === 'up' ? $t('Delete all files of all models in upload folder.') : $t('Delete all files of all models in download folder.')"
+    :dialog-title="(upDownToDelete === 'up' ? $t('Delete all upload files') :  $t('Delete all download files')) + '?'"
     >
   </delete-confirm-dialog>
 
@@ -567,17 +644,24 @@
     @extend .pt-cell;
     background-color: whitesmoke;
   }
-  .pt-cell-left {
-    text-align: left;
+  .pt-title {
     @extend .pt-cell;
+    text-align: center;
+    font-size: 1rem;
+    color: white;
+    background-color: $primary;
+  }
+  .pt-cell-left {
+    @extend .pt-cell;
+    text-align: left;
   }
   .pt-cell-right {
-    text-align: right;
     @extend .pt-cell;
+    text-align: right;
   }
   .pt-cell-center {
-    text-align: center;
     @extend .pt-cell;
+    text-align: center;
   }
 
   .file-link {
