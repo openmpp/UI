@@ -13,6 +13,11 @@ export const emptyConfig = () => {
     IsJobControl: false,
     IsModelDoc: false,
     IsDiskUse: false,
+    DiskUse: {
+      ScanInterval: 0,
+      Limit: 0,
+      AllLimit: 0
+    },
     Env: {},
     ModelCatalog: {
       ModelDir: '',
@@ -35,12 +40,18 @@ export const isConfig = (c) => {
   if (!c.hasOwnProperty('OmsName') || !c.hasOwnProperty('AllowUserHome') ||
     !c.hasOwnProperty('AllowDownload') || !c.hasOwnProperty('AllowUpload') || !c.hasOwnProperty('AllowMicrodata') ||
     !c.hasOwnProperty('IsJobControl') || !c.hasOwnProperty('IsModelDoc') || !c.hasOwnProperty('IsDiskUse') ||
-    !c.hasOwnProperty('Env') || !c.hasOwnProperty('ModelCatalog') || !c.hasOwnProperty('RunCatalog')) {
+    !c.hasOwnProperty('DiskUse') || !c.hasOwnProperty('Env') || !c.hasOwnProperty('ModelCatalog') ||
+    !c.hasOwnProperty('RunCatalog')) {
     return false
   }
   if (!c.ModelCatalog.hasOwnProperty('ModelDir') || !c.ModelCatalog.hasOwnProperty('ModelLogDir') || !c.ModelCatalog.hasOwnProperty('IsLogDirEnabled')) return false
   if (!c.RunCatalog.hasOwnProperty('RunTemplates') || !c.RunCatalog.hasOwnProperty('DefaultMpiTemplate') ||
-    !c.RunCatalog.hasOwnProperty('MpiTemplates') || !c.RunCatalog.hasOwnProperty('Presets')) return false
+    !c.RunCatalog.hasOwnProperty('MpiTemplates') || !c.RunCatalog.hasOwnProperty('Presets')) {
+    return false
+  }
+  if (!c.DiskUse.hasOwnProperty('ScanInterval') || typeof c.DiskUse.ScanInterval !== typeof 1) return false
+  if (!c.DiskUse.hasOwnProperty('Limit') || typeof c.DiskUse.Limit !== typeof 1) return false
+  if (!c.DiskUse.hasOwnProperty('AllLimit') || typeof c.DiskUse.AllLimit !== typeof 1) return false
 
   return Array.isArray(c.RunCatalog.RunTemplates) && Array.isArray(c.RunCatalog.MpiTemplates) && Array.isArray(c.RunCatalog.Presets)
 }

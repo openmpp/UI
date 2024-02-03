@@ -3,8 +3,7 @@ import languages from 'quasar/lang/index.json'
 import * as Mdf from 'src/model-common'
 import ModelInfoDialog from 'components/ModelInfoDialog.vue'
 
-const DISK_USE_REFRESH_TIME = 5701 // msec, disk space usage refresh interval
-// const DISK_USE_REFRESH_TIME = (131 * 1000) // msec, disk space usage refresh interval
+const DISK_USE_MIN_REFRESH_TIME = (17 * 1000) // msec, minimum disk space usage refresh interval
 
 export default {
   name: 'MainLayout',
@@ -18,9 +17,9 @@ export default {
       isBeta: true,
       modelInfoTickle: false,
       toUpDownSection: 'down',
-      loadDiskUseDone: false,
       isDiskUse: false,
       diskUseRefreshInt: '',
+      diskUseMs: DISK_USE_MIN_REFRESH_TIME,
       langCode: this.$q.lang.getLocale(),
       appLanguages: languages.filter(lang => ['fr', 'en-us'].includes(lang.isoName))
     }
@@ -42,7 +41,7 @@ export default {
     loginUrl () { return Mdf.configEnvValue(this.serverConfig, 'OM_CFG_LOGIN_URL') },
     logoutUrl () { return Mdf.configEnvValue(this.serverConfig, 'OM_CFG_LOGOUT_URL') },
     loadWait () {
-      return !this.loadConfigDone // || (!this.loadDiskUseDone && this.isDiskUse)
+      return !this.loadConfigDone
     },
 
     ...mapState('model', {
@@ -121,7 +120,7 @@ export default {
       // refersh disk space usage now and setup refresh by timer
       if (this.isDiskUse) {
         this.doDiskUseRefresh()
-        this.diskUseRefreshInt = setInterval(this.doDiskUseRefresh, DISK_USE_REFRESH_TIME)
+        this.diskUseRefreshInt = setInterval(this.doDiskUseRefresh, this.diskUseMs)
       }
     },
 
@@ -167,13 +166,21 @@ export default {
 
       // update disk space usage if necessary
       this.isDiskUse = !!this?.serverConfig?.IsDiskUse
+
+      this.diskUseMs = this.getDiskUseRefreshMs(this?.serverConfig?.DiskUse?.ScanInterval)
+    },
+    // get interval of disk use configuration refresh
+    getDiskUseRefreshMs (ms) {
+      return (!!ms && typeof ms === typeof 1 && ms >= DISK_USE_MIN_REFRESH_TIME) ? ms : DISK_USE_MIN_REFRESH_TIME
     },
 
     // receive disk space usage from server
     async doDiskUseRefresh () {
+      this.doConfigRefresh()
+      /*
       this.loadDiskUseDone = false
 
-      const u = this.omsUrl + '/api/disk-use'
+      const u = this.omsUrl + '/api/service/disk-use'
       try {
         // send request to the server
         const response = await this.$axios.get(u)
@@ -189,14 +196,14 @@ export default {
       this.loadIsDiskUseDone = true
 
       // update disk space usage to notify user
+      */
     },
 
     ...mapActions('uiState', {
       dispatchUiLang: 'uiLang'
     }),
     ...mapActions('serverState', {
-      dispatchServerConfig: 'serverConfig',
-      dispatchDiskUseState: 'diskUseState'
+      dispatchServerConfig: 'serverConfig'
     })
   },
 
