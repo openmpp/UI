@@ -3,35 +3,55 @@
 import * as Dnf from './descr-note'
 import * as Mlang from './language'
 
+/*
+model list:
+  [
+    {
+      Model db.ModelDicRow // model_dic db row
+      Dir   string         // model directory, relative to model root and slashed: dir/sub
+      Extra string         // if not empty then model extra content
+    }
+  ]
+*/
 // return true if each list element isModel()
-export const isModelList = (ml) => {
-  if (!ml) return false
-  if (!Array.isArray(ml)) return false
-  for (const m of ml) {
+export const isModelList = (mLst) => {
+  if (!mLst) return false
+  if (!Array.isArray(mLst)) return false
+  for (const m of mLst) {
     if (!isModel(m)) return false
   }
   return true
 }
 
-// return model folder by digest: find first in model list
+// return model row by digest: find first in model list
 // digest expected to be unique in models tree
-export const modelDirByDigest = (dgst, ml) => {
+export const modelByDigest = (dgst, mLst) => {
   if (!dgst || typeof dgst !== typeof 'string') return ''
-  if (!ml || !Array.isArray(ml)) return ''
-  for (const m of ml) {
-    if (modelDigest(m) === dgst) {
+  if (!mLst || !Array.isArray(mLst)) return ''
+  for (const m of mLst) {
+    if (isModel(m) && modelDigest(m) === dgst) return m
+  }
+  return emptyModel()
+}
+
+// return model folder by digest from model list
+export const modelDirByDigest = (dgst, mLst) => {
+  if (!dgst || typeof dgst !== typeof 'string') return ''
+  if (!mLst || !Array.isArray(mLst)) return ''
+  for (const m of mLst) {
+    if (isModel(m) && modelDigest(m) === dgst) {
       return (!m?.Dir || m.Dir === '.' || m.Dir === '/' || m.Dir === './') ? '' : m.Dir
     }
   }
   return ''
 }
 
-// return model extra properties by digest: find first in model list
-export const modelExtraByDigest = (dgst, ml) => {
-  if (!dgst || typeof dgst !== typeof 'string') return {}
-  if (!ml || !Array.isArray(ml)) return {}
-  for (const m of ml) {
-    if (modelDigest(m) === dgst) {
+// return model extra properties by digest from model list
+export const modelExtraByDigest = (dgst, mLst) => {
+  if (!dgst || typeof dgst !== typeof 'string') return ''
+  if (!mLst || !Array.isArray(mLst)) return ''
+  for (const m of mLst) {
+    if (isModel(m) && modelDigest(m) === dgst) {
       if (!m.hasOwnProperty('Extra') || typeof m.Extra !== 'object' || !m.Extra) return {}
       return m.Extra
     }
@@ -40,8 +60,8 @@ export const modelExtraByDigest = (dgst, ml) => {
 }
 
 // get link to model documentation in current language from ModelName.extra.json
-export const modelDocLink = (dgst, ml, uiLang, modelLang) => {
-  const me = modelExtraByDigest(dgst, ml) // content of ModelName.extra.json file
+export const modelDocLinkByDigest = (dgst, mLst, uiLang, modelLang) => {
+  const me = modelExtraByDigest(dgst, mLst) // content of ModelName.extra.json file
 
   const docLst = me?.ModelDoc
   if (!Array.isArray(docLst) || docLst.length <= 0) return ''

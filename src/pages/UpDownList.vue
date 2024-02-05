@@ -6,13 +6,13 @@
     >
     <q-card-section>
 
-      <table class="pt-table">
+      <table class="om-p-table">
         <thead>
           <tr>
-            <th colspan="6" class="pt-title text-weight-medium">{{ modelNameVer }}</th>
+            <th colspan="6" class="om-p-title text-weight-medium">{{ modelNameVer }}</th>
           </tr>
           <tr>
-            <th class="pt-cell">
+            <th class="om-p-cell">
               <q-btn
                 v-if="serverConfig.AllowDownload"
                 @click="logRefreshPauseToggle"
@@ -32,31 +32,31 @@
                 :title="$t('Refresh')"
                 />
             </th>
-            <th class="pt-cell-left mono">{{ lastLogTimeStamp }}</th>
-            <th class="pt-head text-weight-medium">{{ $t('Ready') }}</th>
-            <th class="pt-head text-weight-medium">{{ $t('In progress') }}</th>
-            <th class="pt-head text-weight-medium">{{ $t('Failed') }}</th>
-            <th class="pt-head text-weight-medium">{{ $t('Total') }}</th>
+            <th class="om-p-cell-left mono">{{ lastLogTimeStamp }}</th>
+            <th class="om-p-head-center text-weight-medium">{{ $t('Ready') }}</th>
+            <th class="om-p-head-center text-weight-medium">{{ $t('In progress') }}</th>
+            <th class="om-p-head-center text-weight-medium">{{ $t('Failed') }}</th>
+            <th class="om-p-head-center text-weight-medium">{{ $t('Total') }}</th>
           </tr>
         </thead>
         <tbody>
           <tr>
-            <td colspan="2" class="pt-row-head">{{ $t('Downloads') }}</td>
-            <td class="pt-cell-right mono">{{ readyDownCount }}</td>
-            <td class="pt-cell-right mono">{{ progressDownCount }}</td>
-            <td class="pt-cell-right mono">{{ errorDownCount }}</td>
-            <td class="pt-cell-right mono">{{ totalDownCount }}</td>
+            <td colspan="2" class="om-p-head-left">{{ $t('Downloads') }}</td>
+            <td class="om-p-cell-right mono">{{ readyDownCount }}</td>
+            <td class="om-p-cell-right mono">{{ progressDownCount }}</td>
+            <td class="om-p-cell-right mono">{{ errorDownCount }}</td>
+            <td class="om-p-cell-right mono">{{ totalDownCount }}</td>
           </tr>
           <tr>
-            <td colspan="2" class="pt-row-head">{{ $t('Uploads') }}</td>
-            <td class="pt-cell-right mono">{{ readyUpCount }}</td>
-            <td class="pt-cell-right mono">{{ progressUpCount }}</td>
-            <td class="pt-cell-right mono">{{ errorUpCount }}</td>
-            <td class="pt-cell-right mono">{{ totalUpCount }}</td>
+            <td colspan="2" class="om-p-head-left">{{ $t('Uploads') }}</td>
+            <td class="om-p-cell-right mono">{{ readyUpCount }}</td>
+            <td class="om-p-cell-right mono">{{ progressUpCount }}</td>
+            <td class="om-p-cell-right mono">{{ errorUpCount }}</td>
+            <td class="om-p-cell-right mono">{{ totalUpCount }}</td>
           </tr>
 
           <tr>
-            <td colspan="6" class="pt-cell">
+            <td colspan="6" class="om-p-cell">
               <q-radio v-model="fastDownload" val="yes" :label="$t('Do fast downloads, only to analyze output values')" />
               <br />
               <q-radio v-model="fastDownload" val="no"  :label="$t('Do full downloads, compatible with desktop model')" />
@@ -66,12 +66,12 @@
           </tr>
 
           <tr>
-            <td colspan="6" class="bg-primary text-white pt-cell-left text-weight-medium">
+            <td colspan="6" class="bg-primary text-white om-p-cell-left text-weight-medium">
               <span class="q-pl-xs">{{ $t('Upload model run .zip') }}</span>
             </td>
           </tr>
           <tr v-if="isUploadEnabled">
-            <td class="pt-cell">
+            <td class="om-p-cell">
               <q-btn
                 @click="onUploadRun"
                 :disable="!isUploadEnabled || !runFileSelected"
@@ -82,7 +82,7 @@
                 :title="$t('Upload model run .zip')"
                 />
             </td>
-            <td colspan="5" class="pt-cell">
+            <td colspan="5" class="om-p-cell">
               <q-file
                 v-model="runUploadFile"
                 :disable="!isUploadEnabled || !digest"
@@ -100,12 +100,12 @@
           </tr>
 
           <tr>
-            <td colspan="6" class="bg-primary text-white pt-cell-left text-weight-medium">
+            <td colspan="6" class="bg-primary text-white om-p-cell-left text-weight-medium">
               <span class="q-pl-xs">{{ $t('Upload scenario .zip') }}</span>
             </td>
           </tr>
           <tr v-if="isUploadEnabled">
-            <td class="pt-cell">
+            <td class="om-p-cell">
               <q-btn
                 @click="onUploadWorkset"
                 :disable="!isUploadEnabled || !wsFileSelected"
@@ -116,7 +116,7 @@
                 :title="$t('Upload scenario .zip')"
                 />
             </td>
-            <td colspan="5" class="pt-cell">
+            <td colspan="5" class="om-p-cell">
               <q-file
                 v-model="wsUploadFile"
                 :disable="!isUploadEnabled || !digest"
@@ -133,14 +133,14 @@
             </td>
           </tr>
           <tr v-if="isUploadEnabled">
-            <td class="pt-cell">
+            <td class="om-p-cell">
               <q-checkbox
                 v-model="isNoDigestCheck"
                 :disable="!isUploadEnabled || !wsFileSelected"
                 :title="$t('Ignore input scenario model digest (model version)')"
                 />
             </td>
-            <td colspan="6" class="pt-cell-left"><span class="q-pl-sm">{{ $t('Ignore input scenario model digest (model version)') }}</span></td>
+            <td colspan="6" class="om-p-cell-left"><span class="q-pl-sm">{{ $t('Ignore input scenario model digest (model version)') }}</span></td>
           </tr>
         </tbody>
       </table>
@@ -160,21 +160,21 @@
   <q-card
     class="up-down-card q-my-sm"
     >
-      <table class="pt-table">
+      <table class="om-p-table">
         <thead>
           <tr>
-            <th class="pt-cell"></th>
-            <th class="pt-head text-weight-medium">{{ $t('Total Size') }}</th>
-            <th class="pt-head text-weight-medium">{{ $t('File Count') }}</th>
-            <th class="pt-cell"></th>
+            <th class="om-p-cell"></th>
+            <th class="om-p-head-center text-weight-medium">{{ $t('Total Size') }}</th>
+            <th class="om-p-head-center text-weight-medium">{{ $t('File Count') }}</th>
+            <th class="om-p-cell"></th>
           </tr>
         </thead>
         <tbody>
           <tr>
-            <td class="pt-row-head">{{ $t('Downloads') }}</td>
-            <td class="pt-cell-right mono">{{  }}</td>
-            <td class="pt-cell-right mono">{{  }}</td>
-            <td class="pt-cell-center">
+            <td class="om-p-head-left">{{ $t('Downloads') }}</td>
+            <td class="om-p-cell-right mono">{{  }}</td>
+            <td class="om-p-cell-right mono">{{  }}</td>
+            <td class="om-p-cell-center">
               <q-btn
                 :disable="!downloadAllFileCount"
                 @click="onAllDownloadDelete"
@@ -190,10 +190,10 @@
             </td>
           </tr>
           <tr>
-            <td class="pt-row-head">{{ $t('Uploads') }}</td>
-            <td class="pt-cell-right mono">{{  }}</td>
-            <td class="pt-cell-right mono">{{  }}</td>
-            <td class="pt-cell-center">
+            <td class="om-p-head-left">{{ $t('Uploads') }}</td>
+            <td class="om-p-cell-right mono">{{  }}</td>
+            <td class="om-p-cell-right mono">{{  }}</td>
+            <td class="om-p-cell-center">
               <q-btn
                 :disable="!uploadAllFileCount"
                 @click="onAllUploadDelete"
@@ -626,49 +626,10 @@
 <script src="./updown-list.js"></script>
 
 <style lang="scss" scope="local">
-  .pt-table {
-    text-align: left;
-    border-collapse: collapse;
-  }
-  .pt-cell {
-    padding: 0.25rem;
-    border: 1px solid lightgrey;
-    font-size: 0.875rem;
-  }
-  .pt-head {
-    @extend .pt-cell;
-    text-align: center;
-    background-color: whitesmoke;
-  }
-  .pt-row-head {
-    @extend .pt-cell;
-    background-color: whitesmoke;
-  }
-  .pt-title {
-    @extend .pt-cell;
-    text-align: center;
-    font-size: 1rem;
-    color: white;
-    background-color: $primary;
-  }
-  .pt-cell-left {
-    @extend .pt-cell;
-    text-align: left;
-  }
-  .pt-cell-right {
-    @extend .pt-cell;
-    text-align: right;
-  }
-  .pt-cell-center {
-    @extend .pt-cell;
-    text-align: center;
-  }
-
   .file-link {
     text-decoration: none;
     // display: inline-block;
   }
-
   // override card shadow inside of expansion item
   .q-expansion-item__content > div.up-down-card {
     box-shadow: $shadow-1;

@@ -6,83 +6,93 @@
       <div>{{ title }}</div><q-space /><q-btn icon="mdi-close" flat dense round v-close-popup />
     </q-card-section>
 
-    <q-card-section class="q-pt-none text-body1">
+    <q-card-section class="text-body1">
 
-      <div class="om-note-table mono q-pb-md">
-        <div class="om-note-row">
-          <span class="om-note-cell q-pr-sm">{{ $t('Name') }}:</span><span class="om-note-cell">{{ tableName }}</span>
-        </div>
-        <div v-if="tableSize.rank > 1" class="om-note-row">
-          <span class="om-note-cell q-pr-sm">{{ $t('Size') }}:</span><span class="om-note-cell">{{ tableSize.dimSize }} = {{ tableSize.dimTotal }}</span>
-        </div>
-        <div v-if="tableSize.rank === 1" class="om-note-row">
-          <span class="om-note-cell q-pr-sm">{{ $t('Size') }}:</span><span class="om-note-cell">{{ tableSize.dimSize }}</span>
-        </div>
-        <div v-if="tableSize.rank <= 0" class="om-note-row">
-          <span class="om-note-cell q-pr-sm">{{ $t('Rank') }}:</span><span class="om-note-cell">{{ tableSize.rank }}</span>
-        </div>
-        <div class="om-note-row">
-          <span class="om-note-cell q-pr-sm">{{ $t('Expressions') }}:</span><span class="om-note-cell">{{ tableSize.exprCount || 0 }}</span>
-        </div>
-        <div class="om-note-row">
-          <span class="om-note-cell q-pr-sm">{{ $t('Accumulators') }}:</span><span class="om-note-cell">{{ tableSize.accCount || 0 }}</span>
-        </div>
-        <div v-if="(runText.SubCount || 0) > 1" class="om-note-row">
-          <span class="om-note-cell q-pr-sm">{{ $t('Sub-values Count') }}:</span><span class="om-note-cell">{{ runText.SubCount || 0 }}</span>
-        </div>
-        <template v-if="isRunHasTable">
-          <div class="om-note-row">
-            <span class="om-note-cell q-pr-sm">{{ $t('Digest') }}:</span><span class="om-note-cell">{{ tableText.Table.Digest }}</span>
-          </div>
-          <div class="om-note-row">
-            <span class="om-note-cell q-pr-sm">{{ $t('Import Digest') }}:</span><span class="om-note-cell">{{ tableText.Table.ImportDigest }}</span>
-          </div>
-          <div class="om-note-row">
-            <span class="om-note-cell q-pr-sm">{{ $t('Value Digest') }}:</span><span class="om-note-cell">{{ valueDigest }}</span>
-          </div>
-        </template>
-      </div>
+      <table class="om-p-table">
+        <tbody>
+          <tr>
+            <td class="om-p-head-left">{{ $t('Name') }}</td>
+            <td class="om-p-cell-left mono">{{ tableName }}</td>
+          </tr>
+          <tr v-if="tableSize.rank > 1">
+            <td class="om-p-head-left">{{ $t('Size') }}</td>
+            <td class="om-p-cell-left mono">{{ tableSize.dimSize }} = {{ tableSize.dimTotal }}</td>
+          </tr>
+          <tr v-if="tableSize.rank == 1">
+            <td class="om-p-head-left">{{ $t('Size') }}</td>
+            <td class="om-p-cell-left mono">{{ tableSize.dimSize }}</td>
+          </tr>
+          <tr v-if="tableSize.rank <= 1">
+            <td class="om-p-head-left">{{ $t('Rank') }}</td>
+            <td class="om-p-cell-left mono">{{ tableSize.rank }}</td>
+          </tr>
+          <tr>
+            <td class="om-p-head-left">{{ $t('Expressions') }}</td>
+            <td class="om-p-cell-left mono">{{ tableSize.exprCount || 0 }}</td>
+          </tr>
+          <tr>
+            <td class="om-p-head-left">{{ $t('Accumulators') }}</td>
+            <td class="om-p-cell-left mono">{{ tableSize.accCount || 0 }}</td>
+          </tr>
+          <tr v-if="(runText.SubCount || 0) > 1">
+            <td class="om-p-head-left">{{ $t('Sub-values Count') }}</td>
+            <td class="om-p-cell-left mono">{{ runText.SubCount || 0 }}</td>
+          </tr>
+          <tr v-if="isRunHasTable">
+            <td class="om-p-head-left">{{ $t('Digest') }}</td>
+            <td class="om-p-cell-left mono">{{ tableText.Table.Digest }}</td>
+          </tr>
+          <tr>
+            <td class="om-p-head-left">{{ $t('Import Digest') }}</td>
+            <td class="om-p-cell-left mono">{{ tableText.Table.ImportDigest }}</td>
+          </tr>
+          <tr>
+            <td class="om-p-head-left">{{ $t('Value Digest') }}</td>
+            <td class="om-p-cell-left mono">{{ valueDigest }}</td>
+          </tr>
+          <tr v-if="docLink">
+            <td class="om-p-head-center"><q-icon name="mdi-book-open" size="md" color="primary"/></td>
+            <td class="om-p-cell-left">
+              <a target="_blank" :href="'doc/' + docLink + '#' + tableName" class="file-link"><q-icon name="mdi-book-open" size="md" color="primary" class="q-pr-sm"/>{{ $t('Model Documentation') }}</a>
+            </td>
+          </tr>
+        </tbody>
+      </table>
 
-      <div v-if="tableSize.rank > 0" class="om-note-row">
-        <table class="pt-table q-mb-sm">
+      <div v-if="tableSize.rank > 0" class="q-pt-md">
+        <table class="om-p-table">
           <thead>
             <tr>
-              <th class="pt-head text-weight-medium">{{ $t('Dimension') }}</th>
-              <th class="pt-head text-weight-medium">{{ $t('Size') }}</th>
-              <th class="pt-head text-weight-medium">{{ $t('Type of') }}</th>
+              <th colspan="2" class="om-p-head-center text-weight-medium">{{ $t('Dimension') }}</th>
+              <th class="om-p-head-center text-weight-medium">{{ $t('Size') }}</th>
+              <th colspan="2" class="om-p-head-center text-weight-medium">{{ $t('Type of') }}</th>
             </tr>
           </thead>
           <tbody>
             <tr v-for="d of dimSizeTxt" :key="d.name">
-              <td class="pt-cell q-pa-sm">
-                <span class="mono">{{ d.name }}</span>
-                <template v-if="!!d.descr && d.name !== d.descr"><br /><span>{{ d.descr }}</span></template>
-              </td>
-              <td class="pt-cell-right q-pa-sm">{{ d.size }}</td>
-              <td class="pt-cell q-pa-sm">
-                <span class="mono">{{ d.typeName }}</span>
-                <template v-if="!!d.typeDescr && d.typeName !== d.typeDescr"><br /><span>{{ d.typeDescr }}</span></template>
-              </td>
+              <td class="om-p-cell mono">{{ d.name }}</td>
+              <td class="om-p-cell">{{ (!!d.descr && d.name !== d.descr) ? d.descr : '' }}</td>
+              <td class="om-p-cell-right">{{ d.size }}</td>
+              <td class="om-p-cell mono">{{ d.typeName }}</td>
+              <td class="om-p-cell">{{ (!!d.typeDescr && d.typeName !== d.typeDescr) ? d.typeDescr : '' }}</td>
             </tr>
           </tbody>
         </table>
       </div>
 
-      <div v-if="tableSize.exprCount > 0" class="om-note-row">
-        <table class="pt-table q-mb-sm">
+      <div v-if="tableSize.exprCount > 0" class="q-pt-md">
+        <table class="om-p-table">
           <thead>
             <tr>
-              <th class="pt-head text-weight-medium">{{ $t('Measure') }}</th>
-              <th v-if="isAnyExprNote" class="pt-head text-weight-medium">{{ $t('Notes') }}</th>
+              <th colspan="2" class="om-p-head-center text-weight-medium">{{ $t('Measure') }}</th>
+              <th v-if="isAnyExprNote" class="om-p-head-center text-weight-medium">{{ $t('Notes') }}</th>
             </tr>
           </thead>
           <tbody>
             <tr v-for="ex of exprTxt" :key="ex.name">
-              <td class="pt-cell q-pa-sm">
-                <span class="mono">{{ ex.name }}</span>
-                <template v-if="!!ex.descr && ex.name !== ex.descr"><br /><span>{{ ex.descr }}</span></template>
-              </td>
-              <td v-if="isAnyExprNote" class="pt-cell q-pa-sm">
+              <td class="om-p-cell mono">{{ ex.name }}</td>
+              <td class="om-p-cell">{{ (!!ex.descr && ex.name !== ex.descr) ? ex.descr : '' }}</td>
+              <td v-if="isAnyExprNote" class="om-p-cell q-pa-sm">
                 <span v-if="!!ex.note" v-html="ex.note"></span>
                 <span v-else>&nbsp;</span>
               </td>
@@ -91,11 +101,11 @@
         </table>
       </div>
 
-      <div v-if="runDigest && !isRunHasTable" class="q-pb-md">{{ $t('This table is excluded from model run results') }}</div>
-      <div v-if="tableText.ExprDescr" class="q-pb-md">{{ tableText.ExprDescr }}</div>
+      <div v-if="runDigest && !isRunHasTable" class="q-pt-md">{{ $t('This table is excluded from model run results') }}</div>
+      <div v-if="tableText.ExprDescr" class="q-pt-md">{{ tableText.ExprDescr }}</div>
 
-      <div v-if="exprNotes" v-html="exprNotes" />
-      <div v-if="notes" v-html="notes" />
+      <div v-if="exprNotes" class="q-pt-md" v-html="exprNotes" />
+      <div v-if="notes" class="q-pt-md" v-html="notes" />
     </q-card-section>
 
     <q-card-actions align="right">
@@ -135,16 +145,25 @@ export default {
       isAnyExprNote: false,
       isRunHasTable: false,
       valueDigest: '',
-      runText: Mdf.emptyRunText()
+      runText: Mdf.emptyRunText(),
+      docLink: ''
     }
   },
 
   computed: {
     ...mapState('model', {
+      modelList: state => state.modelList,
       theModel: state => state.theModel
     }),
     ...mapGetters('model', {
-      runTextByDigest: 'runTextByDigest'
+      runTextByDigest: 'runTextByDigest',
+      modelLanguage: 'modelLanguage'
+    }),
+    ...mapState('serverState', {
+      serverConfig: state => state.config
+    }),
+    ...mapState('uiState', {
+      uiLang: state => state.uiLang
     })
   },
 
@@ -159,8 +178,9 @@ export default {
       }
 
       // find current model run
+      const mDigest = Mdf.modelDigest(this.theModel)
       if (this.runDigest) {
-        this.runText = this.runTextByDigest({ ModelDigest: Mdf.modelDigest(this.theModel), RunDigest: this.runDigest })
+        this.runText = this.runTextByDigest({ ModelDigest: mDigest, RunDigest: this.runDigest })
       }
 
       // title: table description or name
@@ -220,6 +240,9 @@ export default {
           this.valueDigest = rTbl?.ValueDigest || this.$t('Empty')
         }
       }
+
+      // get link to model documentation
+      this.docLink = this.serverConfig.IsModelDoc ? Mdf.modelDocLinkByDigest(mDigest, this.modelList, this.uiLang, this.modelLanguage) : ''
 
       this.showDlg = true
     }

@@ -54,32 +54,32 @@
     v-show="isShowServers"
     class="q-py-sm q-px-xs">
 
-    <table class="pt-table">
+    <table class="om-p-table">
       <thead>
         <tr>
-          <th class="pt-head text-weight-medium">{{ $t('Server') }}</th>
-          <td class="pt-head text-weight-medium">{{ $t('Status') }}</td>
-          <th class="pt-head text-weight-medium">{{ $t('CPU Cores') }}</th>
-          <th class="pt-head text-weight-medium">{{ $t('Cores Used') }}</th>
-          <th class="pt-head text-weight-medium">{{ $t('Used by You') }}</th>
-          <th class="pt-head text-weight-medium">{{ $t('Errors') }}</th>
-          <th class="pt-head text-weight-medium">{{ $t('Last Activity Time') }}</th>
+          <th class="om-p-head-center text-weight-medium">{{ $t('Server') }}</th>
+          <td class="om-p-head-center text-weight-medium">{{ $t('Status') }}</td>
+          <th class="om-p-head-center text-weight-medium">{{ $t('CPU Cores') }}</th>
+          <th class="om-p-head-center text-weight-medium">{{ $t('Cores Used') }}</th>
+          <th class="om-p-head-center text-weight-medium">{{ $t('Used by You') }}</th>
+          <th class="om-p-head-center text-weight-medium">{{ $t('Errors') }}</th>
+          <th class="om-p-head-center text-weight-medium">{{ $t('Last Activity Time') }}</th>
         </tr>
       </thead>
       <tbody>
         <tr v-for="cs of srvState.ComputeState" :key="cs.Name + '-' + cs.Status + '-' + cs.LastUsedTs.toString()">
-          <td class="pt-cell-left">{{ cs.Name }}</td>
-          <td v-if="cs.State === 'off'" class="bg-secondary text-white pt-cell-center">{{ $t(cs.State) }}</td>
-          <td v-if="cs.State === 'ready'" class="bg-positive text-white pt-cell-center">{{ $t(cs.State) }}</td>
-          <td v-if="cs.State === 'start'" class="bg-info text-white pt-cell-center">&uarr; {{ $t(cs.State) }}</td>
-          <td v-if="cs.State === 'stop'" class="bg-info text-white pt-cell-center">&darr; {{ $t(cs.State) }}</td>
-          <td v-if="cs.State === 'error'" class="bg-negative text-white pt-cell-center">{{ $t(cs.State) }}</td>
-          <td v-if="cs.State !== 'off' && cs.State !== 'ready' && cs.State !== 'start' && cs.State !== 'stop' && cs.State !== 'error'" class="pt-cell-center">? {{ cs.State }} ?</td>
-          <td class="pt-cell-right">{{ cs.TotalRes.Cpu }}</td>
-          <td class="pt-cell-right">{{ cs.UsedRes.Cpu || '' }}</td>
-          <td class="pt-cell-right">{{ cs.OwnRes.Cpu || '' }}</td>
-          <td class="pt-cell-right">{{ cs.ErrorCount || '' }}</td>
-          <td class="pt-cell-right">{{ lastUsedDt(cs.LastUsedTs) }}</td>
+          <td class="om-p-cell-left">{{ cs.Name }}</td>
+          <td v-if="cs.State === 'off'" class="bg-secondary text-white om-p-cell-center">{{ $t(cs.State) }}</td>
+          <td v-if="cs.State === 'ready'" class="bg-positive text-white om-p-cell-center">{{ $t(cs.State) }}</td>
+          <td v-if="cs.State === 'start'" class="bg-info text-white om-p-cell-center">&uarr; {{ $t(cs.State) }}</td>
+          <td v-if="cs.State === 'stop'" class="bg-info text-white om-p-cell-center">&darr; {{ $t(cs.State) }}</td>
+          <td v-if="cs.State === 'error'" class="bg-negative text-white om-p-cell-center">{{ $t(cs.State) }}</td>
+          <td v-if="cs.State !== 'off' && cs.State !== 'ready' && cs.State !== 'start' && cs.State !== 'stop' && cs.State !== 'error'" class="om-p-cell-center">? {{ cs.State }} ?</td>
+          <td class="om-p-cell-right">{{ cs.TotalRes.Cpu }}</td>
+          <td class="om-p-cell-right">{{ cs.UsedRes.Cpu || '' }}</td>
+          <td class="om-p-cell-right">{{ cs.OwnRes.Cpu || '' }}</td>
+          <td class="om-p-cell-right">{{ cs.ErrorCount || '' }}</td>
+          <td class="om-p-cell-right">{{ lastUsedDt(cs.LastUsedTs) }}</td>
         </tr>
       </tbody>
     </table>
@@ -438,36 +438,5 @@
   }
   .res-title {
     min-height: 1.5rem;
-  }
-
-  .pt-table {
-    text-align: left;
-    border-collapse: collapse;
-  }
-  .pt-cell {
-    padding: 0.25rem;
-    border: 1px solid lightgrey;
-    font-size: 0.875rem;
-  }
-  .pt-head {
-    @extend .pt-cell;
-    text-align: center;
-    background-color: whitesmoke;
-  }
-  .pt-row-head {
-    @extend .pt-cell;
-    background-color: whitesmoke;
-  }
-  .pt-cell-left {
-    text-align: left;
-    @extend .pt-cell;
-  }
-  .pt-cell-right {
-    text-align: right;
-    @extend .pt-cell;
-  }
-  .pt-cell-center {
-    text-align: center;
-    @extend .pt-cell;
   }
 </style>

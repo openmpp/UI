@@ -34,7 +34,7 @@ export default {
     modelDigest () { return Mdf.modelDigest(this.theModel) },
     modelName () { return Mdf.modelName(this.theModel) },
     modelDocLink () {
-      return this.serverConfig.IsModelDoc ? Mdf.modelDocLink(this.modelDigest, this.modelList, this.uiLang, this.modelLanguage) : ''
+      return this.serverConfig.IsModelDoc ? Mdf.modelDocLinkByDigest(this.modelDigest, this.modelList, this.uiLang, this.modelLanguage) : ''
     },
     runTextCount () { return Mdf.runTextCount(this.runTextList) },
     worksetTextCount () { return Mdf.worksetTextCount(this.worksetTextList) },

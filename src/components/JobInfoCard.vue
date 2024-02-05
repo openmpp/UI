@@ -7,71 +7,71 @@
   <template v-else>
 
     <q-card-section>
-      <table class="pt-table">
+      <table class="om-p-table">
         <tbody>
           <tr v-if="jobInfo.ModelVersion">
-            <td class="pt-head-left text-weight-medium">{{ $t('Model Version') }}</td>
-            <td class="pt-cell-left">{{ jobInfo.ModelVersion }}</td>
+            <td class="om-p-head-left text-weight-medium">{{ $t('Model Version') }}</td>
+            <td class="om-p-cell-left">{{ jobInfo.ModelVersion }}</td>
           </tr>
           <tr v-if="jobInfo.ModelCreateDateTime">
-            <td class="pt-head-left text-weight-medium">{{ $t('Model Created') }}</td>
-            <td class="pt-cell-left">{{ jobInfo.ModelCreateDateTime }}</td>
+            <td class="om-p-head-left text-weight-medium">{{ $t('Model Created') }}</td>
+            <td class="om-p-cell-left">{{ jobInfo.ModelCreateDateTime }}</td>
           </tr>
           <tr>
-            <td class="pt-head-left text-weight-medium">{{ $t('Model Digest') }}</td>
-            <td class="pt-cell-left">{{ jobItem.ModelDigest }}</td>
+            <td class="om-p-head-left text-weight-medium">{{ $t('Model Digest') }}</td>
+            <td class="om-p-cell-left">{{ jobItem.ModelDigest }}</td>
           </tr>
           <tr v-if="jobInfo.OptRunName">
-            <td class="pt-head-left text-weight-medium">{{ $t('Run Name') }}</td>
-            <td class="pt-cell-left">{{ jobInfo.OptRunName }}</td>
+            <td class="om-p-head-left text-weight-medium">{{ $t('Run Name') }}</td>
+            <td class="om-p-cell-left">{{ jobInfo.OptRunName }}</td>
           </tr>
           <tr v-if="jobItem.RunStamp">
-            <td class="pt-head-left text-weight-medium">{{ $t('Run Stamp') }}</td>
-            <td class="pt-cell-left">{{ jobItem.RunStamp }}</td>
+            <td class="om-p-head-left text-weight-medium">{{ $t('Run Stamp') }}</td>
+            <td class="om-p-cell-left">{{ jobItem.RunStamp }}</td>
           </tr>
           <tr>
-            <td class="pt-head-left text-weight-medium">{{ $t('Submit Stamp') }}</td>
-            <td class="pt-cell-left">{{ jobItem.SubmitStamp }}</td>
+            <td class="om-p-head-left text-weight-medium">{{ $t('Submit Stamp') }}</td>
+            <td class="om-p-cell-left">{{ jobItem.SubmitStamp }}</td>
           </tr>
           <tr v-if="jobInfo.OptSubValues && jobInfo.OptSubValues !== '0'">
-            <td class="pt-head-left text-weight-medium">{{ $t('Sub-values Count') }}</td>
-            <td class="pt-cell-left">{{ jobInfo.OptSubValues }}</td>
+            <td class="om-p-head-left text-weight-medium">{{ $t('Sub-values Count') }}</td>
+            <td class="om-p-cell-left">{{ jobInfo.OptSubValues }}</td>
           </tr>
           <tr v-if="jobInfo.OptSetName">
-            <td class="pt-head-left text-weight-medium">{{ $t('Input Scenario') }}</td>
-            <td class="pt-cell-left">{{ jobInfo.OptSetName }}</td>
+            <td class="om-p-head-left text-weight-medium">{{ $t('Input Scenario') }}</td>
+            <td class="om-p-cell-left">{{ jobInfo.OptSetName }}</td>
           </tr>
           <tr v-if="jobInfo.OptBaseRunDigest">
-            <td class="pt-head-left text-weight-medium">{{ $t('Base Run Digest') }}</td>
-            <td class="pt-cell-left">{{ jobInfo.OptBaseRunDigest }}</td>
+            <td class="om-p-head-left text-weight-medium">{{ $t('Base Run Digest') }}</td>
+            <td class="om-p-cell-left">{{ jobInfo.OptBaseRunDigest }}</td>
           </tr>
           <tr v-if="jobItem.Tables.length > 0">
-            <td class="pt-head-left text-weight-medium">{{ $t('Output Tables') }}</td>
-            <td class="pt-cell-left">{{ jobItem.Tables.join(', ') }}</td>
+            <td class="om-p-head-left text-weight-medium">{{ $t('Output Tables') }}</td>
+            <td class="om-p-cell-left">{{ jobItem.Tables.join(', ') }}</td>
           </tr>
           <tr v-if="jobInfo.nProc > 1 || jobItem.Res.ThreadCount > 1">
-            <td class="pt-head-left text-weight-medium">{{ $t('Processes / Threads') }}</td>
-            <td class="pt-cell-left">{{ jobInfo.nProc }} / {{ jobItem.Res.ThreadCount }}</td>
+            <td class="om-p-head-left text-weight-medium">{{ $t('Processes / Threads') }}</td>
+            <td class="om-p-cell-left">{{ jobInfo.nProc }} / {{ jobItem.Res.ThreadCount }}</td>
           </tr>
           <tr v-if="!!jobItem.IsMpi || jobItem.Res.Cpu >= 1">
-            <td class="pt-head-left text-weight-medium">{{ $t('CPU Cores') }}</td>
-            <td class="pt-cell-left">{{ jobItem.Res.Cpu }} {{ jobItem.IsMpi ? 'MPI' : '' }}</td>
+            <td class="om-p-head-left text-weight-medium">{{ $t('CPU Cores') }}</td>
+            <td class="om-p-cell-left">{{ jobItem.Res.Cpu }} {{ jobItem.IsMpi ? 'MPI' : '' }}</td>
           </tr>
           <tr v-if="jobItem.Res.Mem !== 0">
-            <td class="pt-head-left text-weight-medium">{{ $t('Memory') }}</td>
-            <td class="pt-cell-left">{{ jobItem.Res.Mem }} {{ $t('GByte(s)') }}</td>
+            <td class="om-p-head-left text-weight-medium">{{ $t('Memory') }}</td>
+            <td class="om-p-cell-left">{{ jobItem.Res.Mem }} {{ $t('GByte(s)') }}</td>
           </tr>
           <tr v-if="jobItem.Template">
-            <td class="pt-head-left text-weight-medium">{{ $t('Model Run Template') }}</td>
-            <td class="pt-cell-left">{{ jobItem.Template }}</td>
+            <td class="om-p-head-left text-weight-medium">{{ $t('Model Run Template') }}</td>
+            <td class="om-p-cell-left">{{ jobItem.Template }}</td>
           </tr>
           <tr v-if="jobItem.LogFileName">
-            <td class="pt-head-left text-weight-medium">{{ $t('Run Log') }}</td>
-            <td class="pt-cell-left">{{ jobItem.LogFileName }}</td>
+            <td class="om-p-head-left text-weight-medium">{{ $t('Run Log') }}</td>
+            <td class="om-p-cell-left">{{ jobItem.LogFileName }}</td>
           </tr>
           <tr v-if="jobInfo.runDescr.length > 0">
-            <td class="pt-head-left text-weight-medium">{{ $t('Run Description') }}</td>
-            <td class="pt-cell-left">
+            <td class="om-p-head-left text-weight-medium">{{ $t('Run Description') }}</td>
+            <td class="om-p-cell-left">
               <div v-for="(rd, ird) of jobInfo.runDescr" :key="'h-' + rd.key + '-' + ird.toString()">
                 {{ rd.descr }}
                 <q-separator v-if="ird < jobInfo.runDescr.length - 1"/>
@@ -80,11 +80,11 @@
           </tr>
           <template v-if="isAnyMicrodata()">
             <tr>
-              <td  colspan="2" class="pt-head text-weight-medium">{{ $t('Microdata') }}</td>
+              <td  colspan="2" class="om-p-head-center text-weight-medium">{{ $t('Microdata') }}</td>
             </tr>
             <tr v-for="(ent, ien) of jobItem.Microdata.Entity" :key="'md-ent-' + ent.Name + '-' + ien.toString()">
-              <td class="pt-head-left text-weight-medium">{{ ent.Name }}</td>
-              <td class="pt-cell-left">{{ ent.Attr.join(', ') }}</td>
+              <td class="om-p-head-left text-weight-medium">{{ ent.Name }}</td>
+              <td class="om-p-cell-left">{{ ent.Attr.join(', ') }}</td>
             </tr>
           </template>
         </tbody>
@@ -94,46 +94,46 @@
     <q-card-section
       v-for="rsp in jobItem.RunStatus" :key="rsp.RunDigest + '-' + (rsp.Status || 'st')"
       >
-      <table v-if="rsp.UpdateDateTime" class="pt-table">
+      <table v-if="rsp.UpdateDateTime" class="om-p-table">
         <tbody>
           <tr>
-            <td colspan="4" class="pt-head text-weight-medium">{{ rsp.Name }}</td>
+            <td colspan="4" class="om-p-head-center text-weight-medium">{{ rsp.Name }}</td>
           </tr>
           <tr>
-            <td colspan="2" class="pt-head-left text-weight-medium">{{ $t('Run Started') }}</td>
-            <td colspan="2" class="pt-cell-left">{{ dtRoundStr(rsp.CreateDateTime) }}</td>
+            <td colspan="2" class="om-p-head-left text-weight-medium">{{ $t('Run Started') }}</td>
+            <td colspan="2" class="om-p-cell-left">{{ dtRoundStr(rsp.CreateDateTime) }}</td>
           </tr>
           <tr>
-            <td colspan="2" class="pt-head-left text-weight-medium">{{ $t('Duration') }}</td>
-            <td colspan="2" class="pt-cell-left">{{ durationStr(rsp.CreateDateTime, rsp.UpdateDateTime) }}</td>
+            <td colspan="2" class="om-p-head-left text-weight-medium">{{ $t('Duration') }}</td>
+            <td colspan="2" class="om-p-cell-left">{{ durationStr(rsp.CreateDateTime, rsp.UpdateDateTime) }}</td>
           </tr>
           <tr v-if="rsp.RunDigest">
-            <td colspan="2" class="pt-head-left text-weight-medium">{{ $t('Run Digest') }}</td>
-            <td colspan="2" class="pt-cell-left">{{ rsp.RunDigest }}</td>
+            <td colspan="2" class="om-p-head-left text-weight-medium">{{ $t('Run Digest') }}</td>
+            <td colspan="2" class="om-p-cell-left">{{ rsp.RunDigest }}</td>
           </tr>
           <tr>
-            <td class="pt-head text-weight-medium">{{ rsp.SubCompleted > 0 ? $t('Completed') : $t('Sub-values') }}</td>
-            <td class="pt-head text-weight-medium">{{ $t('Status') }}</td>
-            <td class="pt-head text-weight-medium">{{ $t('Updated') }}</td>
-            <td class="pt-head text-weight-medium">{{ $t('Value Digest') }}</td>
+            <td class="om-p-head-center text-weight-medium">{{ rsp.SubCompleted > 0 ? $t('Completed') : $t('Sub-values') }}</td>
+            <td class="om-p-head-center text-weight-medium">{{ $t('Status') }}</td>
+            <td class="om-p-head-center text-weight-medium">{{ $t('Updated') }}</td>
+            <td class="om-p-head-center text-weight-medium">{{ $t('Value Digest') }}</td>
           </tr>
           <tr>
-            <td class="pt-cell-right"><span v-if="rsp.SubCompleted > 0">{{ rsp.SubCompleted }} / </span>{{ rsp.SubCount }}</td>
-            <td class="pt-cell-left">{{ $t(runStatusDescr(rsp.Status)) }}</td>
-            <td class="pt-cell-left">{{ rsp.UpdateDateTime }}</td>
-            <td class="pt-cell-left">{{ rsp.ValueDigest }}</td>
+            <td class="om-p-cell-right"><span v-if="rsp.SubCompleted > 0">{{ rsp.SubCompleted }} / </span>{{ rsp.SubCount }}</td>
+            <td class="om-p-cell-left">{{ $t(runStatusDescr(rsp.Status)) }}</td>
+            <td class="om-p-cell-left">{{ rsp.UpdateDateTime }}</td>
+            <td class="om-p-cell-left">{{ rsp.ValueDigest }}</td>
           </tr>
           <tr v-if="rsp.Progress">
-            <td class="pt-head text-weight-medium">{{ $t('Sub-value') }}</td>
-            <td class="pt-head text-weight-medium">{{ $t('Status') }}</td>
-            <td class="pt-head text-weight-medium">{{ $t('Updated') }}</td>
-            <td class="pt-head text-weight-medium">{{ $t('Progress') }}</td>
+            <td class="om-p-head-center text-weight-medium">{{ $t('Sub-value') }}</td>
+            <td class="om-p-head-center text-weight-medium">{{ $t('Status') }}</td>
+            <td class="om-p-head-center text-weight-medium">{{ $t('Updated') }}</td>
+            <td class="om-p-head-center text-weight-medium">{{ $t('Progress') }}</td>
           </tr>
           <tr v-for="pi in rsp.Progress" :key="(pi.Status || 'st') + '-' + (pi.SubId || 'sub') + '-' + (pi.UpdateDateTime || 'upt')">
-            <td class="pt-cell-right">{{ pi.SubId }}</td>
-            <td class="pt-cell-left">{{ $t(runStatusDescr(pi.Status)) }}</td>
-            <td class="pt-cell-left">{{ pi.UpdateDateTime }}</td>
-            <td class="pt-cell-right">{{ pi.Count }}% ({{ pi.Value }})</td>
+            <td class="om-p-cell-right">{{ pi.SubId }}</td>
+            <td class="om-p-cell-left">{{ $t(runStatusDescr(pi.Status)) }}</td>
+            <td class="om-p-cell-left">{{ pi.UpdateDateTime }}</td>
+            <td class="om-p-cell-right">{{ pi.Count }}% ({{ pi.Value }})</td>
           </tr>
         </tbody>
       </table>
@@ -242,37 +242,3 @@ export default {
   }
 }
 </script>
-
-<style lang="scss" scope="local">
-  .pt-table {
-    text-align: left;
-    border-collapse: collapse;
-  }
-  .pt-cell {
-    padding: 0.25rem;
-    border: 1px solid lightgrey;
-    font-size: 0.875rem;
-  }
-  .pt-head {
-    @extend .pt-cell;
-    text-align: center;
-    background-color: whitesmoke;
-  }
-  .pt-head-left {
-    @extend .pt-cell;
-    text-align: left;
-    background-color: whitesmoke;
-  }
-  .pt-cell-left {
-    text-align: left;
-    @extend .pt-cell;
-  }
-  .pt-cell-right {
-    text-align: right;
-    @extend .pt-cell;
-  }
-  .pt-cell-center {
-    text-align: center;
-    @extend .pt-cell;
-  }
-</style>

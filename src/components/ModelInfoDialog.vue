@@ -8,32 +8,32 @@
 
     <q-card-section class="text-body1">
 
-      <table class="pt-table">
+      <table class="om-p-table">
         <tbody>
           <tr>
-            <td class="pt-col-head-left">{{ $t('Name') }}</td>
-            <td class="pt-cell-left mono">{{ modelName }}</td>
+            <td class="om-p-head-left">{{ $t('Name') }}</td>
+            <td class="om-p-cell-left mono">{{ modelName }}</td>
           </tr>
           <tr>
-            <td class="pt-col-head-left">{{ $t('Version') }}</td>
-            <td class="pt-cell-left mono">{{ version }}</td>
+            <td class="om-p-head-left">{{ $t('Version') }}</td>
+            <td class="om-p-cell-left mono">{{ version }}</td>
           </tr>
           <tr>
-            <td class="pt-col-head-left">{{ $t('Created') }}</td>
-            <td class="pt-cell-left mono">{{ createDateTime }}</td>
+            <td class="om-p-head-left">{{ $t('Created') }}</td>
+            <td class="om-p-cell-left mono">{{ createDateTime }}</td>
           </tr>
           <tr>
-            <td class="pt-col-head-left">{{ $t('Digest') }}</td>
-            <td class="pt-cell-left mono">{{ digest }}</td>
+            <td class="om-p-head-left">{{ $t('Digest') }}</td>
+            <td class="om-p-cell-left mono">{{ digest }}</td>
           </tr>
           <tr v-if="dir">
-            <td class="pt-col-head-left">{{ $t('Folder') }}</td>
-            <td class="pt-cell-left mono">{{ dir }}</td>
+            <td class="om-p-head-left">{{ $t('Folder') }}</td>
+            <td class="om-p-cell-left mono">{{ dir }}</td>
           </tr>
           <tr v-if="docLink">
-            <td class="pt-col-head-center"><q-icon name="mdi-book-open" size="md" color="primary"/></td>
-            <td class="pt-cell-left">
-              <a target="_blank" :href="'doc/' +docLink" class="file-link"><q-icon name="mdi-book-open" size="md" color="primary" class="q-pr-sm"/>{{ $t('Model Documentation') }}</a>
+            <td class="om-p-head-center"><q-icon name="mdi-book-open" size="md" color="primary"/></td>
+            <td class="om-p-cell-left">
+              <a target="_blank" :href="'doc/' + docLink" class="file-link"><q-icon name="mdi-book-open" size="md" color="primary" class="q-pr-sm"/>{{ $t('Model Documentation') }}</a>
             </td>
           </tr>
         </tbody>
@@ -98,18 +98,18 @@ export default {
   watch: {
     showTickle () {
       // find model in model list by digest
-      const m = this.modelByDigest(this.digest)
-      if (!Mdf.isModel(m)) {
+      const md = this.modelByDigest(this.digest)
+      if (!Mdf.isModel(md)) {
         console.warn('model not found by digest:', this.digest)
         this.$q.notify({ type: 'negative', message: this.$t('Model not found') })
         return
       }
 
       // set basic model info
-      this.title = Mdf.modelTitle(m)
-      this.modelName = Mdf.modelName(m)
-      this.createDateTime = Mdf.dtStr(m.Model.CreateDateTime)
-      this.version = m.Model.Version || ''
+      this.title = Mdf.modelTitle(md)
+      this.modelName = Mdf.modelName(md)
+      this.createDateTime = Mdf.dtStr(md.Model.CreateDateTime)
+      this.version = md.Model.Version || ''
       this.dir = Mdf.modelDirByDigest(this.digest, this.modelList)
 
       // model notes: convert from markdown to html
@@ -126,10 +126,10 @@ export default {
         // smartypants: true
       })
 
-      this.notes = marked.parse(sanitizeHtml(Mdf.noteOfDescrNote(m)))
+      this.notes = marked.parse(sanitizeHtml(Mdf.noteOfDescrNote(md)))
 
       // get link to model documentation
-      this.docLink = this.serverConfig.IsModelDoc ? Mdf.modelDocLink(this.digest, this.modelList, this.uiLang, this.modelLanguage) : ''
+      this.docLink = this.serverConfig.IsModelDoc ? Mdf.modelDocLinkByDigest(this.digest, this.modelList, this.uiLang, this.modelLanguage) : ''
 
       this.showDlg = true
     }
@@ -144,49 +144,5 @@ export default {
 <style lang="scss" scope="local">
   .file-link {
     text-decoration: none;
-  }
-  .pt-table {
-    text-align: left;
-    border-collapse: collapse;
-  }
-  .pt-cell {
-    padding: 0.25rem;
-    // font-size: 0.875rem;
-    border: 1px solid lightgrey;
-  }
-  .pt-head {
-    @extend .pt-cell;
-    text-align: center;
-    background-color: whitesmoke;
-  }
-  .pt-row-head {
-    @extend .pt-cell;
-    background-color: whitesmoke;
-  }
-  .pt-col-head {
-    @extend .pt-cell;
-    background-color: whitesmoke;
-  }
-  .pt-col-head-left {
-    @extend .pt-col-head;
-    text-align: left;
-    background-color: whitesmoke;
-  }
-  .pt-col-head-center {
-    @extend .pt-col-head;
-    text-align: center;
-    background-color: whitesmoke;
-  }
-  .pt-cell-left {
-    text-align: left;
-    @extend .pt-cell;
-  }
-  .pt-cell-right {
-    text-align: right;
-    @extend .pt-cell;
-  }
-  .pt-cell-center {
-    text-align: center;
-    @extend .pt-cell;
   }
 </style>

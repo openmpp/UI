@@ -74,33 +74,33 @@
       >
     </run-bar>
 
-    <table v-if="rsp.UpdateDateTime" class="pt-table">
+    <table v-if="rsp.UpdateDateTime" class="om-p-table">
       <thead>
         <tr>
-          <th class="pt-head text-weight-medium">{{ rsp.SubCompleted > 0 ? $t('Completed') : $t('Sub-values') }}</th>
-          <th class="pt-head text-weight-medium">{{ $t('Status') }}</th>
-          <th class="pt-head text-weight-medium">{{ $t('Updated') }}</th>
-          <th class="pt-head text-weight-medium">{{ $t('Value Digest') }}</th>
+          <th class="om-p-head-center text-weight-medium">{{ rsp.SubCompleted > 0 ? $t('Completed') : $t('Sub-values') }}</th>
+          <th class="om-p-head-center text-weight-medium">{{ $t('Status') }}</th>
+          <th class="om-p-head-center text-weight-medium">{{ $t('Updated') }}</th>
+          <th class="om-p-head-center text-weight-medium">{{ $t('Value Digest') }}</th>
         </tr>
       </thead>
       <tbody>
         <tr>
-          <td class="pt-cell-right"><span v-if="rsp.SubCompleted > 0">{{ rsp.SubCompleted }} / </span>{{ rsp.SubCount }}</td>
-          <td class="pt-cell-left">{{ $t(runStatusDescr(rsp.Status)) }}</td>
-          <td class="pt-cell-left">{{ rsp.UpdateDateTime }}</td>
-          <td class="pt-cell-left">{{ rsp.ValueDigest }}</td>
+          <td class="om-p-cell-right"><span v-if="rsp.SubCompleted > 0">{{ rsp.SubCompleted }} / </span>{{ rsp.SubCount }}</td>
+          <td class="om-p-cell-left">{{ $t(runStatusDescr(rsp.Status)) }}</td>
+          <td class="om-p-cell-left">{{ rsp.UpdateDateTime }}</td>
+          <td class="om-p-cell-left">{{ rsp.ValueDigest }}</td>
         </tr>
         <tr v-if="rsp.Progress">
-          <td class="pt-head text-weight-medium">{{ $t('Sub-value') }}</td>
-          <td class="pt-head text-weight-medium">{{ $t('Status') }}</td>
-          <td class="pt-head text-weight-medium">{{ $t('Updated') }}</td>
-          <td class="pt-head text-weight-medium">{{ $t('Progress') }}</td>
+          <td class="om-p-head-center text-weight-medium">{{ $t('Sub-value') }}</td>
+          <td class="om-p-head-center text-weight-medium">{{ $t('Status') }}</td>
+          <td class="om-p-head-center text-weight-medium">{{ $t('Updated') }}</td>
+          <td class="om-p-head-center text-weight-medium">{{ $t('Progress') }}</td>
         </tr>
         <tr v-for="pi in rsp.Progress" :key="(pi.Status || 'st') + '-' + (pi.SubId || 'sub') + '-' + (pi.UpdateDateTime || 'upt')">
-          <td class="pt-cell-right">{{ pi.SubId }}</td>
-          <td class="pt-cell-left">{{ $t(runStatusDescr(pi.Status)) }}</td>
-          <td class="pt-cell-left">{{ pi.UpdateDateTime }}</td>
-          <td class="pt-cell-right">{{ pi.Count }}% ({{ pi.Value }})</td>
+          <td class="om-p-cell-right">{{ pi.SubId }}</td>
+          <td class="om-p-cell-left">{{ $t(runStatusDescr(pi.Status)) }}</td>
+          <td class="om-p-cell-left">{{ pi.UpdateDateTime }}</td>
+          <td class="om-p-cell-right">{{ pi.Count }}% ({{ pi.Value }})</td>
         </tr>
       </tbody>
     </table>
@@ -416,32 +416,3 @@ export default {
   }
 }
 </script>
-
-<style lang="scss" scope="local">
-  .pt-table {
-    text-align: left;
-    border-collapse: collapse;
-  }
-  .pt-cell {
-    padding: 0.25rem;
-    border: 1px solid lightgrey;
-    font-size: 0.875rem;
-  }
-  .pt-head {
-    @extend .pt-cell;
-    text-align: center;
-    background-color: whitesmoke;
-  }
-  .pt-cell-left {
-    text-align: left;
-    @extend .pt-cell;
-  }
-  .pt-cell-right {
-    text-align: right;
-    @extend .pt-cell;
-  }
-  .pt-cell-center {
-    text-align: center;
-    @extend .pt-cell;
-  }
-</style>

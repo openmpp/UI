@@ -6,7 +6,7 @@
       <div>{{ title }}</div><q-space /><q-btn icon="mdi-close" flat dense round v-close-popup />
     </q-card-section>
 
-    <q-card-section class="q-pt-none text-body1">
+    <q-card-section class="text-body1">
 
       <div class="om-note-table mono q-pb-md">
         <div class="om-note-row">
@@ -42,33 +42,80 @@
         </div>
       </div>
 
-      <div v-if="paramSize.rank > 0" class="om-note-row">
-        <table class="pt-table q-mb-sm">
+      <table class="om-p-table">
+        <tbody>
+          <tr>
+            <td class="om-p-head-left">{{ $t('Name') }}</td>
+            <td class="om-p-cell-left mono">{{ paramName }}</td>
+          </tr>
+          <tr>
+            <td class="om-p-head-left">{{ $t('Type') }}</td>
+            <td class="om-p-cell-left mono">{{ typeTitle }}</td>
+          </tr>
+          <tr v-if="paramSize.rank > 1">
+            <td class="om-p-head-left">{{ $t('Size') }}</td>
+            <td class="om-p-cell-left mono">{{ paramSize.dimSize }} = {{ paramSize.dimTotal }}</td>
+          </tr>
+          <tr v-if="paramSize.rank == 1">
+            <td class="om-p-head-left">{{ $t('Size') }}</td>
+            <td class="om-p-cell-left mono">{{ paramSize.dimSize }}</td>
+          </tr>
+          <tr v-if="paramSize.rank <= 1">
+            <td class="om-p-head-left">{{ $t('Rank') }}</td>
+            <td class="om-p-cell-left mono">{{ paramSize.rank }}</td>
+          </tr>
+          <tr v-if="(paramRunSet.SubCount || 0) > 1">
+            <td class="om-p-head-left">{{ $t('Sub-values Count') }}</td>
+            <td class="om-p-cell-left mono">{{ paramRunSet.SubCount || 0 }}</td>
+          </tr>
+          <tr v-if="(paramRunSet.SubCount || 0) > 1">
+            <td class="om-p-head-left">{{ $t('Default Sub Id') }}</td>
+            <td class="om-p-cell-left mono">{{ paramRunSet.DefaultSubId || 0 }}</td>
+          </tr>
+          <tr>
+            <td class="om-p-head-left">{{ $t('Digest') }}</td>
+            <td class="om-p-cell-left mono">{{ paramText.Param.Digest }}</td>
+          </tr>
+          <tr>
+            <td class="om-p-head-left">{{ $t('Import Digest') }}</td>
+            <td class="om-p-cell-left mono">{{ paramText.Param.ImportDigest }}</td>
+          </tr>
+          <tr>
+            <td class="om-p-head-left">{{ $t('Value Digest') }}</td>
+            <td class="om-p-cell-left mono">{{ paramRunSet.ValueDigest || $t('Empty') }}</td>
+          </tr>
+          <tr v-if="docLink">
+            <td class="om-p-head-center"><q-icon name="mdi-book-open" size="md" color="primary"/></td>
+            <td class="om-p-cell-left">
+              <a target="_blank" :href="'doc/' + docLink + '#' + paramName" class="file-link"><q-icon name="mdi-book-open" size="md" color="primary" class="q-pr-sm"/>{{ $t('Model Documentation') }}</a>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div v-if="paramSize.rank > 0" class="q-pt-md">
+        <table class="om-p-table">
           <thead>
             <tr>
-              <th class="pt-head text-weight-medium">{{ $t('Dimension') }}</th>
-              <th class="pt-head text-weight-medium">{{ $t('Size') }}</th>
-              <th class="pt-head text-weight-medium">{{ $t('Type of') }}</th>
+              <th colspan="2" class="om-p-head-center text-weight-medium">{{ $t('Dimension') }}</th>
+              <th class="om-p-head-center text-weight-medium">{{ $t('Size') }}</th>
+              <th colspan="2" class="om-p-head-center text-weight-medium">{{ $t('Type of') }}</th>
             </tr>
           </thead>
           <tbody>
             <tr v-for="d of dimSizeTxt" :key="d.name">
-              <td class="pt-cell q-pa-sm">
-                <span class="mono">{{ d.name }}</span>
-                <template v-if="!!d.descr && d.name !== d.descr"><br /><span>{{ d.descr }}</span></template>
-              </td>
-              <td class="pt-cell-right q-pa-sm">{{ d.size }}</td>
-              <td class="pt-cell q-pa-sm">
-                <span class="mono">{{ d.typeName }}</span>
-                <template v-if="!!d.typeDescr && d.typeName !== d.typeDescr"><br /><span>{{ d.typeDescr }}</span></template>
-              </td>
+              <td class="om-p-cell mono">{{ d.name }}</td>
+              <td class="om-p-cell">{{ (!!d.descr && d.name !== d.descr) ? d.descr : '' }}</td>
+              <td class="om-p-cell-right">{{ d.size }}</td>
+              <td class="om-p-cell mono">{{ d.typeName }}</td>
+              <td class="om-p-cell">{{ (!!d.typeDescr && d.typeName !== d.typeDescr) ? d.typeDescr : '' }}</td>
             </tr>
           </tbody>
         </table>
       </div>
 
-      <div v-if="valueNotes" v-html="valueNotes" />
-      <div v-if="notes" v-html="notes" />
+      <div v-if="valueNotes" class="q-pt-md" v-html="valueNotes" />
+      <div v-if="notes" class="q-pt-md" v-html="notes" />
     </q-card-section>
 
     <q-card-actions align="right">
@@ -112,11 +159,19 @@ export default {
 
   computed: {
     ...mapState('model', {
+      modelList: state => state.modelList,
       theModel: state => state.theModel
     }),
     ...mapGetters('model', {
       runTextByDigest: 'runTextByDigest',
-      worksetTextByName: 'worksetTextByName'
+      worksetTextByName: 'worksetTextByName',
+      modelLanguage: 'modelLanguage'
+    }),
+    ...mapState('serverState', {
+      serverConfig: state => state.config
+    }),
+    ...mapState('uiState', {
+      uiLang: state => state.uiLang
     })
   },
 
@@ -132,14 +187,16 @@ export default {
 
       // find parameter sub-values info in model run or workset
       this.paramRunSet = Mdf.emptyParamRunSet()
+      const mDigest = Mdf.modelDigest(this.theModel)
+
       if ((this.runDigest || '') !== '') {
         this.paramRunSet = Mdf.paramRunSetByName(
-          this.runTextByDigest({ ModelDigest: Mdf.modelDigest(this.theModel), RunDigest: this.runDigest }),
+          this.runTextByDigest({ ModelDigest: mDigest, RunDigest: this.runDigest }),
           this.paramName)
       } else {
         if ((this.worksetName || '') !== '') {
           this.paramRunSet = Mdf.paramRunSetByName(
-            this.worksetTextByName({ ModelDigest: Mdf.modelDigest(this.theModel), Name: this.worksetName }),
+            this.worksetTextByName({ ModelDigest: mDigest, Name: this.worksetName }),
             this.paramName)
         }
       }
@@ -187,6 +244,9 @@ export default {
         }
       }
 
+      // get link to model documentation
+      this.docLink = this.serverConfig.IsModelDoc ? Mdf.modelDocLinkByDigest(mDigest, this.modelList, this.uiLang, this.modelLanguage) : ''
+
       this.showDlg = true
     }
   }
@@ -195,36 +255,4 @@ export default {
 
 <style scope="local">
   @import '~highlight.js/styles/github.css'
-</style>
-
-<style lang="scss" scoped>
-  .pt-table {
-    border-collapse: collapse;
-    text-align: left;
-  }
-  .pt-cell {
-    border: 1px solid lightgrey;
-    padding: 0.25rem;
-  }
-  .pt-head {
-    @extend .pt-cell;
-    text-align: center;
-    background-color: whitesmoke;
-  }
-  .pt-row-head {
-    @extend .pt-cell;
-    background-color: whitesmoke;
-  }
-  .pt-cell-left {
-    text-align: left;
-    @extend .pt-cell;
-  }
-  .pt-cell-right {
-    text-align: right;
-    @extend .pt-cell;
-  }
-  .pt-cell-center {
-    text-align: center;
-    @extend .pt-cell;
-  }
 </style>

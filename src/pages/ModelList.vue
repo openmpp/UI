@@ -260,13 +260,13 @@ export default {
     },
     isModelDocLink (digest) {
       if (!this.serverConfig.IsModelDoc) return ''
-      const u = Mdf.modelDocLink(digest, this.modelList, this.uiLang, this.modelLanguage)
+      const u = Mdf.modelDocLinkByDigest(digest, this.modelList, this.uiLang, this.modelLanguage)
       return u && u !== ''
     },
     // show model notes dialog
     doModelDocLink (digest) {
       if (!this.serverConfig.IsModelDoc) return
-      const u = Mdf.modelDocLink(digest, this.modelList, this.uiLang, this.modelLanguage)
+      const u = Mdf.modelDocLinkByDigest(digest, this.modelList, this.uiLang, this.modelLanguage)
       if (u) openURL('doc/' + u)
     },
 

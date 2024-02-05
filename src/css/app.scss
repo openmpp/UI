@@ -75,3 +75,48 @@ $om-secondary-text-color: #616161; // grey-8
 .om-tooltip {
   font-size: 0.75rem;
 }
+
+.om-p-table {
+  text-align: left;
+  border-collapse: collapse;
+}
+.om-p-cell {
+  padding: 0.25rem;
+  border: 1px solid lightgrey;
+  font-size: 0.875rem;
+}
+.om-p-head {
+  @extend .om-p-cell;
+  background-color: whitesmoke;
+}
+.om-p-head-center {
+  @extend .om-p-head;
+  text-align: center;
+}
+.om-p-head-left {
+  @extend .om-p-head;
+  text-align: left;
+}
+.om-p-head-right {
+  @extend .om-p-head;
+  text-align: right;
+}
+.om-p-title {
+  @extend .om-p-cell;
+  text-align: center;
+  font-size: 1rem;
+  color: white;
+  background-color: $primary;
+}
+.om-p-cell-left {
+  @extend .om-p-cell;
+  text-align: left;
+}
+.om-p-cell-right {
+  @extend .om-p-cell;
+  text-align: right;
+}
+.om-p-cell-center {
+  @extend .om-p-cell;
+  text-align: center;
+}

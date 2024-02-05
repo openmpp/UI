@@ -31,26 +31,26 @@
       </div>
     </q-card-section>
 
-    <table class="pt-table q-ma-md">
+    <table class="om-p-table q-ma-md">
         <thead>
           <tr>
-            <th class="pt-head text-weight-medium">{{ $t('Attribute') }}</th>
-            <th class="pt-head text-weight-medium">{{ $t('Type of') }}</th>
-            <th class="pt-head text-weight-medium">{{ $t('Description and Notes') }}</th>
+            <th class="om-p-head-center text-weight-medium">{{ $t('Attribute') }}</th>
+            <th class="om-p-head-center text-weight-medium">{{ $t('Type of') }}</th>
+            <th class="om-p-head-center text-weight-medium">{{ $t('Description and Notes') }}</th>
           </tr>
         </thead>
       <tbody>
 
         <tr v-for="ea in attrs" :key="'ea-' + (ea.name || 'no-name')">
-          <td class="pt-cell">{{ ea.name }}</td>
-          <td class="pt-cell">
+          <td class="om-p-cell">{{ ea.name }}</td>
+          <td class="om-p-cell">
             <span class="mono">{{ ea.typeName }}</span>
             <template v-if="ea.isInternal">
               <br/>
               <span>{{ $t('Internal attribute') }}</span>
             </template>
           </td>
-          <td class="pt-cell">
+          <td class="om-p-cell">
             <span>{{ ea.descr }}</span>
             <template v-if="ea.notes">
               <div class="om-text-descr" v-html="ea.notes" />
