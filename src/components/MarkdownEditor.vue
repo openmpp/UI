@@ -202,5 +202,4 @@ export default {
 
 <style scoped>
   @import '~easymde/dist/easymde.min.css';
-  @import '~highlight.js/styles/github.css';
 </style>
