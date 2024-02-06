@@ -6,42 +6,7 @@
       <div>{{ title }}</div><q-space /><q-btn icon="mdi-close" flat dense round v-close-popup />
     </q-card-section>
 
-    <q-card-section class="text-body1">
-
-      <div class="om-note-table mono q-pb-md">
-        <div class="om-note-row">
-          <span class="om-note-cell q-pr-sm">{{ $t('Name') }}:</span><span class="om-note-cell">{{ paramName }}</span>
-        </div>
-
-        <div class="om-note-row">
-          <span class="om-note-cell q-pr-sm">{{ $t('Type') }}:</span><span class="om-note-cell">{{ typeTitle }}</span>
-        </div>
-        <div v-if="paramSize.rank > 1" class="om-note-row">
-          <span class="om-note-cell q-pr-sm">{{ $t('Size') }}:</span><span class="om-note-cell">{{ paramSize.dimSize }} = {{ paramSize.dimTotal }}</span>
-        </div>
-        <div v-if="paramSize.rank === 1" class="om-note-row">
-          <span class="om-note-cell q-pr-sm">{{ $t('Size') }}:</span><span class="om-note-cell">{{ paramSize.dimSize }}</span>
-        </div>
-        <div v-if="paramSize.rank <= 0" class="om-note-row">
-          <span class="om-note-cell q-pr-sm">{{ $t('Rank') }}:</span><span class="om-note-cell">{{ paramSize.rank }}</span>
-        </div>
-        <div v-if="paramRunSet.SubCount > 1" class="om-note-row">
-          <span class="om-note-cell q-pr-sm">{{ $t('Sub-values Count') }}:</span><span class="om-note-cell">{{ paramRunSet.SubCount || 0 }}</span>
-        </div>
-        <div v-if="paramRunSet.SubCount > 1" class="om-note-row">
-          <span class="om-note-cell q-pr-sm">{{ $t('Default Sub Id') }}:</span><span class="om-note-cell">{{ paramRunSet.DefaultSubId || 0 }}</span>
-        </div>
-        <div class="om-note-row">
-          <span class="om-note-cell q-pr-sm">{{ $t('Digest') }}:</span><span class="om-note-cell">{{ paramText.Param.Digest }}</span>
-        </div>
-        <div class="om-note-row">
-          <span class="om-note-cell q-pr-sm">{{ $t('Import Digest') }}:</span><span class="om-note-cell">{{ paramText.Param.ImportDigest }}</span>
-        </div>
-        <div v-if="(runDigest || '') !== ''" class="om-note-row">
-          <span class="om-note-cell q-pr-sm">{{ $t('Value Digest') }}:</span><span class="om-note-cell">{{ paramRunSet.ValueDigest || $t('Empty') }}</span>
-        </div>
-      </div>
-
+    <q-card-section class="text-body1 q-pb-none">
       <table class="om-p-table">
         <tbody>
           <tr>
@@ -104,18 +69,33 @@
           </thead>
           <tbody>
             <tr v-for="d of dimSizeTxt" :key="d.name">
-              <td class="om-p-cell mono">{{ d.name }}</td>
-              <td class="om-p-cell">{{ (!!d.descr && d.name !== d.descr) ? d.descr : '' }}</td>
+              <template v-if="!!d.descr && d.name !== d.descr">
+                <td class="om-p-cell mono">{{ d.name }}</td>
+                <td class="om-p-cell">{{ d.descr }}</td>
+              </template>
+              <template v-else>
+                <td colspan="2" class="om-p-cell mono">{{ d.name }}</td>
+              </template>
               <td class="om-p-cell-right">{{ d.size }}</td>
-              <td class="om-p-cell mono">{{ d.typeName }}</td>
-              <td class="om-p-cell">{{ (!!d.typeDescr && d.typeName !== d.typeDescr) ? d.typeDescr : '' }}</td>
+              <template v-if="!!d.typeDescr && d.typeName !== d.typeDescr">
+                <td class="om-p-cell mono">{{ d.typeName }}</td>
+                <td class="om-p-cell">{{ d.typeDescr }}</td>
+              </template>
+              <template v-else>
+                <td colspan="2" class="om-p-cell mono">{{ d.typeName }}</td>
+              </template>
             </tr>
           </tbody>
         </table>
       </div>
+    </q-card-section>
 
-      <div v-if="valueNotes" class="q-pt-md" v-html="valueNotes" />
-      <div v-if="notes" class="q-pt-md" v-html="notes" />
+    <q-card-section v-if="valueNotes" class="text-body1 q-pb-none">
+      <div class="q-pt-md" v-html="valueNotes" />
+    </q-card-section>
+
+    <q-card-section v-if="notes" class="text-body1 q-pb-none">
+      <div v-html="notes" />
     </q-card-section>
 
     <q-card-actions align="right">

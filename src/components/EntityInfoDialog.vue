@@ -6,62 +6,78 @@
       <div>{{ title }}</div><q-space /><q-btn icon="mdi-close" flat dense round v-close-popup />
     </q-card-section>
 
-    <q-card-section class="q-pt-none text-body1">
-      <div class="om-note-table mono q-pb-md">
-        <div class="om-note-row">
-          <span class="om-note-cell q-pr-sm">{{ $t('Entity Name') }}:</span><span class="om-note-cell">{{ entityName }}</span>
-        </div>
-        <div class="om-note-row">
-          <span class="om-note-cell q-pr-sm">{{ $t('Attributes Count') }}:</span><span class="om-note-cell">{{ totalAttrCount }}</span>
-        </div>
-        <div v-if="internalAttrCount" class="om-note-row">
-          <span class="om-note-cell q-pr-sm">{{ $t('Internal Attributes') }}:</span><span class="om-note-cell">{{ internalAttrCount }}</span>
-        </div>
-        <template v-if="runDigest">
-          <div class="om-note-row">
-            <span class="om-note-cell q-pr-sm">{{ $t('Run Attributes Count') }}:</span><span class="om-note-cell">{{ runAttrCount }}</span>
-          </div>
-          <div v-if="internalRunAttrCount || internalAttrCount" class="om-note-row">
-            <span class="om-note-cell q-pr-sm">{{ $t('Run Internal Attributes') }}:</span><span class="om-note-cell">{{ internalRunAttrCount }}</span>
-          </div>
-          <div class="om-note-row">
-            <span class="om-note-cell q-pr-sm">{{ $t('Microdata Count') }}:</span><span class="om-note-cell">{{ rowCount }}</span>
-          </div>
-        </template>
-      </div>
+    <q-card-section class="text-body1 q-pb-none">
+      <table class="om-p-table">
+        <tbody>
+          <tr>
+            <td class="om-p-head-left">{{ $t('Entity Name') }}</td>
+            <td class="om-p-cell-left mono">{{ entityName }}</td>
+          </tr>
+          <tr>
+            <td class="om-p-head-left">{{ $t('Attributes Count') }}</td>
+            <td class="om-p-cell-left mono">{{ totalAttrCount }}</td>
+          </tr>
+          <tr v-if="internalAttrCount">
+            <td class="om-p-head-left">{{ $t('Internal Attributes') }}</td>
+            <td class="om-p-cell-left mono">{{ internalAttrCount }}</td>
+          </tr>
+          <template v-if="runDigest">
+            <tr>
+              <td class="om-p-head-left">{{ $t('Run Attributes Count') }}</td>
+              <td class="om-p-cell-left mono">{{ runAttrCount }}</td>
+            </tr>
+            <tr v-if="internalRunAttrCount || internalAttrCount">
+              <td class="om-p-head-left">{{ $t('Run Internal Attributes') }}</td>
+              <td class="om-p-cell-left mono">{{ internalRunAttrCount }}</td>
+            </tr>
+            <tr>
+              <td class="om-p-head-left">{{ $t('Microdata Count') }}</td>
+              <td class="om-p-cell-left mono">{{ rowCount }}</td>
+            </tr>
+          </template>
+          <tr v-if="docLink">
+            <td class="om-p-head-center"><q-icon name="mdi-book-open" size="md" color="primary"/></td>
+            <td class="om-p-cell-left">
+              <a target="_blank" :href="'doc/' + docLink + '#' + entityName" class="file-link"><q-icon name="mdi-book-open" size="md" color="primary" class="q-pr-sm"/>{{ $t('Model Documentation') }}</a>
+            </td>
+          </tr>
+        </tbody>
+      </table>
     </q-card-section>
 
-    <table class="om-p-table q-ma-md">
-        <thead>
-          <tr>
-            <th class="om-p-head-center text-weight-medium">{{ $t('Attribute') }}</th>
-            <th class="om-p-head-center text-weight-medium">{{ $t('Type of') }}</th>
-            <th class="om-p-head-center text-weight-medium">{{ $t('Description and Notes') }}</th>
+    <q-card-section class="text-body1 q-pb-none">
+      <table class="om-p-table">
+          <thead>
+            <tr>
+              <th class="om-p-head-center text-weight-medium">{{ $t('Attribute') }}</th>
+              <th class="om-p-head-center text-weight-medium">{{ $t('Type of') }}</th>
+              <th class="om-p-head-center text-weight-medium">{{ $t('Description and Notes') }}</th>
+            </tr>
+          </thead>
+        <tbody>
+
+          <tr v-for="ea in attrs" :key="'ea-' + (ea.name || 'no-name')">
+            <td class="om-p-cell">{{ ea.name }}</td>
+            <td class="om-p-cell">
+              <span class="mono">{{ ea.typeName }}</span>
+              <template v-if="ea.isInternal">
+                <br/>
+                <span>{{ $t('Internal attribute') }}</span>
+              </template>
+            </td>
+            <td class="om-p-cell">
+              <span>{{ ea.descr }}</span>
+              <template v-if="ea.notes">
+                <div class="om-text-descr" v-html="ea.notes" />
+              </template>
+            </td>
           </tr>
-        </thead>
-      <tbody>
 
-        <tr v-for="ea in attrs" :key="'ea-' + (ea.name || 'no-name')">
-          <td class="om-p-cell">{{ ea.name }}</td>
-          <td class="om-p-cell">
-            <span class="mono">{{ ea.typeName }}</span>
-            <template v-if="ea.isInternal">
-              <br/>
-              <span>{{ $t('Internal attribute') }}</span>
-            </template>
-          </td>
-          <td class="om-p-cell">
-            <span>{{ ea.descr }}</span>
-            <template v-if="ea.notes">
-              <div class="om-text-descr" v-html="ea.notes" />
-            </template>
-          </td>
-        </tr>
+        </tbody>
+      </table>
+    </q-card-section>
 
-      </tbody>
-    </table>
-
-    <q-card-section  v-if="notes" class="text-body1">
+    <q-card-section v-if="notes" class="text-body1 q-pb-none">
       <div v-html="notes" />
     </q-card-section>
 
@@ -101,16 +117,25 @@ export default {
       rowCount: 0,
       notes: '',
       runCurrent: Mdf.emptyRunText(), // currently selected run
-      attrs: []
+      attrs: [],
+      docLink: ''
     }
   },
 
   computed: {
     ...mapState('model', {
+      modelList: state => state.modelList,
       theModel: state => state.theModel
     }),
     ...mapGetters('model', {
-      runTextByDigest: 'runTextByDigest'
+      runTextByDigest: 'runTextByDigest',
+      modelLanguage: 'modelLanguage'
+    }),
+    ...mapState('serverState', {
+      serverConfig: state => state.config
+    }),
+    ...mapState('uiState', {
+      uiLang: state => state.uiLang
     })
   },
 
@@ -191,6 +216,9 @@ export default {
         })
       )
       this.notes = marked.parse(sanitizeHtml(Mdf.noteOfDescrNote(entText)))
+
+      // get link to model documentation
+      this.docLink = this.serverConfig.IsModelDoc ? Mdf.modelDocLinkByDigest(Mdf.modelDigest(this.theModel), this.modelList, this.uiLang, this.modelLanguage) : ''
 
       this.showDlg = true
     }

@@ -6,44 +6,54 @@
       <div>{{ title }}</div><q-space /><q-btn icon="mdi-close" flat dense round v-close-popup />
     </q-card-section>
 
-    <q-card-section class="q-pt-none text-body1">
-
-      <div class="om-note-table mono q-pb-md">
-        <div class="om-note-row">
-          <span class="om-note-cell q-pr-sm">{{ $t('Name') }}:</span><span class="om-note-cell">{{ runText.Name }}</span>
-        </div>
-        <div class="om-note-row">
-          <span class="om-note-cell q-pr-sm">{{ $t('Status') }}:</span>
-          <span class="om-note-cell" :class="isDeleted ? 'text-white bg-negative' : ''">{{ statusDescr }}</span>
-        </div>
-        <div class="om-note-row">
-          <span class="om-note-cell q-pr-sm">{{ $t('Sub-values Count') }}:</span><span class="om-note-cell">{{ runText.SubCount || 0 }}</span>
-        </div>
-        <div v-if="!isSucess" class="om-note-row">
-          <span class="om-note-cell q-pr-sm">{{ $t('Sub-values completed') }}:</span><span class="om-note-cell">{{ runText.SubCompleted || 0 }}</span>
-        </div>
-        <div class="om-note-row">
-          <span class="om-note-cell q-pr-sm">{{ $t('Started') }}:</span><span class="om-note-cell">{{ createDateTime }}</span>
-        </div>
-        <div class="om-note-row">
-          <span class="om-note-cell q-pr-sm">{{ isSucess ? $t('Completed') : $t('Last Updated on') }}:</span><span class="om-note-cell">{{ lastDateTime }}</span>
-        </div>
-        <div class="om-note-row">
-          <span class="om-note-cell q-pr-sm">{{ $t('Duration') }}:</span><span class="om-note-cell">{{ duration }}</span>
-        </div>
-        <div class="om-note-row">
-          <span class="om-note-cell q-pr-sm">{{ $t('Run Stamp') }}:</span><span class="om-note-cell">{{ runText.RunStamp }}</span>
-        </div>
-        <div class="om-note-row">
-          <span class="om-note-cell q-pr-sm">{{ $t('Run Digest') }}:</span><span class="om-note-cell">{{ runText.RunDigest }}</span>
-        </div>
-        <div class="om-note-row">
-          <span class="om-note-cell q-pr-sm">{{ $t('Value Digest') }}:</span><span class="om-note-cell">{{ runText.ValueDigest }}</span>
-        </div>
-      </div>
+    <q-card-section class="text-body1 q-pb-none">
+      <table class="om-p-table">
+        <tbody>
+          <tr>
+            <td class="om-p-head-left">{{ $t('Name') }}</td>
+            <td class="om-p-cell-left mono">{{ runText.Name }}</td>
+          </tr>
+          <tr>
+            <td class="om-p-head-left">{{ $t('Status') }}</td>
+            <td class="om-p-cell-left mono" :class="isDeleted ? 'text-white bg-negative' : ''">{{ statusDescr }}</td>
+          </tr>
+          <tr>
+            <td class="om-p-head-left">{{ $t('Sub-values Count') }}</td>
+            <td class="om-p-cell-left mono">{{ runText.SubCount || 0 }}</td>
+          </tr>
+          <tr  v-if="!isSucess">
+            <td class="om-p-head-left">{{ $t('Sub-values completed') }}</td>
+            <td class="om-p-cell-left mono">{{ runText.SubCompleted || 0 }}</td>
+          </tr>
+          <tr>
+            <td class="om-p-head-left">{{ $t('Started') }}</td>
+            <td class="om-p-cell-left mono">{{ createDateTime }}</td>
+          </tr>
+          <tr>
+            <td class="om-p-head-left">{{ isSucess ? $t('Completed') : $t('Last Updated on') }}</td>
+            <td class="om-p-cell-left mono">{{ lastDateTime }}</td>
+          </tr>
+          <tr>
+            <td class="om-p-head-left">{{ $t('Duration') }}</td>
+            <td class="om-p-cell-left mono">{{ duration }}</td>
+          </tr>
+        </tbody>
+          <tr>
+            <td class="om-p-head-left">{{ $t('Run Stamp') }}</td>
+            <td class="om-p-cell-left mono">{{ runText.RunStamp }}</td>
+          </tr>
+          <tr>
+            <td class="om-p-head-left">{{ $t('Run Digest') }}</td>
+            <td class="om-p-cell-left mono">{{ runText.RunDigest }}</td>
+          </tr>
+          <tr>
+            <td class="om-p-head-left">{{ $t('Value Digest') }}</td>
+            <td class="om-p-cell-left mono">{{ runText.ValueDigest }}</td>
+          </tr>
+      </table>
     </q-card-section>
 
-    <q-card-section v-if="isCompare" class="q-pt-none text-body1">
+    <q-card-section v-if="isCompare" class="text-body1 q-pb-none">
       <table class="om-p-table">
         <tbody>
           <tr v-if="!!compareRuns && compareRuns.length">
@@ -103,7 +113,7 @@
       </table>
     </q-card-section>
 
-    <q-card-section v-if="notes" class="q-pt-none text-body1">
+    <q-card-section v-if="notes" class="text-body1 q-pb-none">
       <div v-html="notes" />
     </q-card-section>
 

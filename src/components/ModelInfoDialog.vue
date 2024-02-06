@@ -6,8 +6,7 @@
       <div>{{ title }}</div><q-space /><q-btn icon="mdi-close" flat dense round v-close-popup />
     </q-card-section>
 
-    <q-card-section class="text-body1">
-
+    <q-card-section class="text-body1 q-pb-none">
       <table class="om-p-table">
         <tbody>
           <tr>
@@ -38,9 +37,10 @@
           </tr>
         </tbody>
       </table>
+    </q-card-section>
 
-      <div v-if="notes" class="q-pt-md" v-html="notes" />
-
+    <q-card-section v-if="notes" class="text-body1 q-pb-none">
+      <div v-html="notes" />
     </q-card-section>
 
     <q-card-actions align="right">

@@ -6,7 +6,7 @@
       <div>{{ title }}</div><q-space /><q-btn icon="mdi-close" flat dense round v-close-popup />
     </q-card-section>
 
-    <q-card-section class="text-body1">
+    <q-card-section class="text-body1 q-pb-none">
 
       <table class="om-p-table">
         <tbody>
@@ -70,11 +70,21 @@
           </thead>
           <tbody>
             <tr v-for="d of dimSizeTxt" :key="d.name">
-              <td class="om-p-cell mono">{{ d.name }}</td>
-              <td class="om-p-cell">{{ (!!d.descr && d.name !== d.descr) ? d.descr : '' }}</td>
+              <template v-if="!!d.descr && d.name !== d.descr">
+                <td class="om-p-cell mono">{{ d.name }}</td>
+                <td class="om-p-cell">{{ d.descr }}</td>
+              </template>
+              <template v-else>
+                <td colspan="2" class="om-p-cell mono">{{ d.name }}</td>
+              </template>
               <td class="om-p-cell-right">{{ d.size }}</td>
-              <td class="om-p-cell mono">{{ d.typeName }}</td>
-              <td class="om-p-cell">{{ (!!d.typeDescr && d.typeName !== d.typeDescr) ? d.typeDescr : '' }}</td>
+              <template v-if="!!d.typeDescr && d.typeName !== d.typeDescr">
+                <td class="om-p-cell mono">{{ d.typeName }}</td>
+                <td class="om-p-cell">{{ d.typeDescr }}</td>
+              </template>
+              <template v-else>
+                <td colspan="2" class="om-p-cell mono">{{ d.typeName }}</td>
+              </template>
             </tr>
           </tbody>
         </table>
@@ -90,8 +100,13 @@
           </thead>
           <tbody>
             <tr v-for="ex of exprTxt" :key="ex.name">
-              <td class="om-p-cell mono">{{ ex.name }}</td>
-              <td class="om-p-cell">{{ (!!ex.descr && ex.name !== ex.descr) ? ex.descr : '' }}</td>
+              <template v-if="!!ex.descr && ex.name !== ex.descr">
+                <td class="om-p-cell mono">{{ ex.name }}</td>
+                <td class="om-p-cell">{{ ex.descr }}</td>
+              </template>
+              <template v-else>
+                <td colspan="2" class="om-p-cell mono">{{ ex.name }}</td>
+              </template>
               <td v-if="isAnyExprNote" class="om-p-cell q-pa-sm">
                 <span v-if="!!ex.note" v-html="ex.note"></span>
                 <span v-else>&nbsp;</span>
@@ -104,8 +119,13 @@
       <div v-if="runDigest && !isRunHasTable" class="q-pt-md">{{ $t('This table is excluded from model run results') }}</div>
       <div v-if="tableText.ExprDescr" class="q-pt-md">{{ tableText.ExprDescr }}</div>
 
-      <div v-if="exprNotes" class="q-pt-md" v-html="exprNotes" />
-      <div v-if="notes" class="q-pt-md" v-html="notes" />
+    </q-card-section>
+
+    <q-card-section v-if="exprNotes" class="text-body1 q-pb-none">
+      <div v-html="exprNotes" />
+    </q-card-section>
+    <q-card-section v-if="notes" class="text-body1 q-pb-none">
+      <div v-html="notes" />
     </q-card-section>
 
     <q-card-actions align="right">

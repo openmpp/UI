@@ -6,22 +6,49 @@
       <div>{{ title }}</div><q-space /><q-btn icon="mdi-close" flat dense round v-close-popup />
     </q-card-section>
 
-    <q-card-section class="q-pt-none text-body1">
-      <div class="om-note-table mono q-pb-md">
-        <div class="om-note-row">
-          <span class="om-note-cell q-pr-sm">{{ $t('Entity') }}:</span><span class="om-note-cell">{{ entityName }}</span>
-        </div>
-        <div class="om-note-row">
-          <span class="om-note-cell q-pr-sm">{{ $t('Attribute') }}:</span><span class="om-note-cell">{{ attrName }}</span>
-        </div>
-        <div v-if="typeName" class="om-note-row">
-          <span class="om-note-cell q-pr-sm">{{ $t('Type of') }}:</span><span class="om-note-cell">{{ typeName }}</span>
-        </div>
-        <div v-if="isInternal" class="om-note-row">
-          <span class="om-note-cell q-pr-sm">&nbsp;</span><span class="om-note-cell">{{ $t('Internal attribute') }}</span>
-        </div>
-      </div>
-      <div v-if="notes" v-html="notes" />
+    <q-card-section class="text-body1 q-pb-none">
+
+      <table class="om-p-table">
+        <tbody>
+          <tr>
+            <td class="om-p-head-left">{{ $t('Entity') }}</td>
+            <td class="om-p-cell-left mono">{{ entityName }}</td>
+          </tr>
+          <tr>
+            <td class="om-p-head-left">{{ $t('Attribute') }}:</td>
+            <td class="om-p-cell-left mono">{{ attrName }}</td>
+          </tr>
+          <template v-if="!!typeDescr && typeName !== typeDescr">
+            <tr>
+              <td rowspan="2" class="om-p-head-left">{{ $t('Type of') }}:</td>
+              <td class="om-p-cell mono">{{ typeName }}</td>
+            </tr>
+            <tr>
+              <td class="om-p-cell">{{ typeDescr }}</td>
+            </tr>
+          </template>
+          <template v-else>
+            <tr>
+              <td class="om-p-head-left">{{ $t('Type of') }}</td>
+              <td class="om-p-cell mono">{{ typeName }}</td>
+            </tr>
+          </template>
+          <tr v-if="isInternal">
+            <td class="om-p-head-left"></td>
+            <td class="om-p-cell-left mono">{{ $t('Internal attribute') }}</td>
+          </tr>
+          <tr v-if="docLink">
+            <td class="om-p-head-center"><q-icon name="mdi-book-open" size="md" color="primary"/></td>
+            <td class="om-p-cell-left">
+              <a target="_blank" :href="'doc/' + docLink + '#' + attrName" class="file-link"><q-icon name="mdi-book-open" size="md" color="primary" class="q-pr-sm"/>{{ $t('Model Documentation') }}</a>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </q-card-section>
+
+    <q-card-section v-if="notes" class="text-body1 q-pb-none">
+      <div v-html="notes" />
     </q-card-section>
 
     <q-card-actions align="right">
@@ -33,7 +60,7 @@
 </template>
 
 <script>
-import { mapState } from 'vuex'
+import { mapState, mapGetters } from 'vuex'
 import * as Mdf from 'src/model-common'
 import { marked } from 'marked'
 import { markedHighlight } from 'marked-highlight'
@@ -54,14 +81,26 @@ export default {
       showDlg: false,
       title: '',
       typeName: '',
+      typeDescr: '',
       isInternal: false,
-      notes: ''
+      notes: '',
+      docLink: ''
     }
   },
 
   computed: {
     ...mapState('model', {
+      modelList: state => state.modelList,
       theModel: state => state.theModel
+    }),
+    ...mapGetters('model', {
+      modelLanguage: 'modelLanguage'
+    }),
+    ...mapState('serverState', {
+      serverConfig: state => state.config
+    }),
+    ...mapState('uiState', {
+      uiLang: state => state.uiLang
     })
   },
 
@@ -77,6 +116,7 @@ export default {
         // find attribute type
         const t = Mdf.typeTextById(this.theModel, ea.Attr.TypeId)
         this.typeName = t.Type.Name
+        this.typeDescr = Mdf.descrOfDescrNote(t)
 
         // notes: convert from markdown to html
         marked.setOptions({
@@ -97,6 +137,9 @@ export default {
         )
         this.notes = marked.parse(sanitizeHtml(Mdf.noteOfDescrNote(ea)))
       }
+
+      // get link to model documentation
+      this.docLink = this.serverConfig.IsModelDoc ? Mdf.modelDocLinkByDigest(Mdf.modelDigest(this.theModel), this.modelList, this.uiLang, this.modelLanguage) : ''
 
       this.showDlg = true
     }

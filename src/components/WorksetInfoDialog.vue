@@ -6,27 +6,35 @@
       <div>{{ title }}</div><q-space /><q-btn icon="mdi-close" flat dense round v-close-popup />
     </q-card-section>
 
-    <q-card-section class="q-pt-none text-body1">
+    <q-card-section class="text-body1 q-pb-none">
+      <table class="om-p-table">
+        <tbody>
+          <tr>
+            <td class="om-p-head-left">{{ $t('Name') }}</td>
+            <td class="om-p-cell-left mono">{{ worksetText.Name }}</td>
+          </tr>
+          <tr>
+            <td class="om-p-head-left">{{ $t('Updated') }}</td>
+            <td class="om-p-cell-left mono">{{ lastDateTime }}</td>
+          </tr>
+          <tr v-if="worksetText.BaseRunDigest">
+            <td class="om-p-head-left">{{ $t('Based on run') }}</td>
+            <td class="om-p-cell-left mono">{{ worksetText.BaseRunDigest }}</td>
+          </tr>
+          <tr v-if="paramCount > 0">
+            <td class="om-p-head-left">{{ $t('Parameters') }}</td>
+            <td class="om-p-cell-left mono">{{ paramCount }}</td>
+          </tr>
+          <tr>
+            <td class="om-p-head-left"></td>
+            <td class="om-p-cell-left mono">{{ worksetText.IsReadonly ? $t('Read only') : $t('Read and write') }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </q-card-section>
 
-      <div class="om-note-table mono q-pb-md">
-        <div class="om-note-row">
-          <span class="om-note-cell q-pr-sm">{{ $t('Name') }}:</span><span class="om-note-cell">{{ worksetText.Name }}</span>
-        </div>
-        <div class="om-note-row">
-          <span class="om-note-cell q-pr-sm">{{ $t('Updated') }}:</span><span class="om-note-cell">{{ lastDateTime }}</span>
-        </div>
-        <div v-if="worksetText.BaseRunDigest" class="om-note-row">
-          <span class="om-note-cell q-pr-sm">{{ $t('Based on run') }}:</span><span class="om-note-cell">{{ worksetText.BaseRunDigest }}</span>
-        </div>
-        <div v-if="paramCount > 0" class="om-note-row">
-          <span class="om-note-cell q-pr-sm">{{ $t('Parameters') }}:</span><span class="om-note-cell">{{ paramCount }}</span>
-        </div>
-        <div class="om-note-row">
-          <span class="om-note-cell q-pr-sm">{{ worksetText.IsReadonly ? $t('Read only') : $t('Read and write') }}</span>
-        </div>
-      </div>
-
-      <div v-if="notes" v-html="notes" />
+    <q-card-section v-if="notes" class="text-body1 q-pb-none">
+      <div v-html="notes" />
     </q-card-section>
 
     <q-card-actions align="right">

@@ -6,13 +6,25 @@
       <div>{{ title }}</div><q-space /><q-btn icon="mdi-close" flat dense round v-close-popup />
     </q-card-section>
 
-    <q-card-section class="q-pt-none text-body1">
-      <div class="om-note-table mono q-pb-md">
-        <div class="om-note-row">
-          <span class="om-note-cell q-pr-sm">{{ $t('Name') }}:</span><span class="om-note-cell">{{ groupName }}</span>
-        </div>
-      </div>
-      <div v-if="notes" v-html="notes" />
+    <q-card-section class="text-body1 q-pb-none">
+      <table class="om-p-table">
+        <tbody>
+          <tr>
+            <td class="om-p-head-left">{{ $t('Name') }}:</td>
+            <td class="om-p-cell-left mono">{{ groupName }}</td>
+          </tr>
+          <tr v-if="docLink">
+            <td class="om-p-head-center"><q-icon name="mdi-book-open" size="md" color="primary"/></td>
+            <td class="om-p-cell-left">
+              <a target="_blank" :href="'doc/' + docLink + '#' + groupName" class="file-link"><q-icon name="mdi-book-open" size="md" color="primary" class="q-pr-sm"/>{{ $t('Model Documentation') }}</a>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </q-card-section>
+
+    <q-card-section v-if="notes" class="text-body1 q-pb-none">
+      <div v-html="notes" />
     </q-card-section>
 
     <q-card-actions align="right">
@@ -24,7 +36,7 @@
 </template>
 
 <script>
-import { mapState } from 'vuex'
+import { mapState, mapGetters } from 'vuex'
 import * as Mdf from 'src/model-common'
 import { marked } from 'marked'
 import { markedHighlight } from 'marked-highlight'
@@ -43,13 +55,24 @@ export default {
     return {
       showDlg: false,
       title: '',
-      notes: ''
+      notes: '',
+      docLink: ''
     }
   },
 
   computed: {
     ...mapState('model', {
+      modelList: state => state.modelList,
       theModel: state => state.theModel
+    }),
+    ...mapGetters('model', {
+      modelLanguage: 'modelLanguage'
+    }),
+    ...mapState('serverState', {
+      serverConfig: state => state.config
+    }),
+    ...mapState('uiState', {
+      uiLang: state => state.uiLang
     })
   },
 
@@ -76,6 +99,9 @@ export default {
         })
       )
       this.notes = marked.parse(sanitizeHtml(Mdf.noteOfDescrNote(groupText)))
+
+      // get link to model documentation
+      this.docLink = this.serverConfig.IsModelDoc ? Mdf.modelDocLinkByDigest(Mdf.modelDigest(this.theModel), this.modelList, this.uiLang, this.modelLanguage) : ''
 
       this.showDlg = true
     }
