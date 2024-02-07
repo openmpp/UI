@@ -4,3 +4,8 @@
 export const serverConfig = ({ commit }, cfg) => {
   commit('serverConfig', cfg)
 }
+
+// set new value to disk usage state
+export const diskUse = ({ commit }, du) => {
+  commit('diskUse', du)
+}

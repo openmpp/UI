@@ -125,6 +125,7 @@ export default {
   'Discard changes and stop editing': "Ignorer les modifications et arrêter l'édition",
   'Discard changes of': 'Annuler les modifications de',
   'Discard changes to notes for': 'Ignorer les modifications apportées aux notes pour',
+  'Disk space usage retrieve failed': "Échec de la récupération de l'utilisation de l'espace disque",
   'Do full downloads, compatible with desktop model': 'Faites des téléchargements complets, compatibles avec le modèle de bureau',
   'Do full downloads, including microdata': 'Effectuez des téléchargements complets, y compris des microdonnées',
   'Do fast downloads, only to analyze output values': 'Faites des téléchargements rapides, uniquement pour analyser les valeurs de résultats',

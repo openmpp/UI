@@ -4,6 +4,7 @@ import * as Mdf from 'src/model-common'
 import ModelInfoDialog from 'components/ModelInfoDialog.vue'
 
 const DISK_USE_MIN_REFRESH_TIME = (17 * 1000) // msec, minimum disk space usage refresh interval
+const DISK_USE_MAX_ERR = 5 // max error count to stop disk use retrival and block model runs
 
 export default {
   name: 'MainLayout',
@@ -14,6 +15,8 @@ export default {
       leftDrawerOpen: false,
       refreshTickle: false,
       loadConfigDone: false,
+      loadDiskUseDone: false,
+      nDdiskUseErr: 0, // disk use error count
       isBeta: true,
       modelInfoTickle: false,
       toUpDownSection: 'down',
@@ -116,6 +119,7 @@ export default {
       this.refreshTickle = !this.refreshTickle
     },
     restartDiskUseRefresh () {
+      this.nDdiskUseErr = 0
       clearInterval(this.diskUseRefreshInt)
       // refersh disk space usage now and setup refresh by timer
       if (this.isDiskUse) {
@@ -167,7 +171,7 @@ export default {
       // update disk space usage if necessary
       this.isDiskUse = !!this?.serverConfig?.IsDiskUse
 
-      this.diskUseMs = this.getDiskUseRefreshMs(this?.serverConfig?.DiskUse?.ScanInterval)
+      this.diskUseMs = this.getDiskUseRefreshMs(this?.serverConfig?.DiskScanMs)
     },
     // get interval of disk use configuration refresh
     getDiskUseRefreshMs (ms) {
@@ -176,15 +180,15 @@ export default {
 
     // receive disk space usage from server
     async doDiskUseRefresh () {
-      this.doConfigRefresh()
-      /*
       this.loadDiskUseDone = false
+      let isOk = false
 
       const u = this.omsUrl + '/api/service/disk-use'
       try {
         // send request to the server
         const response = await this.$axios.get(u)
-        this.dispatchDiskUseState(response.data) // update disk space usage in store
+        this.dispatchDiskUse(response.data) // update disk space usage in store
+        isOk = Mdf.isDiskUseState(response.data) // validate disk usage info
       } catch (e) {
         let em = ''
         try {
@@ -193,17 +197,29 @@ export default {
         console.warn('Server offline or disk usage retrieve failed.', em)
         this.$q.notify({ type: 'negative', message: this.$t('Server offline or disk space usage retrieve failed.') })
       }
-      this.loadIsDiskUseDone = true
+      this.loadDiskUseDone = true
 
       // update disk space usage to notify user
-      */
+      if (!isOk) this.nDdiskUseErr++
+
+      if (this.nDdiskUseErr > DISK_USE_MAX_ERR) {
+        clearInterval(this.diskUseRefreshInt)
+
+        const du = Mdf.emptyDiskUseState()
+        du.DiskUse.IsOver = true
+        this.dispatchDiskUse(du) // block model runs
+
+        console.warn('Disk usage retrieve failed:', this.nDdiskUseErr)
+        this.$q.notify({ type: 'negative', message: this.$t('Disk space usage retrieve failed') })
+      }
     },
 
     ...mapActions('uiState', {
       dispatchUiLang: 'uiLang'
     }),
     ...mapActions('serverState', {
-      dispatchServerConfig: 'serverConfig'
+      dispatchServerConfig: 'serverConfig',
+      dispatchDiskUse: 'diskUse'
     })
   },
 

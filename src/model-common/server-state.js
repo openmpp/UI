@@ -14,7 +14,7 @@ export const emptyConfig = () => {
     IsModelDoc: false,
     IsDiskUse: false,
     DiskUse: {
-      ScanInterval: 0,
+      DiskScanMs: 0,
       Limit: 0,
       AllLimit: 0
     },
@@ -39,9 +39,9 @@ export const isConfig = (c) => {
   if (!c) return false
   if (!c.hasOwnProperty('OmsName') || !c.hasOwnProperty('AllowUserHome') ||
     !c.hasOwnProperty('AllowDownload') || !c.hasOwnProperty('AllowUpload') || !c.hasOwnProperty('AllowMicrodata') ||
-    !c.hasOwnProperty('IsJobControl') || !c.hasOwnProperty('IsModelDoc') || !c.hasOwnProperty('IsDiskUse') ||
-    !c.hasOwnProperty('DiskUse') || !c.hasOwnProperty('Env') || !c.hasOwnProperty('ModelCatalog') ||
-    !c.hasOwnProperty('RunCatalog')) {
+    !c.hasOwnProperty('IsJobControl') || !c.hasOwnProperty('IsModelDoc') ||
+    !c.hasOwnProperty('IsDiskUse') || !c.hasOwnProperty('DiskUse') ||
+    !c.hasOwnProperty('Env') || !c.hasOwnProperty('ModelCatalog') || !c.hasOwnProperty('RunCatalog')) {
     return false
   }
   if (!c.ModelCatalog.hasOwnProperty('ModelDir') || !c.ModelCatalog.hasOwnProperty('ModelLogDir') || !c.ModelCatalog.hasOwnProperty('IsLogDirEnabled')) return false
@@ -49,7 +49,7 @@ export const isConfig = (c) => {
     !c.RunCatalog.hasOwnProperty('MpiTemplates') || !c.RunCatalog.hasOwnProperty('Presets')) {
     return false
   }
-  if (!c.DiskUse.hasOwnProperty('ScanInterval') || typeof c.DiskUse.ScanInterval !== typeof 1) return false
+  if (!c.DiskUse.hasOwnProperty('DiskScanMs') || typeof c.DiskUse.DiskScanMs !== typeof 1) return false
   if (!c.DiskUse.hasOwnProperty('Limit') || typeof c.DiskUse.Limit !== typeof 1) return false
   if (!c.DiskUse.hasOwnProperty('AllLimit') || typeof c.DiskUse.AllLimit !== typeof 1) return false
 
@@ -168,7 +168,7 @@ export const configRunOptsPresets = (c, modelName, uiLang, modelLc) => {
 }
 
 /*
-// Service state:
+// Job service state:
 {
   IsJobControl: true,
   JobUpdateDateTime: "2022-06-30 23:35:59.456",
@@ -269,10 +269,15 @@ export const configRunOptsPresets = (c, modelName, uiLang, modelLc) => {
           ErrorCount: 0,
           LastUsedTs: 1662747792365
       }
-  ]
+  ],
+  IsDiskUse: true,
+  IsDiskOver: false,
+  DiskScanMs: 123000,
+  Limit: 12884901888,
+  AllLimit: 85899345920
 }
 */
-// return empty service state
+// return empty job service state
 export const emptyServiceState = () => {
   return {
     IsJobControl: false,
@@ -290,11 +295,16 @@ export const emptyServiceState = () => {
     Queue: [],
     Active: [],
     History: [],
-    ComputeState: []
+    ComputeState: [],
+    IsDiskUse: false,
+    IsDiskOver: false,
+    DiskScanMs: 0,
+    Limit: 0,
+    AllLimit: 0
   }
 }
 
-// return true if this is service config (it can be empty)
+// return true if this is job service state (it can be empty)
 export const isServiceState = (st) => {
   if (!st) return false
   if (!st.hasOwnProperty('IsJobControl') || !st.hasOwnProperty('JobUpdateDateTime') || !st.hasOwnProperty('IsQueuePaused') ||
@@ -311,7 +321,102 @@ export const isServiceState = (st) => {
   if (!st.hasOwnProperty('LocalActiveRes') || !st.LocalActiveRes.hasOwnProperty('Cpu') || typeof st.LocalActiveRes.Cpu !== typeof 1) return false
   if (!st.hasOwnProperty('LocalQueueRes') || !st.LocalQueueRes.hasOwnProperty('Cpu') || typeof st.LocalQueueRes.Cpu !== typeof 1) return false
 
+  if (!st.hasOwnProperty('IsDiskUse') || typeof st.IsDiskUse !== typeof true) return false
+  if (!st.hasOwnProperty('IsDiskOver') || typeof st.IsDiskOver !== typeof true) return false
+  if (!st.hasOwnProperty('DiskScanMs') || typeof st.DiskScanMs !== typeof 1) return false
+
   return Array.isArray(st.Queue) && Array.isArray(st.Active) && Array.isArray(st.History) && Array.isArray(st.ComputeState)
+}
+
+/*
+// Disk use state:
+{
+  "IsDiskUse": true,
+  "DiskUse": {
+    "IsOver": false,
+    "DiskScanMs": 11000,
+    "Limit": 12884901888,
+    "AllLimit": 85899345920,
+    "AllSize": 11401120043,
+    "TotalSize": 11401120043,
+    "BinSize": 11363374338,
+    "DbSize": 11277418496,
+    "DownSize": 13977232,
+    "UpSize": 23768473,
+    "UpdateTs": 1707275824187
+  },
+  "DbDiskUse": [{
+      "Digest": "4114671ac687e8164f43e6f90ec14d65",
+      "Size": 11150643200,
+      "ModTs": 1701845412131
+    }, {
+      "Digest": "d90e1e9a49a06d972ecf1d50e684c62b",
+      "Size": 872448,
+      "ModTs": 1707196254975
+    }, {
+      "Digest": "_201208171604590148_",
+      "Size": 125902848,
+      "ModTs": 1707143875935
+    }
+  ]
+}
+*/
+/* eslint-disable no-multi-spaces */
+/*
+  IsOver        bool  // if true then storage use reach the limit
+  DiskScanMs    int64 // timeout in msec, sleep interval between scanning storage
+  Limit         int64 // bytes, this instance storage limit
+  AllLimit      int64 // bytes, total storage limit for all oms instances
+  AllSize       int64 // all oms instances size
+  TotalSize     int64 // total size: models/bin size + download + upload
+  BinSize       int64 // total models/bin size
+  DbSize        int64 // total size of all db files
+  DownSize      int64 // download total size
+  UpSize        int64 // upload total size
+  UpdateTs      int64 // info update time (unix milliseconds)
+*/
+// return empty disk use state
+export const emptyDiskUseState = () => {
+  return {
+    // ignore IsDiskUse from state, use it from server config
+    // IsDiskUse: false,   // if true then storage usage comtrol enabled
+    DiskUse: {
+      IsOver: false,    // if true then storage use reach the limit
+      DiskScanMs: 0,    // timeout in msec, sleep interval between scanning storage
+      Limit: 0,         // bytes, this instance storage limit
+      AllLimit: 0,      // bytes, total storage limit for all oms instances
+      AllSize: 0,       // all oms instances size
+      TotalSize: 0,     // total size: models/bin size + download + upload
+      BinSize: 0,       // total models/bin size
+      DbSize: 0,        // total size of all db files
+      DownSize: 0,      // download total size
+      UpSize: 0,        // upload total size
+      UpdateTs: 0       // info update time (unix milliseconds)
+    },
+    DbDiskUse: []   // list of: model digest, db file size, db file mod time
+  }
+}
+/* eslint-enable no-multi-spaces */
+
+// return true if this is disk use (it can be empty)
+export const isDiskUseState = (st) => {
+  if (!st) return false
+  // if (!st.hasOwnProperty('IsDiskUse') || typeof st.IsDiskUse !== typeof true) return false
+  if (!st.hasOwnProperty('DiskUse') || !st.hasOwnProperty('DbDiskUse')) return false
+
+  if (!st.DiskUse.hasOwnProperty('IsOver') || typeof st.DiskUse.IsOver !== typeof true) return false
+  if (!st.DiskUse.hasOwnProperty('DiskScanMs') || typeof st.DiskUse.DiskScanMs !== typeof 1) return false
+  if (!st.DiskUse.hasOwnProperty('Limit') || typeof st.DiskUse.Limit !== typeof 1) return false
+  if (!st.DiskUse.hasOwnProperty('AllLimit') || typeof st.DiskUse.AllLimit !== typeof 1) return false
+  if (!st.DiskUse.hasOwnProperty('AllSize') || typeof st.DiskUse.AllSize !== typeof 1) return false
+  if (!st.DiskUse.hasOwnProperty('TotalSize') || typeof st.DiskUse.TotalSize !== typeof 1) return false
+  if (!st.DiskUse.hasOwnProperty('BinSize') || typeof st.DiskUse.BinSize !== typeof 1) return false
+  if (!st.DiskUse.hasOwnProperty('DbSize') || typeof st.DiskUse.DbSize !== typeof 1) return false
+  if (!st.DiskUse.hasOwnProperty('DownSize') || typeof st.DiskUse.DownSize !== typeof 1) return false
+  if (!st.DiskUse.hasOwnProperty('UpSize') || typeof st.DiskUse.UpSize !== typeof 1) return false
+  if (!st.DiskUse.hasOwnProperty('UpdateTs') || typeof st.DiskUse.UpdateTs !== typeof 1) return false
+
+  return Array.isArray(st.DbDiskUse)
 }
 
 /* eslint-disable no-multi-spaces */
@@ -431,9 +536,3 @@ export const isUpDownFileTree = (pLst) => {
   }
   return true
 }
-
-// return empty disk space usage info
-export const emptyDiskUse = () => { return {} }
-
-// return true if this is disk space usage info
-export const isDiskUseInfo = () => { return true }
