@@ -14,6 +14,17 @@
         :aria-label="$t('Menu')"
         />
       <q-btn
+        v-if="!!serverConfig?.IsDiskUse && !!diskUseState?.DiskUse?.IsOver"
+        to="/disk-use"
+        flat
+        round
+        dense
+        icon="mdi-database-alert"
+        color="negative"
+        class="bg-white q-ml-sm"
+        :title="$t('View and cleanup storage space')"
+        />
+      <q-btn
         v-if="isModel"
         @click="doShowModelNote"
         flat
@@ -300,6 +311,26 @@
         </q-item-section>
       </q-item>
 
+      <q-item
+        clickable
+        :disable="!serverConfig.IsDiskUse"
+        to="/disk-use"
+        >
+        <q-item-section avatar>
+          <q-icon
+            :name="!!diskUseState?.DiskUse?.IsOver ? 'mdi-database-alert' : 'mdi-database'"
+            :color="!!diskUseState?.DiskUse?.IsOver ? 'negative' : ''"
+            />
+        </q-item-section>
+        <q-item-section>
+          <q-item-label>{{ $t('Disk Usage') }}</q-item-label>
+          <q-item-label caption>{{ $t('View and cleanup storage space') }}</q-item-label>
+        </q-item-section>
+        <q-item-section avatar>
+          <q-badge v-if="!!diskUseState?.DiskUse?.TotalSize" color="secondary" :label="fileSizeStr(diskUseState?.DiskUse?.TotalSize)" />
+        </q-item-section>
+      </q-item>
+
     </q-list>
   </q-drawer>
 
@@ -309,6 +340,7 @@
       :to-up-down-section="toUpDownSection"
       @download-select="onDownloadSelect"
       @upload-select="onUploadSelect"
+      @disk-use-refresh="onDiskUseRefresh"
       >
     </router-view>
   </q-page-container>

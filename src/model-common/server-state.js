@@ -323,7 +323,7 @@ export const isServiceState = (st) => {
 
   if (!st.hasOwnProperty('IsDiskUse') || typeof st.IsDiskUse !== typeof true) return false
   if (!st.hasOwnProperty('IsDiskOver') || typeof st.IsDiskOver !== typeof true) return false
-  if (!st.hasOwnProperty('DiskScanMs') || typeof st.DiskScanMs !== typeof 1) return false
+  // if (!st.hasOwnProperty('DiskScanMs') || typeof st.DiskScanMs !== typeof 1) return false
 
   return Array.isArray(st.Queue) && Array.isArray(st.Active) && Array.isArray(st.History) && Array.isArray(st.ComputeState)
 }
@@ -378,8 +378,8 @@ export const isServiceState = (st) => {
 // return empty disk use state
 export const emptyDiskUseState = () => {
   return {
-    // ignore IsDiskUse from state, use it from server config
-    // IsDiskUse: false,   // if true then storage usage comtrol enabled
+    // ignore IsDiskUse from state, use the value from server config
+    IsDiskUse: false,   // if true then storage usage comtrol enabled
     DiskUse: {
       IsOver: false,    // if true then storage use reach the limit
       DiskScanMs: 0,    // timeout in msec, sleep interval between scanning storage
@@ -401,11 +401,11 @@ export const emptyDiskUseState = () => {
 // return true if this is disk use (it can be empty)
 export const isDiskUseState = (st) => {
   if (!st) return false
+  // ignore IsDiskUse from state, use the value from server config
   // if (!st.hasOwnProperty('IsDiskUse') || typeof st.IsDiskUse !== typeof true) return false
   if (!st.hasOwnProperty('DiskUse') || !st.hasOwnProperty('DbDiskUse')) return false
 
   if (!st.DiskUse.hasOwnProperty('IsOver') || typeof st.DiskUse.IsOver !== typeof true) return false
-  if (!st.DiskUse.hasOwnProperty('DiskScanMs') || typeof st.DiskUse.DiskScanMs !== typeof 1) return false
   if (!st.DiskUse.hasOwnProperty('Limit') || typeof st.DiskUse.Limit !== typeof 1) return false
   if (!st.DiskUse.hasOwnProperty('AllLimit') || typeof st.DiskUse.AllLimit !== typeof 1) return false
   if (!st.DiskUse.hasOwnProperty('AllSize') || typeof st.DiskUse.AllSize !== typeof 1) return false
@@ -415,6 +415,7 @@ export const isDiskUseState = (st) => {
   if (!st.DiskUse.hasOwnProperty('DownSize') || typeof st.DiskUse.DownSize !== typeof 1) return false
   if (!st.DiskUse.hasOwnProperty('UpSize') || typeof st.DiskUse.UpSize !== typeof 1) return false
   if (!st.DiskUse.hasOwnProperty('UpdateTs') || typeof st.DiskUse.UpdateTs !== typeof 1) return false
+  // if (!st.DiskUse.hasOwnProperty('DiskScanMs') || typeof st.DiskUse.DiskScanMs !== typeof 1) return false
 
   return Array.isArray(st.DbDiskUse)
 }

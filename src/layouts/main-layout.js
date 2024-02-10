@@ -123,8 +123,14 @@ export default {
       clearInterval(this.diskUseRefreshInt)
       // refersh disk space usage now and setup refresh by timer
       if (this.isDiskUse) {
-        this.doDiskUseRefresh()
-        this.diskUseRefreshInt = setInterval(this.doDiskUseRefresh, this.diskUseMs)
+        this.doRefreshDiskUse()
+        this.diskUseRefreshInt = setInterval(this.doGetDiskUse, this.diskUseMs)
+      }
+    },
+    // refresh disk use by request
+    onDiskUseRefresh () {
+      if (this.isDiskUse) {
+        this.doRefreshDiskUse()
       }
     },
 
@@ -177,9 +183,14 @@ export default {
     getDiskUseRefreshMs (ms) {
       return (!!ms && typeof ms === typeof 1 && ms >= DISK_USE_MIN_REFRESH_TIME) ? ms : DISK_USE_MIN_REFRESH_TIME
     },
+    // return file size as translated string for example: 12 MB or 34 GB
+    fileSizeStr (size) {
+      const fs = Mdf.fileSizeParts(size)
+      return fs.val + ' ' + this.$t(fs.name)
+    },
 
     // receive disk space usage from server
-    async doDiskUseRefresh () {
+    async doGetDiskUse () {
       this.loadDiskUseDone = false
       let isOk = false
 
@@ -212,6 +223,24 @@ export default {
         console.warn('Disk usage retrieve failed:', this.nDdiskUseErr)
         this.$q.notify({ type: 'negative', message: this.$t('Disk space usage retrieve failed') })
       }
+    },
+
+    // send request to refersh disk space usage
+    async doRefreshDiskUse () {
+      const u = this.omsUrl + '/api/service/disk-use/refresh'
+      try {
+        await this.$axios.post(u) // ignore response on success
+      } catch (e) {
+        let em = ''
+        try {
+          if (e.response) em = e.response.data || ''
+        } finally {}
+        console.warn('Server offline or disk usage refresh failed.', em)
+        this.$q.notify({ type: 'negative', message: this.$t('Server offline or disk space usage refresh failed.') })
+      }
+
+      // get disk usage from the server
+      setTimeout(() => this.doGetDiskUse(), 1231)
     },
 
     ...mapActions('uiState', {

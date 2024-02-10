@@ -143,15 +143,15 @@ export const fileSizeParts = (size) => {
   }
   size /= 1024.0
   if (size < 1024) {
-    return { val: size.toFixed(2), name: 'KB' }
+    return { val: size.toFixed(0), name: 'KB' }
   }
   size /= 1024.0
   if (size < 1024) {
-    return { val: size.toFixed(2), name: 'MB' }
+    return { val: size.toFixed(0), name: 'MB' }
   }
   size /= 1024.0
   if (size < 1024) {
-    return { val: size.toFixed(2), name: 'GB' }
+    return { val: size.toFixed(0), name: 'GB' }
   }
   size /= 1024.0
   return { val: size.toFixed(2), name: 'TB' }

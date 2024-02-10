@@ -149,71 +149,6 @@
   </q-card>
 
   <q-expansion-item
-    v-if="isDiskUse"
-    group="up-down-expand"
-    switch-toggle-side
-    expand-separator
-    :label="$t('All models storage use')"
-    header-class="bg-primary text-white"
-    class="q-ma-sm"
-    >
-  <q-card
-    class="up-down-card q-my-sm"
-    >
-      <table class="om-p-table">
-        <thead>
-          <tr>
-            <th class="om-p-cell"></th>
-            <th class="om-p-head-center text-weight-medium">{{ $t('Total Size') }}</th>
-            <th class="om-p-head-center text-weight-medium">{{ $t('File Count') }}</th>
-            <th class="om-p-cell"></th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td class="om-p-head-left">{{ $t('Downloads') }}</td>
-            <td class="om-p-cell-right mono">{{  }}</td>
-            <td class="om-p-cell-right mono">{{  }}</td>
-            <td class="om-p-cell-center">
-              <q-btn
-                :disable="!downloadAllFileCount"
-                @click="onAllDownloadDelete"
-                :outline="!downloadAllFileCount"
-                :unelevated="!!downloadAllFileCount"
-                no-caps
-                color="primary"
-                class="col-auto"
-                :icon="!!downloadAllFileCount ? 'mdi-delete' : 'mdi-delete-outline'"
-                :label="$t('Delete all')"
-                :title="$t('Delete all')"
-                />
-            </td>
-          </tr>
-          <tr>
-            <td class="om-p-head-left">{{ $t('Uploads') }}</td>
-            <td class="om-p-cell-right mono">{{  }}</td>
-            <td class="om-p-cell-right mono">{{  }}</td>
-            <td class="om-p-cell-center">
-              <q-btn
-                :disable="!uploadAllFileCount"
-                @click="onAllUploadDelete"
-                :outline="!uploadAllFileCount"
-                :unelevated="!!uploadAllFileCount"
-                no-caps
-                color="primary"
-                class="col-auto"
-                :icon="!!uploadAllFileCount ? 'mdi-delete' : 'mdi-delete-outline'"
-                :label="$t('Delete all')"
-                :title="$t('Delete all')"
-                />
-            </td>
-          </tr>
-        </tbody>
-      </table>
-  </q-card>
-  </q-expansion-item>
-
-  <q-expansion-item
     :disable="!isDownloadEnabled"
     v-model="downloadExpand"
     group="up-down-expand"
@@ -604,15 +539,6 @@
     :item-name="folderToDelete"
     :kind="upDownToDelete"
     :dialog-title="(upDownToDelete === 'up' ? $t('Delete upload files') :  $t('Delete download files')) + '?'"
-    >
-  </delete-confirm-dialog>
-  <delete-confirm-dialog
-    @delete-yes="onYesAllUpDownDelete"
-    :show-tickle="showAllDeleteDialogTickle"
-    :item-name="(upDownToDelete === 'up' ? $t('All upload files') :  $t('All download files'))"
-    :kind="upDownToDelete"
-    :bodyText="upDownToDelete === 'up' ? $t('Delete all files of all models in upload folder.') : $t('Delete all files of all models in download folder.')"
-    :dialog-title="(upDownToDelete === 'up' ? $t('Delete all upload files') :  $t('Delete all download files')) + '?'"
     >
   </delete-confirm-dialog>
 

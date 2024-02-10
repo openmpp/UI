@@ -64,6 +64,7 @@ const routes = [
       },
       { path: 'service-state', component: () => import('pages/ServiceState') },
       { path: 'settings', component: () => import('pages/SessionSettings') },
+      { path: 'disk-use', component: () => import('pages/DiskUse') },
       { path: 'license', component: () => import('pages/LicensePage') }
     ]
   },

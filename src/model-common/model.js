@@ -102,6 +102,7 @@ export const modelDocLinkByDigest = (dgst, mLst, uiLang, modelLang) => {
 }
 
 // return empty Model
+// model-list/text include join of model_dic and model_dic_txt
 export const emptyModel = () => {
   return {
     Model: {
@@ -114,7 +115,7 @@ export const emptyModel = () => {
   }
 }
 
-// if this is a model
+// if this is a model (model_dic)
 const hasModelProperties = (md) => {
   if (!md) return false
   if (!md.hasOwnProperty('Model')) return false
