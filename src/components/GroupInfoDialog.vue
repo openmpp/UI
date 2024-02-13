@@ -39,7 +39,6 @@
 import { mapState, mapGetters } from 'vuex'
 import * as Mdf from 'src/model-common'
 import { marked } from 'marked'
-import { markedHighlight } from 'marked-highlight'
 import hljs from 'highlight.js'
 import sanitizeHtml from 'sanitize-html'
 
@@ -84,20 +83,15 @@ export default {
       // notes: convert from markdown to html
       marked.setOptions({
         renderer: new marked.Renderer(),
+        highlight: (code, lang) => {
+          const language = hljs.getLanguage(lang) ? lang : 'plaintext'
+          return hljs.highlight(code, { language }).value
+        },
         pedantic: false,
         gfm: true,
         breaks: false,
         smartLists: true
       })
-      marked.use(
-        markedHighlight({
-          langPrefix: 'hljs language-',
-          highlight: (code, lang, info) => {
-            const language = hljs.getLanguage(lang) ? lang : 'plaintext'
-            return hljs.highlight(code, { language }).value
-          }
-        })
-      )
       this.notes = marked.parse(sanitizeHtml(Mdf.noteOfDescrNote(groupText)))
 
       // get link to model documentation
