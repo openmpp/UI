@@ -990,37 +990,42 @@ export default {
         const response = await this.$axios.post(u, layout)
         const rsp = response.data
 
-        let d = []
-        if (!rsp) {
-          this.pageStart = 0
-          this.isLastPage = true
+        if (!Mdf.isPageLayoutRsp(rsp)) {
+          console.warn('Invalid response to:', u)
+          this.$q.notify({ type: 'negative', message: this.$t('Server offline or microdata not found') + ': ' + this.entityName })
         } else {
-          if ((rsp?.Page?.length || 0) > 0) {
-            d = rsp.Page
+          let d = []
+          if (!rsp) {
+            this.pageStart = 0
+            this.isLastPage = true
+          } else {
+            if ((rsp?.Page?.length || 0) > 0) {
+              d = rsp.Page
+            }
+            this.pageStart = rsp?.Layout?.Offset || 0
+            this.isLastPage = rsp?.Layout?.IsLastPage || false
           }
-          this.pageStart = rsp?.Layout?.Offset || 0
-          this.isLastPage = rsp?.Layout?.IsLastPage || false
-        }
 
-        // update pivot table view and set entity key dimension enums
-        this.inpData = Object.freeze(d)
+          // update pivot table view and set entity key dimension enums
+          this.inpData = Object.freeze(d)
 
-        const eLst = Array(this.inpData.length)
-        for (let j = 0; j < this.inpData.length; j++) {
-          eLst[j] = {
-            value: this.inpData[j]?.Key || 0,
-            name: this.inpData[j]?.Key.toString() || 'Invalid',
-            label: this.inpData[j]?.Key.toString() || this.$t('Invalid key')
+          const eLst = Array(this.inpData.length)
+          for (let j = 0; j < this.inpData.length; j++) {
+            eLst[j] = {
+              value: this.inpData[j]?.Key || 0,
+              name: this.inpData[j]?.Key.toString() || 'Invalid',
+              label: this.inpData[j]?.Key.toString() || this.$t('Invalid key')
+            }
           }
-        }
-        this.dimProp[0].enums = Object.freeze(eLst)
-        this.dimProp[0].selection = Array.from(eLst)
-        this.dimProp[0].singleSelection = (this.dimProp[0].selection.length > 0) ? this.dimProp[0].selection[0] : {}
+          this.dimProp[0].enums = Object.freeze(eLst)
+          this.dimProp[0].selection = Array.from(eLst)
+          this.dimProp[0].singleSelection = (this.dimProp[0].selection.length > 0) ? this.dimProp[0].selection[0] : {}
 
-        this.loadDone = true
-        this.ctrl.isPvDimsTickle = !this.ctrl.isPvDimsTickle
-        this.ctrl.isPvTickle = !this.ctrl.isPvTickle
-        isOk = true
+          this.loadDone = true
+          this.ctrl.isPvDimsTickle = !this.ctrl.isPvDimsTickle
+          this.ctrl.isPvTickle = !this.ctrl.isPvTickle
+          isOk = true
+        }
       } catch (e) {
         let em = ''
         try {

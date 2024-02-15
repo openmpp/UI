@@ -193,3 +193,29 @@ export const cleanFloatInput = (sValue, fDefault = 0.0) => {
   const f = parseFloat(sValue)
   return !isNaN(f) ? f : fDefault
 }
+
+/* json body response to read page POST must be:
+{
+  Page: [
+    ....
+  ],
+  Layout: {
+    Offset: 0,
+    Size: 1,
+    IsLastPage: true,
+    IsFullPage: false
+  }
+}
+*/
+// check if response has Page and Layout
+export const isPageLayoutRsp = (rsp) => {
+  if (!rsp) return false
+  if (!rsp.hasOwnProperty('Page') || !Array.isArray(rsp.Page)) return false
+  if (!rsp.hasOwnProperty('Layout')) return false
+  if (!rsp.Layout.hasOwnProperty('Offset') || typeof rsp.Layout.Offset !== typeof 1) return false
+  if (!rsp.Layout.hasOwnProperty('Size') || typeof rsp.Layout.Size !== typeof 1) return false
+  if (!rsp.Layout.hasOwnProperty('IsLastPage') || typeof rsp.Layout.IsLastPage !== typeof true) return false
+  if (!rsp.Layout.hasOwnProperty('IsFullPage') || typeof rsp.Layout.IsFullPage !== typeof true) return false
+
+  return true
+}

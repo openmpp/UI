@@ -96,7 +96,8 @@ export default {
         console.warn('Error at loading language:', lc, err)
       })
     },
-    isDiskUse () { this.restartDiskUseRefresh() }
+    isDiskUse () { this.restartDiskUseRefresh() },
+    diskUseMs () { this.restartDiskUseRefresh() }
   },
 
   methods: {
@@ -176,7 +177,6 @@ export default {
 
       // update disk space usage if necessary
       this.isDiskUse = !!this?.serverConfig?.IsDiskUse
-
       this.diskUseMs = this.getDiskUseRefreshMs(this?.serverConfig?.DiskScanMs)
     },
     // get interval of disk use configuration refresh
@@ -211,7 +211,12 @@ export default {
       this.loadDiskUseDone = true
 
       // update disk space usage to notify user
-      if (!isOk) this.nDdiskUseErr++
+      if (isOk) {
+        this.isDiskUse = this.diskUseState.IsDiskUse
+        this.diskUseMs = this.getDiskUseRefreshMs(this.diskUseState.DiskUse.DiskScanMs)
+      } else {
+        this.nDdiskUseErr++
+      }
 
       if (this.nDdiskUseErr > DISK_USE_MAX_ERR) {
         clearInterval(this.diskUseRefreshInt)

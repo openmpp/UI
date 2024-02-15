@@ -159,6 +159,7 @@ export default {
   'Empty': 'Vide',
   'Empty (or invalid) paste: tab separated values expected': 'Collage vide (ou non valide): valeurs attendues séparées par des tabulations',
   'Entity': 'Entité',
+  'Entity microdata is empty': "Les microdonnées de l'entité sont vides",
   'Entity microdata not found in model run': "Microdonnées d'entité introuvables dans l'exécution du modèle",
   'Entity Name': "Nom de l'entité",
   'Enum Code': 'Code énumération',

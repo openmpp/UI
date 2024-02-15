@@ -14,7 +14,7 @@
         :aria-label="$t('Menu')"
         />
       <q-btn
-        v-if="!!serverConfig?.IsDiskUse && !!diskUseState?.DiskUse?.IsOver"
+        v-if="!!isDiskUse && !!diskUseState?.DiskUse?.IsOver"
         to="/disk-use"
         flat
         round
@@ -313,7 +313,7 @@
 
       <q-item
         clickable
-        :disable="!serverConfig.IsDiskUse"
+        :disable="!isDiskUse"
         to="/disk-use"
         >
         <q-item-section avatar>

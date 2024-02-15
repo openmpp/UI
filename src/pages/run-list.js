@@ -612,8 +612,18 @@ export default {
       this.tableInfoTickle = !this.tableInfoTickle
     },
 
-    // entity selected: show entity data page
+    // entity selected: show entity data page if this entity row count is non zero for current model run
     onEntityClick (name, parts) {
+      let isEmpty = true
+      for (const e of this.runCurrent.Entity) {
+        if (e?.Name && e.Name === name && Array.isArray(e?.Attr)) {
+          isEmpty = (e?.RowCount || 0) <= 0 // microdata row count in that model run
+        }
+      }
+      if (isEmpty) {
+        this.$q.notify({ type: 'negative', message: this.$t('Entity microdata is empty') })
+        return
+      }
       this.$emit('entity-select', name)
     },
     // show or hide output microdata entity tree

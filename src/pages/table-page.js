@@ -1954,23 +1954,28 @@ export default {
         const response = await this.$axios.post(u, layout)
         const rsp = response.data
 
-        let d = []
-        if (!rsp) {
-          this.pageStart = 0
-          this.isLastPage = true
+        if (!Mdf.isPageLayoutRsp(rsp)) {
+          console.warn('Invalid response to:', u)
+          this.$q.notify({ type: 'negative', message: this.$t('Server offline or output table data not found') + ': ' + this.tableName })
         } else {
-          if ((rsp?.Page?.length || 0) > 0) {
-            d = rsp.Page
+          let d = []
+          if (!rsp) {
+            this.pageStart = 0
+            this.isLastPage = true
+          } else {
+            if ((rsp?.Page?.length || 0) > 0) {
+              d = rsp.Page
+            }
+            this.pageStart = rsp?.Layout?.Offset || 0
+            this.isLastPage = rsp?.Layout?.IsLastPage || false
           }
-          this.pageStart = rsp?.Layout?.Offset || 0
-          this.isLastPage = rsp?.Layout?.IsLastPage || false
-        }
 
-        // update pivot table view
-        this.inpData = Object.freeze(d)
-        this.loadDone = true
-        this.ctrl.isPvTickle = !this.ctrl.isPvTickle
-        isOk = true
+          // update pivot table view
+          this.inpData = Object.freeze(d)
+          this.loadDone = true
+          this.ctrl.isPvTickle = !this.ctrl.isPvTickle
+          isOk = true
+        }
       } catch (e) {
         let em = ''
         try {

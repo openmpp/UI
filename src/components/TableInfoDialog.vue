@@ -51,7 +51,7 @@
             <td class="om-p-cell-left mono">{{ valueDigest }}</td>
           </tr>
           <tr v-if="docLink">
-            <td class="om-p-head-center"><q-icon name="mdi-book-open" size="md" color="primary"/></td>
+            <td class="om-p-head-center"></td>
             <td class="om-p-cell-left">
               <a target="_blank" :href="'doc/' + docLink + '#' + tableName" class="file-link"><q-icon name="mdi-book-open" size="md" color="primary" class="q-pr-sm"/>{{ $t('Model Documentation') }}</a>
             </td>
