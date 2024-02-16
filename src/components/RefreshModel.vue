@@ -48,6 +48,7 @@ export default {
       this.loadDone = false
       this.loadWait = true
       this.$emit('wait')
+      let md = Mdf.emptyModel()
 
       const udgst = encodeURIComponent(this.digest)
       const ulc = encodeURIComponent(this.uiLang)
@@ -55,7 +56,7 @@ export default {
       const u = this.omsUrl + '/api/model/' + udgst + '/text' + (this.uiLang !== '' ? '/lang/' + ulc : '')
       try {
         const response = await this.$axios.get(u)
-        this.dispatchTheModel(response.data) // update current model in store
+        md = response.data
         this.loadDone = true
       } catch (e) {
         let em = ''
@@ -65,7 +66,10 @@ export default {
         console.warn('Server offline or model not found.', em)
         this.$q.notify({ type: 'negative', message: this.$t('Server offline or model not found') + ': ' + this.digest })
       }
-      this.$emit('done', this.loadDone)
+      if (this.loadDone) {
+        this.dispatchTheModel(md) // update current model in store
+      }
+      this.$emit('done', this.loadDone, this.digest)
 
       // refresh model "words" language-specific strings
       const uw = this.omsUrl + '/api/model/' + udgst + '/word-list' + (this.uiLang !== '' ? '/lang/' + ulc : '')

@@ -375,16 +375,6 @@
                 />
             </td>
           </tr>
-          <tr>
-            <td class="q-pr-xs">{{ $t('Sparse Output Tables') }}:</td>
-            <td class="tc-max-width-10 row panel-border rounded-borders">
-              <q-space />
-              <q-toggle
-                v-model="runOpts.sparseOutput"
-                :title="runOpts.sparseOutput ? $t('Use sparse output tables: do not store small values and zeros') : $t('Do not use sparse output tables: store all values')"
-                />
-            </td>
-          </tr>
 
           <tr>
             <td class="q-pr-xs">{{ $t('Working Directory') }}:</td>

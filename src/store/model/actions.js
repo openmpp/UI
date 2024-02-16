@@ -29,11 +29,11 @@ export const theModel = ({ dispatch, commit, state }, model) => {
     // dispatch('uiState/viewDeleteByModel', storeDigest, { root: true })
   }
   // clear selected run if new model selected
-  if (isEmpty || state?.runTextList?.[0]?.ModelDigest !== digest) {
+  if (digest !== storeDigest || state?.runTextList?.[0]?.ModelDigest !== digest) {
     dispatch('uiState/runDigestSelected', '', { root: true })
   }
   // clear selected workset if new model selected
-  if (isEmpty || state?.worksetTextList?.[0]?.ModelDigest !== digest) {
+  if (digest !== storeDigest || state?.worksetTextList?.[0]?.ModelDigest !== digest) {
     dispatch('uiState/worksetNameSelected', '', { root: true })
   }
 }

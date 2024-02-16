@@ -1,6 +1,7 @@
 <!-- reload run-text by model digest and run digest -->
 <script>
 import { mapState, mapGetters, mapActions } from 'vuex'
+import * as Mdf from 'src/model-common'
 
 export default {
   name: 'RefreshRun',
@@ -56,6 +57,7 @@ export default {
       this.loadDone = false
       this.loadWait = true
       this.$emit('wait')
+      let d = Mdf.emptyRunText()
 
       const u = this.omsUrl +
         '/api/model/' + encodeURIComponent(this.modelDigest) +
@@ -63,7 +65,7 @@ export default {
         '/text' + (this.uiLang !== '' ? '/lang/' + encodeURIComponent(this.uiLang) : '')
       try {
         const response = await this.$axios.get(u)
-        this.dispatchRunText(response.data) // update run in store
+        d = response.data
         this.loadDone = true
       } catch (e) {
         let em = ''
@@ -73,7 +75,9 @@ export default {
         console.warn('Server offline or model run not found', em)
         this.$q.notify({ type: 'negative', message: this.$t('Server offline or model run not found') + ': ' + this.runDigest })
       }
-
+      if (this.loadDone) {
+        this.dispatchRunText(d) // on success update run in store
+      }
       this.$emit('done', this.loadDone, this.runDigest)
       this.loadWait = false
     },
