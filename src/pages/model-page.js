@@ -179,11 +179,11 @@ export default {
       this.loadModelDone = true
 
       // on successs update run list and workset list if empty or from other model
-      if (isSuccess) {
-        if (!Mdf.isLength(this.runTextList) || ((dgst || '') !== '' && (this.runTextListrunTextList?.[0]?.ModelDigest || '') !== dgst)) {
+      if (isSuccess && (dgst || '') === this.digest) {
+        if (!Mdf.isLength(this.runTextList) || (this.runTextListrunTextList?.[0]?.ModelDigest || '') !== dgst) {
           this.refreshRunListTickle = !this.refreshRunListTickle
         }
-        if (!Mdf.isLength(this.worksetTextList) || ((dgst || '') !== '' && (this.worksetTextList?.[0]?.ModelDigest || '') !== dgst)) {
+        if (!Mdf.isLength(this.worksetTextList) || (this.worksetTextList?.[0]?.ModelDigest || '') !== dgst) {
           this.refreshWsListTickle = !this.refreshWsListTickle
         }
       }

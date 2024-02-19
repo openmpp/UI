@@ -564,6 +564,7 @@ export default {
   'Unable to open settings storage': "Impossible d'ouvrir le stockage et réglage",
   'Unable to refresh input scenario: model digest or name is empty': "Impossible d'actualiser le scénario d'entrée: le digest du modèle ou le nom est vide",
   'Unable to refresh input scenarios: model digest is empty': "Impossible d'actualiser les scénarios d'entrée: le digest du modèle est vide",
+  'Unable to refresh model by digest:': "Impossible d'actualiser le modèle par digest:",
   'Unable to refresh model: digest is empty': "Impossible d'actualiser le modèle: le digest est vide",
   'Unable to refresh model run: digest is empty': "Impossible d'actualiser l'exécution du modèle: le digest est vide",
   'Unable to refresh model runs: digest is empty': "Impossible d'actualiser les exécutions du modèle: le digest est vide",

@@ -48,7 +48,8 @@ export default {
       this.loadDone = false
       this.loadWait = true
       this.$emit('wait')
-      let md = Mdf.emptyModel()
+      let dgst = ''
+      let isOk = false
 
       const udgst = encodeURIComponent(this.digest)
       const ulc = encodeURIComponent(this.uiLang)
@@ -56,7 +57,12 @@ export default {
       const u = this.omsUrl + '/api/model/' + udgst + '/text' + (this.uiLang !== '' ? '/lang/' + ulc : '')
       try {
         const response = await this.$axios.get(u)
-        md = response.data
+        const d = response.data
+        if (Mdf.isModel(d)) {
+          dgst = Mdf.modelDigest(d)
+          isOk = dgst === this.digest
+          if (isOk) this.dispatchTheModel(d) // update current model in store
+        }
         this.loadDone = true
       } catch (e) {
         let em = ''
@@ -66,10 +72,14 @@ export default {
         console.warn('Server offline or model not found.', em)
         this.$q.notify({ type: 'negative', message: this.$t('Server offline or model not found') + ': ' + this.digest })
       }
-      if (this.loadDone) {
-        this.dispatchTheModel(md) // update current model in store
+
+      // notify user
+      this.$emit('done', isOk, dgst)
+      if (!isOk) {
+        console.warn('Unable to refresh model by digest:', this.digest, ':', dgst, ':')
+        this.$q.notify({ type: 'negative', message: this.$t('Unable to refresh model by digest:', this.digest) })
+        return
       }
-      this.$emit('done', this.loadDone, this.digest)
 
       // refresh model "words" language-specific strings
       const uw = this.omsUrl + '/api/model/' + udgst + '/word-list' + (this.uiLang !== '' ? '/lang/' + ulc : '')
@@ -114,8 +124,7 @@ export default {
   mounted () {
     // if model already loaded then exit
     if (!!this.digest && Mdf.modelDigest(this.theModel) === this.digest) {
-      this.loadDone = true
-      this.$emit('done', this.loadDone)
+      this.$emit('done', true, this.digest)
       return
     }
     this.doRefresh() // else load new model
