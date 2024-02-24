@@ -722,14 +722,9 @@ export default {
           filter: (val, update, abort) => {}
         }
 
-        const eLst = Array(t.TypeEnumTxt.length)
-        for (let j = 0; j < t.TypeEnumTxt.length; j++) {
-          const eId = t.TypeEnumTxt[j].Enum.EnumId
-          eLst[j] = {
-            value: eId,
-            name: t.TypeEnumTxt[j].Enum.Name || eId.toString(),
-            label: Mdf.enumDescrOrCodeById(t, eId) || t.TypeEnumTxt[j].Enum.Name || eId.toString()
-          }
+        const eLst = Array(Mdf.typeEnumSize(t))
+        for (let j = 0; j < eLst.length; j++) {
+          eLst[j] = Mdf.enumItemByIdx(t, j)
         }
         f.enums = Object.freeze(eLst)
         f.options = f.enums
@@ -827,13 +822,9 @@ export default {
       } else {
         // if parameter is enum-based then value is integer enum id and format(value) should return enum description to display
         const t = this.paramType
-        const valEnums = Array(t.TypeEnumTxt.length)
-        for (let j = 0; j < t.TypeEnumTxt.length; j++) {
-          const eId = t.TypeEnumTxt[j].Enum.EnumId
-          valEnums[j] = {
-            value: eId,
-            label: Mdf.enumDescrOrCodeById(t, eId) || t.TypeEnumTxt[j].Enum.Name || eId.toString()
-          }
+        const valEnums = Array(Mdf.typeEnumSize(t))
+        for (let j = 0; j < valEnums.length; j++) {
+          valEnums[j] = Mdf.enumItemByIdx(t, j)
         }
         this.pvc.processValue = Pcvt.asIntPval
         this.pvc.formatter = Pcvt.formatEnum({ enums: valEnums })

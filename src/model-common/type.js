@@ -10,15 +10,53 @@ export const isTypeTextList = (md) => {
   if (!Mdl.isModel(md)) return false
   if (!Array.isArray(md.TypeTxt)) return false
   for (let k = 0; k < md.TypeTxt.length; k++) {
-    if (!isType(md.TypeTxt[k].Type)) return false
+    if (!isType(md.TypeTxt[k]?.Type)) return false
   }
   return true
 }
 
+/*
+Type: {
+        ModelId: 101,
+        TypeId: 104,
+        TypeHid: 102,
+        Name: "AGEINT_STATE",
+        Digest: "518614da6d5d8800e0e527c7bfe6e4bd",
+        DicId: 4,
+        TotalEnumId: 12,
+        IsRange: false,
+        MinEnumId: 0,
+        MaxEnumId: 11
+      },
+      DescrNote: {
+        LangCode: "EN",
+        Descr: "2.5 year age intervals",
+        Note: ""
+      },
+      TypeEnumTxt: [
+        {
+          Enum: {
+            ModelId: 101,
+            TypeId: 104,
+            EnumId: 0,
+            Name: "(0,15)"
+          },
+          DescrNote: {
+            LangCode: "EN",
+            Descr: "(0,15)",
+            Note: ""
+          }
+        }
+      ]
+    }
+*/
 // return true if this is non empty Type
 export const isType = (t) => {
   if (!t) return false
-  if (!t.hasOwnProperty('TypeId') || !t.hasOwnProperty('Name') || !t.hasOwnProperty('Digest') || !t.hasOwnProperty('DicId')) return false
+  if (!t.hasOwnProperty('TypeId') || !t.hasOwnProperty('Name') || !t.hasOwnProperty('Digest') ||
+    !t.hasOwnProperty('TotalEnumId') || !t.hasOwnProperty('IsRange') || !t.hasOwnProperty('MinEnumId') || !t.hasOwnProperty('MaxEnumId')) return false
+  if (typeof t.TotalEnumId !== typeof 1) return false
+  if (typeof t.IsRange !== typeof true || typeof t.MinEnumId !== typeof 1 || typeof t.MaxEnumId !== typeof 1) return false
   return (t.Name || '') !== '' && (t.Digest || '') !== ''
 }
 
@@ -29,7 +67,10 @@ export const emptyTypeText = () => {
       TypeId: 0,
       Name: '',
       Digest: '',
-      DicId: 0
+      TotalEnumId: 0,
+      IsRange: false,
+      MinEnumId: 0,
+      MaxEnumId: 0
     },
     DescrNote: {
       LangCode: '',
@@ -125,8 +166,10 @@ export const intTypeText = (md) => {
       TypeId: OM_INT_TYPE_ID,
       Name: 'int',
       Digest: '_int_',
-      DicId: 0,
-      TotalEnumId: 1
+      TotalEnumId: 1,
+      IsRange: false,
+      MinEnumId: 0,
+      MaxEnumId: 0
     },
     DescrNote: {
       LangCode: '',
@@ -137,33 +180,53 @@ export const intTypeText = (md) => {
   }
 }
 
-// enum is array of TypeEnumTxt[]
-// each TypeEnumTxt[i] must have:
-//  .Enum: {EnumId: 0, Name: 'uniqueCode'} and optional .DescrNote: {Descr: 'Some Label', Note: 'It can be long notes'}
+// type can be a built-in without enums
+// type can be a range {IsRange: true, MinEnumId: 10, MaxEnumId: 20}
+// type can be enum-based with array of TypeEnumTxt[]
+// each TypeEnumTxt[i] is:
+//  .Enum: {EnumId: 0, Name: 'uniqueCode'}
+//  optional .DescrNote: {Descr: 'Some Label', Note: 'It can be long notes'}
 
-// find type size by TypeId: TypeTxt.TypeEnumTxt.length
+// find type size by model TypeId: range size or TypeTxt.TypeEnumTxt.length
 export const typeEnumSizeById = (md, typeId) => {
-  const t = typeTextById(md, typeId)
-  if (!isType(t.Type)) return 0
-  if (!t.hasOwnProperty('TypeEnumTxt')) return 0
-  return t.TypeEnumTxt.length || 0
+  return typeEnumSize(typeTextById(md, typeId))
 }
 
-// return true if this is non empty Enum
-export const isEnum = (t) => {
-  if (!t || !t.Enum) return false
-  return !(t.Enum.EnumId === void 0 || t.Enum.EnumId === null || !t.Enum.Name)
+// find type size: range size or TypeTxt.TypeEnumTxt.length
+export const typeEnumSize = (typeTxt) => {
+  if (!typeTxt || !isType(typeTxt?.Type)) return 0
+  if (typeTxt.Type.IsRange) {
+    return 1 + typeTxt.Type.MaxEnumId - typeTxt.Type.MinEnumId
+  }
+  return typeTxt.hasOwnProperty('TypeEnumTxt') ? Hlpr.lengthOf(typeTxt.TypeEnumTxt) : 0
 }
 
-// find enum code by enum id or empty string if not found
-export const enumCodeById = (typeTxt, enumId) => {
-  if (!typeTxt || !typeTxt.hasOwnProperty('TypeEnumTxt') || !Hlpr.isLength(typeTxt.TypeEnumTxt)) return ''
-  for (let k = 0; k < typeTxt.TypeEnumTxt.length; k++) {
-    if (isEnum(typeTxt.TypeEnumTxt[k]) && typeTxt.TypeEnumTxt[k].Enum.EnumId === enumId) {
-      return (typeTxt.TypeEnumTxt[k].Enum.Name || '')
+// return enum item: { value: 1, name: "M", label: "Middle" } by index, return null if index out of range
+export const enumItemByIdx = (typeTxt, idx) => {
+  if (!typeTxt || !typeTxt.hasOwnProperty('Type')) return null
+  if (typeof idx !== typeof 1 || idx < 0) return null
+
+  if (typeTxt.Type.IsRange) {
+    if (idx >= (1 + typeTxt.Type.MaxEnumId - typeTxt.Type.MinEnumId)) return null // index out of range
+
+    const nId = idx + typeTxt.Type.MinEnumId
+    const sId = nId.toString()
+    return {
+      value: nId,
+      name: sId,
+      label: sId
     }
   }
-  return '' // not found
+  // else not is range type: get value from TypeEnumTxt[idx]
+
+  if (!typeTxt.hasOwnProperty('TypeEnumTxt') || idx >= Hlpr.lengthOf(typeTxt.TypeEnumTxt)) return null
+
+  const eId = typeTxt.TypeEnumTxt[idx].Enum.EnumId
+  return {
+    value: eId,
+    name: typeTxt.TypeEnumTxt[idx].Enum.Name || eId.toString(),
+    label: Dnf.descrOfDescrNote(typeTxt.TypeEnumTxt[idx]) || typeTxt.TypeEnumTxt[idx].Enum.Name || eId.toString()
+  }
 }
 
 // return array of enum Ids by array of codes
@@ -210,12 +273,53 @@ export const enumIdArrayToCodeArray = (typeTxt, enumIdArr, isTotal = false, tota
   return cArr
 }
 
-// find enum description or code by enum id or empty string if not found
-export const enumDescrOrCodeById = (typeTxt, enumId) => {
+/*
+  {
+    Enum: {
+      ModelId: 101,
+      TypeId: 104,
+      EnumId: 0,
+      Name: "(0,15)"
+    },
+    DescrNote: {
+      LangCode: "EN",
+      Descr: "(0,15)",
+      Note: ""
+    }
+  }
+*/
+/*
+// return empty enum
+export const emptyEnum = () => {
+  return {
+    Enum: {
+      EnumId: 0,
+      Name: ''
+    },
+    DescrNote: null
+  }
+}
+
+// return true if this is non empty Enum
+export const isEnum = (t) => {
+  if (!t || !t?.Enum) return false
+  return !(t.Enum?.EnumId === void 0 || t.Enum?.EnumId === null || !t.Enum?.Name)
+}
+
+// return enum by index, return null if index out of range
+export const enumByIdx = (typeTxt, idx) => {
+  if (!typeTxt || !typeTxt.hasOwnProperty('TypeEnumTxt') || !Hlpr.isLength(typeTxt.TypeEnumTxt)) return null
+  if (idx < 0 || idx >= typeTxt.TypeEnumTxt.length) return null
+
+  return isEnum(typeTxt.TypeEnumTxt[idx]) ? typeTxt.TypeEnumTxt[idx].Enum : null
+}
+
+// find enum code by enum id or empty string if not found
+export const enumCodeById = (typeTxt, enumId) => {
   if (!typeTxt || !typeTxt.hasOwnProperty('TypeEnumTxt') || !Hlpr.isLength(typeTxt.TypeEnumTxt)) return ''
   for (let k = 0; k < typeTxt.TypeEnumTxt.length; k++) {
     if (isEnum(typeTxt.TypeEnumTxt[k]) && typeTxt.TypeEnumTxt[k].Enum.EnumId === enumId) {
-      return Dnf.descrOfDescrNote(typeTxt.TypeEnumTxt[k]) || (typeTxt.TypeEnumTxt[k].Enum.Name || '')
+      return (typeTxt.TypeEnumTxt[k].Enum.Name || '')
     }
   }
   return '' // not found
@@ -233,12 +337,15 @@ export const enumIdByDescrOrCode = (typeTxt, enumDc) => {
   return null // not found
 }
 
-// return enum by index, return null if index out of range
-export const enumByIdx = (typeTxt, idx) => {
-  if (!typeTxt || !typeTxt.hasOwnProperty('TypeEnumTxt') || !Hlpr.isLength(typeTxt.TypeEnumTxt)) return null
-  if (idx < 0 || idx >= typeTxt.TypeEnumTxt.length) return null
-
-  return isEnum(typeTxt.TypeEnumTxt[idx]) ? typeTxt.TypeEnumTxt[idx].Enum : null
+// find enum description or code by enum id or empty string if not found
+export const enumDescrOrCodeById = (typeTxt, enumId) => {
+  if (!typeTxt || !typeTxt.hasOwnProperty('TypeEnumTxt') || !Hlpr.isLength(typeTxt.TypeEnumTxt)) return ''
+  for (let k = 0; k < typeTxt.TypeEnumTxt.length; k++) {
+    if (isEnum(typeTxt.TypeEnumTxt[k]) && typeTxt.TypeEnumTxt[k].Enum.EnumId === enumId) {
+      return Dnf.descrOfDescrNote(typeTxt.TypeEnumTxt[k]) || (typeTxt.TypeEnumTxt[k].Enum.Name || '')
+    }
+  }
+  return '' // not found
 }
 
 // return array of all codes from TypeEnumTxt[]
@@ -268,3 +375,4 @@ export const enumDescrOrCodeArray = (typeTxt) => {
   }
   return dcArr
 }
+*/

@@ -222,14 +222,15 @@ export default {
           filter: (val, update, abort) => {}
         }
 
-        const eLst = Array(t.TypeEnumTxt.length + (f.isTotal ? 1 : 0)) // if total enabled for that dimension then add "All" item
+        const eSize = Mdf.typeEnumSize(t)
+        const eLst = Array(eSize + (f.isTotal ? 1 : 0)) // if total enabled for that dimension then add "All" item
         let k = 0
         let isTd = false
 
-        for (let j = 0; j < t.TypeEnumTxt.length; j++) {
-          const eId = t.TypeEnumTxt[j].Enum.EnumId
+        for (let j = 0; j < eSize; j++) {
+          const eIt = Mdf.enumItemByIdx(t, j)
 
-          if (f.isTotal && eId > f.totalId) { // insert "All" item if total is enabled
+          if (!isTd && f.isTotal && eIt.value > f.totalId) { // insert "All" item if total is enabled
             eLst[k++] = {
               value: f.totalId,
               name: Mdf.ALL_WORD_CODE,
@@ -238,11 +239,7 @@ export default {
             isTd = true // total item inserted
           }
 
-          eLst[k++] = {
-            value: eId,
-            name: t.TypeEnumTxt[j].Enum.Name || eId.toString(),
-            label: Mdf.enumDescrOrCodeById(t, eId) || t.TypeEnumTxt[j].Enum.Name || eId.toString()
-          }
+          eLst[k++] = eIt
         }
         if (f.isTotal && !isTd) { // append total item if not inserted before
           eLst[k++] = {

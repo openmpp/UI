@@ -31,7 +31,7 @@ export const isParam = (p) => {
 // if this is not empty ParamTxt: parameter id, parameter name, parameter digest
 export const isNotEmptyParamText = (pt) => {
   if (!pt) return false
-  if (!pt?.Param || !pt?.DescrNote) return false
+  if (!pt?.Param || !pt.hasOwnProperty('DescrNote')) return false
   return isParam(pt.Param)
 }
 

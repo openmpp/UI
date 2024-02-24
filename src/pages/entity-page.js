@@ -201,14 +201,9 @@ export default {
             attrPos: nPos++
           }
 
-          const eLst = Array(tTxt.TypeEnumTxt.length)
-          for (let j = 0; j < tTxt.TypeEnumTxt.length; j++) {
-            const eId = tTxt.TypeEnumTxt[j].Enum.EnumId
-            eLst[j] = {
-              value: eId,
-              name: tTxt.TypeEnumTxt[j].Enum.Name || eId.toString(),
-              label: Mdf.enumDescrOrCodeById(tTxt, eId) || tTxt.TypeEnumTxt[j].Enum.Name || eId.toString()
-            }
+          const eLst = Array(Mdf.typeEnumSize(tTxt))
+          for (let j = 0; j < eLst.length; j++) {
+            eLst[j] = Mdf.enumItemByIdx(tTxt, j)
           }
           f.enums = Object.freeze(eLst)
           f.options = f.enums

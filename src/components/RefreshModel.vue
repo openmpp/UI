@@ -54,7 +54,7 @@ export default {
       const udgst = encodeURIComponent(this.digest)
       const ulc = encodeURIComponent(this.uiLang)
 
-      const u = this.omsUrl + '/api/model/' + udgst + '/text' + (this.uiLang !== '' ? '/lang/' + ulc : '')
+      const u = this.omsUrl + '/api/model/' + udgst + '/pack/text' + (this.uiLang !== '' ? '/lang/' + ulc : '')
       try {
         const response = await this.$axios.get(u)
         const d = response.data
