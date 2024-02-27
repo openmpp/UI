@@ -90,9 +90,17 @@ export default {
   },
 
   computed: {
+    maxTypeSize () {
+      const s = Mdf.configEnvValue(this.serverConfig, 'OM_CFG_TYPE_MAX_LEN')
+      return ((s || '') !== '') ? parseInt(s) : 0
+    },
+
     ...mapState('model', {
       theModel: state => state.theModel,
       theModelUpdated: state => state.theModelUpdated
+    }),
+    ...mapState('serverState', {
+      serverConfig: state => state.config
     }),
     ...mapState('uiState', {
       treeLabelKind: state => state.treeLabelKind
@@ -132,7 +140,28 @@ export default {
     },
     // click on parameter: open current run parameter values tab
     onParamLeafClick (name, parts) {
-      this.$emit('run-parameter-select', name, parts)
+      const p = Mdf.paramTextByName(this.theModel, name)
+      if (!Mdf.isParam(p?.Param)) {
+        this.$q.notify({ type: 'negative', message: this.$t('Parameter not found') + ': ' + (name || '') })
+        return
+      }
+      // check parameter type: if parameter is enum based then type size should not exceed max size limit
+      const nt = Mdf.typeEnumSizeById(this.theModel, p.Param.TypeId)
+      if (this.maxTypeSize > 0 && nt > this.maxTypeSize) {
+        this.$q.notify({ type: 'negative', message: this.$t('Parameter type size exceed the limit') + ': ' + this.maxTypeSize.toString() + ': ' + (name || '') })
+        return
+      }
+
+      // check all dimensions: dimension size should not exceed max size limit
+      for (const d of p.ParamDimsTxt) {
+        const ne = Mdf.typeEnumSizeById(this.theModel, d.Dim.TypeId)
+        if (this.maxTypeSize > 0 && ne > this.maxTypeSize) {
+          this.$q.notify({ type: 'negative', message: this.$t('Parameter dimension size exceed the limit') + ': ' + this.maxTypeSize.toString() + ': ' + (name || '') + '.' + (d.Dim.Name || '') })
+          return
+        }
+      }
+
+      this.$emit('run-parameter-select', name, parts) // pass message to the parent
     },
     // click on add parameter: add parameter from current run
     onAddClick (name, parts) {

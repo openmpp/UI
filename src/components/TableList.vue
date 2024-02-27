@@ -92,6 +92,11 @@ export default {
   },
 
   computed: {
+    maxTypeSize () {
+      const s = Mdf.configEnvValue(this.serverConfig, 'OM_CFG_TYPE_MAX_LEN')
+      return ((s || '') !== '') ? parseInt(s) : 0
+    },
+
     ...mapState('model', {
       theModel: state => state.theModel,
       theModelUpdated: state => state.theModelUpdated,
@@ -99,6 +104,9 @@ export default {
     }),
     ...mapGetters('model', {
       runTextByDigest: 'runTextByDigest'
+    }),
+    ...mapState('serverState', {
+      serverConfig: state => state.config
     }),
     ...mapState('uiState', {
       treeLabelKind: state => state.treeLabelKind
@@ -142,7 +150,21 @@ export default {
     },
     // click on output table: open current run output table values tab
     onTableLeafClick (name, parts) {
-      this.$emit('table-select', name, parts)
+      // check all dimensions: dimension size should not exceed max size limit
+      const t = Mdf.tableTextByName(this.theModel, name)
+      if (!Mdf.isTable(t?.Table)) {
+        this.$q.notify({ type: 'negative', message: this.$t('Output table not found') + ': ' + (name || '') })
+        return
+      }
+      for (const d of t.TableDimsTxt) {
+        const ne = Mdf.typeEnumSizeById(this.theModel, d.Dim.TypeId)
+
+        if (this.maxTypeSize > 0 && ne > this.maxTypeSize) {
+          this.$q.notify({ type: 'negative', message: this.$t('Output table dimension size exceed the limit') + ': ' + this.maxTypeSize.toString() + ': ' + (name || '') + '.' + (d.Dim.Name || '') })
+          return
+        }
+      }
+      this.$emit('table-select', name, parts) // pass message to the parent
     },
     // click on add output table: add output table from current run
     onAddClick (name, parts) {

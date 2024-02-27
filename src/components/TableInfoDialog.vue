@@ -193,7 +193,7 @@ export default {
       this.tableText = Mdf.tableTextByName(this.theModel, this.tableName)
       if (!Mdf.isNotEmptyTableText(this.tableText)) {
         console.warn('output table not found by name:', this.tableName)
-        this.$q.notify({ type: 'negative', message: this.$t('Output Table not found') })
+        this.$q.notify({ type: 'negative', message: this.$t('Output table not found') })
         return
       }
 

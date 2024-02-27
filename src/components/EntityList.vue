@@ -30,7 +30,6 @@
     @om-table-tree-show-hidden="onToogleHiddenNodes"
     @om-table-tree-clear-in-list="onClearInListFilter"
     @om-table-tree-group-select="onEntityClick"
-    @om-table-tree-leaf-select="onAttrClick"
     @om-table-tree-leaf-add="onAttrAddClick"
     @om-table-tree-group-add="onEntityAddClick"
     @om-table-tree-leaf-remove="onAttrRemoveClick"
@@ -88,6 +87,11 @@ export default {
   },
 
   computed: {
+    maxTypeSize () {
+      const s = Mdf.configEnvValue(this.serverConfig, 'OM_CFG_TYPE_MAX_LEN')
+      return ((s || '') !== '') ? parseInt(s) : 0
+    },
+
     ...mapState('model', {
       theModel: state => state.theModel,
       theModelUpdated: state => state.theModelUpdated,
@@ -95,6 +99,9 @@ export default {
     }),
     ...mapGetters('model', {
       runTextByDigest: 'runTextByDigest'
+    }),
+    ...mapState('serverState', {
+      serverConfig: state => state.config
     }),
     ...mapState('uiState', {
       treeLabelKind: state => state.treeLabelKind
@@ -132,19 +139,64 @@ export default {
     },
     // click on entity: forward to parent
     onEntityClick (name, parts) {
-      this.$emit('entity-select', name, parts)
-    },
-    // click on entity attribute: forward to parent
-    onAttrClick (name, parts) {
-      this.$emit('entity-attr-select', name, parts)
+      if (!this.checkAllAttrSize(name)) {
+        return
+      }
+      this.$emit('entity-select', name, parts) // there no attributes where size exceeds the limit: pass message to the parent
     },
     // click on add attribute: add attribute into microdata list
     onAttrAddClick (name, parts) {
-      this.$emit('entity-attr-add', name, parts, this.isShowHidden)
+      // check  attribute size: it should not exceed max size limit
+      const ent = Mdf.entityTextByName(this.theModel, parts)
+      if (!Mdf.isEntity(ent?.Entity)) {
+        this.$q.notify({ type: 'negative', message: this.$t('Model entity not found') + ': ' + (parts || '') })
+        return
+      }
+
+      let isFound = false
+      for (const ea of ent.EntityAttrTxt) {
+        isFound = ea.Attr.Name === name
+
+        if (isFound) {
+          const ne = Mdf.typeEnumSizeById(this.theModel, ea.Attr.TypeId)
+
+          if (this.maxTypeSize > 0 && ne > this.maxTypeSize) {
+            this.$q.notify({ type: 'negative', message: this.$t('Entity attribute size exceed the limit') + ': ' + this.maxTypeSize.toString() + ': ' + (parts || '') + '.' + (name || '') })
+            return
+          }
+          break // attribute found and it size does not exceed the limit
+        }
+      }
+      if (!isFound) {
+        this.$q.notify({ type: 'negative', message: this.$t('Model entity attribute not found') + ': ' + (parts || '') + '.' + (name || '') })
+        return
+      }
+
+      this.$emit('entity-attr-add', name, parts, this.isShowHidden) // attribute size does not exceed the limit: pass message to the parent
     },
     // click on add entity: add all entity attributes into microdata list
     onEntityAddClick (name, parts) {
-      this.$emit('entity-add', name, parts, this.isShowHidden)
+      if (!this.checkAllAttrSize(name)) {
+        return
+      }
+      this.$emit('entity-add', name, parts, this.isShowHidden) // there no attributes where size exceeds the limit: pass message to the parent
+    },
+    // check all attributes of this entity: attribute size should not exceed max size limit
+    checkAllAttrSize (eName) {
+      const ent = Mdf.entityTextByName(this.theModel, eName)
+      if (!Mdf.isEntity(ent?.Entity)) {
+        this.$q.notify({ type: 'negative', message: this.$t('Model entity not found') + ': ' + (eName || '') })
+        return
+      }
+      for (const ea of ent.EntityAttrTxt) {
+        const ne = Mdf.typeEnumSizeById(this.theModel, ea.Attr.TypeId)
+
+        if (this.maxTypeSize > 0 && ne > this.maxTypeSize) {
+          this.$q.notify({ type: 'negative', message: this.$t('Entity attribute size exceed the limit') + ': ' + this.maxTypeSize.toString() + ': ' + (eName || '') + '.' + (ea.Attr.Name || '') })
+          return false
+        }
+      }
+      return true // there no attributes where size exceeds the limit
     },
     // click on remove attribute: remove attribute from microdata list
     onAttrRemoveClick (name, parts) {
