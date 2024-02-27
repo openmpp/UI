@@ -138,6 +138,18 @@ Expected array of tree items as:
             icon="mdi-minus-circle-outline"
             :title="$t('Remove') + ' ' + prop.node.label"
             />
+          <q-btn
+            v-if="isDownloadGroup"
+            @click.stop="$emit('om-table-tree-group-download', prop.node.label, prop.node.parts)"
+            :disable="isDownloadDisabled"
+            flat
+            round
+            dense
+            :color="!isDownloadDisabled ? 'primary' : 'secondary'"
+            class="col-auto"
+            icon="mdi-download-circle-outline"
+            :title="$t('Download') + ' ' + prop.node.label"
+            />
           <div
             v-if="!isGroupClick"
             class="col q-ml-xs q-pl-xs"
@@ -203,6 +215,18 @@ Expected array of tree items as:
             icon="mdi-minus-circle-outline"
             :title="$t('Remove') + ' ' + prop.node.label"
             />
+          <q-btn
+            v-if="isDownload"
+            @click.stop="$emit('om-table-tree-leaf-download', prop.node.label, prop.node.parts)"
+            :disable="isDownloadDisabled"
+            flat
+            round
+            dense
+            :color="!isDownloadDisabled ? 'primary' : 'secondary'"
+            class="col-auto"
+            icon="mdi-download-circle-outline"
+            :title="$t('Download') + ' ' + prop.node.label"
+            />
           <div
             @click="$emit('om-table-tree-leaf-select', prop.node.label, prop.node.parts)"
             :class="{'label-click': isLeafClick}"
@@ -256,6 +280,9 @@ export default {
     isRemove: { type: Boolean, default: false },
     isRemoveGroup: { type: Boolean, default: false },
     isRemoveDisabled: { type: Boolean, default: false },
+    isDownload: { type: Boolean, default: false },
+    isDownloadGroup: { type: Boolean, default: false },
+    isDownloadDisabled: { type: Boolean, default: false },
     filterPlaceholder: { type: String, default: '' },
     noResultsLabel: { type: String, default: '' },
     noNodesLabel: { type: String, default: '' },

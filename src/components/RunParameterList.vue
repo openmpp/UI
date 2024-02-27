@@ -17,6 +17,7 @@
     :is-remove="isRemove"
     :is-remove-group="isRemoveGroup"
     :is-remove-disabled="isRemoveDisabled"
+    :is-download="true"
     :filter-placeholder="$t('Find parameter...')"
     :no-results-label="$t('No model parameters found')"
     :no-nodes-label="$t('No model parameters found or server offline')"
@@ -36,6 +37,7 @@
     @om-table-tree-group-add="onGroupAddClick"
     @om-table-tree-leaf-remove="onRemoveClick"
     @om-table-tree-group-remove="onGroupRemoveClick"
+    @om-table-tree-leaf-download="onDownloadClick"
     @om-table-tree-leaf-note="onShowParamNote"
     @om-table-tree-group-note="onShowGroupNote"
     >
@@ -48,6 +50,7 @@ import { mapState } from 'vuex'
 import * as Mdf from 'src/model-common'
 import OmTableTree from 'components/OmTableTree.vue'
 import * as Tsc from 'components/tree-common.js'
+import { openURL } from 'quasar'
 
 export default {
   name: 'RunParameterList',
@@ -100,6 +103,7 @@ export default {
       theModelUpdated: state => state.theModelUpdated
     }),
     ...mapState('serverState', {
+      omsUrl: state => state.omsUrl,
       serverConfig: state => state.config
     }),
     ...mapState('uiState', {
@@ -186,6 +190,21 @@ export default {
     // click on show group notes dialog button
     onShowGroupNote (name, parts) {
       this.$emit('run-parameter-group-info-show', name, parts)
+    },
+    // download parameter as csv
+    onDownloadClick  (name, parts) {
+      const p = Mdf.paramTextByName(this.theModel, name)
+      if (!Mdf.isParam(p?.Param)) {
+        this.$q.notify({ type: 'negative', message: this.$t('Parameter not found') + ': ' + (name || '') })
+        return
+      }
+      const u = this.omsUrl +
+          '/api/model/' + Mdf.modelDigest(this.theModel) +
+          '/run/' + encodeURIComponent(this.runDigest) +
+          '/parameter/' + encodeURIComponent(name) +
+          ((this.$q.platform.is.win) ? '/csv-bom' : '/csv')
+
+      openURL(u)
     },
 
     // return tree of model parameters

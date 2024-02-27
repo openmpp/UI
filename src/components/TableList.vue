@@ -17,6 +17,7 @@
     :is-remove="isRemove"
     :is-remove-group="isRemoveGroup"
     :is-remove-disabled="isRemoveDisabled"
+    :is-download="true"
     :filter-placeholder="$t('Find output table...')"
     :no-results-label="$t('No output tables found')"
     :no-nodes-label="$t('No output tables found or server offline')"
@@ -37,6 +38,7 @@
     @om-table-tree-group-add="onGroupAddClick"
     @om-table-tree-leaf-remove="onRemoveClick"
     @om-table-tree-group-remove="onGroupRemoveClick"
+    @om-table-tree-leaf-download="onDownloadClick"
     @om-table-tree-leaf-note="onShowTableNote"
     @om-table-tree-group-note="onShowGroupNote"
     >
@@ -49,6 +51,7 @@ import { mapState, mapGetters } from 'vuex'
 import * as Mdf from 'src/model-common'
 import OmTableTree from 'components/OmTableTree.vue'
 import * as Tsc from 'components/tree-common.js'
+import { openURL } from 'quasar'
 
 export default {
   name: 'TableList',
@@ -106,6 +109,7 @@ export default {
       runTextByDigest: 'runTextByDigest'
     }),
     ...mapState('serverState', {
+      omsUrl: state => state.omsUrl,
       serverConfig: state => state.config
     }),
     ...mapState('uiState', {
@@ -189,6 +193,21 @@ export default {
     // click on show group notes dialog button
     onShowGroupNote (name, parts) {
       this.$emit('table-group-info-show', name, parts)
+    },
+    // download output table as csv
+    onDownloadClick  (name, parts) {
+      if (!name || !Mdf.isRunTextHasTable(this.runCurrent, name)) {
+        this.$q.notify({ type: 'negative', message: this.$t('Output table not found') + ': ' + (name || '') })
+        return
+      }
+      const u = this.omsUrl +
+        '/api/model/' + encodeURIComponent(Mdf.modelDigest(this.theModel)) +
+        '/run/' + encodeURIComponent(this.runDigest) +
+        '/table/' + encodeURIComponent(name) +
+        '/expr' +
+        ((this.$q.platform.is.win) ? '/csv-bom' : '/csv')
+
+      openURL(u)
     },
 
     // return tree of output tables
