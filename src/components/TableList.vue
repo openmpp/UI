@@ -17,7 +17,8 @@
     :is-remove="isRemove"
     :is-remove-group="isRemoveGroup"
     :is-remove-disabled="isRemoveDisabled"
-    :is-download="true"
+    :is-download="isTableDownload"
+    :is-download-disabled="isTableDownloadDisabled"
     :filter-placeholder="$t('Find output table...')"
     :no-results-label="$t('No output tables found')"
     :no-nodes-label="$t('No output tables found or server offline')"
@@ -70,6 +71,8 @@ export default {
     isRemove: { type: Boolean, default: false },
     isRemoveGroup: { type: Boolean, default: false },
     isRemoveDisabled: { type: Boolean, default: false },
+    isTableDownload: { type: Boolean, default: false },
+    isTableDownloadDisabled: { type: Boolean, default: false },
     nameFilter: { type: Array, default: () => [] }, // if not empty then use only tables and groups included in the name list
     isOnOffNotInList: { type: Boolean, default: false },
     inListOnLabel: { type: String, default: '' },

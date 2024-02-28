@@ -17,7 +17,8 @@
     :is-remove="isRemoveEntityAttr"
     :is-remove-group="isRemoveEntity"
     :is-remove-disabled="isRemoveDisabled"
-    :is-download-group="true"
+    :is-download-group="isEntityDownload"
+    :is-download-group-disabled="isEntityDownloadDisabled"
     :filter-placeholder="$t('Find entity or attribute...')"
     :no-results-label="$t('No entity attributes found')"
     :no-nodes-label="$t('No model entities found or server offline')"
@@ -66,6 +67,8 @@ export default {
     isRemoveEntityAttr: { type: Boolean, default: false },
     isRemoveEntity: { type: Boolean, default: false },
     isRemoveDisabled: { type: Boolean, default: false },
+    isEntityDownload: { type: Boolean, default: false },
+    isEntityDownloadDisabled: { type: Boolean, default: false },
     nameFilter: { type: Array, default: () => [] }, // if not empty then use only entity.attribute included in this list
     isInListEnable: { type: Boolean, default: false },
     inListOnLabel: { type: String, default: '' },

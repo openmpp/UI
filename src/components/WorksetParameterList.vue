@@ -17,8 +17,8 @@
     :is-remove="isRemove"
     :is-remove-group="isRemoveGroup"
     :is-remove-disabled="isRemoveDisabled"
-    :is-download="true"
-    :is-download-disabled="!isWsReadonly"
+    :is-download="isParamDownload"
+    :is-download-disabled="isParamDownloadDisabled"
     :filter-placeholder="$t('Find parameter...')"
     :no-results-label="$t('No model parameters found')"
     :no-nodes-label="$t('No model parameters found or server offline')"
@@ -58,7 +58,9 @@ export default {
     isAddDisabled: { type: Boolean, default: false },
     isRemove: { type: Boolean, default: false },
     isRemoveGroup: { type: Boolean, default: false },
-    isRemoveDisabled: { type: Boolean, default: false }
+    isRemoveDisabled: { type: Boolean, default: false },
+    isParamDownload: { type: Boolean, default: false },
+    isParamDownloadDisabled: { type: Boolean, default: false }
   },
 
   data () {
