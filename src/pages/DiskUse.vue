@@ -92,9 +92,9 @@
             <td class="om-p-cell-right mono">{{ fileSizeStr(dbu.size) }}</td>
             <td class="om-p-cell-left mono">{{ fileTimeStamp(dbu.modTs) }}</td>
             <td class="om-p-cell-left"
-              ><span>{{ dbu.nameVer }}</span>
-              <template v-if="dbu.descr !== ''"><br /><span class="om-text-descr">{{ dbu.descr }}</span></template>
-              <template v-if="dbu.dir !== ''"><br /><span class="om-text-descr">{{ dbu.dir + ' / ' + dbu.name  }}</span></template></td>
+              ><template v-if="dbu.dir !== ''"><span class="om-text-descr">{{ dbu.dir + ' / ' + dbu.name  }}</span><br /></template>
+              <span>{{ dbu.nameVer }}</span>
+              <template v-if="dbu.descr !== ''"><br /><span class="om-text-descr">{{ dbu.descr }}</span></template></td>
           </tr>
         </tbody>
       </table>
