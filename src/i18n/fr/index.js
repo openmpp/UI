@@ -162,6 +162,7 @@ export default {
   'Entity attribute size exceed the limit': "La taille de l'attribut d'entité dépasse la limite",
   'Entity microdata is empty': "Les microdonnées de l'entité sont vides",
   'Entity microdata not found in model run': "Microdonnées d'entité introuvables dans l'exécution du modèle",
+  'Entity microdata not found or empty': "Microdonnées d'entité introuvables ou vides",
   'Entity Name': "Nom de l'entité",
   'Enum Code': 'Code énumération',
   'Enum Id': 'Id énumération',

@@ -17,6 +17,8 @@
     :is-remove="isRemove"
     :is-remove-group="isRemoveGroup"
     :is-remove-disabled="isRemoveDisabled"
+    :is-download="isParamDownload"
+    :is-download-disabled="isParamDownloadDisabled"
     :filter-placeholder="$t('Find parameter...')"
     :no-results-label="$t('No model parameters found')"
     :no-nodes-label="$t('No model parameters found or server offline')"
@@ -26,6 +28,7 @@
     @om-table-tree-group-add="onGroupAddClick"
     @om-table-tree-leaf-remove="onRemoveClick"
     @om-table-tree-group-remove="onGroupRemoveClick"
+    @om-table-tree-leaf-download="onDownloadClick"
     @om-table-tree-leaf-note="onShowParamNote"
     @om-table-tree-group-note="onShowGroupNote"
     >
@@ -38,6 +41,7 @@ import { mapState, mapGetters } from 'vuex'
 import * as Mdf from 'src/model-common'
 import OmTableTree from 'components/OmTableTree.vue'
 import * as Tsc from 'components/tree-common.js'
+import { openURL } from 'quasar'
 
 export default {
   name: 'WorksetParameterList',
@@ -54,7 +58,9 @@ export default {
     isAddDisabled: { type: Boolean, default: false },
     isRemove: { type: Boolean, default: false },
     isRemoveGroup: { type: Boolean, default: false },
-    isRemoveDisabled: { type: Boolean, default: false }
+    isRemoveDisabled: { type: Boolean, default: false },
+    isParamDownload: { type: Boolean, default: false },
+    isParamDownloadDisabled: { type: Boolean, default: false }
   },
 
   data () {
@@ -70,6 +76,7 @@ export default {
   },
 
   computed: {
+    isWsReadonly () { return !!this.worksetCurrent?.IsReadonly },
     maxTypeSize () {
       const s = Mdf.configEnvValue(this.serverConfig, 'OM_CFG_TYPE_MAX_LEN')
       return ((s || '') !== '') ? parseInt(s) : 0
@@ -83,6 +90,7 @@ export default {
       worksetTextByName: 'worksetTextByName'
     }),
     ...mapState('serverState', {
+      omsUrl: state => state.omsUrl,
       serverConfig: state => state.config
     }),
     ...mapState('uiState', {
@@ -160,6 +168,20 @@ export default {
     // click on show group notes dialog button
     onShowGroupNote (name, parts) {
       this.$emit('set-parameter-group-info-show', name, parts)
+    },
+    // download parameter as csv
+    onDownloadClick  (name, parts) {
+      if (!name || !Mdf.isWorksetParamByName(this.worksetCurrent, name)) {
+        this.$q.notify({ type: 'negative', message: this.$t('Parameter not found') + ': ' + (name || '') })
+        return
+      }
+      const u = this.omsUrl +
+          '/api/model/' + Mdf.modelDigest(this.theModel) +
+          '/workset/' + encodeURIComponent(this.worksetName) +
+          '/parameter/' + encodeURIComponent(name) +
+          ((this.$q.platform.is.win) ? '/csv-bom' : '/csv')
+
+      openURL(u)
     },
 
     // return tree of model parameters

@@ -17,6 +17,8 @@
     :is-remove="isRemoveEntityAttr"
     :is-remove-group="isRemoveEntity"
     :is-remove-disabled="isRemoveDisabled"
+    :is-download-group="isEntityDownload"
+    :is-download-group-disabled="isEntityDownloadDisabled"
     :filter-placeholder="$t('Find entity or attribute...')"
     :no-results-label="$t('No entity attributes found')"
     :no-nodes-label="$t('No model entities found or server offline')"
@@ -34,6 +36,7 @@
     @om-table-tree-group-add="onEntityAddClick"
     @om-table-tree-leaf-remove="onAttrRemoveClick"
     @om-table-tree-group-remove="onEntityRemoveClick"
+    @om-table-tree-group-download="onDownloadClick"
     @om-table-tree-leaf-note="onShowAttrNote"
     @om-table-tree-group-note="onShowEntityNote"
     >
@@ -45,6 +48,7 @@
 import { mapState, mapGetters } from 'vuex'
 import * as Mdf from 'src/model-common'
 import OmTableTree from 'components/OmTableTree.vue'
+import { openURL } from 'quasar'
 
 export default {
   name: 'EntityList',
@@ -63,6 +67,8 @@ export default {
     isRemoveEntityAttr: { type: Boolean, default: false },
     isRemoveEntity: { type: Boolean, default: false },
     isRemoveDisabled: { type: Boolean, default: false },
+    isEntityDownload: { type: Boolean, default: false },
+    isEntityDownloadDisabled: { type: Boolean, default: false },
     nameFilter: { type: Array, default: () => [] }, // if not empty then use only entity.attribute included in this list
     isInListEnable: { type: Boolean, default: false },
     inListOnLabel: { type: String, default: '' },
@@ -101,6 +107,7 @@ export default {
       runTextByDigest: 'runTextByDigest'
     }),
     ...mapState('serverState', {
+      omsUrl: state => state.omsUrl,
       serverConfig: state => state.config
     }),
     ...mapState('uiState', {
@@ -213,6 +220,20 @@ export default {
     // click on show entity notes dialog button
     onShowEntityNote (name, parts) {
       this.$emit('entity-info-show', name, parts)
+    },
+    // download entity microdata as csv
+    onDownloadClick  (name, parts) {
+      if (!name || !Mdf.isNotEmptyRunEntity(Mdf.runEntityByName(this.runCurrent, name))) {
+        this.$q.notify({ type: 'negative', message: this.$t('Entity microdata not found or empty' + ': ' + (name || '') + ' ' + this.runDigest) + ': ' })
+        return
+      }
+      const u = this.omsUrl +
+        '/api/model/' + encodeURIComponent(Mdf.modelDigest(this.theModel)) +
+        '/run/' + encodeURIComponent(this.runDigest) +
+        '/microdata/' + encodeURIComponent(name) +
+        ((this.$q.platform.is.win) ? '/csv-bom' : '/csv')
+
+      openURL(u)
     },
 
     // return tree of entity attributes: entities are the groups and attributes are leafs

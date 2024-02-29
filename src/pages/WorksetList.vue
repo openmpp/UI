@@ -263,6 +263,8 @@
         :is-remove="true"
         :is-remove-group="true"
         :is-remove-disabled="isReadonlyWorksetCurrent"
+        :is-param-download="true"
+        :is-param-download-disabled="!isReadonlyWorksetCurrent || isFromWorksetShow"
         @set-parameter-select="onWorksetParamClick"
         @set-parameter-info-show="doParamNoteWorksetCurrent"
         @set-parameter-group-info-show="doShowGroupNote"
