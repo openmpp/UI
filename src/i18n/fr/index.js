@@ -278,6 +278,7 @@ export default {
   'model(s)': 'des modèles',
   'Model Created': 'Modèle créé',
   'Model Documentation': 'Documentation du modèle',
+  'Model Database': 'Base de données modèle',
   'Model Digest': 'Digest du modèle',
   'Model download started': 'Le téléchargement du modèle a commencé',
   'Model Downloads': 'Téléchargements de modèles',

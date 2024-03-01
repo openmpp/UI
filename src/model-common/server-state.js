@@ -346,14 +346,17 @@ export const isServiceState = (st) => {
     "UpdateTs": 1707275824187
   },
   "DbDiskUse": [{
-      "Digest": "4114671ac687e8164f43e6f90ec14d65",
+      "DbPath": "RiskPaths.db",
+      "Digest": "",
       "Size": 11150643200,
       "ModTs": 1701845412131
     }, {
+      "DbPath": "RiskPaths.slqite",
       "Digest": "d90e1e9a49a06d972ecf1d50e684c62b",
       "Size": 872448,
       "ModTs": 1707196254975
     }, {
+      "DbPath": "modelOne.slqite",
       "Digest": "_201208171604590148_",
       "Size": 125902848,
       "ModTs": 1707143875935
@@ -416,6 +419,16 @@ export const isDiskUseState = (st) => {
   if (!st.DiskUse.hasOwnProperty('DiskScanMs') || typeof st.DiskUse.DiskScanMs !== typeof 1) return false
 
   return Array.isArray(st.DbDiskUse)
+}
+
+// return true if it is a DbDiskUse structure
+export const isDbDiskUse = (du) => {
+  if (!du) return false
+  if (!du.hasOwnProperty('DbPath') || typeof du.DbPath !== typeof 'string') return false
+  if (!du.hasOwnProperty('Digest') || typeof du.Digest !== typeof 'string') return false
+  if (!du.hasOwnProperty('Size') || typeof du.Size !== typeof 1) return false
+  if (!du.hasOwnProperty('ModTs') || typeof du.ModTs !== typeof 1) return false
+  return true
 }
 
 /* eslint-disable no-multi-spaces */

@@ -101,6 +101,7 @@ export default {
     isReadonlyWorksetCurrent () { return Mdf.isNotEmptyWorksetText(this.worksetCurrent) && this.worksetCurrent.IsReadonly },
     descrWorksetCurrent () { return Mdf.descrOfTxt(this.worksetCurrent) },
     fileSelected () { return !(this.uploadFile === null) },
+    isDiskOver () { return !!this?.serverConfig?.IsDiskUse && !!this.diskUseState?.DiskUse?.IsOver },
 
     ...mapState('model', {
       theModel: state => state.theModel,
@@ -112,14 +113,15 @@ export default {
       runTextByDigest: 'runTextByDigest',
       worksetTextByName: 'worksetTextByName'
     }),
+    ...mapState('serverState', {
+      omsUrl: state => state.omsUrl,
+      serverConfig: state => state.config,
+      diskUseState: state => state.diskUse
+    }),
     ...mapState('uiState', {
       runDigestSelected: state => state.runDigestSelected,
       worksetNameSelected: state => state.worksetNameSelected,
       uiLang: state => state.uiLang
-    }),
-    ...mapState('serverState', {
-      omsUrl: state => state.omsUrl,
-      serverConfig: state => state.config
     })
   },
 

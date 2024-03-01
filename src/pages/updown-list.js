@@ -48,6 +48,9 @@ export default {
       loadWait: false,
       loadWsListWait: false,
       refreshWsListTickle: false,
+      loadConfig: false,
+      isDiskOver: false,
+      loadDiskUse: false,
       isLogRefreshPaused: false,
       lastLogDt: 0,
       logRefreshInt: '',
@@ -103,7 +106,8 @@ export default {
     }),
     ...mapState('serverState', {
       omsUrl: state => state.omsUrl,
-      serverConfig: state => state.config
+      serverConfig: state => state.config,
+      diskUseState: state => state.diskUse
     })
   },
 
@@ -243,6 +247,10 @@ export default {
 
     // update page view
     initView () {
+      // refersh server config and disk usage
+      this.doConfigRefresh()
+      this.doGetDiskUse()
+
       if (!this.serverConfig.AllowDownload && !this.serverConfig.AllowUpload) {
         this.$q.notify({ type: 'negative', message: this.$t('Downloads and uploads are not allowed') })
         this.downloadExpand = false
@@ -724,6 +732,61 @@ export default {
       this.$q.notify({ type: 'info', message: this.$t('Deleted') + ': ' + folder })
     },
 
+    // receive server configuration, including configuration of model catalog and run catalog
+    async doConfigRefresh () {
+      this.loadConfig = true
+
+      const u = this.omsUrl + '/api/service/config'
+      try {
+        // send request to the server
+        const response = await this.$axios.get(u)
+        this.dispatchServerConfig(response.data) // update server config in store
+      } catch (e) {
+        let em = ''
+        try {
+          if (e.response) em = e.response.data || ''
+        } finally {}
+        console.warn('Server offline or configuration retrieve failed.', em)
+        this.$q.notify({ type: 'negative', message: this.$t('Server offline or configuration retrieve failed.') })
+      }
+      this.loadConfig = false
+    },
+
+    // receive disk space usage from server
+    async doGetDiskUse () {
+      this.loadDiskUse = true
+      let isOk = false
+
+      const u = this.omsUrl + '/api/service/disk-use'
+      try {
+        // send request to the server
+        const response = await this.$axios.get(u)
+        this.dispatchDiskUse(response.data) // update disk space usage in store
+        isOk = Mdf.isDiskUseState(response.data) // validate disk usage info
+      } catch (e) {
+        let em = ''
+        try {
+          if (e.response) em = e.response.data || ''
+        } finally {}
+        console.warn('Server offline or disk usage retrieve failed.', em)
+        this.$q.notify({ type: 'negative', message: this.$t('Server offline or disk space usage retrieve failed.') })
+      }
+      this.loadDiskUse = false
+
+      // update disk space usage to notify user
+      if (isOk) {
+        this.isDiskOver = this.diskUseState?.DiskUse?.IsOver
+      } else {
+        this.isDiskOver = true
+        console.warn('Disk usage retrieve failed:', this.nDdiskUseErr)
+        this.$q.notify({ type: 'negative', message: this.$t('Disk space usage retrieve failed') })
+      }
+    },
+
+    ...mapActions('serverState', {
+      dispatchServerConfig: 'serverConfig',
+      dispatchDiskUse: 'diskUse'
+    }),
     ...mapActions('uiState', {
       dispatchNoAccDownload: 'noAccDownload',
       dispatchNoMicrodataDownload: 'noMicrodataDownload'

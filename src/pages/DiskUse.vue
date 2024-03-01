@@ -84,16 +84,16 @@
           <tr>
             <th class="om-p-head-center text-weight-medium">{{ $t('Size') }}</th>
             <th class="om-p-head-center text-weight-medium">{{ $t('Updated') }}</th>
-            <th class="om-p-head-center text-weight-medium">{{ $t('Model') }}</th>
+            <th class="om-p-head-center text-weight-medium">{{ $t('Model Database') }}</th>
           </tr>
         </thead>
         <tbody>
-          <tr v-for="dbu in dbUseLst" :key="'md-' + (dbu.digest || 'no-digest')">
+          <tr v-for="dbu in dbUseLst" :key="'md-' + (dbu.path || 'no-path')">
             <td class="om-p-cell-right mono">{{ fileSizeStr(dbu.size) }}</td>
             <td class="om-p-cell-left mono">{{ fileTimeStamp(dbu.modTs) }}</td>
             <td class="om-p-cell-left"
-              ><template v-if="dbu.dir !== ''"><span class="om-text-descr">{{ dbu.dir + ' / ' + dbu.name  }}</span><br /></template>
-              <span>{{ dbu.nameVer }}</span>
+              ><span class="om-text-descr">{{ dbu.path  }}</span>
+              <template v-if="dbu.nameVer !== ''"><br /><span>{{ dbu.nameVer  }}</span></template>
               <template v-if="dbu.descr !== ''"><br /><span class="om-text-descr">{{ dbu.descr }}</span></template></td>
           </tr>
         </tbody>

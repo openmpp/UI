@@ -111,6 +111,7 @@ export default {
     isCompare () { return Mdf.lengthOf(this.compareDigestArray) > 0 },
     fileSelected () { return !(this.uploadFile === null) },
     isMicrodata () { return !!this.serverConfig.AllowMicrodata && Mdf.entityCount(this.theModel) > 0 },
+    isDiskOver () { return !!this?.serverConfig?.IsDiskUse && !!this.diskUseState?.DiskUse?.IsOver },
 
     ...mapState('model', {
       theModel: state => state.theModel,
@@ -126,12 +127,13 @@ export default {
       noAccDownload: state => state.noAccDownload,
       noMicrodataDownload: state => state.noMicrodataDownload
     }),
-    ...mapGetters('uiState', {
-      modelViewSelected: 'modelViewSelected'
-    }),
     ...mapState('serverState', {
       omsUrl: state => state.omsUrl,
-      serverConfig: state => state.config
+      serverConfig: state => state.config,
+      diskUseState: state => state.diskUse
+    }),
+    ...mapGetters('uiState', {
+      modelViewSelected: 'modelViewSelected'
     })
   },
 

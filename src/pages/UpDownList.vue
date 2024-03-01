@@ -73,6 +73,7 @@
           <tr v-if="isUploadEnabled">
             <td class="om-p-cell">
               <q-btn
+                v-if="!isDiskOver"
                 @click="onUploadRun"
                 :disable="!isUploadEnabled || !runFileSelected"
                 flat
@@ -81,11 +82,22 @@
                 icon="mdi-upload"
                 :title="$t('Upload model run .zip')"
                 />
+              <q-btn
+                v-else
+                to="/disk-use"
+                outline
+                rounded
+                dense
+                icon="mdi-database-alert"
+                color="negative"
+                class="col-auto rounded-borders"
+                :title="$t('View and cleanup storage space')"
+                />
             </td>
             <td colspan="5" class="om-p-cell">
               <q-file
                 v-model="runUploadFile"
-                :disable="!isUploadEnabled || !digest"
+                :disable="!isUploadEnabled || !digest || isDiskOver"
                 accept='.zip'
                 outlined
                 dense
@@ -107,6 +119,7 @@
           <tr v-if="isUploadEnabled">
             <td class="om-p-cell">
               <q-btn
+                v-if="!isDiskOver"
                 @click="onUploadWorkset"
                 :disable="!isUploadEnabled || !wsFileSelected"
                 flat
@@ -115,11 +128,22 @@
                 icon="mdi-upload"
                 :title="$t('Upload scenario .zip')"
                 />
+              <q-btn
+                v-else
+                to="/disk-use"
+                outline
+                rounded
+                dense
+                icon="mdi-database-alert"
+                color="negative"
+                class="col-auto rounded-borders"
+                :title="$t('View and cleanup storage space')"
+                />
             </td>
             <td colspan="5" class="om-p-cell">
               <q-file
                 v-model="wsUploadFile"
-                :disable="!isUploadEnabled || !digest"
+                :disable="!isUploadEnabled || !digest || isDiskOver"
                 accept='.zip'
                 outlined
                 dense
@@ -542,7 +566,7 @@
     >
   </delete-confirm-dialog>
 
-  <q-inner-loading :showing="loadWsListWait">
+  <q-inner-loading :showing="loadWsListWait || loadConfig || loadDiskUse">
     <q-spinner-gears size="lg" color="primary" />
   </q-inner-loading>
 

@@ -9,14 +9,26 @@
 
         <span class="col-auto q-mr-sm">
           <q-btn
+           v-if="!isDiskOver"
             @click="onModelRunClick"
-            :disable="isInitRun || !runOpts.runName || isNoTables"
+            :disable="isInitRun || !runOpts.runName || isNoTables || isDiskOver"
             color="primary"
             class="rounded-borders q-pr-xs"
             >
-            <q-icon name="mdi-run" class=" q-mr-xs"/>
+            <q-icon name="mdi-run" class="q-mr-xs"/>
+            <q-icon v-if="isDiskOver" name="mdi-database-alert" color="negative" class="q-mr-xs"/>
             <span>{{ $t('Run the Model') }}</span>
           </q-btn>
+          <q-btn
+            v-else
+            to="/disk-use"
+            outline
+            rounded
+            icon="mdi-database-alert"
+            color="negative"
+            class="rounded-borders q-mr-xs"
+            :title="$t('View and cleanup storage space')"
+            />
         </span>
 
         <span class="col-grow">
@@ -592,7 +604,7 @@
   <entity-info-dialog :show-tickle="entityInfoTickle" :entity-name="entityInfoName"></entity-info-dialog>
   <entity-attr-info-dialog :show-tickle="attrInfoTickle" :entity-name="entityInfoName" :attr-name="attrInfoName"></entity-attr-info-dialog>
 
-  <q-inner-loading :showing="loadWait">
+  <q-inner-loading :showing="loadWait || loadConfig || loadDiskUse">
     <q-spinner-gears size="md" color="primary" />
   </q-inner-loading>
 

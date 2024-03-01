@@ -59,22 +59,6 @@ export default {
       return fs.val + ' ' + this.$t(fs.name)
     },
 
-    modelNameVer (dgst) {
-      const t = Mdf.modelNameVer(Mdf.modelByDigest(dgst, this.modelList))
-      return ((t || '') !== '') ? t : dgst
-    },
-    modelDescr (dgst) {
-      return Mdf.descrOfDescrNote(Mdf.modelByDigest(dgst, this.modelList))
-    },
-    modelDir (dgst) {
-      const p = Mdf.modelDirByDigest(dgst, this.modelList)
-      if (!p || p === '/' || p === './' || p === '.') return ''
-
-      const t = Mdf.modelName(Mdf.modelByDigest(dgst, this.modelList))
-
-      return p + ' / ' + (((t || '') !== '') ? t : dgst)
-    },
-
     // delete all download files for all models
     onAllDownloadDelete () {
       this.upDownToDelete = 'down'
@@ -101,15 +85,17 @@ export default {
       const du = []
 
       for (const d of this.diskUseState.DbDiskUse) {
+        if (!Mdf.isDbDiskUse(d)) continue
+
         const m = Mdf.modelByDigest(d.Digest, this.modelList)
         du.push({
-          digest: d.Digest,
+          digest: Mdf.modelDigest(m),
           size: d.Size,
           modTs: d.ModTs,
           name: Mdf.modelName(m),
           nameVer: Mdf.modelNameVer(m),
           descr: Mdf.descrOfDescrNote(m),
-          dir: Mdf.modelDirByDigest(d.Digest, this.modelList)
+          path: d.DbPath
         })
       }
 
@@ -117,16 +103,13 @@ export default {
       du.sort((left, right) => {
         const nL = left.name.toLowerCase()
         const nR = right.name.toLowerCase()
+        const pL = left.path.toLowerCase()
+        const pR = right.path.toLocaleLowerCase()
 
-        if (left.dir && right.dir) {
-          const pL = left.dir.toLowerCase() + ' / ' + nL
-          const pR = right.dir.toLocaleLowerCase() + ' / ' + nR
-          return (pL < pR) ? -1 : ((pL > pR) ? 1 : 0)
-        }
-        if (left.dir && !right.dir) return -1
-        if (!left.dir && right.dir) return 1
+        if (pL !== nL && pR === nR) return -1
+        if (pL === nL && pR !== nR) return 1
 
-        return (nL < nR) ? -1 : ((nL > nR) ? 1 : 0)
+        return (pL < pR) ? -1 : ((pL > pR) ? 1 : 0)
       })
 
       this.dbUseLst = Object.freeze(du)

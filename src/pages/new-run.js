@@ -1,4 +1,4 @@
-import { mapState, mapGetters } from 'vuex'
+import { mapState, mapGetters, mapActions } from 'vuex'
 import * as Mdf from 'src/model-common'
 import NewRunInit from 'components/NewRunInit.vue'
 import RunBar from 'components/RunBar.vue'
@@ -97,6 +97,9 @@ export default {
         default: () => ({})
       },
       loadWait: false,
+      loadConfig: false,
+      isDiskOver: false,
+      loadDiskUse: false,
       isRunOptsShow: true,
       runInfoTickle: false,
       worksetInfoTickle: false,
@@ -142,7 +145,8 @@ export default {
     }),
     ...mapState('serverState', {
       omsUrl: state => state.omsUrl,
-      serverConfig: state => state.config
+      serverConfig: state => state.config,
+      diskUseState: state => state.diskUse
     })
   },
 
@@ -154,6 +158,10 @@ export default {
   methods: {
     // update page view
     doRefresh () {
+      // refersh server config and disk usage
+      this.doConfigRefresh()
+      this.doGetDiskUse()
+
       // use selected run digest as base run digest or previous run digest if user resubmitting the run
       // use selected workset name or previous run workset name if user resubmitting the run
       let rDgst = this.runDigestSelected
@@ -983,6 +991,57 @@ export default {
       }
     },
 
+    // receive server configuration, including configuration of model catalog and run catalog
+    async doConfigRefresh () {
+      this.loadConfig = true
+
+      const u = this.omsUrl + '/api/service/config'
+      try {
+        // send request to the server
+        const response = await this.$axios.get(u)
+        this.dispatchServerConfig(response.data) // update server config in store
+      } catch (e) {
+        let em = ''
+        try {
+          if (e.response) em = e.response.data || ''
+        } finally {}
+        console.warn('Server offline or configuration retrieve failed.', em)
+        this.$q.notify({ type: 'negative', message: this.$t('Server offline or configuration retrieve failed.') })
+      }
+      this.loadConfig = false
+    },
+
+    // receive disk space usage from server
+    async doGetDiskUse () {
+      this.loadDiskUse = true
+      let isOk = false
+
+      const u = this.omsUrl + '/api/service/disk-use'
+      try {
+        // send request to the server
+        const response = await this.$axios.get(u)
+        this.dispatchDiskUse(response.data) // update disk space usage in store
+        isOk = Mdf.isDiskUseState(response.data) // validate disk usage info
+      } catch (e) {
+        let em = ''
+        try {
+          if (e.response) em = e.response.data || ''
+        } finally {}
+        console.warn('Server offline or disk usage retrieve failed.', em)
+        this.$q.notify({ type: 'negative', message: this.$t('Server offline or disk space usage retrieve failed.') })
+      }
+      this.loadDiskUse = false
+
+      // update disk space usage to notify user
+      if (isOk) {
+        this.isDiskOver = this.diskUseState?.DiskUse?.IsOver
+      } else {
+        this.isDiskOver = true
+        console.warn('Disk usage retrieve failed:', this.nDdiskUseErr)
+        this.$q.notify({ type: 'negative', message: this.$t('Disk space usage retrieve failed') })
+      }
+    },
+
     // receive profile list by model digest
     async doProfileListRefresh () {
       let isOk = false
@@ -1013,7 +1072,12 @@ export default {
         this.$q.notify({ type: 'negative', message: this.$t('Server offline or profile list retrieve failed') + ': ' + this.digest })
       }
       this.loadWait = false
-    }
+    },
+
+    ...mapActions('serverState', {
+      dispatchServerConfig: 'serverConfig',
+      dispatchDiskUse: 'diskUse'
+    })
   },
 
   mounted () {

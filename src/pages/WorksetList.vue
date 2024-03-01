@@ -56,7 +56,7 @@
 
             <template v-if="serverConfig.AllowUpload">
               <q-item
-                :disable="isNewWorksetShow || isShowNoteEditor"
+                :disable="isNewWorksetShow || isShowNoteEditor || isDiskOver"
                 @click="doShowFileSelect()"
                 v-show="!uploadFileSelect"
                 clickable
@@ -159,7 +159,7 @@
 
       <template v-if="serverConfig.AllowUpload">
         <q-btn
-          :disable="isNewWorksetShow || isShowNoteEditor"
+          :disable="isNewWorksetShow || isShowNoteEditor || isDiskOver"
           @click="doShowFileSelect()"
           v-show="!uploadFileSelect"
           flat
