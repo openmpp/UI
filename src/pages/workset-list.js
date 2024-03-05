@@ -422,7 +422,7 @@ export default {
       }
 
       // refresh workset list from the server
-      this.$q.notify({ type: 'info', message: this.$t('Deleted') + ': ' + ' [ ' + nLen.toString() + ' ]' })
+      this.$q.notify({ type: 'info', message: this.$t('Deleted: ') + ' [ ' + nLen.toString() + ' ]' })
       this.$emit('set-list-refresh')
     },
 
@@ -463,11 +463,11 @@ export default {
       // check if workset with the same name already exist
       for (const wt of this.worksetTextList) {
         if (Mdf.isWorksetText(wt) && Mdf.modelName(this.theModel) + '.set.' + wt.Name + '.zip' === fName) {
-          this.$q.notify({ type: 'negative', message: this.$t('Input scenario with the same name already exist' + ': ' + wt.Name) })
+          this.$q.notify({ type: 'negative', message: this.$t('Input scenario with the same name already exist: ') + wt.Name })
           return
         }
       }
-      this.$q.notify({ type: 'info', message: this.$t('Uploading') + ': ' + fName + '\u2026' })
+      this.$q.notify({ type: 'info', message: this.$t('Uploading: ') + fName + '\u2026' })
 
       // make upload multipart form
       const opts = {
@@ -487,14 +487,14 @@ export default {
           if (e.response) msg = e.response.data || ''
         } finally {}
         console.warn('Unable to upload input scenario', msg, fName)
-        this.$q.notify({ type: 'negative', message: this.$t('Unable to upload input scenario') + ': ' + fName })
+        this.$q.notify({ type: 'negative', message: this.$t('Unable to upload input scenario: ') + fName })
         return
       }
 
       // notify user and close upload controls
       this.doCancelFileSelect()
-      this.$q.notify({ type: 'info', message: this.$t('Uploaded') + ': ' + fName })
-      this.$q.notify({ type: 'info', message: this.$t('Import scenario') + ': ' + fName + '\u2026' })
+      this.$q.notify({ type: 'info', message: this.$t('Uploaded: ') + fName })
+      this.$q.notify({ type: 'info', message: this.$t('Import scenario: ') + fName + '\u2026' })
 
       // upload started: show upload list page
       this.$emit('upload-select', this.digest)
@@ -721,7 +721,7 @@ export default {
         console.warn('Unable to download model workset', msg)
       }
       if (!isOk) {
-        this.$q.notify({ type: 'negative', message: this.$t('Unable to download input scenario') + (msg ? (': ' + msg) : '') })
+        this.$q.notify({ type: 'negative', message: this.$t('Unable to download input scenario') + (msg ? ('. ' + msg) : '') })
         return
       }
 
@@ -739,7 +739,7 @@ export default {
         this.$q.notify({ type: 'negative', message: this.$t('Unable to delete from input scenario, it is read-only (or undefined)') })
         return
       }
-      this.$q.notify({ type: 'info', message: this.$t('Deleting') + ': ' + paramName })
+      this.$q.notify({ type: 'info', message: this.$t('Deleting: ') + paramName })
       this.loadWait = true
 
       const u = this.omsUrl +
@@ -758,11 +758,11 @@ export default {
       }
       this.loadWait = false
       if (!isOk) {
-        this.$q.notify({ type: 'negative', message: this.$t('Unable to delete parameter from input scenario') + (msg ? (': ' + msg) : '') })
+        this.$q.notify({ type: 'negative', message: this.$t('Unable to delete parameter from input scenario') + (msg ? ('. ' + msg) : '') })
         return
       }
 
-      this.$q.notify({ type: 'info', message: this.$t('Deleted') + ': ' + paramName })
+      this.$q.notify({ type: 'info', message: this.$t('Deleted: ') + paramName })
       this.refreshWsTickle = !this.refreshWsTickle
     },
 
@@ -780,7 +780,7 @@ export default {
       // make list of workset parameters in that group
       const gp = this.groupParameterLeafs[groupName]
       if (!gp) {
-        this.$q.notify({ type: 'warning', message: this.$t('Group has no parameters') + ': ' + (groupName || '') })
+        this.$q.notify({ type: 'warning', message: this.$t('Group has no parameters: ') + (groupName || '') })
         return
       }
 
@@ -789,16 +789,16 @@ export default {
         if (pw.Name && gp?.leafs[pw.Name]) pLst.push(pw.Name)
       }
       if (pLst.length <= 0) {
-        this.$q.notify({ type: 'warning', message: this.$t('Input scenario group has no parameters') + ': ' + (groupName || '') })
+        this.$q.notify({ type: 'warning', message: this.$t('Input scenario group has no parameters: ') + (groupName || '') })
         return
       }
 
       // deleteing all parameters in that workset group
-      this.$q.notify({ type: 'info', message: this.$t('Deleting group') + ': ' + groupName })
+      this.$q.notify({ type: 'info', message: this.$t('Deleting group: ') + groupName })
       this.loadWait = true
 
       for (const pName of pLst) {
-        this.$q.notify({ type: 'info', message: this.$t('Deleting') + ': ' + pName })
+        this.$q.notify({ type: 'info', message: this.$t('Deleting: ') + pName })
 
         const u = this.omsUrl +
           '/api/model/' + encodeURIComponent(this.digest) +
@@ -816,13 +816,13 @@ export default {
         }
         if (!isOk) {
           this.loadWait = false
-          this.$q.notify({ type: 'negative', message: this.$t('Unable to delete parameter from input scenario') + (msg ? (': ' + msg) : '') })
+          this.$q.notify({ type: 'negative', message: this.$t('Unable to delete parameter from input scenario') + (msg ? ('. ' + msg) : '') })
           return
         }
       }
       this.loadWait = false
 
-      this.$q.notify({ type: 'info', message: this.$t('Group deleted') + ': ' + groupName })
+      this.$q.notify({ type: 'info', message: this.$t('Group deleted: ') + groupName })
       this.refreshWsTickle = !this.refreshWsTickle
     },
 
@@ -836,7 +836,7 @@ export default {
         this.$q.notify({ type: 'negative', message: this.$t('Unable to copy parameter into input scenario, it is read-only (or undefined)') })
         return
       }
-      this.$q.notify({ type: 'info', message: this.$t('Copy') + ': ' + paramName })
+      this.$q.notify({ type: 'info', message: this.$t('Copy: ') + paramName })
       this.loadWait = true
 
       const udgst = encodeURIComponent(this.digest)
@@ -862,11 +862,11 @@ export default {
       }
       this.loadWait = false
       if (!isOk) {
-        this.$q.notify({ type: 'negative', message: this.$t('Unable to copy parameter') + (msg ? (': ' + msg) : '') })
+        this.$q.notify({ type: 'negative', message: this.$t('Unable to copy parameter') + (msg ? ('. ' + msg) : '') })
         return
       }
 
-      this.$q.notify({ type: 'info', message: this.$t('Copy completed') + ': ' + paramName })
+      this.$q.notify({ type: 'info', message: this.$t('Copy completed: ') + paramName })
       this.refreshWsTickle = !this.refreshWsTickle
     },
 
@@ -882,16 +882,16 @@ export default {
       }
       // check if there are any pareameters source group
       if (!srcNames || srcNames.length <= 0) {
-        this.$q.notify({ type: 'warning', message: this.$t('Group has no parameters') + ': ' + (groupName || '') })
+        this.$q.notify({ type: 'warning', message: this.$t('Group has no parameters: ') + (groupName || '') })
         return
       }
 
       // copy all parameters from run parameters group into current workset group
-      this.$q.notify({ type: 'info', message: this.$t('Copy group') + ': ' + groupName })
+      this.$q.notify({ type: 'info', message: this.$t('Copy group: ') + groupName })
       this.loadWait = true
 
       for (const pName of srcNames) {
-        this.$q.notify({ type: 'info', message: this.$t('Copy') + ': ' + pName })
+        this.$q.notify({ type: 'info', message: this.$t('Copy: ') + pName })
 
         const isReplace = !!replaceNames && replaceNames.indexOf(pName) >= 0
 
@@ -918,13 +918,13 @@ export default {
         }
         if (!isOk) {
           this.loadWait = false
-          this.$q.notify({ type: 'negative', message: this.$t('Unable to copy parameter') + (msg ? (': ' + msg) : '') })
+          this.$q.notify({ type: 'negative', message: this.$t('Unable to copy parameter') + (msg ? ('. ' + msg) : '') })
           return
         }
       }
       this.loadWait = false
 
-      this.$q.notify({ type: 'info', message: this.$t('Group copy completed') + ': ' + groupName })
+      this.$q.notify({ type: 'info', message: this.$t('Group copy completed: ') + groupName })
       this.refreshWsTickle = !this.refreshWsTickle
     },
 
@@ -938,7 +938,7 @@ export default {
         this.$q.notify({ type: 'negative', message: this.$t('Unable to copy parameter into input scenario, it is read-only (or undefined)') })
         return
       }
-      this.$q.notify({ type: 'info', message: this.$t('Copy') + ': ' + paramName })
+      this.$q.notify({ type: 'info', message: this.$t('Copy: ') + paramName })
       this.loadWait = true
 
       const udgst = encodeURIComponent(this.digest)
@@ -964,11 +964,11 @@ export default {
       }
       this.loadWait = false
       if (!isOk) {
-        this.$q.notify({ type: 'negative', message: this.$t('Unable to copy parameter') + (msg ? (': ' + msg) : '') })
+        this.$q.notify({ type: 'negative', message: this.$t('Unable to copy parameter') + (msg ? ('. ' + msg) : '') })
         return
       }
 
-      this.$q.notify({ type: 'info', message: this.$t('Copy completed') + ': ' + paramName })
+      this.$q.notify({ type: 'info', message: this.$t('Copy completed: ') + paramName })
       this.refreshWsTickle = !this.refreshWsTickle
     },
 
@@ -984,16 +984,16 @@ export default {
       }
       // check if there are any pareameters source group
       if (!srcNames || srcNames.length <= 0) {
-        this.$q.notify({ type: 'warning', message: this.$t('Group has no parameters') + ': ' + (groupName || '') })
+        this.$q.notify({ type: 'warning', message: this.$t('Group has no parameters: ') + (groupName || '') })
         return
       }
 
       // copy all parameters from run parameters group into current workset group
-      this.$q.notify({ type: 'info', message: this.$t('Copy group') + ': ' + groupName })
+      this.$q.notify({ type: 'info', message: this.$t('Copy group: ') + groupName })
       this.loadWait = true
 
       for (const pName of srcNames) {
-        this.$q.notify({ type: 'info', message: this.$t('Copy') + ': ' + pName })
+        this.$q.notify({ type: 'info', message: this.$t('Copy: ') + pName })
 
         const isReplace = !!replaceNames && replaceNames.indexOf(pName) >= 0
 
@@ -1020,13 +1020,13 @@ export default {
         }
         if (!isOk) {
           this.loadWait = false
-          this.$q.notify({ type: 'negative', message: this.$t('Unable to copy parameter') + (msg ? (': ' + msg) : '') })
+          this.$q.notify({ type: 'negative', message: this.$t('Unable to copy parameter') + (msg ? ('. ' + msg) : '') })
           return
         }
       }
       this.loadWait = false
 
-      this.$q.notify({ type: 'info', message: this.$t('Group copy completed') + ': ' + groupName })
+      this.$q.notify({ type: 'info', message: this.$t('Group copy completed: ') + groupName })
       this.refreshWsTickle = !this.refreshWsTickle
     },
 
@@ -1070,11 +1070,11 @@ export default {
       }
       this.loadWait = false
       if (!isOk) {
-        this.$q.notify({ type: 'negative', message: this.$t('Unable to save input scenario description and notes') + (msg ? (': ' + msg) : '') })
+        this.$q.notify({ type: 'negative', message: this.$t('Unable to save input scenario description and notes') + (msg ? ('. ' + msg) : '') })
         return
       }
 
-      this.$q.notify({ type: 'info', message: this.$t('Input scenario description and notes saved') + '. ' + this.$t('Language') + ': ' + langCode })
+      this.$q.notify({ type: 'info', message: this.$t('Input scenario description and notes saved') + '. ' + this.$t('Language: ') + langCode })
       this.refreshWsTickle = !this.refreshWsTickle
     }
   },

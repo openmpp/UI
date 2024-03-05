@@ -126,7 +126,7 @@
                 dense
                 class="col-auto bg-primary text-white rounded-borders q-mr-xs"
                 icon="mdi-text-long"
-                :title="$t('Run Log') + ': ' + aj.ModelName + ' ' + aj.RunStamp"
+                :title="$t('Run Log: ') + aj.ModelName + ' ' + aj.RunStamp"
                 />
               <q-btn
                 @click="onStopJobConfirm(aj.SubmitStamp, aj.ModelDigest, aj.ModelName)"
@@ -141,8 +141,8 @@
           <q-item-section>
             <q-item-label>{{ aj.ModelName }}:<span class="om-text-descr q-pl-sm">{{ getRunTitle(aj) }}</span></q-item-label>
             <q-item-label class="om-text-descr">
-              {{ $t('Submitted') + ':' }} <span class="mono">{{ fromUnderscoreTs(aj.SubmitStamp) }}</span>
-              <span class="q-ml-md">{{ $t('Run Stamp') + ':' }} <span class="mono">{{ fromUnderscoreTs(aj.RunStamp) }}</span></span>
+              {{ $t('Submitted:') }} <span class="mono">{{ fromUnderscoreTs(aj.SubmitStamp) }}</span>
+              <span class="q-ml-md">{{ $t('Run Stamp:') }} <span class="mono">{{ fromUnderscoreTs(aj.RunStamp) }}</span></span>
             </q-item-label>
           </q-item-section>
         </template>
@@ -243,7 +243,7 @@
           <q-item-section>
             <q-item-label>{{ qj.ModelName }}:<span class="om-text-descr q-pl-sm">{{ getRunTitle(qj) }}</span></q-item-label>
             <q-item-label class="om-text-descr">
-              {{ $t('Submitted') + ':' }} <span class="mono">{{ fromUnderscoreTs(qj.SubmitStamp) }}</span> <span v-if="qj.IsOverLimit" class="text-negative q-ml-md">{{ $t('Exceed resource limit') }}</span>
+              {{ $t('Submitted:') }} <span class="mono">{{ fromUnderscoreTs(qj.SubmitStamp) }}</span> <span v-if="qj.IsOverLimit" class="text-negative q-ml-md">{{ $t('Exceed resource limit') }}</span>
             </q-item-label>
           </q-item-section>
         </template>
@@ -265,7 +265,7 @@
     v-model="isOtherHistoryShow"
     switch-toggle-side
     expand-separator
-    :label="$t('Failed Model Runs') + ': ' + (otherHistory.length || $t('None'))"
+    :label="$t('Failed Model Runs: ') + (otherHistory.length || $t('None'))"
     header-class="bg-primary text-white"
     class="q-my-sm"
     >
@@ -298,7 +298,7 @@
                 dense
                 class="col-auto bg-primary text-white rounded-borders q-mr-xs"
                 icon="mdi-text-long"
-                :title="$t('Run Log') + ': ' + hj.ModelName + ' ' + hj.RunStamp"
+                :title="$t('Run Log: ') + hj.ModelName + ' ' + hj.RunStamp"
                 />
               <q-btn
                 @click="onDeleteJobHistoryConfirm(hj.SubmitStamp, hj.ModelName, getHistoryTitle(hj))"
@@ -316,8 +316,8 @@
               <span> {{ hj.ModelName }}<span class="om-text-descr" v-if="getHistoryTitle(hj)">: {{ getHistoryTitle(hj) }}</span></span>
             </q-item-label>
             <q-item-label class="om-text-descr">
-              {{ $t('Submitted') + ':' }} <span class="mono">{{ fromUnderscoreTs(hj.SubmitStamp) }}</span>
-              <span class="q-ml-md">{{ $t('Run Stamp') + ':' }} <span class="mono">{{ fromUnderscoreTs(hj.RunStamp) }}</span></span>
+              {{ $t('Submitted:') }} <span class="mono">{{ fromUnderscoreTs(hj.SubmitStamp) }}</span>
+              <span class="q-ml-md">{{ $t('Run Stamp:') }} <span class="mono">{{ fromUnderscoreTs(hj.RunStamp) }}</span></span>
             </q-item-label>
           </q-item-section>
         </template>
@@ -339,7 +339,7 @@
     v-model="isDoneHistoryShow"
     switch-toggle-side
     expand-separator
-    :label="$t('Completed Model Runs') + ': ' + (doneHistory.length || $t('None'))"
+    :label="$t('Completed Model Runs: ') + (doneHistory.length || $t('None'))"
     header-class="bg-primary text-white"
     class="q-my-sm"
     >
@@ -364,7 +364,7 @@
                 dense
                 class="col-auto bg-primary text-white rounded-borders q-mr-xs"
                 icon="mdi-text-long"
-                :title="$t('Run Log') + ': ' + hj.ModelName + ' ' + hj.RunStamp"
+                :title="$t('Run Log: ') + hj.ModelName + ' ' + hj.RunStamp"
                 />
               <q-btn
                 @click="onDeleteJobHistoryConfirm(hj.SubmitStamp, hj.ModelName, getHistoryTitle(hj))"
@@ -382,8 +382,8 @@
               <span> {{ hj.ModelName }}<span class="om-text-descr" v-if="getHistoryTitle(hj)">: {{ getHistoryTitle(hj) }}</span></span>
             </q-item-label>
             <q-item-label class="om-text-descr">
-              {{ $t('Submitted') + ':' }} <span class="mono">{{ fromUnderscoreTs(hj.SubmitStamp) }}</span>
-              <span class="q-ml-md">{{ $t('Run Stamp') + ':' }} <span class="mono">{{ fromUnderscoreTs(hj.RunStamp) }}</span></span>
+              {{ $t('Submitted:') }} <span class="mono">{{ fromUnderscoreTs(hj.SubmitStamp) }}</span>
+              <span class="q-ml-md">{{ $t('Run Stamp:') }} <span class="mono">{{ fromUnderscoreTs(hj.RunStamp) }}</span></span>
             </q-item-label>
           </q-item-section>
         </template>

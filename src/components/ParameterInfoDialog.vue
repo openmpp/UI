@@ -162,7 +162,7 @@ export default {
       this.paramText = Mdf.paramTextByName(this.theModel, this.paramName)
       if (!Mdf.isNotEmptyParamText(this.paramText)) {
         console.warn('parameter not found by name:', this.paramName)
-        this.$q.notify({ type: 'negative', message: this.$t('Parameter not found') })
+        this.$q.notify({ type: 'negative', message: this.$t('Parameter not found: ') + this.paramName })
         return
       }
 

@@ -71,7 +71,7 @@ export default {
             if (e.response) em = e.response.data || ''
           } finally {}
           console.warn('Server offline or input scenario not found.', em)
-          this.$q.notify({ type: 'negative', message: this.$t('Server offline or input scenario not found') + ': ' + wsn })
+          this.$q.notify({ type: 'negative', message: this.$t('Server offline or input scenario not found: ') + wsn })
         }
       }
 

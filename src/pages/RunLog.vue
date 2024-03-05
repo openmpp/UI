@@ -305,12 +305,12 @@ export default {
         await this.$axios.put(u) // ignore response on success
       } catch (e) {
         console.warn('Unable to stop model run', e)
-        this.$q.notify({ type: 'negative', message: this.$t('Unable to stop model run') + ': ' + (this.runState.RunStamp || '') })
+        this.$q.notify({ type: 'negative', message: this.$t('Unable to stop model run: ') + (this.runState.RunStamp || '') })
         return // exit on error
       }
 
       // notify user on success, even run may not exist
-      this.$q.notify({ type: 'info', message: this.$t('Stopping model run') + ': ' + (this.runState.RunStamp || '') })
+      this.$q.notify({ type: 'info', message: this.$t('Stopping model run: ') + (this.runState.RunStamp || '') })
     },
 
     // model current run log status and page: response from server

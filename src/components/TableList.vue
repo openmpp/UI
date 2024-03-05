@@ -160,14 +160,14 @@ export default {
       // check all dimensions: dimension size should not exceed max size limit
       const t = Mdf.tableTextByName(this.theModel, name)
       if (!Mdf.isTable(t?.Table)) {
-        this.$q.notify({ type: 'negative', message: this.$t('Output table not found') + ': ' + (name || '') })
+        this.$q.notify({ type: 'negative', message: this.$t('Output table not found: ') + (name || '') })
         return
       }
       for (const d of t.TableDimsTxt) {
         const ne = Mdf.typeEnumSizeById(this.theModel, d.Dim.TypeId)
 
         if (this.maxTypeSize > 0 && ne > this.maxTypeSize) {
-          this.$q.notify({ type: 'negative', message: this.$t('Output table dimension size exceed the limit') + ': ' + this.maxTypeSize.toString() + ': ' + (name || '') + '.' + (d.Dim.Name || '') })
+          this.$q.notify({ type: 'negative', message: this.$t('Output table dimension size exceed the limit: ') + this.maxTypeSize.toString() + ' ' + (name || '') + '.' + (d.Dim.Name || '') })
           return
         }
       }
@@ -200,7 +200,7 @@ export default {
     // download output table as csv
     onDownloadClick  (name, parts) {
       if (!name || !Mdf.isRunTextHasTable(this.runCurrent, name)) {
-        this.$q.notify({ type: 'negative', message: this.$t('Output table not found') + ': ' + (name || '') })
+        this.$q.notify({ type: 'negative', message: this.$t('Output table not found: ') + (name || '') })
         return
       }
       const u = this.omsUrl +

@@ -29,7 +29,7 @@
                   name="mdi-information-outline"
                   />
               </q-item-section>
-              <q-item-section>{{ $t('About') + ': ' + worksetNameSelected }}</q-item-section>
+              <q-item-section>{{ $t('About') + ' ' + worksetNameSelected }}</q-item-section>
             </q-item>
             <q-separator />
 
@@ -87,7 +87,7 @@
               <q-item-section avatar>
                 <q-icon color="primary" name="mdi-table-arrow-left" />
               </q-item-section>
-              <q-item-section>{{ $t('Copy parameters from model run') + (isRunSuccess ? ': ' + runCurrent.Name : '') }}</q-item-section>
+              <q-item-section>{{ $t('Copy parameters from model run') + (isRunSuccess ? ' ' + runCurrent.Name : '') }}</q-item-section>
             </q-item>
             <q-item
               :disable="isEdit() || isReadonlyWorksetCurrent || !isNotEmptyFrom || !isReadonlyFrom"
@@ -97,7 +97,7 @@
               <q-item-section avatar>
                 <q-icon color="primary" name="mdi-table-plus" />
               </q-item-section>
-              <q-item-section>{{ $t('Copy parameters from scenario') + ': ' + ((worksetNameFrom && worksetNameFrom !== worksetNameSelected) ? worksetNameFrom : $t('Source scenario not selected')) }}</q-item-section>
+              <q-item-section>{{ $t('Copy parameters from scenario') + ' ' + ((worksetNameFrom && worksetNameFrom !== worksetNameSelected) ? worksetNameFrom : $t('Source scenario not selected')) }}</q-item-section>
             </q-item>
             <q-separator />
 
@@ -133,7 +133,7 @@
         dense
         class="col-auto text-white bg-primary rounded-borders q-ml-xs"
         icon="mdi-information"
-        :title="$t('About') + ': ' + worksetNameSelected"
+        :title="$t('About') + ' ' + worksetNameSelected"
         />
       <q-separator vertical inset spaced="sm" color="secondary" />
 
@@ -187,7 +187,7 @@
         dense
         class="col-auto bg-primary text-white rounded-borders"
         icon="mdi-table-arrow-left"
-        :title="$t('Copy parameters from model run') + (isRunSuccess ? ': ' + runCurrent.Name : '')"
+        :title="$t('Copy parameters from model run') + (isRunSuccess ? ' ' + runCurrent.Name : '')"
        />
       <q-btn
         :disable="isEdit() || isReadonlyWorksetCurrent || !isNotEmptyFrom || !isReadonlyFrom"
@@ -196,7 +196,7 @@
         dense
         class="col-auto bg-primary text-white rounded-borders q-ml-xs"
         icon="mdi-table-plus"
-        :title="$t('Copy parameters from scenario') + ': ' + ((worksetNameFrom && worksetNameFrom !== worksetNameSelected) ? worksetNameFrom : $t('Source scenario not selected'))"
+        :title="$t('Copy parameters from scenario') + ' ' + ((worksetNameFrom && worksetNameFrom !== worksetNameSelected) ? worksetNameFrom : $t('Source scenario not selected'))"
        />
       <q-separator vertical inset spaced="sm" color="secondary" />
 
@@ -296,7 +296,7 @@
         class="col-grow section-title bg-primary text-white q-px-md"
         :class="{ 'om-bg-inactive': isReadonlyWorksetCurrent || !isRunSuccess }"
         >
-        <span>{{ $t('Copy parameters from model run') + (isRunSuccess ? ': ' + runCurrent.Name : '') }}</span>
+        <span>{{ $t('Copy parameters from model run') + (isRunSuccess ? ' ' + runCurrent.Name : '') }}</span>
       </div>
     </div>
 
@@ -338,7 +338,7 @@
         class="col-grow section-title bg-primary text-white q-px-md"
         :class="{ 'om-bg-inactive': isReadonlyWorksetCurrent || !isNotEmptyFrom || !isReadonlyFrom || !worksetNameFrom || worksetNameFrom === worksetNameSelected }"
         >
-        <span>{{ $t('Copy parameters from input scenario') + ((worksetNameFrom && worksetNameFrom !== worksetNameSelected) ? ': ' + worksetNameFrom : $t('Source scenario not selected')) }}</span>
+        <span>{{ $t('Copy parameters from input scenario') + ((worksetNameFrom && worksetNameFrom !== worksetNameSelected) ? ' ' + worksetNameFrom : $t('Source scenario not selected')) }}</span>
       </div>
     </div>
 
@@ -456,7 +456,7 @@
         :filter="wsTreeFilter"
         :filter-method="doWsTreeFilter"
         :no-results-label="$t('No input scenarios found')"
-        :no-nodes-label="$t('No input scenarios published or server offline')"
+        :no-nodes-label="$t('No input scenarios published (or server offline)')"
         >
         <template v-slot:default-header="prop">
 
@@ -513,7 +513,7 @@
               color="primary"
               class="col-auto"
               :icon="prop.node.label === worksetNameSelected ? 'mdi-information' : 'mdi-information-outline'"
-              :title="$t('About') + ': ' + prop.node.label"
+              :title="$t('About') + ' ' + prop.node.label"
               />
             <q-btn
               v-if="prop.node.label"
@@ -525,7 +525,7 @@
               class="col-auto"
               :class="(!prop.node.isReadonly || prop.node.label === worksetNameSelected || isReadonlyWorksetCurrent) ? 'text-secondary' : (prop.node.label !== worksetNameFrom ? 'text-primary' : 'text-white bg-primary')"
               icon="mdi-table-plus"
-              :title="$t('Copy parameters from') + ': ' + prop.node.label"
+              :title="$t('Copy parameters from') + ' ' + prop.node.label"
               />
             <q-btn
               v-if="prop.node.label"
@@ -549,7 +549,7 @@
               :color="(!prop.node.isReadonly && !isEdit())? 'primary' : 'secondary'"
               class="col-auto"
               icon="mdi-delete-outline"
-              :title="$t('Delete') + ': ' + prop.node.label"
+              :title="$t('Delete') + ' ' + prop.node.label"
               />
             <q-btn
               v-if="serverConfig.AllowDownload"

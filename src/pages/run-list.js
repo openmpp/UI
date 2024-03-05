@@ -289,18 +289,18 @@ export default {
       // notify user about results
       if (rc.paramDiff.length) {
         this.paramVisibleCount = Mdf.paramCount(this.theModel)
-        this.$q.notify({ type: 'info', message: this.$t('Number of different parameters') + ': ' + rc.paramDiff.length })
+        this.$q.notify({ type: 'info', message: this.$t('Number of different parameters: ') + rc.paramDiff.length })
       } else {
         this.$q.notify({ type: 'info', message: this.$t('All parameters values identical') })
       }
       if (rc.tableDiff.length) {
         this.tableVisibleCount = Mdf.tableCount(this.theModel)
-        this.$q.notify({ type: 'info', message: this.$t('Number of different output tables') + ': ' + rc.tableDiff.length })
+        this.$q.notify({ type: 'info', message: this.$t('Number of different output tables: ') + rc.tableDiff.length })
       } else {
         if (!rc.tableSupp.length) this.$q.notify({ type: 'info', message: this.$t('All output tables values identical') })
       }
       if (rc.tableSupp.length) {
-        this.$q.notify({ type: 'info', message: this.$t('Number of output tables which are not found') + ': ' + rc.tableSupp.length })
+        this.$q.notify({ type: 'info', message: this.$t('Number of output tables which are not found: ') + rc.tableSupp.length })
       }
       if (this.isMicrodata && !!this.runCurrent.Entity.length) {
         // update list of visible microdata attributes:
@@ -318,12 +318,12 @@ export default {
 
         if (rc.entityDiff.length) {
           this.entityVisibleCount = this.runCurrent.Entity.length
-          this.$q.notify({ type: 'info', message: this.$t('Number of different microdata') + ': ' + rc.entityDiff.length })
+          this.$q.notify({ type: 'info', message: this.$t('Number of different microdata: ') + rc.entityDiff.length })
         } else {
           if (!rc.entityMiss.length) this.$q.notify({ type: 'info', message: this.$t('All microdata values identical') })
         }
         if (rc.entityMiss.length) {
-          this.$q.notify({ type: 'info', message: this.$t('Number of microdata entities which are not found') + ': ' + rc.entityMiss.length })
+          this.$q.notify({ type: 'info', message: this.$t('Number of microdata entities which are not found: ') + rc.entityMiss.length })
         }
       }
 
@@ -698,7 +698,7 @@ export default {
         console.warn('Unable to delete: invalid (empty) run digest')
         return
       }
-      this.$q.notify({ type: 'info', message: this.$t('Deleting') + ': ' + dgst + ' ' + (runName || '') })
+      this.$q.notify({ type: 'info', message: this.$t('Deleting: ') + dgst + ' ' + (runName || '') })
       this.loadWait = true
 
       let isOk = false
@@ -717,12 +717,12 @@ export default {
       }
       this.loadWait = false
       if (!isOk) {
-        this.$q.notify({ type: 'negative', message: this.$t('Unable to delete') + ': ' + dgst + ' ' + (runName || '') })
+        this.$q.notify({ type: 'negative', message: this.$t('Unable to delete: ') + dgst + ' ' + (runName || '') })
         return
       }
 
       // refresh run list from the server
-      // this.$q.notify({ type: 'info', message: this.$t('Start deleting') + ': ' + dgst + ' ' + (runName || '') })
+      // this.$q.notify({ type: 'info', message: this.$t('Start deleting: ') + dgst + ' ' + (runName || '') })
       setTimeout(() => this.$emit('run-list-refresh'), 521)
     },
 
@@ -755,7 +755,7 @@ export default {
       }
 
       // refresh run list from the server
-      // this.$q.notify({ type: 'info', message: this.$t('Start deleting') + ': ' + dgst + ' ' + (runName || '') })
+      // this.$q.notify({ type: 'info', message: this.$t('Start deleting: ') + dgst + ' ' + (runName || '') })
       setTimeout(() => this.$emit('run-list-refresh'), 2011)
     },
 
@@ -783,7 +783,7 @@ export default {
         console.warn('Unable to download model run', msg)
       }
       if (!isOk) {
-        this.$q.notify({ type: 'negative', message: this.$t('Unable to download model run') + (msg ? (': ' + msg) : '') })
+        this.$q.notify({ type: 'negative', message: this.$t('Unable to download model run: ') + (msg || '') })
         return
       }
 
@@ -812,11 +812,11 @@ export default {
       // check if model run with the same name already exist
       for (const rt of this.runTextList) {
         if (Mdf.isRunText(rt) && Mdf.modelName(this.theModel) + '.run.' + rt.Name + '.zip' === fName) {
-          this.$q.notify({ type: 'negative', message: this.$t('Model run with the same name already exist' + ': ' + rt.Name) })
+          this.$q.notify({ type: 'negative', message: this.$t('Model run with the same name already exist: ') + rt.Name })
           return
         }
       }
-      this.$q.notify({ type: 'info', message: this.$t('Uploading') + ': ' + fName + '\u2026' })
+      this.$q.notify({ type: 'info', message: this.$t('Uploading:') + fName + '\u2026' })
 
       // make upload multipart form
       const fd = new FormData()
@@ -832,14 +832,14 @@ export default {
           if (e.response) msg = e.response.data || ''
         } finally {}
         console.warn('Unable to upload model run', msg, fName)
-        this.$q.notify({ type: 'negative', message: this.$t('Unable to upload model run') + ': ' + fName })
+        this.$q.notify({ type: 'negative', message: this.$t('Unable to upload model run: ') + fName })
         return
       }
 
       // notify user and close upload controls
       this.doCancelFileSelect()
-      this.$q.notify({ type: 'info', message: this.$t('Uploaded') + ': ' + fName })
-      this.$q.notify({ type: 'info', message: this.$t('Import model run') + ': ' + fName + '\u2026' })
+      this.$q.notify({ type: 'info', message: this.$t('Uploaded: ') + fName })
+      this.$q.notify({ type: 'info', message: this.$t('Import model run: ') + fName + '\u2026' })
 
       // upload started: show upload list page
       this.$emit('upload-select', this.digest)
@@ -884,12 +884,12 @@ export default {
       }
       this.loadWait = false
       if (!isOk) {
-        this.$q.notify({ type: 'negative', message: this.$t('Unable to save model run description and notes') + (msg ? (': ' + msg) : '') })
+        this.$q.notify({ type: 'negative', message: this.$t('Unable to save model run description and notes') + (msg ? ('. ' + msg) : '') })
         return
       }
 
       this.$emit('run-select', dgst)
-      this.$q.notify({ type: 'info', message: this.$t('Model run description and notes saved') + '. ' + this.$t('Language') + ': ' + langCode })
+      this.$q.notify({ type: 'info', message: this.$t('Model run description and notes saved') + '. ' + this.$t('Language: ') + langCode })
     },
 
     ...mapActions('uiState', {

@@ -301,7 +301,7 @@ export default {
       }
       if (!isOk) {
         console.warn('Unable to set job control state:', kind, stamp)
-        this.$q.notify({ type: 'negative', message: this.$t('Unable to retrieve model run state') + ': ' + kind + ' ' + stamp })
+        this.$q.notify({ type: 'negative', message: this.$t('Unable to retrieve model run state: ') + kind + ' ' + stamp })
       }
     },
 
@@ -309,7 +309,7 @@ export default {
     onStopJobConfirm (stamp, mDigest, mName) {
       if (!mDigest || !stamp) {
         const s = (mName || mDigest || '') + ' ' + (stamp || '') + ' '
-        this.$q.notify({ type: 'negative', message: this.$t('Unable to find active model run') + ': ' + s })
+        this.$q.notify({ type: 'negative', message: this.$t('Unable to find active model run: ') + s })
         return
       }
       this.stopRunTitle = mName + ' ' + this.fromUnderscoreTs(stamp)
@@ -333,12 +333,12 @@ export default {
         await this.$axios.put(u) // ignore response on success
       } catch (e) {
         console.warn('Unable to stop model run', e)
-        this.$q.notify({ type: 'negative', message: this.$t('Unable to stop model run') + ': ' + title })
+        this.$q.notify({ type: 'negative', message: this.$t('Unable to stop model run: ') + title })
         return // exit on error
       }
 
       // notify user on success, even run may not exist
-      this.$q.notify({ type: 'info', message: this.$t('Stopping model run') + ': ' + title })
+      this.$q.notify({ type: 'info', message: this.$t('Stopping model run: ') + title })
     },
 
     // move job queue to specified postion
@@ -346,7 +346,7 @@ export default {
       const mt = (mName || '') + ' ' + (title || this.fromUnderscoreTs(stamp) || '')
       if (!stamp || typeof pos !== typeof 1) {
         console.warn('Unable to move model run', pos, stamp)
-        this.$q.notify({ type: 'negative', message: this.$t('Unable to move model run') + ': ' + mt })
+        this.$q.notify({ type: 'negative', message: this.$t('Unable to move model run: ') + mt })
         return
       }
 
@@ -355,12 +355,12 @@ export default {
         await this.$axios.put(u) // ignore response on success
       } catch (e) {
         console.warn('Unable to move model run', e)
-        this.$q.notify({ type: 'negative', message: this.$t('Unable to move model run') + ': ' + mt })
+        this.$q.notify({ type: 'negative', message: this.$t('Unable to move model run: ') + mt })
         return // exit on error
       }
 
       // notify user on success, even run may not exist
-      this.$q.notify({ type: 'info', message: this.$t('Moving model run') + ': ' + title })
+      this.$q.notify({ type: 'info', message: this.$t('Moving model run: ') + title })
     },
 
     // delete job history: ask user confirmation
@@ -384,7 +384,7 @@ export default {
         await this.$axios.delete(u) // ignore response on success
       } catch (e) {
         console.warn('Unable to delete job history', e)
-        this.$q.notify({ type: 'negative', message: this.$t('Unable to delete job history') + ': ' + title })
+        this.$q.notify({ type: 'negative', message: this.$t('Unable to delete job history: ') + title })
         return // exit on error
       }
 
@@ -395,7 +395,7 @@ export default {
       this.otherHistory = this.otherHistory.filter(hj => hj?.SubmitStamp !== stamp)
 
       // notify user on success
-      this.$q.notify({ type: 'info', message: this.$t('Deleting job history') + ': ' + title })
+      this.$q.notify({ type: 'info', message: this.$t('Deleting job history: ') + title })
     }
   },
 

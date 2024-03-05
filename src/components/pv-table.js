@@ -517,11 +517,11 @@ export default {
         return false
       }
       if (rc.cRow + pv.rowSize > this.pvt.rowCount) {
-        this.$q.notify({ type: 'negative', message: this.$t('Too many rows pasted') + ': ' + pv.rowSize.toString() })
+        this.$q.notify({ type: 'negative', message: this.$t('Too many rows pasted: ') + pv.rowSize.toString() })
         return false
       }
       if (rc.cCol + pv.colSize > this.pvt.colCount) {
-        this.$q.notify({ type: 'negative', message: this.$t('Too many columns pasted') + ': ' + pv.colSize.toString() })
+        this.$q.notify({ type: 'negative', message: this.$t('Too many columns pasted: ') + pv.colSize.toString() })
         return false
       }
 
@@ -539,7 +539,7 @@ export default {
             if (val === void 0 || val === '') {
               this.$q.notify({
                 type: 'negative',
-                message: this.$t('Invalid enum label at row') + ': ' + k.toString() + ' ' + this.$t('column') + ': ' + j.toString()
+                message: this.$t('Invalid enum label at row: ') + k.toString() + ' ' + this.$t('column: ') + j.toString()
               })
               return false
             }
@@ -600,7 +600,7 @@ export default {
       if (isOk) {
         this.$q.notify({
           type: 'info',
-          message: this.$t('Copy tab separated values to clipboard') + ': ' + tsv.length + ' ' + this.$t('characters')
+          message: this.$t('Copy tab separated values to clipboard: ') + tsv.length + ' ' + this.$t('characters')
         })
       } else {
         this.$q.notify({

@@ -43,7 +43,7 @@ export default {
       this.loadDone = false
       this.loadWait = true
       this.$emit('wait')
-      this.$q.notify({ type: 'info', message: this.$t('Deleting') + ': ' + this.worksetName })
+      this.$q.notify({ type: 'info', message: this.$t('Deleting: ') + this.worksetName })
 
       const u = this.omsUrl +
         '/api/model/' + encodeURIComponent(this.modelDigest) +
@@ -61,9 +61,9 @@ export default {
       this.loadWait = false
 
       if (this.loadDone) {
-        this.$q.notify({ type: 'info', message: this.$t('Deleted') + ': ' + this.worksetName })
+        this.$q.notify({ type: 'info', message: this.$t('Deleted: ') + this.worksetName })
       } else {
-        this.$q.notify({ type: 'negative', message: this.$t('Unable to delete') + ': ' + this.worksetName })
+        this.$q.notify({ type: 'negative', message: this.$t('Unable to delete: ') + this.worksetName })
       }
 
       this.$emit('done', this.loadDone, this.modelDigest, this.worksetName)

@@ -404,12 +404,12 @@ export default {
         if (n < 0) continue
 
         if (this.isProgress(this.upDownStatusLst[n].Status) && (this.isAnyDownloadKind(udLst[k].Kind))) {
-          if (this.isReady(udLst[k].Status)) this.$q.notify({ type: 'info', message: this.$t('Download completed') + (udLst[k].Folder ? (': ' + udLst[k].Folder) : '') })
-          if (this.isError(udLst[k].Status)) this.$q.notify({ type: 'negative', message: this.$t('Download error') + (udLst[k].Folder ? (': ' + udLst[k].Folder) : '') })
+          if (this.isReady(udLst[k].Status)) this.$q.notify({ type: 'info', message: this.$t('Download completed') + (udLst[k].Folder ? (' ' + udLst[k].Folder) : '') })
+          if (this.isError(udLst[k].Status)) this.$q.notify({ type: 'negative', message: this.$t('Download error') + (udLst[k].Folder ? (' ' + udLst[k].Folder) : '') })
         }
         if (this.isProgress(this.upDownStatusLst[n].Status) && this.isUploadKind(udLst[k].Kind)) {
-          if (this.isReady(udLst[k].Status)) this.$q.notify({ type: 'info', message: this.$t('Upload completed') + (udLst[k].Folder ? (': ' + udLst[k].Folder) : '') })
-          if (this.isError(udLst[k].Status)) this.$q.notify({ type: 'negative', message: this.$t('Upload error') + (udLst[k].Folder ? (': ' + udLst[k].Folder) : '') })
+          if (this.isReady(udLst[k].Status)) this.$q.notify({ type: 'info', message: this.$t('Upload completed') + (udLst[k].Folder ? (' ' + udLst[k].Folder) : '') })
+          if (this.isError(udLst[k].Status)) this.$q.notify({ type: 'negative', message: this.$t('Upload error') + (udLst[k].Folder ? (' ' + udLst[k].Folder) : '') })
         }
         udLst[k].isShowLog = this.upDownStatusLst[n].isShowLog
       }
@@ -606,11 +606,11 @@ export default {
       // check if model run with the same name already exist
       for (const rt of this.runTextList) {
         if (Mdf.isRunText(rt) && Mdf.modelName(this.theModel) + '.run.' + rt.Name + '.zip' === fName) {
-          this.$q.notify({ type: 'negative', message: this.$t('Model run with the same name already exist' + ': ' + rt.Name) })
+          this.$q.notify({ type: 'negative', message: this.$t('Model run with the same name already exist: ') + rt.Name })
           return
         }
       }
-      this.$q.notify({ type: 'info', message: this.$t('Uploading') + ': ' + fName + '\u2026' })
+      this.$q.notify({ type: 'info', message: this.$t('Uploading: ') + fName + '\u2026' })
 
       // make upload multipart form
       const fd = new FormData()
@@ -626,14 +626,14 @@ export default {
           if (e.response) msg = e.response.data || ''
         } finally {}
         console.warn('Unable to upload model run', msg, fName)
-        this.$q.notify({ type: 'negative', message: this.$t('Unable to upload model run') + ': ' + fName })
+        this.$q.notify({ type: 'negative', message: this.$t('Unable to upload model run: ') + fName })
         return
       }
 
       // notify user and clean upload file name
       this.runUploadFile = null
-      this.$q.notify({ type: 'info', message: this.$t('Uploaded') + ': ' + fName })
-      this.$q.notify({ type: 'info', message: this.$t('Import model run') + ': ' + fName + '\u2026' })
+      this.$q.notify({ type: 'info', message: this.$t('Uploaded: ') + fName })
+      this.$q.notify({ type: 'info', message: this.$t('Import model run: ') + fName + '\u2026' })
 
       // upload started: show upload list page
       this.$emit('upload-select', this.digest)
@@ -656,11 +656,11 @@ export default {
       // check if workset with the same name already exist
       for (const wt of this.worksetTextList) {
         if (Mdf.isWorksetText(wt) && Mdf.modelName(this.theModel) + '.set.' + wt.Name + '.zip' === fName) {
-          this.$q.notify({ type: 'negative', message: this.$t('Input scenario with the same name already exist' + ': ' + wt.Name) })
+          this.$q.notify({ type: 'negative', message: this.$t('Input scenario with the same name already exist: ') + wt.Name })
           return
         }
       }
-      this.$q.notify({ type: 'info', message: this.$t('Uploading') + ': ' + fName + '\u2026' })
+      this.$q.notify({ type: 'info', message: this.$t('Uploading: ') + fName + '\u2026' })
 
       // make upload multipart form
       const opts = {
@@ -680,14 +680,14 @@ export default {
           if (e.response) msg = e.response.data || ''
         } finally {}
         console.warn('Unable to upload input scenario', msg, fName)
-        this.$q.notify({ type: 'negative', message: this.$t('Unable to upload input scenario') + ': ' + fName })
+        this.$q.notify({ type: 'negative', message: this.$t('Unable to upload input scenario: ') + fName })
         return
       }
 
       // notify user and clean upload file name
       this.wsUploadFile = null
-      this.$q.notify({ type: 'info', message: this.$t('Uploaded') + ': ' + fName })
-      this.$q.notify({ type: 'info', message: this.$t('Import scenario') + ': ' + fName + '\u2026' })
+      this.$q.notify({ type: 'info', message: this.$t('Uploaded: ') + fName })
+      this.$q.notify({ type: 'info', message: this.$t('Import scenario: ') + fName + '\u2026' })
 
       // upload started: show upload list page
       this.$emit('upload-select', this.digest)
@@ -705,7 +705,7 @@ export default {
         console.warn('Unable to delete: invalid (empty) folder name or upload-download direction')
         return
       }
-      this.$q.notify({ type: 'info', message: this.$t('Deleting') + ': ' + folder })
+      this.$q.notify({ type: 'info', message: this.$t('Deleting: ') + folder })
 
       this.loadWait = true
       let isOk = false
@@ -725,11 +725,11 @@ export default {
       this.loadWait = false
 
       if (!isOk) {
-        this.$q.notify({ type: 'negative', message: this.$t('Unable to delete') + ': ' + folder })
+        this.$q.notify({ type: 'negative', message: this.$t('Unable to delete: ') + folder })
         return
       }
 
-      this.$q.notify({ type: 'info', message: this.$t('Deleted') + ': ' + folder })
+      this.$q.notify({ type: 'info', message: this.$t('Deleted: ') + folder })
     },
 
     // receive server configuration, including configuration of model catalog and run catalog

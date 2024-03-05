@@ -154,12 +154,12 @@ export default {
     onNewNameBlur (e) {
       const { isEntered, name } = Mdf.doFileNameClean(this.newName)
       if (isEntered && name !== this.newName) {
-        this.$q.notify({ type: 'warning', message: this.$t('Scenario name should not contain any of') + ': ' + Mdf.invalidFileNameChars })
+        this.$q.notify({ type: 'warning', message: this.$t('Scenario name should not contain any of: ') + Mdf.invalidFileNameChars })
       }
       this.newName = isEntered ? name : ''
 
       if (this.isExistInWorksetTextList({ ModelDigest: this.digest, Name: this.newName })) {
-        this.$q.notify({ type: 'negative', message: this.$t('Error: input scenario already exist') + ': ' + (this.newName || '') })
+        this.$q.notify({ type: 'negative', message: this.$t('Error: input scenario already exist: ') + (this.newName || '') })
       }
     },
 
@@ -167,7 +167,7 @@ export default {
     onSaveNewWorkset () {
       const name = Mdf.cleanFileNameInput(this.newName)
       if (name === '') {
-        this.$q.notify({ type: 'negative', message: this.$t('Invalid (empty) input scenario name') + ((name || '') !== '' ? ': ' + (name || '') : '') })
+        this.$q.notify({ type: 'negative', message: this.$t('Invalid (empty) input scenario name') + ((name || '') !== '' ? ' ' + (name || '') : '') })
         return
       }
 

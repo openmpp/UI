@@ -143,7 +143,7 @@
             <q-item-section avatar>
               <q-icon color="primary" name="mdi-content-copy" />
             </q-item-section>
-            <q-item-section>{{ $t('Copy tab separated values to clipboard') + ': Ctrl+C' }}</q-item-section>
+            <q-item-section>{{ $t('Copy tab separated values to clipboard: ') + 'Ctrl+C' }}</q-item-section>
           </q-item>
           <q-item
             @click="onDownload"
@@ -460,7 +460,7 @@
       dense
       class="col-auto bg-primary text-white rounded-borders"
       icon="mdi-content-copy"
-      :title="$t('Copy tab separated values to clipboard') + ': Ctrl+C'"
+      :title="$t('Copy tab separated values to clipboard: ') + 'Ctrl+C'"
       />
     <q-btn
       @click="onDownload"

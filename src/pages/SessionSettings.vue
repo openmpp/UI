@@ -178,7 +178,7 @@
         class="row items-center bg-primary text-white q-py-sm q-mx-md"
         :class="{ 'om-bg-inactive' : !paramNames.length }"
         >
-        <span class="col-grow">{{ $t('Default views of parameters') + ': ' + (paramNames.length ? paramNames.length.toString() : $t('None')) }}</span>
+        <span class="col-grow">{{ $t('Default views of parameters: ') + (paramNames.length ? paramNames.length.toString() : $t('None')) }}</span>
       </q-card-section>
       <q-list
         class="q-mb-xs"
@@ -205,7 +205,7 @@
         class="row items-center bg-primary text-white q-py-sm q-mx-md"
         :class="{ 'om-bg-inactive' : !tableNames.length }"
         >
-        <span class="col-grow">{{ $t('Default views of output tables') + ': ' + (tableNames.length ? tableNames.length.toString() : $t('None')) }}</span>
+        <span class="col-grow">{{ $t('Default views of output tables: ') + (tableNames.length ? tableNames.length.toString() : $t('None')) }}</span>
       </q-card-section>
       <q-list
         class="q-mb-xs"
@@ -233,7 +233,7 @@
           class="row items-center bg-primary text-white q-py-sm q-mx-md"
           :class="{ 'om-bg-inactive' : !entityNames.length }"
           >
-          <span class="col-grow">{{ $t('Default microdata views') + ': ' + (entityNames.length ? entityNames.length.toString() : $t('None')) }}</span>
+          <span class="col-grow">{{ $t('Default microdata views: ') + (entityNames.length ? entityNames.length.toString() : $t('None')) }}</span>
         </q-card-section>
         <q-list
           class="q-mb-xs"
@@ -418,7 +418,7 @@ export default {
         }
       }
       if (!vs) {
-        this.$q.notify({ type: 'negative', message: this.$t('Unable to save views') + ': ' + this.modelName })
+        this.$q.notify({ type: 'negative', message: this.$t('Unable to save views: ') + this.modelName })
         return
       }
 
@@ -426,7 +426,7 @@ export default {
       const ret = exportFile(fName, vs, 'application/json')
       if (!ret) {
         console.warn('Unable to save views:', fName, ret)
-        this.$q.notify({ type: 'negative', message: this.$t('Unable to save views') + ': ' + fName })
+        this.$q.notify({ type: 'negative', message: this.$t('Unable to save views: ') + fName })
       }
     },
 
@@ -444,7 +444,7 @@ export default {
         console.warn('Error at json parse of text from:', this.uploadFile)
       }
       if (!vs || vs?.model?.name !== this.modelName) {
-        this.$q.notify({ type: 'negative', message: this.$t('Unable to restore views') + ': ' + this.modelName })
+        this.$q.notify({ type: 'negative', message: this.$t('Unable to restore views: ') + this.modelName })
         return
       }
 
@@ -464,7 +464,7 @@ export default {
           }
         } catch (e) {
           console.warn('Unable to save default parameter view:', name, e)
-          this.$q.notify({ type: 'negative', message: this.$t('Unable to save default parameter view') + ': ' + name })
+          this.$q.notify({ type: 'negative', message: this.$t('Unable to save default parameter view: ') + name })
           return
         }
       }
@@ -481,7 +481,7 @@ export default {
           }
         } catch (e) {
           console.warn('Unable to save default output table view:', name, e)
-          this.$q.notify({ type: 'negative', message: this.$t('Unable to save default output table view') + ': ' + name })
+          this.$q.notify({ type: 'negative', message: this.$t('Unable to save default output table view: ') + name })
           return
         }
       }
@@ -498,7 +498,7 @@ export default {
           }
         } catch (e) {
           console.warn('Unable to save default microdata view:', name, e)
-          this.$q.notify({ type: 'negative', message: this.$t('Unable to save default microdata view') + ': ' + name })
+          this.$q.notify({ type: 'negative', message: this.$t('Unable to save default microdata view: ') + name })
           return
         }
       }
@@ -506,9 +506,9 @@ export default {
       // refresh user views: read new version of views from database
       if (nViews) {
         this.doReadViews()
-        this.$q.notify({ type: 'info', message: this.$t('User views count') + ': ' + nViews.toString() })
+        this.$q.notify({ type: 'info', message: this.$t('User views count: ') + nViews.toString() })
       } else {
-        this.$q.notify({ type: 'info', message: this.$t('No user views found') + ': ' + this.modelName })
+        this.$q.notify({ type: 'info', message: this.$t('No user views found: ') + this.modelName })
       }
 
       // upload parameter views into user home directory
@@ -519,7 +519,7 @@ export default {
     doneUserViewsUpload (isSuccess, nViews) {
       this.uploadUserViewsDone = true
       if (isSuccess && nViews > 0) {
-        this.$q.notify({ type: 'info', message: this.$t('User views uploaded') + ': ' + nViews.toString() })
+        this.$q.notify({ type: 'info', message: this.$t('User views uploaded: ') + nViews.toString() })
       }
     },
 
@@ -544,7 +544,7 @@ export default {
         await rw.remove(name)
       } catch (e) {
         console.warn('Unable to erase default view of', name, e)
-        this.$q.notify({ type: 'negative', message: this.$t('Unable to erase default view of') + ': ' + name })
+        this.$q.notify({ type: 'negative', message: this.$t('Unable to erase default view of: ') + name })
         return
       }
       switch (kind) {
@@ -559,13 +559,13 @@ export default {
           break
         default:
           console.warn('Unable to erase default view of invalid kind:', kind, name)
-          this.$q.notify({ type: 'negative', message: this.$t('Unable to erase default view of') + ': ' + name })
+          this.$q.notify({ type: 'negative', message: this.$t('Unable to erase default view of: ') + name })
           return
       }
 
       this.$q.notify({
         type: 'info',
-        message: this.$t('Default view erased') + ': ' + name
+        message: this.$t('Default view erased: ') + name
       })
 
       // upload parameter views into user home directory
@@ -595,7 +595,7 @@ export default {
         }
       } catch (e) {
         console.warn('Unable to retrieve model settings', this.modelName, e)
-        this.$q.notify({ type: 'negative', message: this.$t('Unable to retrieve model settings') + ': ' + this.modelName })
+        this.$q.notify({ type: 'negative', message: this.$t('Unable to retrieve model settings: ') + this.modelName })
         return
       }
       if (!Mdf.isLength(this.dbRows)) return // no rows in model db or all rows are empty

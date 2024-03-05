@@ -67,7 +67,7 @@ export default {
           if (e.response) em = e.response.data || ''
         } finally {}
         console.warn('Server offline or model run log retrieval failed', em)
-        this.$q.notify({ type: 'negative', message: this.$t('Server offline or model run log retrieval failed') + ': ' + this.stamp })
+        this.$q.notify({ type: 'negative', message: this.$t('Server offline or model run log retrieval failed: ') + this.stamp })
       }
 
       // return state of run log progress

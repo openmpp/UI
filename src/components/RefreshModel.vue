@@ -70,14 +70,14 @@ export default {
           if (e.response) em = e.response.data || ''
         } finally {}
         console.warn('Server offline or model not found.', em)
-        this.$q.notify({ type: 'negative', message: this.$t('Server offline or model not found') + ': ' + this.digest })
+        this.$q.notify({ type: 'negative', message: this.$t('Server offline or model not found: ') + this.digest })
       }
 
       // notify user
       this.$emit('done', isOk, dgst)
       if (!isOk) {
         console.warn('Unable to refresh model by digest:', this.digest, ':', dgst, ':')
-        this.$q.notify({ type: 'negative', message: this.$t('Unable to refresh model by digest:', this.digest) })
+        this.$q.notify({ type: 'negative', message: this.$t('Unable to refresh model by digest: ', this.digest) })
         return
       }
 

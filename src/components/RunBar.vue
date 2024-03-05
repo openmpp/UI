@@ -12,7 +12,7 @@
       class="col-auto text-white rounded-borders q-mr-xs"
       :class="isDeleted ? 'bg-negative' : ((!isDeleted && (isSuccess || isInProgress)) ? 'bg-primary' : 'bg-warning')"
       :icon="isSuccess ? 'mdi-information' : (isInProgress ? 'mdi-run' : 'mdi-alert-circle-outline')"
-      :title="(isDeleted ? $t('Deleted') : $t('About')) + ': ' + runText.Name"
+      :title="(isDeleted ? $t('Deleted') : $t('About')) + ' ' + runText.Name"
       />
 
     <div

@@ -73,7 +73,7 @@ export default {
           if (e.response) em = e.response.data || ''
         } finally {}
         console.warn('Server offline or model run not found', em)
-        this.$q.notify({ type: 'negative', message: this.$t('Server offline or model run not found') + ': ' + this.runDigest })
+        this.$q.notify({ type: 'negative', message: this.$t('Server offline or model run not found: ') + this.runDigest })
       }
       if (this.loadDone) {
         this.dispatchRunText(d) // on success update run in store

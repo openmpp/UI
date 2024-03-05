@@ -156,7 +156,7 @@ export default {
       // check  attribute size: it should not exceed max size limit
       const ent = Mdf.entityTextByName(this.theModel, parts)
       if (!Mdf.isEntity(ent?.Entity)) {
-        this.$q.notify({ type: 'negative', message: this.$t('Model entity not found') + ': ' + (parts || '') })
+        this.$q.notify({ type: 'negative', message: this.$t('Model entity not found: ') + (parts || '') })
         return
       }
 
@@ -168,14 +168,14 @@ export default {
           const ne = Mdf.typeEnumSizeById(this.theModel, ea.Attr.TypeId)
 
           if (this.maxTypeSize > 0 && ne > this.maxTypeSize) {
-            this.$q.notify({ type: 'negative', message: this.$t('Entity attribute size exceed the limit') + ': ' + this.maxTypeSize.toString() + ': ' + (parts || '') + '.' + (name || '') })
+            this.$q.notify({ type: 'negative', message: this.$t('Entity attribute size exceed the limit: ') + this.maxTypeSize.toString() + ' ' + (parts || '') + '.' + (name || '') })
             return
           }
           break // attribute found and it size does not exceed the limit
         }
       }
       if (!isFound) {
-        this.$q.notify({ type: 'negative', message: this.$t('Model entity attribute not found') + ': ' + (parts || '') + '.' + (name || '') })
+        this.$q.notify({ type: 'negative', message: this.$t('Model entity attribute not found: ') + (parts || '') + '.' + (name || '') })
         return
       }
 
@@ -192,14 +192,14 @@ export default {
     checkAllAttrSize (eName) {
       const ent = Mdf.entityTextByName(this.theModel, eName)
       if (!Mdf.isEntity(ent?.Entity)) {
-        this.$q.notify({ type: 'negative', message: this.$t('Model entity not found') + ': ' + (eName || '') })
+        this.$q.notify({ type: 'negative', message: this.$t('Model entity not found: ') + (eName || '') })
         return
       }
       for (const ea of ent.EntityAttrTxt) {
         const ne = Mdf.typeEnumSizeById(this.theModel, ea.Attr.TypeId)
 
         if (this.maxTypeSize > 0 && ne > this.maxTypeSize) {
-          this.$q.notify({ type: 'negative', message: this.$t('Entity attribute size exceed the limit') + ': ' + this.maxTypeSize.toString() + ': ' + (eName || '') + '.' + (ea.Attr.Name || '') })
+          this.$q.notify({ type: 'negative', message: this.$t('Entity attribute size exceed the limit: ') + this.maxTypeSize.toString() + ' ' + (eName || '') + '.' + (ea.Attr.Name || '') })
           return false
         }
       }
@@ -224,7 +224,7 @@ export default {
     // download entity microdata as csv
     onDownloadClick  (name, parts) {
       if (!name || !Mdf.isNotEmptyRunEntity(Mdf.runEntityByName(this.runCurrent, name))) {
-        this.$q.notify({ type: 'negative', message: this.$t('Entity microdata not found or empty' + ': ' + (name || '') + ' ' + this.runDigest) + ': ' })
+        this.$q.notify({ type: 'negative', message: this.$t('Entity microdata not found or empty: ') + (name || '') + ' ' + this.runDigest })
         return
       }
       const u = this.omsUrl +

@@ -189,7 +189,7 @@ export default {
       this.runText = this.runTextByDigest({ ModelDigest: this.modelDigest, RunDigest: this.runDigest })
       if (!Mdf.isNotEmptyRunText(this.runText)) {
         console.warn('model run not found by digest:', this.runDigest)
-        this.$q.notify({ type: 'negative', message: this.$t('Model run not found') })
+        this.$q.notify({ type: 'negative', message: this.$t('Model run not found: ') + this.runDigest })
         return
       }
 

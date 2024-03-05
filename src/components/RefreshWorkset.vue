@@ -66,7 +66,7 @@ export default {
           if (e.response) em = e.response.data || ''
         } finally {}
         console.warn('Server offline or input scenario not found.', em)
-        this.$q.notify({ type: 'negative', message: this.$t('Server offline or input scenario not found') + ': ' + this.worksetName })
+        this.$q.notify({ type: 'negative', message: this.$t('Server offline or input scenario not found: ') + this.worksetName })
       }
 
       this.$emit('done', this.loadDone, this.worksetName, isRun)

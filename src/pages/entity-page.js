@@ -491,20 +491,20 @@ export default {
       this.runText = this.runTextByDigest({ ModelDigest: this.digest, RunDigest: this.runDigest })
       if (!Mdf.isNotEmptyRunText(this.runText)) {
         console.warn('Model run not found:', this.digest, this.runDigest)
-        this.$q.notify({ type: 'negative', message: this.$t('Model run not found' + ': ' + this.runDigest) })
+        this.$q.notify({ type: 'negative', message: this.$t('Model run not found: ') + this.runDigest })
         return false
       }
 
       this.entityText = Mdf.entityTextByName(this.theModel, this.entityName)
       if (!Mdf.isNotEmptyEntityText(this.entityText)) {
         console.warn('Model entity not found:', this.entityName)
-        this.$q.notify({ type: 'negative', message: this.$t('Model entity not found' + ': ' + this.entityName) })
+        this.$q.notify({ type: 'negative', message: this.$t('Model entity not found: ') + this.entityName })
         return false
       }
       this.runEntity = Mdf.runEntityByName(this.runText, this.entityName)
       if (!Mdf.isNotEmptyRunEntity(this.runEntity)) {
         console.warn('Entity microdata not found in model run:', this.entityName, this.runDigest)
-        this.$q.notify({ type: 'negative', message: this.$t('Entity microdata not found in model run' + ': ' + this.entityName + ' ' + this.runDigest) })
+        this.$q.notify({ type: 'negative', message: this.$t('Entity microdata not found in model run: ') + this.entityName + ' ' + this.runDigest })
         return false
       }
       return true
@@ -597,7 +597,7 @@ export default {
     onLastPage () {
       if (this.isAllPageSize() || this.pageSize > SMALL_PAGE_SIZE) { // limit last page size
         this.pageSize = SMALL_PAGE_SIZE
-        this.$q.notify({ type: 'info', message: this.$t('Size reduced to') + ': ' + this.pageSize })
+        this.$q.notify({ type: 'info', message: this.$t('Size reduced to: ') + this.pageSize })
       }
       this.pageStart = LAST_PAGE_OFFSET
 
@@ -691,11 +691,11 @@ export default {
         await rw.put(this.entityName, dv)
       } catch (e) {
         console.warn('Unable to save default microdata view', e)
-        this.$q.notify({ type: 'negative', message: this.$t('Unable to save default microdata view') })
+        this.$q.notify({ type: 'negative', message: this.$t('Unable to save default microdata view: ') + this.entityName })
         return
       }
 
-      this.$q.notify({ type: 'info', message: this.$t('Default view of microdata saved') + ': ' + this.entityName })
+      this.$q.notify({ type: 'info', message: this.$t('Default view of microdata saved: ') + this.entityName })
       this.$emit('entity-view-saved', this.entityName)
     },
 
@@ -709,7 +709,7 @@ export default {
         dv = await rd.getByKey(this.entityName)
       } catch (e) {
         console.warn('Unable to restore default microdata view', this.entityName, e)
-        this.$q.notify({ type: 'negative', message: this.$t('Unable to restore default microdata view') + ': ' + this.entityName })
+        this.$q.notify({ type: 'negative', message: this.$t('Unable to restore default microdata view: ') + this.entityName })
         return
       }
       // exit if not found or empty
@@ -987,7 +987,7 @@ export default {
 
         if (!Mdf.isPageLayoutRsp(rsp)) {
           console.warn('Invalid response to:', u)
-          this.$q.notify({ type: 'negative', message: this.$t('Server offline or microdata not found') + ': ' + this.entityName })
+          this.$q.notify({ type: 'negative', message: this.$t('Server offline or microdata not found: ') + this.entityName })
         } else {
           let d = []
           if (!rsp) {
@@ -1027,7 +1027,7 @@ export default {
           if (e.response) em = e.response.data || ''
         } finally {}
         console.warn('Server offline or microdata not found', em)
-        this.$q.notify({ type: 'negative', message: this.$t('Server offline or microdata not found') + ': ' + this.entityName })
+        this.$q.notify({ type: 'negative', message: this.$t('Server offline or microdata not found: ') + this.entityName })
       }
 
       this.loadWait = false

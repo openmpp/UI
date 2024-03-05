@@ -62,7 +62,7 @@ export default {
           if (e.response) em = e.response.data || ''
         } finally {}
         console.warn('Server offline or model run progress retrieval failed', em)
-        this.$q.notify({ type: 'negative', message: this.$t('Server offline or model run progress retrieval failed') + ': ' + this.runStamp })
+        this.$q.notify({ type: 'negative', message: this.$t('Server offline or model run progress retrieval failed: ') + this.runStamp })
       }
 
       // return array of run status and progress elements or empty on error

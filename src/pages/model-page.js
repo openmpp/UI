@@ -266,13 +266,13 @@ export default {
     doneUserViewsLoad (isSuccess, nViews) {
       this.loadUserViewsDone = true
       if (nViews > 0) {
-        this.$q.notify({ type: 'info', message: this.$t('User views count') + ': ' + nViews.toString() })
+        this.$q.notify({ type: 'info', message: this.$t('User views count: ') + nViews.toString() })
       }
     },
     doneUserViewsUpload (isSuccess, nViews) {
       this.uploadUserViewsDone = true
       if (isSuccess && nViews > 0) {
-        this.$q.notify({ type: 'info', message: this.$t('User views uploaded') + ': ' + nViews.toString() })
+        this.$q.notify({ type: 'info', message: this.$t('User views uploaded: ') + nViews.toString() })
       }
     },
 

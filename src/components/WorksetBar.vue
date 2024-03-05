@@ -27,7 +27,7 @@
                 name="mdi-information-outline"
                 />
             </q-item-section>
-            <q-item-section>{{ $t('About') + ': ' + worksetName }}</q-item-section>
+            <q-item-section>{{ $t('About') + ' ' + worksetName }}</q-item-section>
           </q-item>
           <q-separator />
 
@@ -65,7 +65,7 @@
       dense
       class="col-auto text-white rounded-borders bg-primary"
       icon="mdi-information"
-      :title="$t('About') + ': ' + worksetName"
+      :title="$t('About') + ' ' + worksetName"
       />
     <q-separator v-if="isShowMenu" vertical inset spaced="sm" color="secondary" />
 

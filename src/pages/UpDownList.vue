@@ -178,7 +178,7 @@
     group="up-down-expand"
     switch-toggle-side
     expand-separator
-    :label="$t('Downloads of') + (modelNameVer ? ': ' + modelNameVer : modelNameVer)"
+    :label="$t('Downloads of') + (modelNameVer ? ' ' + modelNameVer : '')"
     header-class="bg-primary text-white"
     class="q-ma-sm"
     >
@@ -198,7 +198,7 @@
           dense
           class="col-auto bg-primary text-white rounded-borders q-mr-xs"
           icon="mdi-file-tree"
-          :title="(((folderSelected || '') !== uds.Folder || (upDownSelected || '') !== 'down') ? $t('Expand') : $t('Collapse')) + ': ' + uds.Folder"
+          :title="(((folderSelected || '') !== uds.Folder || (upDownSelected || '') !== 'down') ? $t('Expand') : $t('Collapse')) + ' ' + uds.Folder"
           />
         <q-btn
           v-if="!isDeleteKind(uds.Kind) && !isProgress(uds.Status)"
@@ -207,7 +207,7 @@
           dense
           class="col-auto bg-primary text-white rounded-borders q-mr-xs"
           icon="mdi-delete"
-          :title="$t('Delete') + ': ' + uds.Folder"
+          :title="$t('Delete: ') + uds.Folder"
           />
         <q-btn
           v-else
@@ -216,7 +216,7 @@
           dense
           class="col-auto bg-primary text-white rounded-borders q-mr-xs"
           icon="mdi-delete-clock"
-          :title="$t('Deleting') + ': ' + uds.Folder"
+          :title="$t('Deleting: ') + uds.Folder"
           />
         <span class="col-auto no-wrap q-mr-xs">
           <q-btn
@@ -371,7 +371,7 @@
     group="up-down-expand"
     switch-toggle-side
     expand-separator
-    :label="$t('Uploads of') + (modelNameVer ? ': ' + modelNameVer : modelNameVer)"
+    :label="$t('Uploads of') + (modelNameVer ? ' ' + modelNameVer : '')"
     header-class="bg-primary text-white"
     class="q-ma-sm"
     >
@@ -391,7 +391,7 @@
           dense
           class="col-auto bg-primary text-white rounded-borders q-mr-xs"
           icon="mdi-file-tree"
-          :title="(((folderSelected || '') !== uds.Folder || (upDownSelected || '') !== 'up') ? $t('Expand') : $t('Collapse')) + ': ' + uds.Folder"
+          :title="(((folderSelected || '') !== uds.Folder || (upDownSelected || '') !== 'up') ? $t('Expand') : $t('Collapse')) + ' ' + uds.Folder"
           />
         <q-btn
           v-if="!isDeleteKind(uds.Kind) && !isProgress(uds.Status)"
@@ -400,7 +400,7 @@
           dense
           class="col-auto bg-primary text-white rounded-borders q-mr-xs"
           icon="mdi-delete"
-          :title="$t('Delete') + ': ' + uds.Folder"
+          :title="$t('Delete: ') + uds.Folder"
           />
         <q-btn
           v-else
@@ -409,7 +409,7 @@
           dense
           class="col-auto bg-primary text-white rounded-borders q-mr-xs"
           icon="mdi-delete-clock"
-          :title="$t('Deleting') + ': ' + uds.Folder"
+          :title="$t('Deleting: ') + uds.Folder"
           />
         <span class="col-auto no-wrap q-mr-xs">
           <q-btn

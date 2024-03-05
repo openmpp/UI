@@ -100,7 +100,7 @@
             :disabled="!isReadonlyWorksetCurrent"
             class="q-pr-xs"
             >
-            <q-checkbox v-model="useWorkset" :disable="!isReadonlyWorksetCurrent" :label="$t('Use Scenario') + ':'"/>
+            <q-checkbox v-model="useWorkset" :disable="!isReadonlyWorksetCurrent" :label="$t('Use Scenario:')"/>
           </td>
           <td>
             <workset-bar
@@ -121,7 +121,7 @@
               v-model="useBaseRun"
               @click.native="onUseBaseRunClick"
               :disable="!isCompletedRunCurrent"
-              :label="$t('Use Base Run') + ':'"/>
+              :label="$t('Use Base Run:')"/>
           </td>
           <td>
             <run-bar
@@ -167,7 +167,7 @@
       >
       <template v-slot:header>
         <q-icon v-if="isNoTables" name="star" color="red" />
-        <span>{{ $t('Output Tables') + ': ' + (tablesRetain.length !== tableCount ? (tablesRetain.length.toString() + ' / ' + tableCount.toString()) : $t('All')) }}</span>
+        <span>{{ $t('Output Tables: ') + (tablesRetain.length !== tableCount ? (tablesRetain.length.toString() + ' / ' + tableCount.toString()) : $t('All')) }}</span>
       </template>
 
       <q-card-section
@@ -224,7 +224,7 @@
       header-class="bg-primary text-white"
       >
       <template v-slot:header>
-        <span>{{ $t('Microdata') + ': ' + (entityAttrsUse.length !== entityAttrCount ? (entityAttrsUse.length.toString() + ' / ' + entityAttrCount.toString()) : $t('All')) }}</span>
+        <span>{{ $t('Microdata: ') + (entityAttrsUse.length !== entityAttrCount ? (entityAttrsUse.length.toString() + ' / ' + entityAttrCount.toString()) : $t('All')) }}</span>
         <span v-if="entityAttrsUse.length > 16">
           <q-icon name="mdi-exclamation-thick" color="red" class="bg-white q-pa-xs q-ml-md q-mr-xs"/><span>{{ $t('Excessive use of microdata may slow down model run or lead to failure') }}</span>
         </span>
@@ -477,7 +477,7 @@
           <template v-if="enableIni">
             <tr>
               <td class="q-pr-xs">
-                <q-checkbox v-model="runOpts.useIni" :label="$t('Use INI-file') + ':'" />
+                <q-checkbox v-model="runOpts.useIni" :label="$t('Use INI-file:')" />
               </td>
               <td>{{ runOpts.iniName }}</td>
             </tr>
@@ -487,7 +487,7 @@
                 :disabled="!runOpts.useIni"
                 class="q-pr-xs"
                 >
-                <q-checkbox v-model="runOpts.iniAnyKey" :disable="!runOpts.useIni" :label="$t('Development options') + ':'"/>
+                <q-checkbox v-model="runOpts.iniAnyKey" :disable="!runOpts.useIni" :label="$t('Development options:')"/>
               </td>
               <td>{{ runOpts.iniName }}</td>
             </tr>

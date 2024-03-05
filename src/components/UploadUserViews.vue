@@ -76,7 +76,7 @@ export default {
         }
       } catch (e) {
         console.warn('Unable to retrieve user views', this.modelName, e)
-        this.$q.notify({ type: 'negative', message: this.$t('Unable to retrieve user views') + ': ' + this.modelName })
+        this.$q.notify({ type: 'negative', message: this.$t('Unable to retrieve user views: ') + this.modelName })
         this.$emit('done', this.uploadDone, 0)
         return
       }
@@ -96,7 +96,7 @@ export default {
           if (e.response) em = e.response.data || ''
         } finally {}
         console.warn('Server offline or upload user views failed:', em)
-        this.$q.notify({ type: 'negative', message: this.$t('Server offline or upload user views failed') + ': ' + this.modelName })
+        this.$q.notify({ type: 'negative', message: this.$t('Server offline or upload user views failed: ') + this.modelName })
       }
 
       this.$emit('done', this.uploadDone, pvRows.length + tvRows.length)

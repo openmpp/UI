@@ -412,7 +412,7 @@ export default {
       if (isAdded) {
         this.$q.notify({
           type: 'info',
-          message: (this.tablesRetain.length < this.tableCount) ? this.$t('Retain output table') + ': ' + name : this.$t('Retain all output tables')
+          message: (this.tablesRetain.length < this.tableCount) ? this.$t('Retain output table: ') + ' ' + name : this.$t('Retain all output tables')
         })
         this.refreshTableTreeTickle = !this.refreshTableTreeTickle
       }
@@ -440,7 +440,7 @@ export default {
       if (isAdded) {
         this.$q.notify({
           type: 'info',
-          message: (this.tablesRetain.length < this.tableCount) ? this.$t('Retain group of output tables') + ': ' + groupName : this.$t('Retain all output tables')
+          message: (this.tablesRetain.length < this.tableCount) ? this.$t('Retain group of output tables: ') + groupName : this.$t('Retain all output tables')
         })
         this.refreshTableTreeTickle = !this.refreshTableTreeTickle
       }
@@ -453,7 +453,7 @@ export default {
         console.warn('Unable to remove table from retain list, table name is empty')
         return
       }
-      this.$q.notify({ type: 'info', message: this.$t('Suppress output table') + ': ' + name })
+      this.$q.notify({ type: 'info', message: this.$t('Suppress output table: ') + name })
 
       this.tablesRetain = this.tablesRetain.filter(tn => tn !== name)
       this.refreshTableTreeTickle = !this.refreshTableTreeTickle
@@ -466,7 +466,7 @@ export default {
         console.warn('Unable to remove table group from retain list, group name is empty')
         return
       }
-      this.$q.notify({ type: 'info', message: this.$t('Suppress group of output tables') + ': ' + groupName })
+      this.$q.notify({ type: 'info', message: this.$t('Suppress group of output tables: ') + groupName })
 
       // remove tables group from the list
       const gt = this.groupTableLeafs[groupName]
@@ -501,7 +501,7 @@ export default {
       if (isAdded) {
         this.$q.notify({
           type: 'info',
-          message: this.entityAttrsUse.length < this.entityAttrCount ? this.$t('Add to microdata') + ': ' + name : this.$t('All entity attributes included into microdata')
+          message: this.entityAttrsUse.length < this.entityAttrCount ? this.$t('Add to microdata: ') + name : this.$t('All entity attributes included into microdata')
         })
         this.refreshEntityTreeTickle = !this.refreshEntityTreeTickle
       }
@@ -534,7 +534,7 @@ export default {
       if (isAdded) {
         this.$q.notify({
           type: 'info',
-          message: (this.entityAttrsUse.length < this.entityAttrCount) ? this.$t('Add to microdata') + ': ' + entName : this.$t('All entity attributes included into microdata')
+          message: (this.entityAttrsUse.length < this.entityAttrCount) ? this.$t('Add to microdata: ') + entName : this.$t('All entity attributes included into microdata')
         })
         this.refreshEntityTreeTickle = !this.refreshEntityTreeTickle
       }
@@ -548,7 +548,7 @@ export default {
         return
       }
       const name = entName + '.' + attrName
-      this.$q.notify({ type: 'info', message: this.$t('Exclude from microdata') + ': ' + name })
+      this.$q.notify({ type: 'info', message: this.$t('Exclude from microdata: ') + name })
 
       this.entityAttrsUse = this.entityAttrsUse.filter(ean => ean !== name)
       this.refreshEntityTreeTickle = !this.refreshEntityTreeTickle
@@ -561,7 +561,7 @@ export default {
         console.warn('Unable to remove entity form microdata, entity name is empty:', entName)
         return
       }
-      this.$q.notify({ type: 'info', message: this.$t('Exclude from microdata') + ': ' + entName })
+      this.$q.notify({ type: 'info', message: this.$t('Exclude from microdata: ') + entName })
 
       // remove each entity.attribute from microdata list
       const ent = Mdf.entityTextByName(this.theModel, entName)
@@ -584,7 +584,7 @@ export default {
     onRunNameBlur (e) {
       const { isEntered, name } = Mdf.doFileNameClean(this.runOpts.runName)
       if (isEntered && name !== this.runOpts.runName) {
-        this.$q.notify({ type: 'warning', message: this.$t('Run name should not contain any of') + ': ' + Mdf.invalidFileNameChars })
+        this.$q.notify({ type: 'warning', message: this.$t('Run name should not contain any of: ') + Mdf.invalidFileNameChars })
       }
       this.runOpts.runName = isEntered ? name : ''
     },
@@ -688,7 +688,7 @@ export default {
 
       this.$q.notify({
         type: 'info',
-        message: preset?.descr || preset?.label || (this.$t('Using Run Options') + ': ' + preset?.name || '')
+        message: preset?.descr || preset?.label || (this.$t('Using Run Options: ') + preset?.name || '')
       })
     },
 
@@ -835,7 +835,7 @@ export default {
           return
         }
         if (wsName && this.isPartialWorkset()) {
-          this.$q.notify({ type: 'warning', message: this.$t('Input scenario should include all parameters otherwise model run may fail') + ': ' + wsName })
+          this.$q.notify({ type: 'warning', message: this.$t('Input scenario should include all parameters otherwise model run may fail: ') + wsName })
           return
         }
       }
@@ -976,7 +976,7 @@ export default {
 
       // model wait in the queue
       if (!runStamp) {
-        this.$q.notify({ type: 'info', message: this.$t('Model run wait in the queue' + ': ' + Mdf.fromUnderscoreTimeStamp(submitStamp)) })
+        this.$q.notify({ type: 'info', message: this.$t('Model run wait in the queue: ' + Mdf.fromUnderscoreTimeStamp(submitStamp)) })
 
         if (this.serverConfig.IsJobControl) {
           this.$emit('run-job-select', submitStamp) // show service state and job control page
@@ -985,7 +985,7 @@ export default {
         }
       } else {
         // else: model started
-        this.$q.notify({ type: 'info', message: this.$t('Model run started' + ': ' + Mdf.fromUnderscoreTimeStamp(runStamp)) })
+        this.$q.notify({ type: 'info', message: this.$t('Model run started: ' + Mdf.fromUnderscoreTimeStamp(runStamp)) })
         this.$emit('run-list-refresh')
         this.$emit('run-log-select', runStamp)
       }
@@ -1069,7 +1069,7 @@ export default {
         console.warn('Server offline or profile list retrieve failed.', em)
       }
       if (!isOk) {
-        this.$q.notify({ type: 'negative', message: this.$t('Server offline or profile list retrieve failed') + ': ' + this.digest })
+        this.$q.notify({ type: 'negative', message: this.$t('Server offline or profile list retrieve failed: ') + this.digest })
       }
       this.loadWait = false
     },

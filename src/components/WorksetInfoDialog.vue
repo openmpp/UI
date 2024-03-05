@@ -98,7 +98,7 @@ export default {
       this.worksetText = this.worksetTextByName({ ModelDigest: this.modelDigest, Name: this.worksetName })
       if (!Mdf.isNotEmptyWorksetText(this.worksetText)) {
         console.warn('workset not found by name:', this.worksetName)
-        this.$q.notify({ type: 'negative', message: this.$t('Input scenario not found') })
+        this.$q.notify({ type: 'negative', message: this.$t('Input scenario not found: ') + this.worksetName })
         return
       }
       this.wsName = '' // clear refresh workset

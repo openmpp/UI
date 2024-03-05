@@ -9,6 +9,10 @@
       <span class="q-ml-sm">{{ bodyText }} {{ itemName }}?</span>
     </q-card-section>
 
+    <q-card-section v-if="bodyNote" class="row">
+      {{ bodyNote }}
+    </q-card-section>
+
     <q-card-actions align="right">
       <q-btn
         :label="$t('No')"
@@ -41,6 +45,7 @@ export default {
     kind: { type: String, default: '' },
     dialogTitle: { type: String, default: '' },
     bodyText: { type: String, default: '' },
+    bodyNote: { type: String, default: '' },
     iconName: { type: String, default: '' }
   },
 

@@ -425,7 +425,7 @@ export default {
         console.warn('Unable to download model', msg)
       }
       if (!isOk) {
-        this.$q.notify({ type: 'negative', message: this.$t('Unable to download model') + (msg ? (': ' + msg) : '') })
+        this.$q.notify({ type: 'negative', message: this.$t('Unable to download model') + (msg ? ('. ' + msg) : '') })
         return
       }
 

@@ -149,13 +149,13 @@ export default {
     onParamLeafClick (name, parts) {
       const p = Mdf.paramTextByName(this.theModel, name)
       if (!Mdf.isParam(p?.Param)) {
-        this.$q.notify({ type: 'negative', message: this.$t('Parameter not found') + ': ' + (name || '') })
+        this.$q.notify({ type: 'negative', message: this.$t('Parameter not found: ') + (name || '') })
         return
       }
       // check parameter type: if parameter is enum based then type size should not exceed max size limit
       const nt = Mdf.typeEnumSizeById(this.theModel, p.Param.TypeId)
       if (this.maxTypeSize > 0 && nt > this.maxTypeSize) {
-        this.$q.notify({ type: 'negative', message: this.$t('Parameter type size exceed the limit') + ': ' + this.maxTypeSize.toString() + ': ' + (name || '') })
+        this.$q.notify({ type: 'negative', message: this.$t('Parameter type size exceed the limit: ') + this.maxTypeSize.toString() + ' ' + (name || '') })
         return
       }
 
@@ -163,7 +163,7 @@ export default {
       for (const d of p.ParamDimsTxt) {
         const ne = Mdf.typeEnumSizeById(this.theModel, d.Dim.TypeId)
         if (this.maxTypeSize > 0 && ne > this.maxTypeSize) {
-          this.$q.notify({ type: 'negative', message: this.$t('Parameter dimension size exceed the limit') + ': ' + this.maxTypeSize.toString() + ': ' + (name || '') + '.' + (d.Dim.Name || '') })
+          this.$q.notify({ type: 'negative', message: this.$t('Parameter dimension size exceed the limit: ') + this.maxTypeSize.toString() + ' ' + (name || '') + '.' + (d.Dim.Name || '') })
           return
         }
       }
@@ -198,7 +198,7 @@ export default {
     onDownloadClick  (name, parts) {
       const p = Mdf.paramTextByName(this.theModel, name)
       if (!Mdf.isParam(p?.Param)) {
-        this.$q.notify({ type: 'negative', message: this.$t('Parameter not found') + ': ' + (name || '') })
+        this.$q.notify({ type: 'negative', message: this.$t('Parameter not found: ') + (name || '') })
         return
       }
       const u = this.omsUrl +

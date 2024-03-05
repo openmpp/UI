@@ -29,7 +29,7 @@
                   :name="isSuccess(runCurrent.Status) ? 'mdi-information-outline' : (isInProgress(runCurrent.Status) ? 'mdi-run' : 'mdi-alert-circle-outline')"
                   />
               </q-item-section>
-              <q-item-section>{{ isRunDeleted(runCurrent.Status, runCurrent.Name) ? $t('Deleted') : ($t('About') + ': ' + runCurrent.Name) }}</q-item-section>
+              <q-item-section>{{ isRunDeleted(runCurrent.Status, runCurrent.Name) ? $t('Deleted') : ($t('About')) + ' ' + runCurrent.Name }}</q-item-section>
             </q-item>
             <q-separator />
 
@@ -52,7 +52,7 @@
               <q-item-section avatar>
                 <q-icon color="primary" name="mdi-notebook-plus-outline" />
               </q-item-section>
-              <q-item-section>{{ paramDiff.length > 0 ? ($t('Create new input scenario with {count} parameter(s) from', { count: paramDiff.length }) + ': ' + firstCompareName) : $t('Create new input scenario') }}</q-item-section>
+              <q-item-section>{{ paramDiff.length > 0 ? ($t('Create new input scenario with {count} parameter(s) from: ', { count: paramDiff.length }) + firstCompareName) : $t('Create new input scenario') }}</q-item-section>
             </q-item>
 
             <template v-if="serverConfig.AllowUpload">
@@ -91,7 +91,7 @@
         class="col-auto text-white rounded-borders q-ml-xs"
         :class="isRunDeleted(runCurrent.Status, runCurrent.Name) ? 'bg-negative' : ((isSuccess(runCurrent.Status) || isInProgress(runCurrent.Status)) ? 'bg-primary' : 'bg-warning')"
         :icon="isSuccess(runCurrent.Status) ? 'mdi-information' : (isInProgress(runCurrent.Status) ? 'mdi-run' : 'mdi-alert-circle-outline')"
-        :title="(isRunDeleted(runCurrent.Status, runCurrent.Name) ? $t('Deleted') : $t('About')) + ': ' + runCurrent.Name"
+        :title="(isRunDeleted(runCurrent.Status, runCurrent.Name) ? $t('Deleted') : $t('About')) + ' ' + runCurrent.Name"
         />
       <q-separator vertical inset spaced="sm" color="secondary" />
 
@@ -112,7 +112,7 @@
         dense
         class="col-auto bg-primary text-white rounded-borders q-ml-xs"
         icon="mdi-notebook-plus"
-        :title="paramDiff.length > 0 ? ($t('Create new input scenario with {count} parameter(s) from', { count: paramDiff.length }) + ': ' + firstCompareName) : $t('Create new input scenario')"
+        :title="paramDiff.length > 0 ? ($t('Create new input scenario with {count} parameter(s) from: ', { count: paramDiff.length }) + firstCompareName) : $t('Create new input scenario')"
         />
 
       <template v-if="serverConfig.AllowUpload">
@@ -379,7 +379,7 @@
         :filter="runFilter"
         :filter-method="doRunTreeFilter"
         :no-results-label="$t('No model runs found')"
-        :no-nodes-label="$t('No model runs published or server offline')"
+        :no-nodes-label="$t('No model runs published (or server offline)')"
         >
         <template v-slot:default-header="prop">
 
@@ -436,7 +436,7 @@
               :color="isRunDeleted(prop.node.status, prop.node.label) ? 'negative' : (isSuccess(prop.node.status) || isInProgress(prop.node.status) ? 'primary' : 'warning')"
               class="col-auto"
               :icon="isSuccess(prop.node.status) ? (prop.node.digest === runDigestSelected ? 'mdi-information' : 'mdi-information-outline') : (isInProgress(prop.node.status) ? 'mdi-run' : 'mdi-alert-circle-outline')"
-              :title="(isRunDeleted(prop.node.status, prop.node.label) ? $t('Deleted') : $t('About')) + ': ' + prop.node.label"
+              :title="(isRunDeleted(prop.node.status, prop.node.label) ? $t('Deleted') : $t('About')) + ' ' + prop.node.label"
               />
             <q-btn
               :disable="!prop.node.stamp"
@@ -447,7 +447,7 @@
               :color="!!prop.node.stamp ? 'primary' : 'secondary'"
               class="col-auto"
               icon="mdi-text-long"
-              :title="$t('Run Log') + ': ' + prop.node.label"
+              :title="$t('Run Log: ') + prop.node.label"
               />
             <q-btn
               :disable="!isSuccess(prop.node.status) || prop.node.digest === runDigestSelected || isRunDeleted(prop.node.status, prop.node.label)"
@@ -469,7 +469,7 @@
               :color="prop.node.digest ? 'primary' : 'secondary'"
               class="col-auto"
               icon="mdi-delete-outline"
-              :title="$t('Delete') + ': ' + prop.node.label"
+              :title="$t('Delete: ') + prop.node.label"
               />
             <q-btn
               v-if="serverConfig.AllowDownload"

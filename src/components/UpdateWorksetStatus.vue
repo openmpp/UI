@@ -63,7 +63,7 @@ export default {
           })
         } else {
           console.warn('Unable to update input scenario, response:', rsp)
-          this.$q.notify({ type: 'negative', message: this.$t('Server offline or input scenario not found') + ': ' + this.worksetName })
+          this.$q.notify({ type: 'negative', message: this.$t('Server offline or input scenario not found: ') + this.worksetName })
           return
         }
         this.loadDone = true
@@ -73,7 +73,7 @@ export default {
           if (e.response) em = e.response.data || ''
         } finally {}
         console.warn('Server offline or input scenario not found.', em)
-        this.$q.notify({ type: 'negative', message: this.$t('Server offline or input scenario not found') + ': ' + this.worksetName })
+        this.$q.notify({ type: 'negative', message: this.$t('Server offline or input scenario not found: ') + this.worksetName })
       }
 
       this.$emit('done', this.loadDone, this.worksetName, this.isReadonly)

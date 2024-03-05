@@ -275,7 +275,7 @@ export default {
     onLastPage () {
       if (this.isAllPageSize() || this.pageSize > SMALL_PAGE_SIZE) { // limit last page size
         this.pageSize = SMALL_PAGE_SIZE
-        this.$q.notify({ type: 'info', message: this.$t('Size reduced to') + ': ' + this.pageSize })
+        this.$q.notify({ type: 'info', message: this.$t('Size reduced to: ') + this.pageSize })
       }
       this.pageStart = LAST_PAGE_OFFSET
       this.isShowPageControls = this.pageSize > 0
@@ -364,10 +364,10 @@ export default {
         await rw.put(this.parameterName, dv)
       } catch (e) {
         console.warn('Unable to save default parameter view', e)
-        this.$q.notify({ type: 'negative', message: this.$t('Unable to save default parameter view') })
+        this.$q.notify({ type: 'negative', message: this.$t('Unable to save default parameter view: ' + this.parameterName) })
         return
       }
-      this.$q.notify({ type: 'info', message: this.$t('Default view of parameter saved') + ': ' + this.parameterName })
+      this.$q.notify({ type: 'info', message: this.$t('Default view of parameter saved: ') + this.parameterName })
       this.$emit('parameter-view-saved', this.parameterName)
     },
 
@@ -381,7 +381,7 @@ export default {
         dv = await rd.getByKey(this.parameterName)
       } catch (e) {
         console.warn('Unable to restore default parameter view', this.parameterName, e)
-        this.$q.notify({ type: 'negative', message: this.$t('Unable to restore default parameter view') + ': ' + this.parameterName })
+        this.$q.notify({ type: 'negative', message: this.$t('Unable to restore default parameter view: ') + this.parameterName })
         return
       }
       // exit if not found or empty
@@ -990,14 +990,14 @@ export default {
         const runSrc = this.runTextByDigest({ ModelDigest: this.digest, RunDigest: this.runDigest })
         if (!Mdf.isNotEmptyRunText(runSrc)) {
           console.warn('Model run not found:', this.digest, this.runDigest)
-          this.$q.notify({ type: 'negative', message: this.$t('Model run not found' + ': ' + this.runDigest) })
+          this.$q.notify({ type: 'negative', message: this.$t('Model run not found: ') + this.runDigest })
           return { isFound: false, src: runSrc }
         }
 
         this.paramRunSet = Mdf.paramRunSetByName(runSrc, this.parameterName)
         if (!Mdf.isNotEmptyParamRunSet(this.paramRunSet)) {
           console.warn('Parameter not found in model run:', this.parameterName, this.runDigest)
-          this.$q.notify({ type: 'negative', message: this.$t('Parameter not found in model run' + ': ' + this.runDigest) })
+          this.$q.notify({ type: 'negative', message: this.$t('Parameter not found in model run: ') + this.parameterName + ' ' + this.runDigest })
           return { isFound: false, src: runSrc }
         }
         return { isFound: true, src: runSrc }
@@ -1006,14 +1006,14 @@ export default {
       const wsSrc = this.worksetTextByName({ ModelDigest: this.digest, Name: this.worksetName })
       if (!Mdf.isNotEmptyWorksetText(wsSrc)) {
         console.warn('Input scenario not found:', this.digest, this.worksetName)
-        this.$q.notify({ type: 'negative', message: this.$t('Input scenario not found' + ': ' + this.worksetName) })
+        this.$q.notify({ type: 'negative', message: this.$t('Input scenario not found: ') + this.worksetName })
         return { isFound: false, src: wsSrc }
       }
 
       this.paramRunSet = Mdf.paramRunSetByName(wsSrc, this.parameterName)
       if (!Mdf.isNotEmptyParamRunSet(this.paramRunSet)) {
         console.warn('Parameter not found in scenario:', this.parameterName, this.worksetName)
-        this.$q.notify({ type: 'negative', message: this.$t('Parameter not found in scenario' + ': ' + this.worksetName) })
+        this.$q.notify({ type: 'negative', message: this.$t('Parameter not found in scenario: ') + this.parameterName + ' ' + this.worksetName })
         return { isFound: false, src: wsSrc }
       }
       return { isFound: true, src: wsSrc }
@@ -1107,7 +1107,7 @@ export default {
 
         if (!Mdf.isPageLayoutRsp(rsp)) {
           console.warn('Invalid response to:', u)
-          this.$q.notify({ type: 'negative', message: this.$t('Server offline or parameter data not found') + ': ' + this.parameterName })
+          this.$q.notify({ type: 'negative', message: this.$t('Server offline or parameter data not found: ') + this.parameterName })
         } else {
           let d = []
           if (!rsp) {
@@ -1133,7 +1133,7 @@ export default {
           if (e.response) em = e.response.data || ''
         } finally {}
         console.warn('Server offline or parameter data not found', em)
-        this.$q.notify({ type: 'negative', message: this.$t('Server offline or parameter data not found') + ': ' + this.parameterName })
+        this.$q.notify({ type: 'negative', message: this.$t('Server offline or parameter data not found: ') + this.parameterName })
       }
 
       this.loadWait = false
@@ -1197,7 +1197,7 @@ export default {
           if (e.response) em = e.response.data || ''
         } finally {}
         console.warn('Server offline or parameter save failed:', em)
-        this.$q.notify({ type: 'negative', message: this.$t('Server offline or parameter save failed') + ': ' + this.parameterName })
+        this.$q.notify({ type: 'negative', message: this.$t('Server offline or parameter save failed: ') + this.parameterName })
       }
       this.saveWait = false
 
@@ -1217,7 +1217,7 @@ export default {
       // check file name: warning if it is not parameterName.csv
       const csvName = this.parameterName + '.csv'
       const fName = this.uploadFile?.name
-      this.$q.notify({ type: (fName === csvName ? 'info' : 'warning'), message: this.$t('Uploading') + ': ' + fName })
+      this.$q.notify({ type: (fName === csvName ? 'info' : 'warning'), message: this.$t('Uploading: ') + fName })
 
       // make upload multipart form
       const u = this.omsUrl + '/api/workset-merge'
@@ -1249,7 +1249,7 @@ export default {
 
       // notify user and close upload controls
       this.doCancelFileSelect()
-      this.$q.notify({ type: 'info', message: this.$t('Uploaded') + ': ' + fName })
+      this.$q.notify({ type: 'info', message: this.$t('Uploaded: ') + fName })
 
       // refresh parameter view on success
       // if sub-values count the same then refresh only data
@@ -1296,11 +1296,11 @@ export default {
       }
       this.loadWait = false
       if (!isOk) {
-        this.$q.notify({ type: 'negative', message: this.$t('Unable to save parameter value notes') + (msg ? (': ' + msg) : '') })
+        this.$q.notify({ type: 'negative', message: this.$t('Unable to save parameter value notes') + (msg ? ('. ' + msg) : '') })
         return
       }
 
-      this.$q.notify({ type: 'info', message: this.$t('Parameter value notes saved') + ': ' + this.parameterName })
+      this.$q.notify({ type: 'info', message: this.$t('Parameter value notes saved: ') + this.parameterName })
       this.refreshRunTickle = !this.refreshRunTickle
     },
 
@@ -1339,13 +1339,13 @@ export default {
       }
       this.loadWait = false
       if (!isOk) {
-        this.$q.notify({ type: 'negative', message: this.$t('Unable to save parameter value notes') + (msg ? (': ' + msg) : '') })
+        this.$q.notify({ type: 'negative', message: this.$t('Unable to save parameter value notes') + (msg ? ('. ' + msg) : '') })
         return
       }
 
       this.updateWorksetReadonly(true) // set workset read only if all parameters saved and workset note editor closed
 
-      this.$q.notify({ type: 'info', message: this.$t('Parameter value notes saved') + ': ' + this.parameterName })
+      this.$q.notify({ type: 'info', message: this.$t('Parameter value notes saved: ') + this.parameterName })
       this.refreshWsTickle = !this.refreshWsTickle
     },
 

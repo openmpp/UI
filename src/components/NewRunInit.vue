@@ -167,7 +167,7 @@ export default {
           if (e.response) em = e.response.data || ''
         } finally {}
         console.warn('Server offline or model run failed to start', em)
-        // this.$q.notify({ type: 'negative', message: this.$t('Server offline or model run failed to start') + ': ' + this.modelDigest })
+        // this.$q.notify({ type: 'negative', message: this.$t('Server offline or model run failed to start: ') + this.modelDigest })
       }
       this.loadWait = false
 

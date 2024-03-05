@@ -62,12 +62,12 @@ export default {
       if (Mdf.cleanFileNameInput(this.newName) !== this.newName || this.newName.length > 255) {
         console.warn('Invalid workset name:', this.newName)
         this.$emit('done', false, this.modelDigest, this.newName)
-        this.$q.notify({ type: 'negative', message: this.$t('Invalid input scenario name') + ': ' + (this.newName || '') })
+        this.$q.notify({ type: 'negative', message: this.$t('Invalid input scenario name: ') + (this.newName || '') })
         return
       }
       // check if the workset with the same name already exist in the model
       if (this.isExistInWorksetTextList({ ModelDigest: this.modelDigest, Name: this.newName })) {
-        this.$q.notify({ type: 'negative', message: this.$t('Error: input scenario name must be unique') + ': ' + (this.newName || '') })
+        this.$q.notify({ type: 'negative', message: this.$t('Error: input scenario name must be unique: ') + (this.newName || '') })
         this.$emit('done', false, this.modelDigest, this.newName)
         return
       }
@@ -186,7 +186,7 @@ export default {
       this.loadDone = false
       this.loadWait = true
       this.$emit('wait')
-      this.$q.notify({ type: 'info', message: this.$t('Creating') + ': ' + ws.Name })
+      this.$q.notify({ type: 'info', message: this.$t('Creating: ') + ws.Name })
 
       let nm = ''
       let em = ''
@@ -204,9 +204,9 @@ export default {
       this.loadWait = false
 
       if (this.loadDone) {
-        this.$q.notify({ type: 'info', message: this.$t('Created') + ': ' + nm })
+        this.$q.notify({ type: 'info', message: this.$t('Created: ') + nm })
       } else {
-        this.$q.notify({ type: 'negative', message: this.$t('Unable to create new input scenario') + ': ' + ws.Name })
+        this.$q.notify({ type: 'negative', message: this.$t('Unable to create new input scenario: ') + ws.Name })
         if (em && typeof em === typeof 'string') {
           this.$q.notify({ type: 'negative', message: em })
         }

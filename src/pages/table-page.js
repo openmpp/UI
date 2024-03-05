@@ -885,19 +885,19 @@ export default {
       this.runText = this.runTextByDigest({ ModelDigest: this.digest, RunDigest: this.runDigest })
       if (!Mdf.isNotEmptyRunText(this.runText)) {
         console.warn('Model run not found:', this.digest, this.runDigest)
-        this.$q.notify({ type: 'negative', message: this.$t('Model run not found' + ': ' + this.runDigest) })
+        this.$q.notify({ type: 'negative', message: this.$t('Model run not found: ' + this.runDigest) })
         return false
       }
 
       this.tableText = Mdf.tableTextByName(this.theModel, this.tableName)
       if (!Mdf.isNotEmptyTableText(this.tableText)) {
         console.warn('Output table not found:', this.tableName)
-        this.$q.notify({ type: 'negative', message: this.$t('Output table not found' + ': ' + this.tableName) })
+        this.$q.notify({ type: 'negative', message: this.$t('Output table not found: ') + this.tableName })
         return false
       }
       if (!Mdf.isRunTextHasTable(this.runText, this.tableName)) {
         console.warn('Output table not found in model run:', this.tableName, this.runDigest)
-        this.$q.notify({ type: 'negative', message: this.$t('Output table not found in model run' + ': ' + this.tableName + ' ' + this.runDigest) })
+        this.$q.notify({ type: 'negative', message: this.$t('Output table not found in model run: ') + this.tableName + ' ' + this.runDigest })
         return false
       }
       return true
@@ -1282,11 +1282,11 @@ export default {
         await rw.put(this.tableName, dv)
       } catch (e) {
         console.warn('Unable to save default output table view', e)
-        this.$q.notify({ type: 'negative', message: this.$t('Unable to save default output table view') })
+        this.$q.notify({ type: 'negative', message: this.$t('Unable to save default output table view: ' + this.tableName) })
         return
       }
 
-      this.$q.notify({ type: 'info', message: this.$t('Default view of output table saved') + ': ' + this.tableName })
+      this.$q.notify({ type: 'info', message: this.$t('Default view of output table saved: ') + this.tableName })
       this.$emit('table-view-saved', this.tableName)
     },
 
@@ -1300,7 +1300,7 @@ export default {
         dv = await rd.getByKey(this.tableName)
       } catch (e) {
         console.warn('Unable to restore default output table view', this.tableName, e)
-        this.$q.notify({ type: 'negative', message: this.$t('Unable to restore default output table view') + ': ' + this.tableName })
+        this.$q.notify({ type: 'negative', message: this.$t('Unable to restore default output table view: ') + this.tableName })
         return
       }
       // exit if not found or empty
@@ -1490,7 +1490,7 @@ export default {
     onLastPage () {
       if (this.isAllPageSize() || this.pageSize > SMALL_PAGE_SIZE) { // limit last page size
         this.pageSize = SMALL_PAGE_SIZE
-        this.$q.notify({ type: 'info', message: this.$t('Size reduced to') + ': ' + this.pageSize })
+        this.$q.notify({ type: 'info', message: this.$t('Size reduced to: ') + this.pageSize })
       }
       this.pageStart = LAST_PAGE_OFFSET
       this.isShowPageControls = this.pageSize > 0
@@ -1557,7 +1557,7 @@ export default {
           break
         default:
           console.warn('Unable to download output table, t.kind:', this.ctrl.kind)
-          this.$q.notify({ type: 'negative', message: this.$t('Unable to download output table') + ': ' + this.tableName })
+          this.$q.notify({ type: 'negative', message: this.$t('Unable to download output table: ') + this.tableName })
           return
       }
       u += (this.$q.platform.is.win) ? '/csv-bom' : '/csv'
@@ -1953,7 +1953,7 @@ export default {
 
         if (!Mdf.isPageLayoutRsp(rsp)) {
           console.warn('Invalid response to:', u)
-          this.$q.notify({ type: 'negative', message: this.$t('Server offline or output table data not found') + ': ' + this.tableName })
+          this.$q.notify({ type: 'negative', message: this.$t('Server offline or output table data not found: ') + this.tableName })
         } else {
           let d = []
           if (!rsp) {
@@ -1979,7 +1979,7 @@ export default {
           if (e.response) em = e.response.data || ''
         } finally {}
         console.warn('Server offline or output table data not found', em)
-        this.$q.notify({ type: 'negative', message: this.$t('Server offline or output table data not found') + ': ' + this.tableName })
+        this.$q.notify({ type: 'negative', message: this.$t('Server offline or output table data not found: ') + this.tableName })
       }
 
       this.loadWait = false

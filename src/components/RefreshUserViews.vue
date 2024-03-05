@@ -47,7 +47,7 @@ export default {
       const mName = Mdf.modelName(this.theModel)
       if (this.modelName !== mName) {
         console.warn('Unable to restore user views due to mismatch of model name', this.modelName, mName)
-        this.$q.notify({ type: 'negative', message: this.$t('Unable to restore user views due to mismatch of model name') + ': ' + mName })
+        this.$q.notify({ type: 'negative', message: this.$t('Unable to restore user views due to mismatch of model name: ') + mName })
         this.$emit('done', this.loadDone, 0) // always emit result
         return
       }
@@ -69,7 +69,7 @@ export default {
           if (e.response) em = e.response.data || ''
         } finally {}
         console.warn('Server offline or read of user views failed', em)
-        this.$q.notify({ type: 'negative', message: this.$t('Server offline or read of user views failed') + ': ' + mName })
+        this.$q.notify({ type: 'negative', message: this.$t('Server offline or read of user views failed: ') + mName })
       }
 
       // if model parameter views not empty then write into indexed db
@@ -79,7 +79,7 @@ export default {
         // views are not empty: check model name
         if (!vs || vs?.model?.name !== this.modelName) {
           console.warn('Unable to restore user views due to mismatch of model name', this.modelName, vs?.model?.name)
-          this.$q.notify({ type: 'negative', message: this.$t('Unable to restore user views due to mismatch of model name') + ': ' + this.modelName })
+          this.$q.notify({ type: 'negative', message: this.$t('Unable to restore user views due to mismatch of model name: ') + this.modelName })
           this.loadDone = false // error: model name in server json response must be same as current UI model name
         } else {
           //
@@ -100,7 +100,7 @@ export default {
               }
             } catch (e) {
               console.warn('Unable to save default parameter view:', pName, e)
-              this.$q.notify({ type: 'negative', message: this.$t('Unable to save default parameter view') + ': ' + pName })
+              this.$q.notify({ type: 'negative', message: this.$t('Unable to save default parameter view: ') + pName })
               this.loadDone = false // error during view write, it can be incorrect json
             }
           }
@@ -122,7 +122,7 @@ export default {
               }
             } catch (e) {
               console.warn('Unable to save default output table view:', tName, e)
-              this.$q.notify({ type: 'negative', message: this.$t('Unable to save default output table view') + ': ' + tName })
+              this.$q.notify({ type: 'negative', message: this.$t('Unable to save default output table view: ') + tName })
               this.loadDone = false // error during view write, it can be incorrect json
             }
           }
@@ -143,8 +143,8 @@ export default {
                 count++
               }
             } catch (e) {
-              console.warn('Unable to save default microdata view:', eName, e)
-              this.$q.notify({ type: 'negative', message: this.$t('Unable to save default microdata view') + ': ' + eName })
+              console.warn('Unable to save default microdata view: ', eName, e)
+              this.$q.notify({ type: 'negative', message: this.$t('Unable to save default microdata view: ') + eName })
               this.loadDone = false // error during view write, it can be incorrect json
             }
           }

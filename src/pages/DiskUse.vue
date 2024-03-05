@@ -82,6 +82,9 @@
       <table class="om-p-table">
         <thead>
           <tr>
+            <th class="om-p-head-center">{{ $t('Status') }}</th>
+            <th class="om-p-head-center">{{ $t('Open / Close') }}</th>
+            <th class="om-p-head-center">{{ $t('Cleanup') }}</th>
             <th class="om-p-head-center text-weight-medium">{{ $t('Size') }}</th>
             <th class="om-p-head-center text-weight-medium">{{ $t('Updated') }}</th>
             <th class="om-p-head-center text-weight-medium">{{ $t('Model Database') }}</th>
@@ -89,6 +92,43 @@
         </thead>
         <tbody>
           <tr v-for="dbu in dbUseLst" :key="'md-' + (dbu.path || 'no-path')">
+            <td class="om-p-cell-center">
+              <q-icon v-if="dbu.isOn" size="lg" color="primary" name="mdi-database-check-outline" :title="$t('model database') + ' ' + dbu.nameVer" />
+              <q-icon v-if="dbu.isOff" size="lg" color="primary" name="mdi-database-lock" :title="$t('model database offline')" />
+              <q-icon v-if="dbu.isWork" size="lg" color="primary" name="mdi-database-clock" :title="$t('model database maintenance in progress')" />
+            </td>
+            <td class="om-p-cell-center">
+              <q-btn
+                v-if="dbu.isOn"
+                @click="onCloseDb(dbu)"
+                unelevated
+                round
+                color="primary"
+                icon="mdi-lock"
+                :title="$t('Close model database') + ' ' + dbu.nameVer"
+                />
+              <q-btn
+                v-if="dbu.isOff"
+                @click="onOpenDb(dbu)"
+                unelevated
+                round
+                color="primary"
+                icon="mdi-lock-open-variant"
+                :title="$t('Open model database')"
+                />
+            </td>
+            <td class="om-p-cell-center">
+              <q-btn
+                v-if="dbu.isOff || dbu.isOn"
+                :disable="dbu.isOn"
+                @click="onCleanupDb(dbu)"
+                unelevated
+                round
+                color="primary"
+                icon="mdi-update"
+                :title="$t('Cleanup model database')"
+                />
+            </td>
             <td class="om-p-cell-right mono">{{ fileSizeStr(dbu.size) }}</td>
             <td class="om-p-cell-left mono">{{ fileTimeStamp(dbu.modTs) }}</td>
             <td class="om-p-cell-left"
@@ -112,6 +152,32 @@
     :dialog-title="(upDownToDelete === 'up' ? $t('Delete all upload files') :  $t('Delete all download files')) + '?'"
     >
   </delete-confirm-dialog>
+
+  <confirm-dialog
+    @confirm-yes="onYesCloseDb"
+    :show-tickle="showCloseDbDialogTickle"
+    :item-id="digestCloseDb"
+    :item-name="nameVerCloseDb"
+    :dialog-title="$t('Close model database' + '?')"
+    :body-text="$t('Close')"
+    :body-note="$t('You would not be able to use the model if database is closed.')"
+    :icon-name="'mdi-lock'"
+    >
+  </confirm-dialog>
+  <confirm-dialog
+    @confirm-yes="onYesCleanupDb"
+    :show-tickle="showCleanupDbDialogTickle"
+    :item-name="pathCleanupDb"
+    :dialog-title="$t('Cleanup model database' + '?')"
+    :body-text="$t('Cleanup')"
+    :body-note="$t('Cleanup may take very long time. It is recommended to delete old model runs and old input scenarios before cleanup.')"
+    :icon-name="'mdi-lock'"
+    >
+  </confirm-dialog>
+
+  <q-inner-loading :showing="loadWait">
+    <q-spinner-gears size="lg" color="primary" />
+  </q-inner-loading>
 
 </q-page>
 </template>
