@@ -14,6 +14,7 @@ export default {
   data () {
     return {
       dbUseLst: [],
+      cleanupLogLst: [],
       loadWait: false,
       upDownToDelete: '',
       showAllDeleteDialogTickle: false,
@@ -21,7 +22,12 @@ export default {
       digestCloseDb: '',
       showCloseDbDialogTickle: false,
       pathCleanupDb: '',
-      showCleanupDbDialogTickle: false
+      showCleanupDbDialogTickle: false,
+      titleCleanupLog: '',
+      nameCleanupLog: '',
+      dtCleanupLog: '',
+      linesCleanupLog: [],
+      showCleanupLog: false
     }
   },
 
@@ -31,6 +37,7 @@ export default {
     updateTs () { return this.diskUseState.DiskUse.UpdateTs },
     isDownloadEnabled () { return this.serverConfig.AllowDownload },
     isUploadEnabled () { return this.serverConfig.AllowUpload },
+    isCleanupLogList () { return Mdf.lengthOf(this.cleanupLogLst) > 0 },
 
     ...mapState('model', {
       modelList: state => state.modelList
@@ -50,7 +57,11 @@ export default {
   },
 
   watch: {
-    updateTs () { this.makeDbUse() }
+    refreshTickle () { this.$emit('disk-use-refresh') },
+    updateTs () {
+      this.makeDbUse()
+      this.getCleanupLogList()
+    }
   },
 
   methods: {
@@ -65,6 +76,7 @@ export default {
       const fs = Mdf.fileSizeParts(size)
       return fs.val + ' ' + this.$t(fs.name)
     },
+    fromTimeStamp (ts) { return Mdf.fromUnderscoreTimeStamp(ts) },
 
     // delete all download files for all models
     onAllDownloadDelete () {
@@ -306,16 +318,115 @@ export default {
         this.$q.notify({ type: 'negative', message: this.$t('Error at database file cleanup: ') + path })
         return
       }
-      // notify user about log file (for user support)
+      // notify user about log file
+      this.$q.notify({ type: 'info', message: this.$t('Cleanup log: ') + logName })
+      /*
       this.$q.notify({
         type: 'info',
         timeout: 0,
         actions: [{ label: this.$t('Dismiss'), color: 'white', handler: () => {} }],
         message: this.$t('Cleanup log: ') + logName
       })
+      */
 
-      // refresh disk usage from the server
+      // refresh disk usage from the server and refresh list of log cleanup files
       setTimeout(() => this.$emit('disk-use-refresh'), 2777)
+      setTimeout(() => this.getCleanupLogList(), 1051)
+    },
+
+    // get list of database cleanup log files
+    async getCleanupLogList () {
+      let isOk = false
+      let lst = []
+
+      const u = this.omsUrl + '/api/db-cleanup/log-all'
+      try {
+        const response = await this.$axios.get(u)
+        if (response.data) {
+          isOk = !!response.data && Array.isArray(response.data)
+          if (isOk) lst = response.data
+        }
+      } catch (e) {
+        let msg = ''
+        try {
+          if (e.response) msg = e.response.data || ''
+        } finally {}
+        console.warn('Unable to get list of cleanup log files', msg)
+      }
+      if (!isOk) {
+        this.$q.notify({ type: 'negative', message: this.$t('Unable to get list of cleanup log files') })
+        return
+      }
+      // expected response:
+      /*
+      [{
+          "DbName": "modelOne.sqlite",
+          "LogStamp": "2024_03_05_01_31_56_780",
+          "LogFileName": "db-cleanup.2024_03_05_01_31_56_780.modelOne.sqlite.console.txt"
+        }
+      ]
+      */
+      this.cleanupLogLst = []
+
+      for (let k = lst.length - 1; k >= 0; k--) { // in reverse time order
+        const f = lst[k]
+        if (!f.hasOwnProperty('DbName') || typeof f.DbName !== typeof 'string') continue
+        if (!f.hasOwnProperty('LogStamp') || typeof f.LogStamp !== typeof 'string') continue
+        if (!f.hasOwnProperty('LogFileName') || typeof f.LogFileName !== typeof 'string') continue
+
+        if ((f.DbName || '') !== '' && (f.LogStamp || '') !== '' && (f.LogFileName || '') !== '') this.cleanupLogLst.push(f)
+      }
+    },
+
+    // get cleanup log file content and show it to the user
+    async doShowCleanupLog (logName) {
+      if (!logName) {
+        console.warn('Invalid (empty) log file name:', logName)
+        this.$q.notify({ type: 'negative', message: this.$t('Invalid (empty) log file name') })
+        return
+      }
+
+      let isOk = false
+      let fc = {}
+
+      const u = this.omsUrl + '/api/db-cleanup/log/' + encodeURIComponent(logName)
+      try {
+        const response = await this.$axios.get(u)
+        if (response.data) {
+          fc = response.data
+          if (fc.hasOwnProperty('DbName') && typeof fc.DbName === typeof 'string' &&
+            fc.hasOwnProperty('LogStamp') && typeof fc.LogStamp === typeof 'string' &&
+            fc.hasOwnProperty('LogFileName') && typeof fc.LogFileName === typeof 'string' &&
+            fc.hasOwnProperty('ModTs') && typeof fc.ModTs === typeof 1 &&
+            fc.hasOwnProperty('Lines') && Array.isArray(fc.Lines)) {
+            isOk = (fc.DbName || '') !== '' && (fc.LogStamp || '') !== '' && (fc.LogFileName || '') !== ''
+          }
+        }
+      } catch (e) {
+        let msg = ''
+        try {
+          if (e.response) msg = e.response.data || ''
+        } finally {}
+        console.warn('Unable to get cleanup log file', logName, msg)
+      }
+      if (!isOk) {
+        this.$q.notify({ type: 'negative', message: this.$t('Unable to get cleanup log file: ') + logName })
+        return
+      }
+      // expected response:
+      /*
+      "DbName": "modelOne.sqlite",
+      "LogStamp": "2024_03_05_01_31_56_780",
+      "LogFileName": "db-cleanup.2024_03_05_01_31_56_780.modelOne.sqlite.console.txt",
+      "Size": 185,
+      "ModTs": 1709620320883,
+      "Lines": ["2024-03-05 01:31:56.786 , "......"]
+      */
+      this.titleCleanupLog = fc.DbName
+      this.nameCleanupLog = fc.LogFileName
+      this.dtCleanupLog = this.fileTimeStamp(fc.ModTs)
+      this.linesCleanupLog = fc.Lines
+      this.showCleanupLog = true
     },
 
     // delete all download files or all upload files
@@ -361,5 +472,6 @@ export default {
 
   mounted () {
     this.makeDbUse()
+    this.getCleanupLogList()
   }
 }

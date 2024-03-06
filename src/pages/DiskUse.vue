@@ -141,6 +141,38 @@
 
     </q-card-section>
 
+    <q-card-section v-if="isCleanupLogList" class="q-pt-sm">
+
+      <table class="om-p-table">
+        <thead>
+          <tr>
+            <th class="om-p-head-center text-weight-medium"></th>
+            <th class="om-p-head-center text-weight-medium">{{ $t('Started') }}</th>
+            <th class="om-p-head-center text-weight-medium">{{ $t('Model Database') }}</th>
+            <th class="om-p-head-center text-weight-medium">{{ $t('Cleanup Log File') }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="cf in cleanupLogLst" :key="'cf-' + (cf.LogStamp || 'no-stamp')">
+            <td class="om-p-cell-left mono">
+              <q-btn
+                @click="doShowCleanupLog(cf.LogFileName)"
+                unelevated
+                round
+                color="primary"
+                icon="mdi-text-long"
+                :title="$t('Log File') + ' ' + cf.LogFileName"
+                />
+            </td>
+            <td class="om-p-cell-left mono">{{ fromTimeStamp(cf.LogStamp) }}</td>
+            <td class="om-p-cell-left">{{ cf.DbName }}</td>
+            <td class="om-p-cell-left">{{ cf.LogFileName }}</td>
+          </tr>
+        </tbody>
+      </table>
+
+    </q-card-section>
+
   </q-card>
 
   <delete-confirm-dialog
@@ -174,6 +206,27 @@
     :icon-name="'mdi-lock'"
     >
   </confirm-dialog>
+
+  <q-dialog full-width v-model="showCleanupLog">
+    <q-card>
+
+      <q-card-section class="row text-h6 bg-primary text-white">
+        <div>{{ titleCleanupLog }}</div><q-space /><q-btn icon="mdi-close" flat dense round v-close-popup />
+      </q-card-section>
+
+      <q-card-section class="q-pb-none">
+        <span class="mono">{{dtCleanupLog}} <i>[{{nameCleanupLog}}]</i></span>
+        <div>
+          <pre>{{linesCleanupLog.join('\n')}}</pre>
+        </div>
+      </q-card-section>
+
+      <q-card-actions align="right">
+        <q-btn flat label="OK" color="primary" v-close-popup />
+      </q-card-actions>
+
+    </q-card>
+  </q-dialog>
 
   <q-inner-loading :showing="loadWait">
     <q-spinner-gears size="lg" color="primary" />

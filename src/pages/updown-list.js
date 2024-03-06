@@ -310,7 +310,7 @@ export default {
         const u = this.omsUrl +
           ((this.digest && this.digest !== Mdf.allModelsDownloadLog)
             ? '/api/download/log/model/' + encodeURIComponent(this.digest)
-            : '/api/download/log/all')
+            : '/api/download/log-all')
         try {
           const response = await this.$axios.get(u)
           dR = response.data
@@ -327,7 +327,7 @@ export default {
         const u = this.omsUrl +
           ((this.digest && this.digest !== Mdf.allModelsUploadLog)
             ? '/api/upload/log/model/' + encodeURIComponent(this.digest)
-            : '/api/upload/log/all')
+            : '/api/upload/log-all')
         try {
           const response = await this.$axios.get(u)
           uR = response.data
