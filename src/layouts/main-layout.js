@@ -16,7 +16,7 @@ export default {
       refreshTickle: false,
       loadConfigDone: false,
       loadDiskUseDone: false,
-      nDdiskUseErr: 0, // disk use error count
+      nDiskUseErr: 0, // disk use error count
       isBeta: true,
       modelInfoTickle: false,
       toUpDownSection: 'down',
@@ -120,7 +120,7 @@ export default {
       this.refreshTickle = !this.refreshTickle
     },
     restartDiskUseRefresh () {
-      this.nDdiskUseErr = 0
+      this.nDiskUseErr = 0
       clearInterval(this.diskUseRefreshInt)
       // refersh disk space usage now and setup refresh by timer
       if (this.isDiskUse) {
@@ -191,6 +191,8 @@ export default {
 
     // receive disk space usage from server
     async doGetDiskUse () {
+      if (this.nDiskUseErr > DISK_USE_MAX_ERR) return // get disk use failed
+
       this.loadDiskUseDone = false
       let isOk = false
 
@@ -215,23 +217,25 @@ export default {
         this.isDiskUse = this.diskUseState.IsDiskUse
         this.diskUseMs = this.getDiskUseRefreshMs(this.diskUseState.DiskUse.DiskScanMs)
       } else {
-        this.nDdiskUseErr++
+        this.nDiskUseErr++
       }
 
-      if (this.nDdiskUseErr > DISK_USE_MAX_ERR) {
+      if (this.nDiskUseErr > DISK_USE_MAX_ERR) {
         clearInterval(this.diskUseRefreshInt)
 
         const du = Mdf.emptyDiskUseState()
         du.DiskUse.IsOver = true
         this.dispatchDiskUse(du) // block model runs
 
-        console.warn('Disk usage retrieve failed:', this.nDdiskUseErr)
+        console.warn('Disk usage retrieve failed:', this.nDiskUseErr)
         this.$q.notify({ type: 'negative', message: this.$t('Disk space usage retrieve failed') })
       }
     },
 
     // send request to refersh disk space usage
     async doRefreshDiskUse () {
+      if (this.nDiskUseErr > DISK_USE_MAX_ERR) return // get disk use failed
+
       const u = this.omsUrl + '/api/service/disk-use/refresh'
       try {
         await this.$axios.post(u) // ignore response on success

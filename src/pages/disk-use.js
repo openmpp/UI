@@ -3,6 +3,8 @@ import * as Mdf from 'src/model-common'
 import ConfirmDialog from 'components/ConfirmDialog.vue'
 import DeleteConfirmDialog from 'components/DeleteConfirmDialog.vue'
 
+const DISK_USE_REFRESH_TIME = (37 * 1000) // msec, disk space usage refresh interval
+
 export default {
   name: 'DiskUse',
   components: { ConfirmDialog, DeleteConfirmDialog },
@@ -16,6 +18,7 @@ export default {
       dbUseLst: [],
       cleanupLogLst: [],
       loadWait: false,
+      diskUseRefreshInt: '',
       upDownToDelete: '',
       showAllDeleteDialogTickle: false,
       nameVerCloseDb: '',
@@ -465,5 +468,9 @@ export default {
   mounted () {
     this.makeDbUse()
     this.getCleanupLogList()
+    this.diskUseRefreshInt = setInterval(() => { this.$emit('disk-use-refresh') }, DISK_USE_REFRESH_TIME)
+  },
+  beforeDestroy () {
+    clearInterval(this.diskUseRefreshInt)
   }
 }
