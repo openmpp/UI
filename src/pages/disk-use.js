@@ -320,14 +320,6 @@ export default {
       }
       // notify user about log file
       this.$q.notify({ type: 'info', message: this.$t('Cleanup log: ') + logName })
-      /*
-      this.$q.notify({
-        type: 'info',
-        timeout: 0,
-        actions: [{ label: this.$t('Dismiss'), color: 'white', handler: () => {} }],
-        message: this.$t('Cleanup log: ') + logName
-      })
-      */
 
       // refresh disk usage from the server and refresh list of log cleanup files
       setTimeout(() => this.$emit('disk-use-refresh'), 2777)
