@@ -3,7 +3,7 @@ import * as Mdf from 'src/model-common'
 import ConfirmDialog from 'components/ConfirmDialog.vue'
 import DeleteConfirmDialog from 'components/DeleteConfirmDialog.vue'
 
-const DISK_USE_REFRESH_TIME = (37 * 1000) // msec, disk space usage refresh interval
+const DISK_USE_REFRESH_TIME = (17 * 1000) // msec, disk space usage refresh interval
 
 export default {
   name: 'DiskUse',
