@@ -334,7 +334,7 @@ export default {
       let isOk = false
       let lst = []
 
-      const u = this.omsUrl + '/api/db-cleanup/log-all'
+      const u = this.omsUrl + '/api/admin/db-cleanup/log-all'
       try {
         const response = await this.$axios.get(u)
         if (response.data) {
@@ -384,7 +384,7 @@ export default {
       let isOk = false
       let fc = {}
 
-      const u = this.omsUrl + '/api/db-cleanup/log/' + encodeURIComponent(logName)
+      const u = this.omsUrl + '/api/admin/db-cleanup/log/' + encodeURIComponent(logName)
       try {
         const response = await this.$axios.get(u)
         if (response.data) {
