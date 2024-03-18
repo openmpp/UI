@@ -9,7 +9,7 @@
       <table class="om-p-table">
         <thead>
           <tr>
-            <th class="om-p-head-center">&nbsp;</th>
+            <th class="om-p-head-center">{{ $t('Storage Space') }}</th>
             <th colspan="2" class="om-p-head-center text-weight-medium mono">{{ fileTimeStamp(diskUseState.DiskUse.UpdateTs) }}</th>
           </tr>
         </thead>
@@ -19,7 +19,7 @@
             <td colspan="2" class="om-p-cell-right mono" :class="isOver ? 'text-negative text-weight-bold' : ''">{{ fileSizeStr(diskUseState.DiskUse.TotalSize) }}</td>
           </tr>
           <tr>
-            <td class="om-p-head-left">{{ $t('Your Quota') }}</td>
+            <td class="om-p-head-left">{{ $t('Your Limit') }}</td>
             <td
               colspan="2"
               class="om-p-cell-right mono"
@@ -27,7 +27,7 @@
               >{{ diskUseState.DiskUse.Limit > 0 ? fileSizeStr(diskUseState.DiskUse.Limit) : 'unlimited' }}</td>
           </tr>
           <tr v-if="diskUseState.DiskUse.AllLimit > 0">
-            <td class="om-p-head-left">{{ $t('Used by All') }}</td>
+            <td class="om-p-head-left">{{ $t('All Users Total') }}</td>
             <td
               colspan="2"
               class="om-p-cell-right mono"
@@ -35,7 +35,7 @@
               >{{ fileSizeStr(diskUseState.DiskUse.AllSize) }}</td>
           </tr>
           <tr v-if="diskUseState.DiskUse.AllLimit > 0">
-            <td class="om-p-head-left">{{ $t('Quota for All') }}</td>
+            <td class="om-p-head-left">{{ $t('All Users Limit') }}</td>
             <td
               colspan="2"
               class="om-p-cell-right mono"
