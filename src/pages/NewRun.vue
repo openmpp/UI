@@ -167,7 +167,7 @@
       >
       <template v-slot:header>
         <q-icon v-if="isNoTables" name="star" color="red" />
-        <span>{{ $t('Output Tables: ') + (tablesRetain.length !== tableCount ? (tablesRetain.length.toString() + ' / ' + tableCount.toString()) : $t('All')) }}</span>
+        <span>{{ $t('Output Tables: ') + (tablesRetain.length !== tableCount ? (tablesRetain.length.toLocaleString() + ' / ' + tableCount.toLocaleString()) : $t('All')) }}</span>
       </template>
 
       <q-card-section
@@ -224,8 +224,8 @@
       header-class="bg-primary text-white"
       >
       <template v-slot:header>
-        <span>{{ $t('Microdata: ') + (entityAttrsUse.length !== entityAttrCount ? (entityAttrsUse.length.toString() + ' / ' + entityAttrCount.toString()) : $t('All')) }}</span>
-        <span v-if="entityAttrsUse.length > 16">
+        <span>{{ $t('Microdata: ') + (entityAttrsUse.length !== entityAttrCount ? (entityAttrsUse.length.toLocaleString() + ' / ' + entityAttrCount.toLocaleString()) : $t('All')) }}</span>
+        <span v-if="isTooManyEntityAttrs()">
           <q-icon name="mdi-exclamation-thick" color="red" class="bg-white q-pa-xs q-ml-md q-mr-xs"/><span>{{ $t('Excessive use of microdata may slow down model run or lead to failure') }}</span>
         </span>
       </template>

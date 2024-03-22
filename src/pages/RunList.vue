@@ -398,8 +398,8 @@
                 color="primary"
                 class="col-auto"
                 :icon="!!runTreeTicked.length ? 'mdi-delete' : 'mdi-delete-outline'"
-                :label="!!runTreeTicked.length ? '[ ' + runTreeTicked.length.toString() + ' ]' : ''"
-                :title="$t('Delete') + (!!runTreeTicked.length ? ' [ ' + runTreeTicked.length.toString() + ' ]' : '\u2026')"
+                :label="!!runTreeTicked.length ? '[ ' + runTreeTicked.length.toLocaleString() + ' ]' : ''"
+                :title="$t('Delete') + (!!runTreeTicked.length ? ' [ ' + runTreeTicked.length.toLocaleString() + ' ]' : '\u2026')"
                 />
             </div>
             <span
@@ -534,8 +534,8 @@
   <delete-confirm-dialog
     @delete-yes="onYesRunMultipleDelete"
     :show-tickle="showDeleteMultipleDialogTickle"
-    :item-name="'[ ' + runMultipleCount.toString() + ' ] ' + $t('model runs to be deleted')"
-    :item-id="!!runMultipleCount ? runMultipleCount.toString() : 'empty'"
+    :item-name="'[ ' + runMultipleCount.toLocaleString() + ' ] ' + $t('model runs to be deleted')"
+    :item-id="!!runMultipleCount ? runMultipleCount.toLocaleString() : 'empty'"
     :bodyText="$t('Model may be unavaliable until delete is completed.')"
     :dialog-title="$t('Delete multiple model runs') + '?'"
     >

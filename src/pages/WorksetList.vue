@@ -475,8 +475,8 @@
                 color="primary"
                 class="col-auto"
                 :icon="!!wsTreeTicked.length ? 'mdi-delete' : 'mdi-delete-outline'"
-                :label="!!wsTreeTicked.length ? '[ ' + wsTreeTicked.length.toString() + ' ]' : ''"
-                :title="$t('Delete') + (!!wsTreeTicked.length ? ' [ ' + wsTreeTicked.length.toString() + ' ]' : '\u2026')"
+                :label="!!wsTreeTicked.length ? '[ ' + wsTreeTicked.length.toLocaleString() + ' ]' : ''"
+                :title="$t('Delete') + (!!wsTreeTicked.length ? ' [ ' + wsTreeTicked.length.toLocaleString() + ' ]' : '\u2026')"
                 />
             </div>
             <span

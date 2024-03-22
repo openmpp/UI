@@ -55,12 +55,12 @@ export default {
         formatOpts: void 0      // hide format controls by default
       },
       pvc: {
-        rowColMode: Pcvt.SPANS_AND_DIMS_PVT,  // rows and columns mode: 2 = use spans and show dim names
-        isShowNames: false,                   // if true then show dimension names and item names instead of labels
-        reader: void 0,                       // return row reader: if defined then methods to read next row, read() dimension items and readValue()
-        processValue: Pcvt.asIsPval,          // default value processing: return as is
-        formatter: Pcvt.formatDefault,        // disable format(), parse() and validation by default
-        cellClass: 'pv-cell-right'            // default cell value style: right justified number
+        rowColMode: Pcvt.NO_SPANS_AND_DIMS_PVT, // rows and columns mode: 3 = no spans and show dim names
+        isShowNames: false,                     // if true then show dimension names and item names instead of labels
+        reader: void 0,                         // return row reader: if defined then methods to read next row, read() dimension items and readValue()
+        processValue: Pcvt.asIsPval,            // default value processing: return as is
+        formatter: Pcvt.formatDefault,          // disable format(), parse() and validation by default
+        cellClass: 'pv-cell-right'              // default cell value style: right justified number
       },
       pvKeyPos: [],               // position of each dimension item in cell key
       isDragging: false,          // if true then user is dragging dimension select control
@@ -124,7 +124,7 @@ export default {
       this.isScalar = false // microdata never scalar, it always has at least one attribute
 
       // adjust controls
-      this.pvc.rowColMode = !this.isScalar ? Pcvt.SPANS_AND_DIMS_PVT : Pcvt.NO_SPANS_NO_DIMS_PVT
+      this.pvc.rowColMode = !this.isScalar ? Pcvt.NO_SPANS_AND_DIMS_PVT : Pcvt.NO_SPANS_NO_DIMS_PVT
       this.ctrl.isRowColModeToggle = !this.isScalar
       this.ctrl.isRowColControls = !this.isScalar
       this.pvKeyPos = []
@@ -415,7 +415,7 @@ export default {
 
       // restore controls view state
       this.ctrl.isRowColControls = !!mv.isRowColControls
-      this.pvc.rowColMode = typeof mv.rowColMode === typeof 1 ? mv.rowColMode : Pcvt.SPANS_AND_DIMS_PVT
+      this.pvc.rowColMode = typeof mv.rowColMode === typeof 1 ? mv.rowColMode : Pcvt.NO_SPANS_AND_DIMS_PVT
 
       // restore page offset and size
       if (this.isPages) {
@@ -463,7 +463,7 @@ export default {
 
       // default row-column mode: row-column headers without spans
       // as it is today microdata cannot be scalar, always has at least one attribute
-      this.pvc.rowColMode = !this.isScalar ? Pcvt.SPANS_AND_DIMS_PVT : Pcvt.NO_SPANS_NO_DIMS_PVT
+      this.pvc.rowColMode = !this.isScalar ? Pcvt.NO_SPANS_AND_DIMS_PVT : Pcvt.NO_SPANS_NO_DIMS_PVT
 
       // store pivot view
       const vs = Pcvt.pivotStateFromFields(this.rowFields, this.colFields, this.otherFields, this.ctrl.isRowColControls, this.pvc.rowColMode, KEY_DIM_NAME)
@@ -768,7 +768,7 @@ export default {
       // if is not empty any of selection rows, columns, other dimensions
       // then store pivot view: do insert or replace of the view
       if (Mdf.isLength(rows) || Mdf.isLength(cols) || Mdf.isLength(others)) {
-        const vs = Pcvt.pivotState(rows, cols, others, dv.isRowColControls, dv.rowColMode || Pcvt.SPANS_AND_DIMS_PVT)
+        const vs = Pcvt.pivotState(rows, cols, others, dv.isRowColControls, dv.rowColMode || Pcvt.NO_SPANS_AND_DIMS_PVT)
         vs.pageStart = this.isPages ? this.pageStart : 0
         vs.pageSize = this.isPages ? this.pageSize : 0
 

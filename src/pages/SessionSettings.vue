@@ -24,7 +24,7 @@
               />
           </td>
           <td class="settings-cell q-pa-sm om-text-secondary">{{ $t('List of Models') }}:</td>
-          <td class="settings-cell q-pa-sm">{{ modelCount ? modelCount.toString() + ' ' + $t('model(s)') : $t('Empty') }}</td>
+          <td class="settings-cell q-pa-sm">{{ modelCount ? modelCount.toLocaleString() + ' ' + $t('model(s)') : $t('Empty') }}</td>
         </tr>
 
         <tr>
@@ -56,7 +56,7 @@
               />
           </td>
           <td class="settings-cell q-pa-sm om-text-secondary">{{ $t('Model Runs') }}:</td>
-          <td class="settings-cell q-pa-sm">{{ runCount ? runCount.toString() + ' ' + $t('run result(s)') : $t('Empty') }}</td>
+          <td class="settings-cell q-pa-sm">{{ runCount ? runCount.toLocaleString() + ' ' + $t('run result(s)') : $t('Empty') }}</td>
         </tr>
 
         <tr>
@@ -72,7 +72,7 @@
               />
           </td>
           <td class="settings-cell q-pa-sm om-text-secondary">{{ $t('Input Scenarios') }}:</td>
-          <td class="settings-cell q-pa-sm">{{ worksetCount ? worksetCount.toString() + ' ' + $t('scenario(s)') : $t('Empty') }}</td>
+          <td class="settings-cell q-pa-sm">{{ worksetCount ? worksetCount.toLocaleString() + ' ' + $t('scenario(s)') : $t('Empty') }}</td>
         </tr>
 
         <tr>
@@ -178,7 +178,7 @@
         class="row items-center bg-primary text-white q-py-sm q-mx-md"
         :class="{ 'om-bg-inactive' : !paramNames.length }"
         >
-        <span class="col-grow">{{ $t('Default views of parameters: ') + (paramNames.length ? paramNames.length.toString() : $t('None')) }}</span>
+        <span class="col-grow">{{ $t('Default views of parameters: ') + (paramNames.length ? paramNames.length.toLocaleString() : $t('None')) }}</span>
       </q-card-section>
       <q-list
         class="q-mb-xs"
@@ -205,7 +205,7 @@
         class="row items-center bg-primary text-white q-py-sm q-mx-md"
         :class="{ 'om-bg-inactive' : !tableNames.length }"
         >
-        <span class="col-grow">{{ $t('Default views of output tables: ') + (tableNames.length ? tableNames.length.toString() : $t('None')) }}</span>
+        <span class="col-grow">{{ $t('Default views of output tables: ') + (tableNames.length ? tableNames.length.toLocaleString() : $t('None')) }}</span>
       </q-card-section>
       <q-list
         class="q-mb-xs"
@@ -233,7 +233,7 @@
           class="row items-center bg-primary text-white q-py-sm q-mx-md"
           :class="{ 'om-bg-inactive' : !entityNames.length }"
           >
-          <span class="col-grow">{{ $t('Default microdata views: ') + (entityNames.length ? entityNames.length.toString() : $t('None')) }}</span>
+          <span class="col-grow">{{ $t('Default microdata views: ') + (entityNames.length ? entityNames.length.toLocaleString() : $t('None')) }}</span>
         </q-card-section>
         <q-list
           class="q-mb-xs"

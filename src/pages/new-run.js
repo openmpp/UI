@@ -13,6 +13,9 @@ import EntityInfoDialog from 'components/EntityInfoDialog.vue'
 import EntityAttrInfoDialog from 'components/EntityAttrInfoDialog.vue'
 import MarkdownEditor from 'components/MarkdownEditor.vue'
 
+const ENTITY_ATTR_WARNING_LIMIT = 16 // total number of entity attributes selected to show warning: too many attributes
+const ENTITY_DIM_WARNING_LIMIT = 4 // number of selected dimension attributes in any entity to show warning: too many attributes
+
 export default {
   name: 'NewRun',
   components: {
@@ -263,8 +266,8 @@ export default {
         if (Mdf.isNotEmptyRunText(this.runCurrent)) {
           for (const e of this.runCurrent.Entity) {
             if (e?.Name && Array.isArray(e?.Attr)) {
-              for (const a of e.Attr) {
-                this.entityAttrsUse.push(e.Name + '.' + a)
+              for (const aName of e.Attr) {
+                this.entityAttrsUse.push(e.Name + '.' + aName)
               }
             }
           }
@@ -326,6 +329,44 @@ export default {
       if (!this.useBaseRun && !this.runOpts.csvDir && this.isUseCurrentAsBaseRun()) {
         this.$q.notify({ type: 'warning', message: this.$t('Input scenario should include all parameters otherwise model run may fail') })
       }
+    },
+    // if retrun is true then display warning to the user about too many microdata attributes selected
+    isTooManyEntityAttrs () {
+      if (!this.entityAttrsUse || this.entityAttrsUse.length <= 0) return false
+      if (this.entityAttrsUse.length > ENTITY_ATTR_WARNING_LIMIT) return true
+
+      // check if for any entity number of selected dimension attributes exceeds thw warning limit
+      const eaLst = Array.from(this.entityAttrsUse)
+      eaLst.sort()
+      let prevEnt = ''
+      let eaCount = 0
+
+      for (const eau of eaLst) {
+        const n = eau.indexOf('.')
+        if (n <= 0 || n >= eau.length - 1) continue // skip: expected entity.attribute
+
+        const eName = eau.substring(0, n)
+        const aName = eau.substring(n + 1)
+
+        if (eName !== prevEnt) {
+          eaCount = 0
+          prevEnt = eName
+        }
+
+        // check if this is enum based attribute or bool: it is a dimension attribute
+        const a = Mdf.entityAttrTextByName(this.theModel, eName, aName)
+
+        if (Mdf.isNotEmptyEntityAttr(a)) {
+          const tTxt = Mdf.typeTextById(this.theModel, a.Attr.TypeId)
+          if (!Mdf.isBuiltIn(tTxt.Type) || Mdf.isBool(tTxt.Type)) { // enum based attribute or bool: use it as dimension
+            eaCount++
+            if (eaCount > ENTITY_DIM_WARNING_LIMIT) { // return true // too many dimension attributes selected for that entity
+              return true
+            }
+          }
+        }
+      }
+      return false
     },
 
     // click on MPI use job control: set number of processes at least 1

@@ -56,6 +56,9 @@ export const isEntityAttr = (ea) => {
   if (!ea.hasOwnProperty('EntityId') || !ea.hasOwnProperty('AttrId') ||
     !ea.hasOwnProperty('Name') || !ea.hasOwnProperty('TypeId') || !ea.hasOwnProperty('IsInternal')) return false
 
+  if (typeof ea.EntityId !== typeof 1 || typeof ea.AttrId !== typeof 1 || typeof ea.TypeId !== typeof 1) return false
+  if (typeof ea.IsInternal !== typeof true) return false
+
   return ea.EntityId >= 0 && ea.AttrId >= 0 && (ea?.Name || '') !== '' && ea.TypeId >= 0
 }
 
@@ -85,13 +88,13 @@ export const emptyEntityAttrTxt = () => {
 }
 
 // find EntityTxt by entity id
-export const entityTextById = (md, nId) => {
-  if (!Mdl.isModel(md) || nId < 0) { // model empty or entity id invalid: return empty result
+export const entityTextById = (md, eId) => {
+  if (!Mdl.isModel(md) || typeof eId !== typeof 1 || eId < 0) { // model empty or entity id invalid: return empty result
     return emptyEntityText()
   }
   for (let k = 0; k < md.EntityTxt.length; k++) {
     if (!isEntity(md.EntityTxt[k].Entity)) continue
-    if (md.EntityTxt[k].Entity.EntityId === nId) return md.EntityTxt[k]
+    if (md.EntityTxt[k].Entity.EntityId === eId) return md.EntityTxt[k]
   }
   return emptyEntityText() // not found
 }
@@ -111,6 +114,23 @@ export const entityTextByName = (md, name) => {
 // number of entity attributes: length of EntityAttrTxt
 export const entityAttrCount = (et) => {
   return isNotEmptyEntityText(et) ? et.EntityAttrTxt.length : 0
+}
+
+// find entity attribute EntityAttrTxt by entity id and attribute id
+export const entityAttrTextById = (md, eId, aId) => {
+  if (!Mdl.isModel(md) || typeof eId !== typeof 1 || eId < 0 || typeof aId !== typeof 1 || aId < 0) { // empty model or invalid id: return empty result
+    return emptyEntityAttrTxt()
+  }
+  for (const et of md.EntityTxt) {
+    if (!isNotEmptyEntityText(et)) continue
+    if (et.Entity.EntityId !== eId) continue
+
+    for (const eat of et.EntityAttrTxt) {
+      if (!isNotEmptyEntityAttr(eat)) continue
+      if (eat?.Attr?.AttrId === aId) return eat
+    }
+  }
+  return emptyEntityAttrTxt() // not found
 }
 
 // find entity attribute EntityAttrTxt by entity name and attribute name

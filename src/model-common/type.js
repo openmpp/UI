@@ -55,7 +55,7 @@ export const isType = (t) => {
   if (!t) return false
   if (!t.hasOwnProperty('TypeId') || !t.hasOwnProperty('Name') || !t.hasOwnProperty('Digest') ||
     !t.hasOwnProperty('TotalEnumId') || !t.hasOwnProperty('IsRange') || !t.hasOwnProperty('MinEnumId') || !t.hasOwnProperty('MaxEnumId')) return false
-  if (typeof t.TotalEnumId !== typeof 1) return false
+  if (typeof t.TypeId !== typeof 1 || typeof t.TotalEnumId !== typeof 1) return false
   if (typeof t.IsRange !== typeof true || typeof t.MinEnumId !== typeof 1 || typeof t.MaxEnumId !== typeof 1) return false
   return (t.Name || '') !== '' && (t.Digest || '') !== ''
 }
