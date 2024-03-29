@@ -101,6 +101,13 @@ export default {
   },
 
   methods: {
+    ...mapActions('uiState', {
+      dispatchUiLang: 'uiLang'
+    }),
+    ...mapActions('serverState', {
+      dispatchServerConfig: 'serverConfig',
+      dispatchDiskUse: 'diskUse'
+    }),
     // show model notes dialog
     doShowModelNote () {
       this.modelInfoTickle = !this.modelInfoTickle
@@ -250,15 +257,7 @@ export default {
 
       // get disk usage from the server
       setTimeout(() => this.doGetDiskUse(), 1231)
-    },
-
-    ...mapActions('uiState', {
-      dispatchUiLang: 'uiLang'
-    }),
-    ...mapActions('serverState', {
-      dispatchServerConfig: 'serverConfig',
-      dispatchDiskUse: 'diskUse'
-    })
+    }
   },
 
   mounted () {

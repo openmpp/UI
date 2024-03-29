@@ -37,6 +37,9 @@ export default {
   },
 
   methods: {
+    ...mapActions('model', {
+      dispatchWorksetText: 'worksetText'
+    }),
     // refersh workset-text by workset name
     async doRefresh () {
       if (!this.worksetName) return // exit on empty workset name
@@ -71,11 +74,7 @@ export default {
 
       this.$emit('done', this.loadDone, this.worksetName, isRun)
       this.loadWait = false
-    },
-
-    ...mapActions('model', {
-      dispatchWorksetText: 'worksetText'
-    })
+    }
   },
 
   mounted () {

@@ -148,6 +148,11 @@ export default {
   },
 
   methods: {
+    ...mapActions('uiState', {
+      dispatchAddRunCompareDigest: 'addRunCompareDigest',
+      dispatchDeleteRunCompareDigest: 'deleteRunCompareDigest',
+      dispatchRunCompareDigestList: 'runCompareDigestList'
+    }),
     isSuccess (status) { return status === Mdf.RUN_SUCCESS },
     isInProgress (status) { return status === Mdf.RUN_IN_PROGRESS || status === Mdf.RUN_INITIAL },
     isRunDeleted (status, name) { return Mdf.isRunDeletedStatus(status, name) },
@@ -890,13 +895,7 @@ export default {
 
       this.$emit('run-select', dgst)
       this.$q.notify({ type: 'info', message: this.$t('Model run description and notes saved') + '. ' + this.$t('Language: ') + langCode })
-    },
-
-    ...mapActions('uiState', {
-      dispatchAddRunCompareDigest: 'addRunCompareDigest',
-      dispatchDeleteRunCompareDigest: 'deleteRunCompareDigest',
-      dispatchRunCompareDigestList: 'runCompareDigestList'
-    })
+    }
   },
 
   mounted () {

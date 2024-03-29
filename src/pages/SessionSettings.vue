@@ -344,6 +344,19 @@ export default {
   },
 
   methods: {
+    ...mapActions('model', {
+      dispatchTheModel: 'theModel',
+      dispatchModelList: 'modelList',
+      dispatchRunTextList: 'runTextList',
+      dispatchWorksetTextList: 'worksetTextList'
+    }),
+    ...mapActions('uiState', {
+      dispatchUiLang: 'uiLang',
+      dispatchNoAccDownload: 'noAccDownload',
+      dispatchNoMicrodataDownload: 'noMicrodataDownload',
+      dispatchTreeLabelKind: 'treeLabelKind',
+      dispatchViewDeleteByModel: 'viewDeleteByModel'
+    }),
     // refresh model settings: select from indexed db
     doRefresh () {
       this.clearState()
@@ -610,21 +623,7 @@ export default {
       for (const et of this.theModel.EntityTxt) {
         if (this.dbRows.findIndex(r => r.name === et.Entity.Name) >= 0) this.entityNames.push(et.Entity.Name)
       }
-    },
-
-    ...mapActions('model', {
-      dispatchTheModel: 'theModel',
-      dispatchModelList: 'modelList',
-      dispatchRunTextList: 'runTextList',
-      dispatchWorksetTextList: 'worksetTextList'
-    }),
-    ...mapActions('uiState', {
-      dispatchUiLang: 'uiLang',
-      dispatchNoAccDownload: 'noAccDownload',
-      dispatchNoMicrodataDownload: 'noMicrodataDownload',
-      dispatchTreeLabelKind: 'treeLabelKind',
-      dispatchViewDeleteByModel: 'viewDeleteByModel'
-    })
+    }
   },
 
   mounted () {

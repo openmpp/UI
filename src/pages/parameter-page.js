@@ -120,9 +120,7 @@ export default {
         : Mdf.parameterWorksetPath(this.digest, this.worksetName, this.parameterName)
     },
     paramDescr () { return Mdf.descrOfDescrNote(this.paramText) },
-
     fileSelected () { return !(this.uploadFile === null) },
-
     isEditUpdated () { return this.edt.isUpdated },
 
     ...mapState('model', {
@@ -154,6 +152,10 @@ export default {
   },
 
   methods: {
+    ...mapActions('uiState', {
+      dispatchParamView: 'paramView',
+      dispatchParamViewDelete: 'paramViewDelete'
+    }),
     // show run parameter notes dialog
     doShowParamNote () {
       this.paramInfoTickle = !this.paramInfoTickle
@@ -1347,12 +1349,7 @@ export default {
 
       this.$q.notify({ type: 'info', message: this.$t('Parameter value notes saved: ') + this.parameterName })
       this.refreshWsTickle = !this.refreshWsTickle
-    },
-
-    ...mapActions('uiState', {
-      dispatchParamView: 'paramView',
-      dispatchParamViewDelete: 'paramViewDelete'
-    })
+    }
   },
 
   // route leave guard: on leaving parameter page check

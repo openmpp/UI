@@ -127,6 +127,14 @@ export default {
   },
 
   methods: {
+    ...mapActions('serverState', {
+      dispatchServerConfig: 'serverConfig',
+      dispatchDiskUse: 'diskUse'
+    }),
+    ...mapActions('uiState', {
+      dispatchNoAccDownload: 'noAccDownload',
+      dispatchNoMicrodataDownload: 'noMicrodataDownload'
+    }),
     isReady (status) { return status === 'ready' },
     isProgress (status) { return status === 'progress' },
     isError (status) { return status === 'error' },
@@ -781,16 +789,7 @@ export default {
         console.warn('Disk usage retrieve failed:', this.nDdiskUseErr)
         this.$q.notify({ type: 'negative', message: this.$t('Disk space usage retrieve failed') })
       }
-    },
-
-    ...mapActions('serverState', {
-      dispatchServerConfig: 'serverConfig',
-      dispatchDiskUse: 'diskUse'
-    }),
-    ...mapActions('uiState', {
-      dispatchNoAccDownload: 'noAccDownload',
-      dispatchNoMicrodataDownload: 'noMicrodataDownload'
-    })
+    }
   },
 
   mounted () {

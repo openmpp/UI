@@ -159,6 +159,10 @@ export default {
   },
 
   methods: {
+    ...mapActions('serverState', {
+      dispatchServerConfig: 'serverConfig',
+      dispatchDiskUse: 'diskUse'
+    }),
     // update page view
     doRefresh () {
       // refersh server config and disk usage
@@ -1113,12 +1117,7 @@ export default {
         this.$q.notify({ type: 'negative', message: this.$t('Server offline or profile list retrieve failed: ') + this.digest })
       }
       this.loadWait = false
-    },
-
-    ...mapActions('serverState', {
-      dispatchServerConfig: 'serverConfig',
-      dispatchDiskUse: 'diskUse'
-    })
+    }
   },
 
   mounted () {

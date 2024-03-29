@@ -229,6 +229,9 @@ export default {
   },
 
   methods: {
+    ...mapActions('model', {
+      dispatchRunTextStatusUpdate: 'runTextStatusUpdate'
+    }),
     isSuccess (status) { return status === Mdf.RUN_SUCCESS },
     isInProgress (status) { return status === Mdf.RUN_IN_PROGRESS || status === Mdf.RUN_INITIAL },
     runStatusDescr (status) { return Mdf.statusText(status) },
@@ -400,11 +403,7 @@ export default {
         this.isRefreshCompleted = true
         this.stopRefreshProgress()
       }
-    },
-
-    ...mapActions('model', {
-      dispatchRunTextStatusUpdate: 'runTextStatusUpdate'
-    })
+    }
   },
 
   mounted () {

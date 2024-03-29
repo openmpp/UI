@@ -44,6 +44,9 @@ export default {
   },
 
   methods: {
+    ...mapActions('model', {
+      dispatchRunText: 'runText'
+    }),
     // refersh run text
     async doRefresh () {
       if (!this.runDigest) return // exit on empty run digest
@@ -80,11 +83,7 @@ export default {
       }
       this.$emit('done', this.loadDone, this.runDigest)
       this.loadWait = false
-    },
-
-    ...mapActions('model', {
-      dispatchRunText: 'runText'
-    })
+    }
   },
 
   mounted () {

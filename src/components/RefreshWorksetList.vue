@@ -39,6 +39,9 @@ export default {
   },
 
   methods: {
+    ...mapActions('model', {
+      dispatchWorksetTextList: 'worksetTextList'
+    }),
     // refersh workset list
     async doRefresh () {
       if (!this.digest) {
@@ -69,11 +72,7 @@ export default {
 
       this.$emit('done', this.loadDone)
       this.loadWait = false
-    },
-
-    ...mapActions('model', {
-      dispatchWorksetTextList: 'worksetTextList'
-    })
+    }
   },
 
   mounted () {

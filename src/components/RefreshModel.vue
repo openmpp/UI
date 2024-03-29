@@ -37,6 +37,11 @@ export default {
   },
 
   methods: {
+    ...mapActions('model', {
+      dispatchTheModel: 'theModel',
+      dispatchWordList: 'wordList',
+      dispatchLangList: 'langList'
+    }),
     // refersh current model
     async doRefresh () {
       if (!this.digest) {
@@ -112,13 +117,7 @@ export default {
       }
 
       this.loadWait = false
-    },
-
-    ...mapActions('model', {
-      dispatchTheModel: 'theModel',
-      dispatchWordList: 'wordList',
-      dispatchLangList: 'langList'
-    })
+    }
   },
 
   mounted () {

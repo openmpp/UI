@@ -36,6 +36,9 @@ export default {
   },
 
   methods: {
+    ...mapActions('model', {
+      dispatchRunText: 'runText'
+    }),
     // refersh run-text array by array of runs digests
     async doRefresh () {
       if (!Array.isArray(this.runDigestArray) || (this.runDigestArray.length || 0) === 0) return // exit if array of runs is empty: nothing to do
@@ -78,11 +81,7 @@ export default {
       this.loadDone = true
       this.loadWait = false
       this.$emit('done', this.loadDone, count)
-    },
-
-    ...mapActions('model', {
-      dispatchRunText: 'runText'
-    })
+    }
   },
 
   mounted () {

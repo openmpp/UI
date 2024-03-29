@@ -38,6 +38,9 @@ export default {
   },
 
   methods: {
+    ...mapActions('model', {
+      dispatchRunTextList: 'runTextList'
+    }),
     // refersh run list
     async doRefresh () {
       if (!this.digest) {
@@ -68,11 +71,7 @@ export default {
 
       this.$emit('done', this.loadDone)
       this.loadWait = false
-    },
-
-    ...mapActions('model', {
-      dispatchRunTextList: 'runTextList'
-    })
+    }
   },
 
   mounted () {

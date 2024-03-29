@@ -162,12 +162,15 @@ export default {
   },
 
   methods: {
+    ...mapActions('uiState', {
+      dispatchTableView: 'tableView',
+      dispatchTableViewDelete: 'tableViewDelete'
+    }),
     async doRefresh () {
       this.initView()
       await this.setPageView()
       this.doRefreshDataPage()
     },
-
     // initialize current page view on mounted or tab switch
     initView () {
       // check if model run exists and output table is included in model run results
@@ -1990,12 +1993,7 @@ export default {
           pageSize: this.isPages ? this.pageSize : 0
         })
       }
-    },
-
-    ...mapActions('uiState', {
-      dispatchTableView: 'tableView',
-      dispatchTableViewDelete: 'tableViewDelete'
-    })
+    }
   },
 
   mounted () {

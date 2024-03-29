@@ -105,6 +105,10 @@ export default {
   },
 
   methods: {
+    ...mapActions('uiState', {
+      dispatchMicrodataView: 'microdataView',
+      dispatchMicrodataViewDelete: 'microdataViewDelete'
+    }),
     async doRefresh () {
       this.initView()
       await this.setPageView()
@@ -150,6 +154,8 @@ export default {
       //  [0]           entity key dimension
       //  [1, rank - 1] enum-based dimensions
       //  [rank]        measure attributes dimension: list of non-enum based attributes, e.g. int, double,... attributes
+      //  [rank + 1]:   calculated attributes dimension: "normal" and calculated attributes as enums
+      //  [rank + 2]:   run compare dimension: run names and run descriptions as labels
       this.attrCount = 0
       this.rank = 0
       this.dimProp = []
@@ -1038,12 +1044,7 @@ export default {
           pageSize: this.isPages ? this.pageSize : 0
         })
       }
-    },
-
-    ...mapActions('uiState', {
-      dispatchMicrodataView: 'microdataView',
-      dispatchMicrodataViewDelete: 'microdataViewDelete'
-    })
+    }
   },
 
   mounted () {

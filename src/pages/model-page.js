@@ -127,6 +127,13 @@ export default {
   },
 
   methods: {
+    ...mapActions('uiState', {
+      dispatchRunDigestSelected: 'runDigestSelected',
+      dispatchWorksetNameSelected: 'worksetNameSelected',
+      dispatchParamViewDeleteByModel: 'paramViewDeleteByModel',
+      dispatchViewSelectedRestore: 'viewSelectedRestore',
+      dispatchTabsView: 'tabsView'
+    }),
     // update page view
     initalView () {
       this.doTabAdd('run-list', { digest: this.digest })
@@ -675,15 +682,7 @@ export default {
       this.dispatchParamViewDeleteByModel(this.digest) // discard parameter view state and edit changes
       this.isYesToLeave = true
       this.$router.push(this.pathToRouteLeave)
-    },
-
-    ...mapActions('uiState', {
-      dispatchRunDigestSelected: 'runDigestSelected',
-      dispatchWorksetNameSelected: 'worksetNameSelected',
-      dispatchParamViewDeleteByModel: 'paramViewDeleteByModel',
-      dispatchViewSelectedRestore: 'viewSelectedRestore',
-      dispatchTabsView: 'tabsView'
-    })
+    }
   },
 
   // change active tab on route update or redirect from default model path to current page

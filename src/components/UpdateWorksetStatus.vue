@@ -32,6 +32,9 @@ export default {
   },
 
   methods: {
+    ...mapActions('model', {
+      dispatchWorksetStatus: 'worksetStatus'
+    }),
     // refersh workset list
     async doUpdate () {
       if (!this.modelDigest || !this.worksetName) {
@@ -78,11 +81,7 @@ export default {
 
       this.$emit('done', this.loadDone, this.worksetName, this.isReadonly)
       this.loadWait = false
-    },
-
-    ...mapActions('model', {
-      dispatchWorksetStatus: 'worksetStatus'
-    })
+    }
   },
 
   mounted () {

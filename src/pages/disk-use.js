@@ -68,6 +68,9 @@ export default {
   },
 
   methods: {
+    ...mapActions('model', {
+      dispatchModelList: 'modelList'
+    }),
     fileTimeStamp (t) {
       if (!t || t <= 0) return ''
 
@@ -458,11 +461,7 @@ export default {
 
       // refresh disk usage from the server
       setTimeout(() => this.$emit('disk-use-refresh'), 2777)
-    },
-
-    ...mapActions('model', {
-      dispatchModelList: 'modelList'
-    })
+    }
   },
 
   mounted () {

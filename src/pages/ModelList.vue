@@ -191,6 +191,12 @@ export default {
   },
 
   methods: {
+    ...mapActions('model', {
+      dispatchModelList: 'modelList'
+    }),
+    ...mapActions('uiState', {
+      dispatchModelTreeExpandedKeys: 'modelTreeExpandedKeys'
+    }),
     // expand or collapse all tree nodes
     doToogleExpandTree () {
       if (this.isAllExpanded) {
@@ -431,14 +437,7 @@ export default {
 
       this.$emit('download-select', dgst) // download started: show download list page
       this.$q.notify({ type: 'info', message: this.$t('Model download started') })
-    },
-
-    ...mapActions('model', {
-      dispatchModelList: 'modelList'
-    }),
-    ...mapActions('uiState', {
-      dispatchModelTreeExpandedKeys: 'modelTreeExpandedKeys'
-    })
+    }
   },
 
   // route leave guard: on leaving save model tree expanded state

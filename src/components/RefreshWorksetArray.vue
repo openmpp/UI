@@ -36,6 +36,9 @@ export default {
   },
 
   methods: {
+    ...mapActions('model', {
+      dispatchWorksetText: 'worksetText'
+    }),
     // refersh array of workset-text by array of worksets names
     async doRefresh () {
       if (!Array.isArray(this.worksetNameArray) || (this.worksetNameArray.length || 0) === 0) return // exit if array of names is empty: nothing to do
@@ -78,11 +81,7 @@ export default {
       this.loadDone = true
       this.loadWait = false
       this.$emit('done', this.loadDone, count)
-    },
-
-    ...mapActions('model', {
-      dispatchWorksetText: 'worksetText'
-    })
+    }
   },
 
   mounted () {
