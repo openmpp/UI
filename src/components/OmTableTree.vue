@@ -65,7 +65,7 @@ Expected array of tree items as:
       @click="$emit('om-table-tree-clear-in-list')"
       dense
       class="col-auto bg-primary text-white rounded-borders q-mr-xs om-tree-control-button"
-      :icon="inListClearIcon || 'mdi-filter-off'"
+      :icon="inListClearIcon || 'mdi-close-circle'"
       :title="$t(inListClearLabel || 'Remove items filter')"
       />
     <span class="col-grow">

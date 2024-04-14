@@ -186,7 +186,7 @@
             clickable
             >
             <q-item-section avatar>
-              <q-icon color="primary" name="mdi-tune" />
+              <q-icon color="primary" :name="ctrl.isRowColControls ? 'mdi-table-headers-eye-off' : 'mdi-table-headers-eye'" />
             </q-item-section>
             <q-item-section>{{ ctrl.isRowColControls ? $t('Hide rows and columns bars') : $t('Show rows and columns bars') }}</q-item-section>
           </q-item>
@@ -497,12 +497,13 @@
     <q-btn
       @click="onToggleRowColControls"
       :disable="!ctrl.isRowColModeToggle"
-      :flat="ctrl.isRowColControls || !ctrl.isRowColModeToggle"
-      :outline="!ctrl.isRowColControls && ctrl.isRowColModeToggle"
+      :outline="!ctrl.isRowColControls"
+      :unelevated="ctrl.isRowColControls"
       dense
-      :class="{ 'bar-button-on' : (ctrl.isRowColControls || !ctrl.isRowColModeToggle), 'bar-button-off' : (!ctrl.isRowColControls && ctrl.isRowColModeToggle), 'q-mr-xs' : ctrl.isRowColModeToggle || ctrl.formatOpts }"
+      color="primary"
+      :class="{ 'q-mr-xs' : ctrl.isRowColModeToggle || ctrl.formatOpts }"
       class="col-auto rounded-borders q-mr-xs"
-      icon="mdi-tune"
+      :icon="ctrl.isRowColControls ? 'mdi-table-headers-eye-off' : 'mdi-table-headers-eye'"
       :title="ctrl.isRowColControls ? $t('Hide rows and columns bars') : $t('Show rows and columns bars')"
       />
 

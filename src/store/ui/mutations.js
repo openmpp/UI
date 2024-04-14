@@ -276,6 +276,21 @@ export const microdataView = (state, mv) => {
   if (typeof mv?.pageSize === typeof 1) {
     state.microdataViews[mv.key].view.pageSize = mv.pageSize
   }
+  if (typeof mv?.aggrCalc === typeof 'string') {
+    state.microdataViews[mv.key].view.aggrCalc = mv.aggrCalc
+  }
+  if (typeof mv?.cmpCalc === typeof 'string') {
+    state.microdataViews[mv.key].view.cmpCalc = mv.cmpCalc
+  }
+  if (Array.isArray(mv?.groupBy)) {
+    state.microdataViews[mv.key].view.groupBy = Mdf._cloneDeep(mv.groupBy)
+  }
+  if (Array.isArray(mv?.calcAttrs)) {
+    state.microdataViews[mv.key].view.calcAttrs = Mdf._cloneDeep(mv.calcAttrs)
+  }
+  if (Array.isArray(mv?.calcEnums)) {
+    state.microdataViews[mv.key].view.calcEnums = Mdf._cloneDeep(mv.calcEnums)
+  }
 }
 
 // delete microdata view by route key, if exist (key must be a string)

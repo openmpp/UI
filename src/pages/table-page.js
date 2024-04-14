@@ -45,7 +45,7 @@ export default {
       runText: Mdf.emptyRunText(),
       subCount: 0,
       dimProp: [],
-      calcEnums: [],          // calculation dimension enums for aggregated meausure calculation
+      calcEnums: [],          // calculation dimension enums for aggregated measure calculation
       compareEnums: [],       // calculation dimension enums for run comparison calculation
       colFields: [],
       rowFields: [],
@@ -58,7 +58,7 @@ export default {
         isPvTickle: false,      // used to update view of pivot table (on data selection change)
         isPvDimsTickle: false,  // used to update dimensions in pivot table (on label change)
         formatOpts: void 0,     // hide format controls by default
-        kind: Puih.kind.EXPR    // table view content: expressions, accumulators, all-accumulators
+        kind: Puih.tkind.EXPR   // table view content: expressions, accumulators, all-accumulators
       },
       pvc: {
         rowColMode: Pcvt.SPANS_AND_DIMS_PVT,  // rows and columns mode: 2 = use spans and show dim names
@@ -74,7 +74,7 @@ export default {
       readerCalc: void 0,     // calculated expressions row reader
       readerCmp: void 0,      // run compare row reader
       pvKeyPos: [],           // position of each dimension item in cell key
-      srcCalc: '',            // calculation source name, ex.: MEAN
+      srcCalc: '',            // calculation source name, ex.: AVG
       isDragging: false,      // if true then user is dragging dimension select control
       exprDimPos: 0,          // expression dimension position: table ExprPos
       totalEnumLabel: '',     // total enum item label, language-specific, ex.: All
@@ -88,7 +88,7 @@ export default {
       runInfoTickle: false,
       tableInfoTickle: false,
       aggrCalcList: [{  // aggregation calculations: additional measures as aggregation over accumulators
-        code: 'MEAN',
+        code: 'AVG',
         label: 'Average'
       }, {
         code: 'COUNT',
@@ -621,7 +621,7 @@ export default {
         locale: lc,
         nDecimal: maxDec,
         maxDecimal: maxDec,
-        isByKey: (this.ctrl.kind === Puih.kind.EXPR || this.ctrl.kind === Puih.kind.CALC),
+        isByKey: (this.ctrl.kind === Puih.tkind.EXPR || this.ctrl.kind === Puih.tkind.CALC),
         itemsFormat: exprFmt
       })
       this.ctrl.formatOpts = this.pvc.formatter.options()
@@ -642,11 +642,11 @@ export default {
         }
       }
       // else: restore previous view
-      this.ctrl.kind = (typeof tv?.kind === typeof 1) ? (tv.kind % 5 || Puih.kind.EXPR) : Puih.kind.EXPR // there are only 5 kinds of view possible for output table
-      this.srcCalc = ((this.ctrl.kind === Puih.kind.CALC || this.ctrl.kind === Puih.kind.CMP) && typeof tv?.calc === typeof 'string') ? (tv?.calc || '') : ''
+      this.ctrl.kind = (typeof tv?.kind === typeof 1) ? (tv.kind % 5 || Puih.tkind.EXPR) : Puih.tkind.EXPR // there are only 5 kinds of view possible for output table
+      this.srcCalc = ((this.ctrl.kind === Puih.tkind.CALC || this.ctrl.kind === Puih.tkind.CMP) && typeof tv?.calc === typeof 'string') ? (tv?.calc || '') : ''
 
       // calculated measure dimension at [rank + 4] position
-      const fce = (this.ctrl.kind === Puih.kind.CALC) ? this.calcEnums : this.compareEnums
+      const fce = (this.ctrl.kind === Puih.tkind.CALC) ? this.calcEnums : this.compareEnums
       this.dimProp[this.rank + 4].enums = Object.freeze(fce)
       this.dimProp[this.rank + 4].options = this.dimProp[this.rank + 4].enums
       this.dimProp[this.rank + 4].filter = Puih.makeFilter(this.dimProp[this.rank + 4])
@@ -699,7 +699,7 @@ export default {
       }
 
       // if calcualted expression dimension on others then select first calculated item, skip source expression
-      if (this.ctrl.kind === Puih.kind.CALC || this.ctrl.kind === Puih.kind.CMP) {
+      if (this.ctrl.kind === Puih.tkind.CALC || this.ctrl.kind === Puih.tkind.CMP) {
         const nc = this.otherFields.findIndex(f => f.name === CALC_DIM_NAME)
         if (nc >= 0) {
           const fc = this.otherFields[nc]
@@ -712,21 +712,21 @@ export default {
 
       // restore rows reader
       switch (this.ctrl.kind) {
-        case Puih.kind.EXPR:
+        case Puih.tkind.EXPR:
           this.pvc.reader = this.readerExpr
           this.pvc.dimItemKeys = Pcvt.dimItemKeys(EXPR_DIM_NAME)
           break
-        case Puih.kind.ACC:
+        case Puih.tkind.ACC:
           this.pvc.reader = this.readerAcc
           break
-        case Puih.kind.ALL:
+        case Puih.tkind.ALL:
           this.pvc.reader = this.readerAllAcc
           break
-        case Puih.kind.CALC:
+        case Puih.tkind.CALC:
           this.pvc.reader = this.readerCalc
           this.pvc.dimItemKeys = Pcvt.dimItemKeys(CALC_DIM_NAME)
           break
-        case Puih.kind.CMP:
+        case Puih.tkind.CMP:
           this.pvc.reader = this.readerCmp
           this.pvc.dimItemKeys = Pcvt.dimItemKeys(CALC_DIM_NAME)
           break
@@ -736,10 +736,10 @@ export default {
       }
 
       // restore formatter and controls view state
-      this.pvc.formatter.byKey(this.ctrl.kind === Puih.kind.EXPR || this.ctrl.kind === Puih.kind.CALC || this.ctrl.kind === Puih.kind.CMP)
+      this.pvc.formatter.byKey(this.ctrl.kind === Puih.tkind.EXPR || this.ctrl.kind === Puih.tkind.CALC || this.ctrl.kind === Puih.tkind.CMP)
 
       // restore calculated expressions dimension: update name and label for calculated items
-      if (this.ctrl.kind === Puih.kind.CALC || this.ctrl.kind === Puih.kind.CMP) {
+      if (this.ctrl.kind === Puih.tkind.CALC || this.ctrl.kind === Puih.tkind.CMP) {
         this.setCalcEnumsNameLabel(this.srcCalc, this.dimProp[this.rank + 4].enums) // update name and label for calculated items
         this.setCalcDecimals(this.srcCalc) // decimals format: zero decimals if calculation is count else max decimals
       }
@@ -764,15 +764,15 @@ export default {
     // return true if dimension name valid for the view kind
     isDimKindValid (kind, name) {
       switch (kind) {
-        case Puih.kind.EXPR:
+        case Puih.tkind.EXPR:
           return name !== CALC_DIM_NAME && name !== ACC_DIM_NAME && name !== ALL_ACC_DIM_NAME && name !== Puih.SUB_ID_DIM && name !== RUN_DIM_NAME
-        case Puih.kind.ACC:
+        case Puih.tkind.ACC:
           return name !== EXPR_DIM_NAME && name !== CALC_DIM_NAME && name !== ALL_ACC_DIM_NAME && name !== RUN_DIM_NAME
-        case Puih.kind.ALL:
+        case Puih.tkind.ALL:
           return name !== EXPR_DIM_NAME && name !== CALC_DIM_NAME && name !== ACC_DIM_NAME && name !== RUN_DIM_NAME
-        case Puih.kind.CALC:
+        case Puih.tkind.CALC:
           return name !== EXPR_DIM_NAME && name !== ACC_DIM_NAME && name !== ALL_ACC_DIM_NAME && name !== Puih.SUB_ID_DIM && name !== RUN_DIM_NAME
-        case Puih.kind.CMP:
+        case Puih.tkind.CMP:
           return name !== EXPR_DIM_NAME && name !== ACC_DIM_NAME && name !== ALL_ACC_DIM_NAME && name !== Puih.SUB_ID_DIM
       }
       return false // invalid view kind
@@ -787,7 +787,7 @@ export default {
       // expressions view:
       //   dimensions (including measure) on other, last-1 dimension on rows, last dimension on columns
       //   dimensions count: rank  + 1 = rank is a count of normal dimensions + 1 measure dimension
-      this.ctrl.kind = Puih.kind.EXPR
+      this.ctrl.kind = Puih.tkind.EXPR
       this.srcCalc = '' // clear calculation function name
       const rf = []
       const cf = []
@@ -859,7 +859,7 @@ export default {
 
       // store pivot view
       const vs = Pcvt.pivotStateFromFields(this.rowFields, this.colFields, this.otherFields, this.ctrl.isRowColControls, this.pvc.rowColMode)
-      vs.kind = this.ctrl.kind || Puih.kind.EXPR // view kind is specific to output tables
+      vs.kind = this.ctrl.kind || Puih.tkind.EXPR // view kind is specific to output tables
       vs.calc = this.srcCalc || ''
       vs.pageStart = 0
       vs.pageSize = this.isPages ? ((typeof this.pageSize === typeof 1 && this.pageSize >= 0) ? this.pageSize : SMALL_PAGE_SIZE) : 0
@@ -874,7 +874,7 @@ export default {
       })
 
       // refresh pivot view: both dimensions labels and table body
-      this.pvc.formatter.byKey(this.ctrl.kind === Puih.kind.EXPR || this.ctrl.kind === Puih.kind.CALC)
+      this.pvc.formatter.byKey(this.ctrl.kind === Puih.tkind.EXPR || this.ctrl.kind === Puih.tkind.CALC)
       this.pvc.dimItemKeys = Pcvt.dimItemKeys(EXPR_DIM_NAME)
 
       this.ctrl.isPvDimsTickle = !this.ctrl.isPvDimsTickle
@@ -929,8 +929,8 @@ export default {
     doExpressionPage () {
       // replace measure dimension by expressions measure
       let mName = CALC_DIM_NAME
-      if (this.ctrl.kind === Puih.kind.ACC) mName = ACC_DIM_NAME
-      if (this.ctrl.kind === Puih.kind.ALL) mName = ALL_ACC_DIM_NAME
+      if (this.ctrl.kind === Puih.tkind.ACC) mName = ACC_DIM_NAME
+      if (this.ctrl.kind === Puih.tkind.ALL) mName = ALL_ACC_DIM_NAME
 
       const mNewIdx = this.rank // expression dimension index in dimesions list
 
@@ -957,7 +957,7 @@ export default {
       this.srcCalc = ''
 
       // set new view kind and  store pivot view
-      this.ctrl.kind = Puih.kind.EXPR
+      this.ctrl.kind = Puih.tkind.EXPR
       this.pvc.formatter.byKey(true)
       this.storeViewAndRefreshData()
     },
@@ -973,12 +973,12 @@ export default {
     switchToAccumulatorPage (isToAll) {
       // replace current measure dimension mName by accumulators measure
       // and insert sub-value dimension after accumulators, if current measure is expressions or calculated expressions
-      const isFromExpr = this.ctrl.kind === Puih.kind.EXPR || this.ctrl.kind === Puih.kind.CALC || this.ctrl.kind === Puih.kind.CMP
+      const isFromExpr = this.ctrl.kind === Puih.tkind.EXPR || this.ctrl.kind === Puih.tkind.CALC || this.ctrl.kind === Puih.tkind.CMP
 
       let mName = EXPR_DIM_NAME
-      if (this.ctrl.kind === Puih.kind.CALC || this.ctrl.kind === Puih.kind.CMP) mName = CALC_DIM_NAME
-      if (this.ctrl.kind === Puih.kind.ACC) mName = ACC_DIM_NAME
-      if (this.ctrl.kind === Puih.kind.ALL) mName = ALL_ACC_DIM_NAME
+      if (this.ctrl.kind === Puih.tkind.CALC || this.ctrl.kind === Puih.tkind.CMP) mName = CALC_DIM_NAME
+      if (this.ctrl.kind === Puih.tkind.ACC) mName = ACC_DIM_NAME
+      if (this.ctrl.kind === Puih.tkind.ALL) mName = ALL_ACC_DIM_NAME
 
       const mNewIdx = isToAll ? this.rank + 2 : this.rank + 1 // new accumulators dimension index in dimesions list
       const subIdx = this.rank + 3 // sub-values dimension index in dimensions list
@@ -1017,7 +1017,7 @@ export default {
       this.srcCalc = ''
 
       // set new view kind and reload data
-      this.ctrl.kind = isToAll ? Puih.kind.ALL : Puih.kind.ACC
+      this.ctrl.kind = isToAll ? Puih.tkind.ALL : Puih.tkind.ACC
       this.pvc.formatter.byKey(false)
       this.storeViewAndRefreshData()
     },
@@ -1073,10 +1073,10 @@ export default {
       this.setCalcDecimals(src) // decimals format: zero decimals if calculation is count else max decimals
 
       // replace measure dimension by calculation measure
-      if (this.ctrl.kind !== Puih.kind.CALC && this.ctrl.kind !== Puih.kind.CMP) {
+      if (this.ctrl.kind !== Puih.tkind.CALC && this.ctrl.kind !== Puih.tkind.CMP) {
         let mName = EXPR_DIM_NAME
-        if (this.ctrl.kind === Puih.kind.ACC) mName = ACC_DIM_NAME
-        if (this.ctrl.kind === Puih.kind.ALL) mName = ALL_ACC_DIM_NAME
+        if (this.ctrl.kind === Puih.tkind.ACC) mName = ACC_DIM_NAME
+        if (this.ctrl.kind === Puih.tkind.ALL) mName = ALL_ACC_DIM_NAME
 
         let n = this.replaceMeasureDim(mName, mNewIdx, this.rowFields, false)
         if (n < 0) n = this.replaceMeasureDim(mName, mNewIdx, this.colFields, false)
@@ -1095,7 +1095,7 @@ export default {
         // if this is switch between calculated measure and run comparison then
         // if calculated dimension on rows or columns then select all items
         // if calculated dimension on others then select first item
-        if ((isCmp && this.ctrl.kind === Puih.kind.CALC) || (!isCmp && this.ctrl.kind !== Puih.kind.CALC)) {
+        if ((isCmp && this.ctrl.kind === Puih.tkind.CALC) || (!isCmp && this.ctrl.kind !== Puih.tkind.CALC)) {
           if (this.otherFields.findIndex(f => f.name === CALC_DIM_NAME) >= 0) {
             this.dimProp[mNewIdx].selection = [this.dimProp[mNewIdx].enums[0]]
           } else {
@@ -1148,7 +1148,7 @@ export default {
       this.pvc.dimItemKeys = Pcvt.dimItemKeys(CALC_DIM_NAME)
 
       // set new view kind and  store pivot view
-      this.ctrl.kind = !isCmp ? Puih.kind.CALC : Puih.kind.CMP
+      this.ctrl.kind = !isCmp ? Puih.tkind.CALC : Puih.tkind.CMP
       this.pvc.formatter.byKey(true)
       this.storeViewAndRefreshData()
     },
@@ -1272,8 +1272,8 @@ export default {
         others: enumIdsToCodes(tv.others),
         isRowColControls: this.ctrl.isRowColControls,
         rowColMode: this.pvc.rowColMode,
-        kind: this.ctrl.kind || Puih.kind.EXPR,
-        calc: (this.ctrl.kind === Puih.kind.CALC || this.ctrl.kind === Puih.kind.CMP) ? (this.srcCalc || '') : '',
+        kind: this.ctrl.kind || Puih.tkind.EXPR,
+        calc: (this.ctrl.kind === Puih.tkind.CALC || this.ctrl.kind === Puih.tkind.CMP) ? (this.srcCalc || '') : '',
         pageStart: this.isPages ? this.pageStart : 0,
         pageSize: this.isPages ? this.pageSize : 0
       }
@@ -1312,14 +1312,14 @@ export default {
       }
 
       // restore view kind and calculation name
-      this.ctrl.kind = (typeof dv?.kind === typeof 1) ? ((dv.kind % 5) || Puih.kind.EXPR) : Puih.kind.EXPR // there are only 5 kinds of view possible for output table
-      if (this.ctrl.kind !== Puih.kind.CALC && this.ctrl.kind !== Puih.kind.CMP) {
+      this.ctrl.kind = (typeof dv?.kind === typeof 1) ? ((dv.kind % 5) || Puih.tkind.EXPR) : Puih.tkind.EXPR // there are only 5 kinds of view possible for output table
+      if (this.ctrl.kind !== Puih.tkind.CALC && this.ctrl.kind !== Puih.tkind.CMP) {
         this.srcCalc = ''
       } else {
         this.srcCalc = typeof dv?.calc === typeof 'string' ? (dv?.calc || '') : ''
       }
       // calculated measure dimension at [rank + 4] position
-      const fce = (this.ctrl.kind === Puih.kind.CALC) ? this.calcEnums : this.compareEnums
+      const fce = (this.ctrl.kind === Puih.tkind.CALC) ? this.calcEnums : this.compareEnums
       this.dimProp[this.rank + 4].enums = Object.freeze(fce)
       this.dimProp[this.rank + 4].options = this.dimProp[this.rank + 4].enums
       this.dimProp[this.rank + 4].filter = Puih.makeFilter(this.dimProp[this.rank + 4])
@@ -1409,7 +1409,7 @@ export default {
       // then store pivot view: do insert or replace of the view
       if (Mdf.isLength(rows) || Mdf.isLength(cols) || Mdf.isLength(others)) {
         const vs = Pcvt.pivotState(rows, cols, others, dv.isRowColControls, dv.rowColMode || Pcvt.SPANS_AND_DIMS_PVT)
-        vs.kind = this.ctrl.kind || Puih.kind.EXPR
+        vs.kind = this.ctrl.kind || Puih.tkind.EXPR
         vs.calc = this.srcCalc || ''
         vs.pageStart = this.isPages ? this.pageStart : 0
         vs.pageSize = this.isPages ? this.pageSize : 0
@@ -1512,7 +1512,7 @@ export default {
         '/table/' + encodeURIComponent(this.tableName)
 
       let c = ''
-      if (this.ctrl.kind === Puih.kind.CALC || this.ctrl.kind === Puih.kind.CMP) {
+      if (this.ctrl.kind === Puih.tkind.CALC || this.ctrl.kind === Puih.tkind.CMP) {
         c = Puih.toCsvFnc(this.srcCalc)
         if (!c) {
           console.warn('Invalid calculation name:', this.srcCalc)
@@ -1524,7 +1524,7 @@ export default {
       // find first run digest selected in runs dimension, different from current run
       let vd = this.runDigest
 
-      if (this.ctrl.kind === Puih.kind.CMP && this.isCompare) {
+      if (this.ctrl.kind === Puih.tkind.CMP && this.isCompare) {
         const findRunVarint = (dims) => {
           const n = dims.findIndex(d => d.name === RUN_DIM_NAME)
           if (n < 0) return ''
@@ -1543,19 +1543,19 @@ export default {
       }
 
       switch (this.ctrl.kind) {
-        case Puih.kind.EXPR:
+        case Puih.tkind.EXPR:
           u += '/expr'
           break
-        case Puih.kind.ACC:
+        case Puih.tkind.ACC:
           u += '/acc'
           break
-        case Puih.kind.ALL:
+        case Puih.tkind.ALL:
           u += '/all-acc'
           break
-        case Puih.kind.CALC:
+        case Puih.tkind.CALC:
           u += '/calc/' + c
           break
-        case Puih.kind.CMP:
+        case Puih.tkind.CMP:
           u += '/compare/' + c + '/variant/' + vd
           break
         default:
@@ -1765,7 +1765,7 @@ export default {
       }
 
       // if expr_id on other dimensions then add filter by expression name
-      if (this.ctrl.kind === Puih.kind.EXPR) {
+      if (this.ctrl.kind === Puih.tkind.EXPR) {
         const fExpr = this.filterState?.[EXPR_DIM_NAME]
         if (fExpr) {
           if (Array.isArray(fExpr) && fExpr.length > 0) {
@@ -1781,7 +1781,7 @@ export default {
       }
 
       // if acc_id on other dimensions then add filter by accumulator name
-      if (this.ctrl.kind === Puih.kind.ACC) {
+      if (this.ctrl.kind === Puih.tkind.ACC) {
         const fAcc = this.filterState?.[ACC_DIM_NAME]
         if (fAcc) {
           if (Array.isArray(fAcc) && fAcc.length > 0) {
@@ -1797,7 +1797,7 @@ export default {
       }
 
       // make calculated page layout: all calculated expressions or single calculation
-      if (this.ctrl.kind === Puih.kind.CALC) {
+      if (this.ctrl.kind === Puih.tkind.CALC) {
         // make calculated items: table expression or aggregated function
         const cArr = []
 
@@ -1854,7 +1854,7 @@ export default {
         layout.Calculation = cArr
       }
 
-      if (this.ctrl.kind === Puih.kind.CMP) {
+      if (this.ctrl.kind === Puih.tkind.CMP) {
         // make calculated items: table expression or comparison expression
         const cArr = []
         const cEnums = this.dimProp[this.rank + 4].enums // rank + 4: calculated dimension index in dimesions list
@@ -1925,8 +1925,8 @@ export default {
         }
       }
 
-      layout.IsAllAccum = this.ctrl.kind === Puih.kind.ALL
-      layout.IsAccum = layout.IsAllAccum || this.ctrl.kind === Puih.kind.ACC
+      layout.IsAllAccum = this.ctrl.kind === Puih.tkind.ALL
+      layout.IsAccum = layout.IsAllAccum || this.ctrl.kind === Puih.tkind.ACC
       layout.Offset = 0
       layout.Size = 0
       layout.IsFullPage = false
@@ -1941,8 +1941,8 @@ export default {
       this.loadWait = true
 
       let utail = 'value-id'
-      if (this.ctrl.kind === Puih.kind.CALC) utail = 'calc-id'
-      if (this.ctrl.kind === Puih.kind.CMP) utail = 'compare-id'
+      if (this.ctrl.kind === Puih.tkind.CALC) utail = 'calc-id'
+      if (this.ctrl.kind === Puih.tkind.CMP) utail = 'compare-id'
       const u = this.omsUrl +
         '/api/model/' + encodeURIComponent(this.digest) +
         '/run/' + encodeURIComponent(this.runDigest) + '/table/' +

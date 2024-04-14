@@ -150,7 +150,7 @@
             v-close-popup
             >
             <q-item-section avatar>
-              <q-icon color="primary" name="mdi-tune" />
+              <q-icon color="primary" :name="ctrl.isRowColControls ? 'mdi-table-headers-eye-off' : 'mdi-table-headers-eye'" />
             </q-item-section>
             <q-item-section>{{ ctrl.isRowColControls ? $t('Hide rows and columns bars') : $t('Show rows and columns bars') }}</q-item-section>
           </q-item>
@@ -447,12 +447,13 @@
     <q-btn
       @click="onToggleRowColControls"
       :disable="!ctrl.isRowColModeToggle"
-      :flat="ctrl.isRowColControls"
       :outline="!ctrl.isRowColControls"
+      :unelevated="ctrl.isRowColControls"
       dense
-      :class="{ 'bar-button-on' : ctrl.isRowColControls, 'bar-button-off' : !ctrl.isRowColControls, 'q-mr-xs' : ctrl.isRowColModeToggle || ctrl.formatOpts }"
-      class="col-auto rounded-borders"
-      icon="mdi-tune"
+      color="primary"
+      :class="{ 'q-mr-xs' : ctrl.isRowColModeToggle || ctrl.formatOpts }"
+      class="col-auto rounded-borders q-mr-xs"
+      :icon="ctrl.isRowColControls ? 'mdi-table-headers-eye-off' : 'mdi-table-headers-eye'"
       :title="ctrl.isRowColControls ? $t('Hide rows and columns bars') : $t('Show rows and columns bars')"
       />
 

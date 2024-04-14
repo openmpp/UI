@@ -7,12 +7,18 @@ import * as Pcvt from 'components/pivot-cvt'
 export const SUB_ID_DIM = 'SubId' // sub-value id dminesion name
 
 // kind of output table view
-export const kind = {
+export const tkind = {
   EXPR: 0,  // output table expression(s)
   ACC: 1,   // output table accumulator(s)
   ALL: 2,   // output table all-accumultors view
   CALC: 3,  // output table calculated measure view
-  CMP: 4    // output table calculated measure view
+  CMP: 4    // output table run comparison
+}
+// kind of entity microdata view
+export const ekind = {
+  MICRO: 0, // entity microdata
+  CALC: 1,  // aggregated (calculated) entity measure attributes
+  CMP: 2    // entity run comparison
 }
 /* eslint-enable no-multi-spaces */
 
@@ -171,10 +177,10 @@ export const makeFilter = (f) => (val, update, abort) => {
   )
 }
 
-// return calculation function or comparison expression, for example: MEAN => OM_AVG or return empty '' string on error
+// return calculation function or comparison expression, for example: AVG => OM_AVG or return empty '' string on error
 export const toCalcFnc = (fncSrc, eSrc) => {
   switch (fncSrc) {
-    case 'MEAN':
+    case 'AVG':
       return 'OM_AVG(' + eSrc + ')'
     case 'COUNT':
       return 'OM_COUNT(' + eSrc + ')'
@@ -209,10 +215,10 @@ export const toCompareFnc = (fncSrc, eSrc) => {
   return ''
 }
 
-// return csv calculation name by source function name, ex: MEAN => avg or return empty '' string on error
+// return csv calculation name by source function name, ex: AVG => avg or return empty '' string on error
 export const toCsvFnc = (src) => {
   switch (src) {
-    case 'MEAN':
+    case 'AVG':
       return 'avg'
     case 'COUNT':
       return 'count'
@@ -236,6 +242,24 @@ export const toCsvFnc = (src) => {
       return 'ratio'
     case 'PERCENT':
       return 'percent'
+  }
+  return ''
+}
+
+// return aggregated comparison expression, for example: AVG, DIFF => OM_AVG(Income[variant] - Income[base])
+// if comparison cmpFnc is empty then return aggregation expression: AVG => OM_AVG(Income)
+// or return empty '' string on error
+export const toAggrCompareFnc = (aggrFnc, cmpFnc, eSrc) => {
+  if (!cmpFnc) {
+    return toCalcFnc(aggrFnc, eSrc)
+  }
+  switch (cmpFnc) {
+    case 'DIFF':
+      return toCalcFnc(aggrFnc, eSrc + '[variant] - ' + eSrc + '[base]')
+    case 'RATIO':
+      return toCalcFnc(aggrFnc, eSrc + '[variant] / ' + eSrc + '[base]')
+    case 'PERCENT':
+      return toCalcFnc(aggrFnc, '100.0 * ' + eSrc + '[variant] / ' + eSrc + '[base]')
   }
   return ''
 }

@@ -69,7 +69,7 @@
             clickable
             >
             <q-item-section avatar>
-              <q-icon color="primary" name="mdi-tune" />
+              <q-icon color="primary" :name="ctrl.isRowColControls ? 'mdi-table-headers-eye-off' : 'mdi-table-headers-eye'" />
             </q-item-section>
             <q-item-section>{{ ctrl.isRowColControls ? $t('Hide rows and columns bars') : $t('Show rows and columns bars') }}</q-item-section>
           </q-item>
@@ -189,9 +189,10 @@
 
     <q-btn
       @click="doShowEntityNote"
-      flat
+      unelevated
       dense
-      class="col-auto bg-primary text-white rounded-borders"
+      color="primary"
+      class="col-auto rounded-borders"
       icon="mdi-information"
       :title="$t('About') + ' ' + entityName"
       />
@@ -200,10 +201,10 @@
     <template v-if="isPages">
       <q-btn
         @click="isHidePageControls = !isHidePageControls"
-        :flat="isHidePageControls"
+        :unelevated="isHidePageControls"
         :outline="!isHidePageControls"
         dense
-        :class="isHidePageControls ? 'bar-button-on' : 'bar-button-off'"
+        color="primary"
         class="col-auto rounded-borders q-mr-xs"
         icon="mdi-unfold-more-vertical"
         :title="!isHidePageControls ? $t('Hide pagination controls') : $t('Show pagination controls')"
@@ -212,18 +213,20 @@
         <q-btn
           @click="onFirstPage"
           :disable="pageStart === 0"
-          flat
+          unelevated
           dense
-          class="col-auto bg-primary text-white rounded-borders q-mr-xs"
+          color="primary"
+          class="col-auto rounded-borders q-mr-xs"
           icon="mdi-page-first"
           :title="$t('First page')"
           />
         <q-btn
           @click="onPrevPage"
           :disable="pageStart === 0"
-          flat
+          unelevated
           dense
-          class="col-auto bg-primary text-white rounded-borders q-mr-xs"
+          color="primary"
+          class="col-auto rounded-borders q-mr-xs"
           icon="mdi-chevron-left"
           :title="$t('Previous page')"
           />
@@ -234,18 +237,20 @@
         <q-btn
           @click="onNextPage"
           :disable="isLastPage"
-          flat
+          unelevated
           dense
-          class="col-auto bg-primary text-white rounded-borders q-mr-xs"
+          color="primary"
+          class="col-auto rounded-borders q-mr-xs"
           icon="mdi-chevron-right"
           :title="$t('Next page')"
           />
         <q-btn
           @click="onLastPage"
           :disable="isLastPage"
-          flat
+          unelevated
           dense
-          class="col-auto bg-primary text-white rounded-borders q-mr-xs"
+          color="primary"
+          class="col-auto rounded-borders q-mr-xs"
           icon="mdi-page-last"
           :title="$t('Last page')"
           />
@@ -267,18 +272,158 @@
     </template>
 
     <q-btn
-      @click="onCopyToClipboard"
-      flat
+      @click="doMicroPage()"
+      :unelevated="ctrl.kind === 1 || ctrl.kind === 2"
+      :disable="ctrl.kind !== 1 && ctrl.kind !== 2"
       dense
-      class="col-auto bg-primary text-white rounded-borders q-mr-xs"
+      color="primary"
+      class="col-auto rounded-borders q-mr-xs"
+      icon="mdi-microscope"
+      :title="$t('Microdata view')"
+      :aria-label="$t('Microdata view')"
+      />
+    <!-- calculated measures menu -->
+    <q-btn
+      :outline="ctrl.kind === 1 || ctrl.kind === 2"
+      :unelevated="ctrl.kind !== 1 && ctrl.kind !== 2"
+      dense
+      color="primary"
+      class="col-auto rounded-borders"
+      icon="mdi-function-variant"
+      :title="$t('Aggregate microdata')"
+      :aria-label="$t('Aggregate microdata')"
+      >
+      <q-menu>
+        <div class="full-width q-px-sm q-mt-sm q-mb-none">
+          <q-btn
+            @click="doCalcPage()"
+            :disable="!aggrCalc || !groupBy?.length || !calcAttrs?.length"
+            v-close-popup
+            unelevated
+            :label="$t('Apply')"
+            no-caps
+            color="primary"
+            class="rounded-borders full-width"
+            />
+        </div>
+        <q-list dense>
+
+          <q-item clickable>
+            <q-item-section>{{ $t('Aggregation') }}</q-item-section>
+            <q-item-section side><span class="text-no-wrap mono">{{ aggrCalc }} &#x25B6;</span></q-item-section>
+            <q-menu anchor="top end" self="top start">
+              <q-list dense>
+                <template v-if="isRunCompare">
+                  <q-item
+                    v-for="c in compareCalcList"
+                    :key="c.code"
+                    @click="onCompareToogle(c.code)"
+                    clickable
+                    >
+                    <template v-if="cmpCalc === c.code">
+                      <q-item-section class="text-primary"><span><span class="mono check-calc">&check;</span>{{ $t(c.label) }}</span></q-item-section>
+                      <q-item-section class="mono text-primary" side>{{ c.code }}</q-item-section>
+                    </template>
+                    <template v-else>
+                      <q-item-section><span><span class="mono check-calc">&nbsp;</span>{{ $t(c.label) }}</span></q-item-section>
+                      <q-item-section class="mono" side>{{ c.code }}</q-item-section>
+                    </template>
+                  </q-item>
+                  <q-separator />
+                </template>
+                <q-item
+                  v-for="c in aggrCalcList"
+                  :key="c.code"
+                  @click="onAggregateSet(c.code)"
+                  clickable
+                  >
+                  <template v-if="aggrCalc === c.code">
+                    <q-item-section class="text-primary"><span><span class="mono check-calc">&check;</span>{{ $t(c.label) }}</span></q-item-section>
+                    <q-item-section class="mono text-primary" side>{{ c.code }}</q-item-section>
+                  </template>
+                  <template v-else>
+                    <q-item-section><span><span class="mono check-calc">&nbsp;</span>{{ $t(c.label) }}</span></q-item-section>
+                    <q-item-section class="mono" side>{{ c.code }}</q-item-section>
+                  </template>
+                </q-item>
+              </q-list>
+            </q-menu>
+          </q-item>
+
+          <q-item clickable>
+            <q-item-section>{{ $t('Dimensions') }}</q-item-section>
+            <q-item-section side><span class="text-no-wrap mono">{{ ((groupBy?.length) || 0).toString() + '/' + (rank - 1 > 0 ? rank - 1 : 0).toString() }} &#x25B6;</span></q-item-section>
+            <q-menu anchor="top end" self="top start">
+              <q-list dense>
+                <template v-for="(d, n) in dimProp">
+                  <template v-if="n > 0 && n < rank">
+                    <q-item :key="'by-dim-' + d.name"
+                      @click="onGroupByToogle(d.name)"
+                      clickable
+                      >
+                      <template v-if="isInGroupBy(d.name)">
+                        <q-item-section v-if="!pvc.isShowNames" class="text-primary"><span><span class="mono check-calc">&check;</span>{{ d.label }}</span></q-item-section>
+                        <q-item-section v-if="pvc.isShowNames" class="text-primary mono"><span><span class="mono check-calc">&check;</span>{{ d.name }}</span></q-item-section>
+                      </template>
+                      <template v-else>
+                        <q-item-section v-if="!pvc.isShowNames"><span><span class="mono check-calc">&nbsp;</span>{{ d.label }}</span></q-item-section>
+                        <q-item-section v-if="pvc.isShowNames" class="mono"><span><span class="mono check-calc">&nbsp;</span>{{ d.name }}</span></q-item-section>
+                      </template>
+                    </q-item>
+                  </template>
+                </template>
+              </q-list>
+            </q-menu>
+          </q-item>
+
+          <q-item clickable>
+            <q-item-section>{{ $t('Measures') }}</q-item-section>
+            <q-item-section side><span class="text-no-wrap mono">{{ ((calcAttrs?.length) || 0).toString() + '/' + attrCount.toString() }} &#x25B6;</span></q-item-section>
+            <q-menu anchor="top end" self="top start">
+              <q-list dense>
+                <template v-for="a in attrEnums">
+                  <template v-if="a?.isFloat || a?.isInt">
+                    <q-item :key="'c-attr-' + a.name"
+                      @click="onCalcAttrToogle(a.name)"
+                      clickable
+                      >
+                      <template v-if="isInCalcAttrs(a.name)">
+                        <q-item-section v-if="!pvc.isShowNames" class="text-primary"><span><span class="mono check-calc">&check;</span>{{ a.label }}</span></q-item-section>
+                        <q-item-section v-if="pvc.isShowNames" class="text-primary mono"><span><span class="mono check-calc">&check;</span>{{ a.name }}</span></q-item-section>
+                      </template>
+                      <template v-else>
+                        <q-item-section v-if="!pvc.isShowNames"><span><span class="mono check-calc">&nbsp;</span>{{ a.label }}</span></q-item-section>
+                        <q-item-section v-if="pvc.isShowNames" class="mono"><span><span class="mono check-calc">&nbsp;</span>{{ a.name }}</span></q-item-section>
+                      </template>
+                    </q-item>
+                  </template>
+                </template>
+              </q-list>
+            </q-menu>
+          </q-item>
+
+        </q-list>
+      </q-menu>
+    </q-btn>
+    <!-- end of calculated measures menu -->
+
+    <q-separator vertical inset spaced="sm" color="secondary" />
+
+    <q-btn
+      @click="onCopyToClipboard"
+      unelevated
+      dense
+      color="primary"
+      class="col-auto rounded-borders q-mr-xs"
       icon="mdi-content-copy"
       :title="$t('Copy tab separated values to clipboard: ') + 'Ctrl+C'"
       />
     <q-btn
       @click="onDownload"
-      flat
+      unelevated
       dense
-      class="col-auto bg-primary text-white rounded-borders"
+      color="primary"
+      class="col-auto rounded-borders"
       icon="mdi-download"
       :title="$t('Download') + ' '  + entityName + ' ' + $t('as CSV')"
       />
@@ -287,12 +432,13 @@
     <q-btn
       @click="onToggleRowColControls"
       :disable="!ctrl.isRowColModeToggle"
-      :flat="ctrl.isRowColControls"
       :outline="!ctrl.isRowColControls"
+      :unelevated="ctrl.isRowColControls"
       dense
-      :class="{ 'bar-button-on' : ctrl.isRowColControls, 'bar-button-off' : !ctrl.isRowColControls, 'q-mr-xs' : ctrl.isRowColModeToggle || ctrl.formatOpts }"
-      class="col-auto rounded-borders"
-      icon="mdi-tune"
+      color="primary"
+      :class="{ 'q-mr-xs' : ctrl.isRowColModeToggle || ctrl.formatOpts }"
+      class="col-auto rounded-borders q-mr-xs"
+      :icon="ctrl.isRowColControls ? 'mdi-table-headers-eye-off' : 'mdi-table-headers-eye'"
       :title="ctrl.isRowColControls ? $t('Hide rows and columns bars') : $t('Show rows and columns bars')"
       />
 
@@ -300,36 +446,40 @@
         <q-btn
           @click="onSetRowColMode(2)"
           :disable="pvc.rowColMode === 2"
-          flat
+          unelevated
           dense
-          class="col-auto bg-primary text-white rounded-borders q-mr-xs"
+          color="primary"
+          class="col-auto rounded-borders q-mr-xs"
           icon="mdi-view-quilt-outline"
           :title="$t('Switch to default pivot view')"
           />
         <q-btn
           @click="onSetRowColMode(1)"
           :disable="pvc.rowColMode === 1"
-          flat
+          unelevated
           dense
-          class="col-auto bg-primary text-white rounded-borders q-mr-xs"
+          color="primary"
+          class="col-auto rounded-borders q-mr-xs"
           icon="mdi-view-list-outline"
           :title="$t('Table view: hide rows and columns name')"
           />
         <q-btn
           @click="onSetRowColMode(3)"
           :disable="pvc.rowColMode === 3"
-          flat
+          unelevated
           dense
-          class="col-auto bg-primary text-white rounded-borders q-mr-xs"
+          color="primary"
+          class="col-auto rounded-borders q-mr-xs"
           icon="mdi-view-compact-outline"
           :title="$t('Table view: always show rows and columns item and name')"
           />
         <q-btn
           @click="onSetRowColMode(0)"
           :disable="pvc.rowColMode === 0"
-          flat
+          unelevated
           dense
-          class="col-auto bg-primary text-white rounded-borders"
+          color="primary"
+          class="col-auto rounded-borders"
           :class="{ 'q-mr-xs' : ctrl.formatOpts }"
           icon="mdi-view-module-outline"
           :title="$t('Table view: always show rows and columns item')"
@@ -340,18 +490,20 @@
       <q-btn
         @click="onShowMoreFormat"
         :disable="!ctrl.formatOpts.isDoMore"
-        flat
+        unelevated
         dense
-        class="col-auto bg-primary text-white rounded-borders q-mr-xs"
+        color="primary"
+        class="col-auto rounded-borders q-mr-xs"
         icon="mdi-decimal-increase"
         :title="$t('Increase precision')"
         />
       <q-btn
         @click="onShowLessFormat"
         :disable="!ctrl.formatOpts.isDoLess"
-        flat
+        unelevated
         dense
-        class="col-auto bg-primary text-white rounded-borders q-mr-xs"
+        color="primary"
+        class="col-auto rounded-borders q-mr-xs"
         icon="mdi-decimal-decrease"
         :title="$t('Decrease precision')"
         />
@@ -359,10 +511,10 @@
     <q-btn
       v-if="ctrl.formatOpts && ctrl.formatOpts.isRawUse"
       @click="onToggleRawValue"
-      :flat="!ctrl.formatOpts.isRawValue"
+      :unelevated="!ctrl.formatOpts.isRawValue"
       :outline="ctrl.formatOpts.isRawValue"
       dense
-      :class="!ctrl.formatOpts.isRawValue ? 'bar-button-on' : 'bar-button-off'"
+      color="primary"
       class="col-auto rounded-borders"
       icon="mdi-loupe"
       :title="!ctrl.formatOpts.isRawValue ? $t('Show raw source value') : $t('Show formatted value')"
@@ -370,10 +522,10 @@
     <q-btn
       @click="onShowItemNames"
       :disable="isScalar"
-      :flat="!pvc.isShowNames"
+      :unelevated="!pvc.isShowNames"
       :outline="pvc.isShowNames"
       dense
-      :class="!pvc.isShowNames ? 'bar-button-on' : 'bar-button-off'"
+      color="primary"
       class="col-auto rounded-borders q-ml-xs"
       icon="mdi-label-outline"
       :title="pvc.isShowNames ? $t('Show labels') : $t('Show names')"
@@ -382,17 +534,19 @@
 
     <q-btn
       @click="onSaveDefaultView"
-      flat
+      unelevated
       dense
-      class="col-auto bg-primary text-white rounded-borders q-mr-xs"
+      color="primary"
+      class="col-auto rounded-borders q-mr-xs"
       icon="mdi-content-save-cog"
       :title="$t('Save microdata view as default view of') + ' ' + entityName"
       />
     <q-btn
       @click="onReloadDefaultView"
-      flat
+      unelevated
       dense
-      class="col-auto bg-primary text-white rounded-borders q-mr-xs"
+      color="primary"
+      class="col-auto rounded-borders q-mr-xs"
       icon="mdi-cog-refresh-outline"
       :title="$t('Reset microdata view to default and reload') + ' ' + entityName"
       />
@@ -801,6 +955,10 @@
     }
   }
 
+  .check-calc {
+    min-width: 1.125rem;
+    display: inline-block;
+  }
   .bar-button-on {
     background-color: $primary;
     color: white;

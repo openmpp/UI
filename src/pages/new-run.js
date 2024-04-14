@@ -334,7 +334,7 @@ export default {
         this.$q.notify({ type: 'warning', message: this.$t('Input scenario should include all parameters otherwise model run may fail') })
       }
     },
-    // if retrun is true then display warning to the user about too many microdata attributes selected
+    // if retrurn is true then display warning to the user about too many microdata attributes selected
     isTooManyEntityAttrs () {
       if (!this.entityAttrsUse || this.entityAttrsUse.length <= 0) return false
       if (this.entityAttrsUse.length > ENTITY_ATTR_WARNING_LIMIT) return true
