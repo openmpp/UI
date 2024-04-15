@@ -19,7 +19,7 @@ const CALC_DIM_NAME = 'CALCULATED_DIM'          // calculated expressions measur
 const RUN_DIM_NAME = 'RUN_DIM'                  // model run compare dimension name
 const SMALL_PAGE_SIZE = 1000                    // small page size: do not show page controls
 const LAST_PAGE_OFFSET = 2 * 1024 * 1024 * 1024 // large page offset to get the last page
-const CALCULATED_ID_OFFSET = 1200               // calculated exprssion id offset, for example for Expr1 calculated expression id is 1201
+const CALCULATED_ID_OFFSET = 12000              // calculated exprssion id offset, for example for Expr1 calculated expression id is 12001
 /* eslint-enable no-multi-spaces */
 
 export default {

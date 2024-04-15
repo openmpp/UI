@@ -296,8 +296,8 @@
       <q-menu>
         <div class="full-width q-px-sm q-mt-sm q-mb-none">
           <q-btn
-            @click="doCalcPage()"
-            :disable="!aggrCalc || !groupBy?.length || !calcAttrs?.length"
+            @click="onCalcPage()"
+            :disable="!aggrCalc || !groupDimCalc?.length || (!attrCalc?.length && !calcEnums.length)"
             v-close-popup
             unelevated
             :label="$t('Apply')"
@@ -352,7 +352,7 @@
 
           <q-item clickable>
             <q-item-section>{{ $t('Dimensions') }}</q-item-section>
-            <q-item-section side><span class="text-no-wrap mono">{{ ((groupBy?.length) || 0).toString() + '/' + (rank - 1 > 0 ? rank - 1 : 0).toString() }} &#x25B6;</span></q-item-section>
+            <q-item-section side><span class="text-no-wrap mono">{{ ((groupDimCalc?.length) || 0).toString() + '/' + (rank - 1 > 0 ? rank - 1 : 0).toString() }} &#x25B6;</span></q-item-section>
             <q-menu anchor="top end" self="top start">
               <q-list dense>
                 <template v-for="(d, n) in dimProp">
@@ -361,7 +361,7 @@
                       @click="onGroupByToogle(d.name)"
                       clickable
                       >
-                      <template v-if="isInGroupBy(d.name)">
+                      <template v-if="isGroupBy(d.name)">
                         <q-item-section v-if="!pvc.isShowNames" class="text-primary"><span><span class="mono check-calc">&check;</span>{{ d.label }}</span></q-item-section>
                         <q-item-section v-if="pvc.isShowNames" class="text-primary mono"><span><span class="mono check-calc">&check;</span>{{ d.name }}</span></q-item-section>
                       </template>
@@ -378,7 +378,7 @@
 
           <q-item clickable>
             <q-item-section>{{ $t('Measures') }}</q-item-section>
-            <q-item-section side><span class="text-no-wrap mono">{{ ((calcAttrs?.length) || 0).toString() + '/' + attrCount.toString() }} &#x25B6;</span></q-item-section>
+            <q-item-section side><span class="text-no-wrap mono">{{ (attrCalc?.length || 0).toString() + '/' + attrCount.toString() }} &#x25B6;</span></q-item-section>
             <q-menu anchor="top end" self="top start">
               <q-list dense>
                 <template v-for="a in attrEnums">
@@ -387,7 +387,7 @@
                       @click="onCalcAttrToogle(a.name)"
                       clickable
                       >
-                      <template v-if="isInCalcAttrs(a.name)">
+                      <template v-if="isAttrCalc(a.name)">
                         <q-item-section v-if="!pvc.isShowNames" class="text-primary"><span><span class="mono check-calc">&check;</span>{{ a.label }}</span></q-item-section>
                         <q-item-section v-if="pvc.isShowNames" class="text-primary mono"><span><span class="mono check-calc">&check;</span>{{ a.name }}</span></q-item-section>
                       </template>

@@ -285,9 +285,6 @@ export const microdataView = (state, mv) => {
   if (Array.isArray(mv?.groupBy)) {
     state.microdataViews[mv.key].view.groupBy = Mdf._cloneDeep(mv.groupBy)
   }
-  if (Array.isArray(mv?.calcAttrs)) {
-    state.microdataViews[mv.key].view.calcAttrs = Mdf._cloneDeep(mv.calcAttrs)
-  }
   if (Array.isArray(mv?.calcEnums)) {
     state.microdataViews[mv.key].view.calcEnums = Mdf._cloneDeep(mv.calcEnums)
   }

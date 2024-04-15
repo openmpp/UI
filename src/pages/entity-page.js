@@ -18,7 +18,7 @@ const CALC_DIM_NAME = 'CALCULATED_DIM'          // calculated attributes measure
 const RUN_DIM_NAME = 'RUN_DIM'                  // model run compare dimension name
 const SMALL_PAGE_SIZE = 10                      // small page size: do not show page controls
 const LAST_PAGE_OFFSET = 2 * 1024 * 1024 * 1024 // large page offset to get the last page
-const CALCULATED_ID_OFFSET = 1200               // calculated attribute id offset, for example for Attr34 calculated attribute id is 1234
+const CALCULATED_ID_OFFSET = 12000              // calculated attribute id offset, for example for Attr34 calculated attribute id is 12034
 /* eslint-enable no-multi-spaces */
 
 export default {
@@ -48,7 +48,10 @@ export default {
       attrEnums: [],          // meausre dimension enums
       calcEnums: [],          // calculation dimension enums for aggregated measure calculation
       groupBy: [],            // names of group by dimensions
-      calcAttrs: [],          // names of calculated measure attributes
+      groupDimCalc: [],       // selected names of group by dimensions
+      attrCalc: [],           // selected names of calculated measure attributes
+      aggrCalc: '',           // name of aggregation function, ex.: AVG
+      cmpCalc: '',            // name of comparison function, ex.: DIFF
       colFields: [],
       rowFields: [],
       otherFields: [],
@@ -72,8 +75,6 @@ export default {
       },
       readerMicro: void 0,        // microdata row reader
       pvKeyPos: [],               // position of each dimension item in cell key
-      aggrCalc: '',               // name of aggregation function, ex.: AVG
-      cmpCalc: '',                // name of comparison function, ex.: DIFF
       locale: '',                 // current locale to format values
       isDragging: false,          // if true then user is dragging dimension select control
       isOtherDropDisabled: false, // if true then others drop area disabled
@@ -503,18 +504,14 @@ export default {
       }
       // else: restore previous view
       this.ctrl.kind = (typeof mv?.kind === typeof 1) ? (mv.kind % 3 || Puih.ekind.MICRO) : Puih.ekind.MICRO // there are only 3 kinds of view possible for microdata
-      this.aggrCalc = ''
-      this.cmpCalc = ''
-      this.groupBy = []
-      this.calcAttrs = []
-      this.calcEnums = []
       this.aggrCalc = (typeof mv?.aggrCalc === typeof 'string') ? mv?.aggrCalc : ''
       this.cmpCalc = (typeof mv?.cmpCalc === typeof 'string') ? mv?.cmpCalc : ''
       this.groupBy = Array.isArray(mv?.groupBy) ? mv.groupBy : []
-      this.calcAttrs = Array.isArray(mv?.calcAttrs) ? mv.calcAttrs : []
       this.calcEnums = Array.isArray(mv?.calcEnums) ? mv.calcEnums : []
-
       if (this.ctrl.kind === Puih.ekind.CMP && !this.isRunCompare) this.ctrl.kind = Puih.ekind.CALC // no runs to compare
+
+      this.groupDimCalc = Array.from(this.groupBy)
+      this.attrCalc = []
 
       // [rank + 1]: calculated measure dimension
       this.dimProp[this.rank + 1].enums = Object.freeze(this.calcEnums)
@@ -585,7 +582,9 @@ export default {
         this.pageSize = 0
       }
 
-      // store viea and refresh pivot view: both dimensions labels and table body
+      // store view and refresh pivot view: both dimensions labels and table body
+      if (this.ctrl.kind === Puih.ekind.CALC || this.ctrl.kind === Puih.ekind.CMP) this.doCalcPage()
+
       this.storeView()
       this.ctrl.isPvDimsTickle = !this.ctrl.isPvDimsTickle
       this.ctrl.isPvTickle = !this.ctrl.isPvTickle
@@ -613,8 +612,9 @@ export default {
       this.aggrCalc = ''
       this.cmpCalc = ''
       this.groupBy = []
-      this.calcAttrs = []
       this.calcEnums = []
+      this.groupDimCalc = []
+      this.attrCalc = []
 
       // rows: rank dimensions
       for (let nDim = 1; nDim < this.rank; nDim++) {
@@ -654,10 +654,9 @@ export default {
       vs.kind = this.ctrl.kind || Puih.ekind.MICRO // view kind is specific to microdata
       vs.pageStart = 0
       vs.pageSize = this.isPages ? ((typeof this.pageSize === typeof 1 && this.pageSize >= 0) ? this.pageSize : SMALL_PAGE_SIZE) : 0
-      vs.aggrCalc = (this.ctrl.kind !== Puih.ekind.MICRO) ? (this.aggrCalc || '') : ''
-      vs.cmpCalc = (this.ctrl.kind === Puih.ekind.CMP) ? (this.cmpCalc || '') : ''
+      vs.aggrCalc = this.aggrCalc || ''
+      vs.cmpCalc = this.cmpCalc || ''
       vs.groupBy = Array.isArray(this.groupBy) ? this.groupBy : []
-      vs.calcAttrs = Array.isArray(this.calcAttrs) ? this.calcAttrs : []
       vs.calcEnums = Array.isArray(this.calcEnums) ? this.calcEnums : []
 
       this.dispatchMicrodataView({
@@ -728,7 +727,6 @@ export default {
         this.$q.notify({ type: 'negative', message: this.$t('Measure dimension not found') })
         return
       }
-      this.calcEnums = []
 
       // remove run dimension, if exists (if it was run comparison)
       let isFound = this.removeDimField(this.rowFields, RUN_DIM_NAME)
@@ -759,17 +757,45 @@ export default {
         this.dimProp[n].singleSelection = (this.dimProp[n].selection.length > 0) ? this.dimProp[n].selection[0] : {}
       }
 
-      // use expression reader and format by key on measure attributes dimension
+      // use microdata row reader and format by key on measure attributes dimension
       this.pvc.reader = this.readerMicro
       this.pvc.dimItemKeys = Pcvt.dimItemKeys(ATTR_DIM_NAME)
 
       // set new view kind and  store pivot view
       this.ctrl.kind = Puih.ekind.MICRO
-      this.pvc.formatter.byKey(true)
       this.storeView()
       this.doRefreshDataPage()
     },
 
+    // user click to show aggregated microdata view
+    onCalcPage () {
+      if (!this.aggrCalc) {
+        console.warn('Invalid (empty) aggregation selected:', this.aggrCalc)
+        this.$q.notify({ type: 'negative', message: this.$t('Invalid (empty) aggregation selected') })
+        return
+      }
+      if (!Mdf.isLength(this.groupDimCalc)) {
+        console.warn('Invalid (empty) list of aggregation dimensions', this.groupBy)
+        this.$q.notify({ type: 'negative', message: this.$t('Invalid (empty) list of aggregation dimensions') })
+        return
+      }
+
+      // calculated measures dimension: enums are aggregated attributes or aggreagted comparison of attributes
+      if (Mdf.isLength(this.attrCalc)) {
+        this.updateCalcDim()
+      }
+      if (!Mdf.isLength(this.calcEnums)) {
+        console.warn('Invalid (empty) list of calculated measure attributes', this.attrCalc)
+        this.$q.notify({ type: 'negative', message: this.$t('Invalid (empty) list of calculated measure attributes') })
+        return
+      }
+
+      // show aggregated microdata view
+      this.groupBy = Array.from(this.groupDimCalc)
+      this.doCalcPage()
+      this.storeView()
+      this.doRefreshDataPage()
+    },
     // show aggregated microdata view
     doCalcPage () {
       if (!this.aggrCalc) {
@@ -782,18 +808,16 @@ export default {
         this.$q.notify({ type: 'negative', message: this.$t('Invalid (empty) list of aggregation dimensions') })
         return
       }
-      if (!Mdf.isLength(this.calcAttrs)) {
-        console.warn('Invalid (empty) list of calculated measure attributes', this.calcAttrs)
+      if (!Mdf.isLength(this.calcEnums)) {
+        console.warn('Invalid (empty) list of calculated measure attributes', this.attrCalc)
         this.$q.notify({ type: 'negative', message: this.$t('Invalid (empty) list of calculated measure attributes') })
         return
       }
 
-      // calculated measures dimension: enums are aggregated attributes or aggreagted comparison of attributes
-      this.setupCalcDim()
-
       // if there is no calculated measure dimension then push it on columns
       // [rank + 1]: calculated attributes dimension: calculated attributes as enums
       const mNewIdx = this.rank + 1
+      this.dimProp[mNewIdx].enums = Object.freeze(this.calcEnums)
 
       let n = this.replaceMeasureDim(ATTR_DIM_NAME, mNewIdx, this.rowFields, false)
       if (n < 0) n = this.replaceMeasureDim(ATTR_DIM_NAME, mNewIdx, this.colFields, false)
@@ -823,13 +847,12 @@ export default {
           if (!isFound) isFound = this.removeDimField(this.otherFields, this.dimProp[k].name)
         }
       }
-
-      // if this is not run comparison then remove runs dimension
-      // else insert runs dimension before measure dimension: before calculated dimension
       let isFound = this.removeDimField(this.rowFields, KEY_DIM_NAME)
       if (!isFound) isFound = this.removeDimField(this.colFields, KEY_DIM_NAME)
       if (!isFound) isFound = this.removeDimField(this.otherFields, KEY_DIM_NAME)
 
+      // if this is not run comparison then remove runs dimension
+      // else insert runs dimension before measure dimension: before calculated dimension
       if (!this.isRunCompare) {
         isFound = this.removeDimField(this.rowFields, RUN_DIM_NAME)
         if (!isFound) isFound = this.removeDimField(this.colFields, RUN_DIM_NAME)
@@ -868,66 +891,75 @@ export default {
 
       // set new view kind, store pivot view and refersh the data
       this.ctrl.kind = this.isRunCompare ? Puih.ekind.CMP : Puih.ekind.CALC
+      this.updateCalcFormat()
       this.pvc.reader = this.makeCalcReader()
-      this.storeView()
-      this.doRefreshDataPage()
     },
     // setup calculation measure dimension and format options
-    setupCalcDim () {
-      // setup process value and format value handlers:
-      // if source type is one of built-in then process and format value as float, int, boolen or string
-      const makeFmt = (ca) => {
-        if (ca.isInt) {
-          return Pcvt.formatInt({ isNullable: this.isNullable, locale: this.locale })
-        }
-        // else float attribute
-        return Pcvt.formatFloat({
-          isNullable: this.isNullable,
-          locale: this.locale,
-          nDecimal: Pcvt.maxDecimalDefault,
-          maxDecimal: Pcvt.maxDecimalDefault,
-          isAllDecimal: true // show all deciamls for the float value
-        })
-      }
-
-      this.calcEnums = []
-      const cFmt = {} // formatters for calculated attributes
-      let cId = CALCULATED_ID_OFFSET + 1
+    updateCalcDim () {
+      //
+      const ceLst = []
 
       for (const a of this.attrEnums) {
-        if (this.calcAttrs.indexOf(a.name) < 0) continue // this attribute is not selected as calculated measure
+        if (this.attrCalc.indexOf(a.name) < 0) continue // this attribute is not selected as calculated measure
         if (!a.isInt && !a.isFloat) {
           console.warn('Invalid type of calculated measure attribute: it must be numeric:', a.name)
           continue
         }
 
         // add to calculated measure both attributes: source attribute and calculated attribute
+        let alb = this.aggrCalc
+        const n = this.aggrCalcList.findIndex(c => this.aggrCalc === c.code)
+        if (n >= 0) alb = this.$t(this.aggrCalcList[n].label)
+
         const ia = this.aggrCalc === 'COUNT' || (a.isInt && (this.aggrCalc === 'MIN' || this.aggrCalc === 'MAX'))
         const ae = {
-          value: cId++,
+          value: a.value + CALCULATED_ID_OFFSET,
           name: this.aggrCalc + '_' + a.name,
-          label: this.aggrCalc + ' ' + a.label,
+          label: alb + ' ' + a.label,
           isInt: ia,
           isFloat: !ia,
           calc: Puih.toAggrCompareFnc(this.aggrCalc, '', a.name) // calculation: aggregate source attribute
         }
-        this.calcEnums.push(ae)
-        cFmt[ae.value] = makeFmt(ae)
+        ceLst.push(ae)
 
         if (this.isRunCompare && this.cmpCalc) {
+          let clb = this.cmpCalc
+          const n = this.compareCalcList.findIndex(c => this.cmpCalc === c.code)
+          if (n >= 0) clb = this.$t(this.compareCalcList[n].label)
+
           const ic = this.aggrCalc === 'COUNT' || (a.isInt && (this.aggrCalc === 'MIN' || this.aggrCalc === 'MAX') && this.cmpCalc === 'DIFF')
           const ce = {
-            value: cId++,
+            value: a.value + 2 * CALCULATED_ID_OFFSET,
             name: this.aggrCalc + '_' + this.cmpCalc + '_' + a.name,
-            label: this.aggrCalc + ' ' + this.cmpCalc + ' ' + a.label,
+            label: alb + ' ' + clb + ' ' + a.label,
             isInt: ic,
             isFloat: !ic,
             calc: Puih.toAggrCompareFnc(this.aggrCalc, this.cmpCalc, a.name) // calculation: aggregate source attribute
           }
-          this.calcEnums.push(ce)
-          cFmt[ce.value] = makeFmt(ce)
+          ceLst.push(ce)
         }
       }
+
+      this.calcEnums = ceLst
+    },
+    // setup attributes format based on claculated measure items: float or integer
+    updateCalcFormat () {
+      const cFmt = {} // formatters for calculated attributes
+
+      for (const ce of this.calcEnums) {
+        if (ce.isInt) {
+          cFmt[ce.value] = Pcvt.formatInt({ isNullable: this.isNullable, locale: this.locale })
+        } else {
+          cFmt[ce.value] = Pcvt.formatFloat({
+            isNullable: this.isNullable,
+            locale: this.locale,
+            nDecimal: Pcvt.maxDecimalDefault,
+            maxDecimal: Pcvt.maxDecimalDefault,
+            isAllDecimal: true // show all deciamls for the float value
+          })
+        }
+      }
+
       // [rank + 1]: calculated attributes dimension: calculated attributes as enums
       this.dimProp[this.rank + 1].enums = Object.freeze(this.calcEnums)
       this.dimProp[this.rank + 1].options = this.calcEnums
@@ -1040,7 +1072,7 @@ export default {
         return
       }
       this.aggrCalc = src
-      this.dispatchMicrodataView({ key: this.routeKey, groupBy: this.aggrCalc })
+      this.calcEnums = [] // calculation updated
     },
     // set run comparison calculation name
     onCompareToogle (src) {
@@ -1055,38 +1087,36 @@ export default {
         }
         this.cmpCalc = src // set new comparison
       }
-      this.dispatchMicrodataView({ key: this.routeKey, groupBy: this.cmpCalc })
+      this.calcEnums = [] // calculation updated
     },
     // add or remove group by dimension name on click
     onGroupByToogle (name) {
       if (!name) return
-      const n = this.groupBy.indexOf(name)
+      const n = this.groupDimCalc.indexOf(name)
       if (n >= 0) {
-        this.groupBy.splice(n, 1)
+        this.groupDimCalc.splice(n, 1)
       } else {
-        this.groupBy.push(name)
+        this.groupDimCalc.push(name)
       }
-      this.dispatchMicrodataView({ key: this.routeKey, groupBy: this.groupBy })
     },
     // return true if dimesion name is in group by dimensions list
-    isInGroupBy (name) {
-      return !!name && this.groupBy.indexOf(name) >= 0
+    isGroupBy (name) {
+      return !!name && this.groupDimCalc.indexOf(name) >= 0
     },
     // add or remove group by dimension name on click
     onCalcAttrToogle (name) {
       if (!name) return
-      const n = this.calcAttrs.indexOf(name)
+      const n = this.attrCalc.indexOf(name)
       if (n >= 0) {
-        this.calcAttrs.splice(n, 1)
+        this.attrCalc.splice(n, 1)
       } else {
-        this.calcAttrs.push(name)
+        this.attrCalc.push(name)
       }
-      this.calcEnums = []
-      this.dispatchMicrodataView({ key: this.routeKey, calcAttrs: this.calcAttrs, calcEnums: this.calcEnums })
+      this.calcEnums = [] // measure attributes updated
     },
     // return true if measure attribute name is in calculated attributes list
-    isInCalcAttrs (name) {
-      return !!name && this.calcAttrs.indexOf(name) >= 0
+    isAttrCalc (name) {
+      return !!name && this.attrCalc.indexOf(name) >= 0
     },
 
     // show entity notes dialog
@@ -1280,7 +1310,6 @@ export default {
         aggrCalc: this.aggrCalc || '',
         cmpCalc: this.cmpCalc || '',
         groupBy: Array.isArray(this.groupBy) ? this.groupBy : [],
-        calcAttrs: Array.isArray(this.calcAttrs) ? this.calcAttrs : [],
         calcEnums: Array.isArray(this.calcEnums) ? this.calcEnums : []
       }
 
@@ -1319,11 +1348,13 @@ export default {
 
       // restore view kind, aggregation name, comparison name, group by and calculated measure
       this.ctrl.kind = (typeof dv?.kind === typeof 1) ? ((dv.kind % 3) || Puih.ekind.MICRO) : Puih.ekind.MICRO // there are only 3 kinds of view possible for output table
-      this.aggrCalc = typeof dv?.aggrCalc === typeof 'string' ? (dv?.aggrCalc || '') : ''
+      this.aggrCalc = (typeof dv?.aggrCalc === typeof 'string') ? (dv?.aggrCalc || '') : ''
       this.cmpCalc = (typeof dv?.cmpCalc === typeof 'string') ? (dv?.cmpCalc || '') : ''
       this.groupBy = Array.isArray(dv?.groupBy) ? dv.groupBy : []
-      this.calcAttrs = Array.isArray(dv?.calcAttrs) ? dv.calcAttrs : []
       this.calcEnums = Array.isArray(dv?.calcEnums) ? dv.calcEnums : []
+
+      this.groupDimCalc = Array.from(this.groupBy)
+      this.attrCalc = []
 
       // [rank + 1]: calculated measure dimension
       this.dimProp[this.rank + 1].enums = Object.freeze(this.calcEnums)
@@ -1405,10 +1436,9 @@ export default {
         vs.kind = this.ctrl.kind || Puih.ekind.MICRO // view kind is specific to microdata
         vs.pageStart = this.isPages ? this.pageStart : 0
         vs.pageSize = this.isPages ? this.pageSize : 0
-        vs.aggrCalc = (this.ctrl.kind !== Puih.ekind.MICRO) ? (this.aggrCalc || '') : ''
-        vs.cmpCalc = (this.ctrl.kind === Puih.ekind.CMP) ? (this.cmpCalc || '') : ''
+        vs.aggrCalc = this.aggrCalc || ''
+        vs.cmpCalc = this.cmpCalc || ''
         vs.groupBy = this.groupBy
-        vs.calcAttrs = this.calcAttrs
         vs.calcEnums = this.calcEnums
 
         this.dispatchMicrodataView({
