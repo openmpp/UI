@@ -297,40 +297,56 @@
         <div class="full-width q-px-sm q-mt-sm q-mb-none">
           <q-btn
             @click="onCalcPage()"
-            :disable="!aggrCalc || !groupDimCalc?.length || (!attrCalc?.length && !calcEnums.length)"
+            :disable="!groupDimCalc?.length || (!calcEnums.length && (!aggrCalc || !attrCalc.length))"
             v-close-popup
             unelevated
             :label="$t('Apply')"
             no-caps
+            color="primary q-mr-sm"
+            class="rounded-borders"
+            />
+          <q-btn
+            @click="onCalcEdit()"
+            :disable="!groupDimCalc?.length || (!calcEnums.length && (!aggrCalc || !attrCalc.length))"
+            v-close-popup
+            unelevated
+            :label="$t('Edit') + '\u2026'"
+            no-caps
             color="primary"
-            class="rounded-borders full-width"
+            class="rounded-borders"
             />
         </div>
         <q-list dense>
+
+          <q-item v-if="isRunCompare" clickable>
+            <q-item-section>{{ $t('Comparison') }}</q-item-section>
+            <q-item-section side><span class="text-no-wrap mono">{{ cmpCalc }} &#x25B6;</span></q-item-section>
+            <q-menu anchor="top end" self="top start">
+              <q-list dense>
+                <q-item
+                  v-for="c in compareCalcList"
+                  :key="c.code"
+                  @click="onCompareToogle(c.code)"
+                  clickable
+                  >
+                  <template v-if="cmpCalc === c.code">
+                    <q-item-section class="text-primary"><span><span class="mono check-calc">&check;</span>{{ $t(c.label) }}</span></q-item-section>
+                    <q-item-section class="mono text-primary" side>{{ c.code }}</q-item-section>
+                  </template>
+                  <template v-else>
+                    <q-item-section><span><span class="mono check-calc">&nbsp;</span>{{ $t(c.label) }}</span></q-item-section>
+                    <q-item-section class="mono" side>{{ c.code }}</q-item-section>
+                  </template>
+                </q-item>
+              </q-list>
+            </q-menu>
+          </q-item>
 
           <q-item clickable>
             <q-item-section>{{ $t('Aggregation') }}</q-item-section>
             <q-item-section side><span class="text-no-wrap mono">{{ aggrCalc }} &#x25B6;</span></q-item-section>
             <q-menu anchor="top end" self="top start">
               <q-list dense>
-                <template v-if="isRunCompare">
-                  <q-item
-                    v-for="c in compareCalcList"
-                    :key="c.code"
-                    @click="onCompareToogle(c.code)"
-                    clickable
-                    >
-                    <template v-if="cmpCalc === c.code">
-                      <q-item-section class="text-primary"><span><span class="mono check-calc">&check;</span>{{ $t(c.label) }}</span></q-item-section>
-                      <q-item-section class="mono text-primary" side>{{ c.code }}</q-item-section>
-                    </template>
-                    <template v-else>
-                      <q-item-section><span><span class="mono check-calc">&nbsp;</span>{{ $t(c.label) }}</span></q-item-section>
-                      <q-item-section class="mono" side>{{ c.code }}</q-item-section>
-                    </template>
-                  </q-item>
-                  <q-separator />
-                </template>
                 <q-item
                   v-for="c in aggrCalcList"
                   :key="c.code"
@@ -842,6 +858,16 @@
 
   <run-info-dialog :show-tickle="runInfoTickle" :model-digest="digest" :run-digest="runDigest"></run-info-dialog>
   <entity-info-dialog :show-tickle="entityInfoTickle" :entity-name="entityName" :run-digest="runDigest"></entity-info-dialog>
+
+  <entity-calc-dialog
+    :show-tickle="calcEditTickle"
+    :update-tickle="calcUpdateTickle"
+    :entity-name="entityName"
+    :run-digest="runDigest"
+    :calc-enums="calcEnums"
+    @calc-list-apply="onCalcEditApply"
+    >
+  </entity-calc-dialog>
 
   <q-inner-loading :showing="loadWait || loadRunWait">
     <q-spinner-gears size="md" color="primary" />

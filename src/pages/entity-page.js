@@ -5,6 +5,7 @@ import RunBar from 'components/RunBar.vue'
 import RefreshRun from 'components/RefreshRun.vue'
 import RunInfoDialog from 'components/RunInfoDialog.vue'
 import EntityInfoDialog from 'components/EntityInfoDialog.vue'
+import EntityCalcDialog from 'components/EntityCalcDialog.vue'
 import draggable from 'vuedraggable'
 import * as Pcvt from 'components/pivot-cvt'
 import * as Puih from './pivot-ui-helper'
@@ -18,12 +19,11 @@ const CALC_DIM_NAME = 'CALCULATED_DIM'          // calculated attributes measure
 const RUN_DIM_NAME = 'RUN_DIM'                  // model run compare dimension name
 const SMALL_PAGE_SIZE = 10                      // small page size: do not show page controls
 const LAST_PAGE_OFFSET = 2 * 1024 * 1024 * 1024 // large page offset to get the last page
-const CALCULATED_ID_OFFSET = 12000              // calculated attribute id offset, for example for Attr34 calculated attribute id is 12034
 /* eslint-enable no-multi-spaces */
 
 export default {
   name: 'EntityPage',
-  components: { draggable, PvTable, RunBar, RefreshRun, RunInfoDialog, EntityInfoDialog },
+  components: { draggable, PvTable, RunBar, RefreshRun, RunInfoDialog, EntityInfoDialog, EntityCalcDialog },
 
   props: {
     digest: { type: String, default: '' },
@@ -87,6 +87,8 @@ export default {
       refreshRunTickle: false,
       runInfoTickle: false,
       entityInfoTickle: false,
+      calcEditTickle: false,
+      calcUpdateTickle: false,
       aggrCalcList: [{  // aggeragation calculations: aggregate measure  attributes over dimensions (aggregate numric attributes over enum-based or boolean attributes)
         code: 'AVG',
         label: 'Average'
@@ -769,11 +771,6 @@ export default {
 
     // user click to show aggregated microdata view
     onCalcPage () {
-      if (!this.aggrCalc) {
-        console.warn('Invalid (empty) aggregation selected:', this.aggrCalc)
-        this.$q.notify({ type: 'negative', message: this.$t('Invalid (empty) aggregation selected') })
-        return
-      }
       if (!Mdf.isLength(this.groupDimCalc)) {
         console.warn('Invalid (empty) list of aggregation dimensions', this.groupBy)
         this.$q.notify({ type: 'negative', message: this.$t('Invalid (empty) list of aggregation dimensions') })
@@ -782,6 +779,11 @@ export default {
 
       // calculated measures dimension: enums are aggregated attributes or aggreagted comparison of attributes
       if (Mdf.isLength(this.attrCalc)) {
+        if (!this.aggrCalc) {
+          console.warn('Invalid (empty) aggregation selected:', this.aggrCalc)
+          this.$q.notify({ type: 'negative', message: this.$t('Invalid (empty) aggregation selected') })
+          return
+        }
         this.updateCalcDim()
       }
       if (!Mdf.isLength(this.calcEnums)) {
@@ -796,13 +798,122 @@ export default {
       this.storeView()
       this.doRefreshDataPage()
     },
-    // show aggregated microdata view
-    doCalcPage () {
-      if (!this.aggrCalc) {
-        console.warn('Invalid (empty) aggregation selected:', this.aggrCalc)
-        this.$q.notify({ type: 'negative', message: this.$t('Invalid (empty) aggregation selected') })
+    // show calculation edit dialog
+    onCalcEdit () {
+      if (this.calcEnums.length <= 0) {
+        if (!this.aggrCalc) {
+          console.warn('Invalid (empty) aggregation selected:', this.aggrCalc)
+          this.$q.notify({ type: 'negative', message: this.$t('Invalid (empty) aggregation selected') })
+          return
+        }
+        if (!Mdf.isLength(this.attrCalc)) {
+          console.warn('Invalid (empty) list of calculated measure attributes', this.attrCalc)
+          this.$q.notify({ type: 'negative', message: this.$t('Invalid (empty) list of calculated measure attributes') })
+          return
+        }
+        this.updateCalcDim()
+      }
+      this.calcEditTickle = !this.calcEditTickle
+    },
+    // copy edited calcultion list into clacEnums
+    onCalcEditApply (cLst) {
+      if (!Mdf.isLength(cLst) || cLst.findIndex(c => !!c.calc && Mdf.isLength(c.calc.trim())) < 0) {
+        console.warn('Invalid (empty) list of calculated measure attributes', cLst)
+        this.$q.notify({ type: 'negative', message: this.$t('Invalid (empty) list of calculated measure attributes') })
         return
       }
+      this.calcEnums = []
+
+      for (const c of cLst) {
+        c.calc = (c.calc || '').trim()
+        if (!c.calc) continue // skip empty calculations
+
+        c.calcId = this.calcEnums.length + Mdf.CALCULATED_ID_OFFSET
+        c.name = 'ex_' + c.calcId.toString()
+        c.label = (c.label || '').trim()
+
+        this.calcEnums.push({
+          value: c.calcId,
+          name: c.name,
+          label: c.label || c.name,
+          isInt: false,
+          isFloat: true,
+          calc: c.calc
+        })
+      }
+
+      this.aggrCalc = '' // disable update from menu
+      this.cmpCalc = ''
+      this.attrCalc = []
+
+      // if dimension list defined then show aggregated microdata view
+      if (!Mdf.isLength(this.groupDimCalc)) return
+
+      this.groupBy = Array.from(this.groupDimCalc)
+      this.doCalcPage()
+      this.storeView()
+      this.doRefreshDataPage()
+    },
+    // set aggregated calculation name
+    onAggregateSet (src) {
+      if (this.aggrCalcList.findIndex(c => src === c.code) < 0) {
+        console.warn('Invalid aggregation selected:', src)
+        this.$q.notify({ type: 'negative', message: this.$t('Invalid aggregation selected') + ' ' + (src || '') })
+        return
+      }
+      this.aggrCalc = src
+      this.calcEnums = [] // calculation updated
+      if (this.aggrCalc && Mdf.isLength(this.aggrCalc)) this.updateCalcDim()
+    },
+    // set run comparison calculation name
+    onCompareToogle (src) {
+      if (!src) return
+      if (src === this.cmpCalc) { // clear comparison
+        this.cmpCalc = ''
+      } else {
+        if (this.compareCalcList.findIndex(c => src === c.code) < 0) {
+          console.warn('Invalid aggregation selected:', src)
+          this.$q.notify({ type: 'negative', message: this.$t('Invalid aggregation selected') + ' ' + (src || '') })
+          return
+        }
+        this.cmpCalc = src // set new comparison
+      }
+      this.calcEnums = [] // calculation updated
+
+      if (this.aggrCalc && Mdf.isLength(this.aggrCalc)) this.updateCalcDim()
+    },
+    // add or remove group by dimension name on click
+    onGroupByToogle (name) {
+      if (!name) return
+      const n = this.groupDimCalc.indexOf(name)
+      if (n >= 0) {
+        this.groupDimCalc.splice(n, 1)
+      } else {
+        this.groupDimCalc.push(name)
+      }
+    },
+    // return true if dimesion name is in group by dimensions list
+    isGroupBy (name) {
+      return !!name && this.groupDimCalc.indexOf(name) >= 0
+    },
+    // add or remove group by dimension name on click
+    onCalcAttrToogle (name) {
+      if (!name) return
+      const n = this.attrCalc.indexOf(name)
+      if (n >= 0) {
+        this.attrCalc.splice(n, 1)
+      } else {
+        this.attrCalc.push(name)
+      }
+      this.calcEnums = [] // measure attributes updated
+      if (this.aggrCalc && Mdf.isLength(this.aggrCalc)) this.updateCalcDim()
+    },
+    // return true if measure attribute name is in calculated attributes list
+    isAttrCalc (name) {
+      return !!name && this.attrCalc.indexOf(name) >= 0
+    },
+    // show aggregated microdata view
+    doCalcPage () {
       if (!Mdf.isLength(this.groupBy)) {
         console.warn('Invalid (empty) list of aggregation dimensions', this.groupBy)
         this.$q.notify({ type: 'negative', message: this.$t('Invalid (empty) list of aggregation dimensions') })
@@ -850,6 +961,20 @@ export default {
       let isFound = this.removeDimField(this.rowFields, KEY_DIM_NAME)
       if (!isFound) isFound = this.removeDimField(this.colFields, KEY_DIM_NAME)
       if (!isFound) isFound = this.removeDimField(this.otherFields, KEY_DIM_NAME)
+
+      // if any group by dimension not exist push it on rows
+      for (const name of this.groupBy) {
+        if (this.rowFields.findIndex(d => d.name === name) < 0 &&
+          this.colFields.findIndex(d => d.name === name) < 0 &&
+          this.otherFields.findIndex(d => d.name === name) < 0) {
+          const n = this.dimProp.findIndex(d => d.name === name)
+          if (n >= 0) {
+            this.rowFields.push(this.dimProp[n])
+            this.dimProp[n].selection = Array.from(this.dimProp[n].enums)
+            this.dimProp[n].singleSelection = (this.dimProp[n].selection.length > 0) ? this.dimProp[n].selection[0] : {}
+          }
+        }
+      }
 
       // if this is not run comparison then remove runs dimension
       // else insert runs dimension before measure dimension: before calculated dimension
@@ -913,12 +1038,14 @@ export default {
 
         const ia = this.aggrCalc === 'COUNT' || (a.isInt && (this.aggrCalc === 'MIN' || this.aggrCalc === 'MAX'))
         const ae = {
-          value: a.value + CALCULATED_ID_OFFSET,
-          name: this.aggrCalc + '_' + a.name,
+          // value: a.value + Mdf.CALCULATED_ID_OFFSET,
+          // name: this.aggrCalc + '_' + a.name,
+          value: ceLst.length + Mdf.CALCULATED_ID_OFFSET,
+          name: 'ex_' + (ceLst.length + Mdf.CALCULATED_ID_OFFSET).toString(),
           label: alb + ' ' + a.label,
           isInt: ia,
           isFloat: !ia,
-          calc: Puih.toAggrCompareFnc(this.aggrCalc, '', a.name) // calculation: aggregate source attribute
+          calc: Mdf.toAggregateCompareFnc(this.aggrCalc, '', a.name) // calculation: aggregate source attribute
         }
         ceLst.push(ae)
 
@@ -929,18 +1056,21 @@ export default {
 
           const ic = this.aggrCalc === 'COUNT' || (a.isInt && (this.aggrCalc === 'MIN' || this.aggrCalc === 'MAX') && this.cmpCalc === 'DIFF')
           const ce = {
-            value: a.value + 2 * CALCULATED_ID_OFFSET,
-            name: this.aggrCalc + '_' + this.cmpCalc + '_' + a.name,
+            // value: a.value + 2 * Mdf.CALCULATED_ID_OFFSET,
+            // name: this.aggrCalc + '_' + this.cmpCalc + '_' + a.name,
+            value: ceLst.length + Mdf.CALCULATED_ID_OFFSET,
+            name: 'ex_' + (ceLst.length + Mdf.CALCULATED_ID_OFFSET).toString(),
             label: alb + ' ' + clb + ' ' + a.label,
             isInt: ic,
             isFloat: !ic,
-            calc: Puih.toAggrCompareFnc(this.aggrCalc, this.cmpCalc, a.name) // calculation: aggregate source attribute
+            calc: Mdf.toAggregateCompareFnc(this.aggrCalc, this.cmpCalc, a.name) // calculation: aggregate source attribute
           }
           ceLst.push(ce)
         }
       }
 
       this.calcEnums = ceLst
+      this.calcUpdateTickle = !this.calcUpdateTickle
     },
     // setup attributes format based on claculated measure items: float or integer
     updateCalcFormat () {
@@ -986,16 +1116,17 @@ export default {
       // array of attributes:
       //   group by dimensions are enum-based attributes or boolean
       //   last position is meausre dimension values of float or integer type
-      const readerCalc = (src) => {
+      return (src) => {
         // no data to read: if source rows are empty or invalid return undefined reader
         if (!src || (src?.length || 0) <= 0) return void 0
 
         const srcLen = src.length
         let nSrc = 0
 
-        const dimPos = Array(this.groupBy.length)
-        for (let k = 0; k < this.groupBy.length; k++) {
-          dimPos[k] = this.dimProp.findIndex((d) => d.name === this.groupBy[k])
+        const dimPos = []
+        let rPos = 0
+        for (const d of this.dimProp) {
+          if (this.groupBy.indexOf(d.name) >= 0) dimPos.push(rPos++)
         }
         const nVal = this.groupBy.length // calculated attribute value at last position
 
@@ -1012,18 +1143,21 @@ export default {
         }
 
         // read dimension item value: enum id for enum-based attributes
-        for (let k = 0; k < this.groupBy.length; k++) {
-          const n = dimPos[k]
-          if (!this.dimProp[n].isBool) { // enum-based dimension
-            rd.readDim[this.dimProp[n].name] = (r) => {
+        let nPos = 0
+        for (const d of this.dimProp) {
+          if (this.groupBy.indexOf(d.name) < 0) continue // skip: this is not a group by diemnsion
+
+          const n = dimPos[nPos++]
+          if (!d.isBool) { // enum-based dimension
+            rd.readDim[d.name] = (r) => {
               const a = r?.Attr || void 0
-              const cv = (a && k < a.length) ? a[k] : void 0
+              const cv = (a && n < a.length) ? a[n] : void 0
               return (cv && !cv.IsNull) ? cv.Value : void 0
             }
           } else { // boolean dimension: enum id's: 0 = false, 1 = true
-            rd.readDim[this.dimProp[n].name] = (r) => {
+            rd.readDim[d.name] = (r) => {
               const a = r?.Attr || void 0
-              const cv = (a && k < a.length) ? a[k] : void 0
+              const cv = (a && n < a.length) ? a[n] : void 0
               return (cv && !cv.IsNull) ? (cv.Value ? 1 : 0) : void 0
             }
           }
@@ -1036,8 +1170,6 @@ export default {
 
         return rd
       }
-
-      return readerCalc
     },
     // replace measure dimension in rows, columns or othres list by new dimension
     // for example, replace measure attributes dimension with calculated attributes measure
@@ -1063,60 +1195,6 @@ export default {
       const n = dims.findIndex(d => d.name === name)
       if (n >= 0) dims.splice(n, 1)
       return n >= 0
-    },
-    // set aggregated calculation name
-    onAggregateSet (src) {
-      if (this.aggrCalcList.findIndex(c => src === c.code) < 0) {
-        console.warn('Invalid aggregation selected:', src)
-        this.$q.notify({ type: 'negative', message: this.$t('Invalid aggregation selected') + ' ' + (src || '') })
-        return
-      }
-      this.aggrCalc = src
-      this.calcEnums = [] // calculation updated
-    },
-    // set run comparison calculation name
-    onCompareToogle (src) {
-      if (!src) return
-      if (src === this.cmpCalc) { // clear comparison
-        this.cmpCalc = ''
-      } else {
-        if (this.compareCalcList.findIndex(c => src === c.code) < 0) {
-          console.warn('Invalid aggregation selected:', src)
-          this.$q.notify({ type: 'negative', message: this.$t('Invalid aggregation selected') + ' ' + (src || '') })
-          return
-        }
-        this.cmpCalc = src // set new comparison
-      }
-      this.calcEnums = [] // calculation updated
-    },
-    // add or remove group by dimension name on click
-    onGroupByToogle (name) {
-      if (!name) return
-      const n = this.groupDimCalc.indexOf(name)
-      if (n >= 0) {
-        this.groupDimCalc.splice(n, 1)
-      } else {
-        this.groupDimCalc.push(name)
-      }
-    },
-    // return true if dimesion name is in group by dimensions list
-    isGroupBy (name) {
-      return !!name && this.groupDimCalc.indexOf(name) >= 0
-    },
-    // add or remove group by dimension name on click
-    onCalcAttrToogle (name) {
-      if (!name) return
-      const n = this.attrCalc.indexOf(name)
-      if (n >= 0) {
-        this.attrCalc.splice(n, 1)
-      } else {
-        this.attrCalc.push(name)
-      }
-      this.calcEnums = [] // measure attributes updated
-    },
-    // return true if measure attribute name is in calculated attributes list
-    isAttrCalc (name) {
-      return !!name && this.attrCalc.indexOf(name) >= 0
     },
 
     // show entity notes dialog
@@ -1218,7 +1296,7 @@ export default {
           cp += (cp ? ',' : '') + ce.calc
         }
 
-        u += '/group-by/' + this.groupBy.join(',')
+        u += '/group-by/' + encodeURIComponent(this.groupBy.join(','))
 
         if (this.ctrl.kind === Puih.ekind.CALC) {
           u += '/calc/NONE'
@@ -1233,7 +1311,7 @@ export default {
           pn = 'compare'
         }
       }
-      u += ((this.$q.platform.is.win) ? '/csv-bom' : '/csv') + '?' + pn + '=' + cp
+      u += ((this.$q.platform.is.win) ? '/csv-bom' : '/csv') + '?' + pn + '=' + encodeURIComponent(cp)
 
       openURL(u)
     },

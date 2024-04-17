@@ -19,7 +19,6 @@ const CALC_DIM_NAME = 'CALCULATED_DIM'          // calculated expressions measur
 const RUN_DIM_NAME = 'RUN_DIM'                  // model run compare dimension name
 const SMALL_PAGE_SIZE = 1000                    // small page size: do not show page controls
 const LAST_PAGE_OFFSET = 2 * 1024 * 1024 * 1024 // large page offset to get the last page
-const CALCULATED_ID_OFFSET = 12000              // calculated exprssion id offset, for example for Expr1 calculated expression id is 12001
 /* eslint-enable no-multi-spaces */
 
 export default {
@@ -327,7 +326,7 @@ export default {
         if (maxDec < nDec) maxDec = nDec
 
         // find derived accumulator by expression name
-        const cId = eId + CALCULATED_ID_OFFSET
+        const cId = eId + Mdf.CALCULATED_ID_OFFSET
         const na = this.tableText.TableAccTxt.findIndex(t => t.Acc.Name === e.Name && !!t.Acc.IsDerived && !!t.Acc?.SrcAcc)
         if (na >= 0) {
           this.calcEnums.push({
@@ -703,8 +702,8 @@ export default {
         const nc = this.otherFields.findIndex(f => f.name === CALC_DIM_NAME)
         if (nc >= 0) {
           const fc = this.otherFields[nc]
-          if (fc.selection.length > 0 && (fc.singleSelection?.value || 0) < CALCULATED_ID_OFFSET) {
-            const n = fc.selection.findIndex(e => e.value >= CALCULATED_ID_OFFSET)
+          if (fc.selection.length > 0 && (fc.singleSelection?.value || 0) < Mdf.CALCULATED_ID_OFFSET) {
+            const n = fc.selection.findIndex(e => e.value >= Mdf.CALCULATED_ID_OFFSET)
             if (n >= 0) fc.singleSelection = fc.selection
           }
         }
@@ -1155,7 +1154,7 @@ export default {
     // set calculation items decimals: zero decimals if calculation is count else max decimals
     setCalcDecimals (src) {
       for (const cId in this.ctrl.formatOpts.itemsFormat) {
-        if (cId >= CALCULATED_ID_OFFSET && this.ctrl.formatOpts.itemsFormat[cId] !== void 0) {
+        if (cId >= Mdf.CALCULATED_ID_OFFSET && this.ctrl.formatOpts.itemsFormat[cId] !== void 0) {
           if (src === 'COUNT') {
             this.ctrl.formatOpts.itemsFormat[cId].nDecimal = 0
             this.ctrl.formatOpts.itemsFormat[cId].maxDecimal = 0
@@ -1170,7 +1169,7 @@ export default {
     // update name and label for calculated items
     setCalcEnumsNameLabel (src, ecLst) {
       for (const ec of ecLst) {
-        if (ec.value >= CALCULATED_ID_OFFSET) { // if this is calculted item
+        if (ec.value >= Mdf.CALCULATED_ID_OFFSET) { // if this is calculted item
           ec.name = src + ' ' + ecLst[ec.exIdx].name
           ec.label = src + ' ' + ecLst[ec.exIdx].label
         }
@@ -1247,7 +1246,7 @@ export default {
                   cArr[n++] = f.enums[i].name
                 }
                 if (isCd) {
-                  cArr[n++] = f.enums[i].value < CALCULATED_ID_OFFSET ? f.enums[i].name : ('CALC_' + f.enums[f.enums[i].exIdx].name) // calculated item
+                  cArr[n++] = f.enums[i].value < Mdf.CALCULATED_ID_OFFSET ? f.enums[i].name : ('CALC_' + f.enums[f.enums[i].exIdx].name) // calculated item
                 }
                 if (isRd) {
                   cArr[n++] = f.enums[i].digest // model runs dimension
@@ -1363,7 +1362,7 @@ export default {
               if (ed.values[k].startsWith('CALC_')) {
                 const i = f.enums.findIndex(e => e.name === ed.values[k].substring(ncp))
                 if (i >= 0) {
-                  eArr[n++] = f.enums[i].value + CALCULATED_ID_OFFSET
+                  eArr[n++] = f.enums[i].value + Mdf.CALCULATED_ID_OFFSET
                 }
               } else {
                 const i = f.enums.findIndex(e => e.name === ed.values[k])
@@ -1513,7 +1512,7 @@ export default {
 
       let c = ''
       if (this.ctrl.kind === Puih.tkind.CALC || this.ctrl.kind === Puih.tkind.CMP) {
-        c = Puih.toCsvFnc(this.srcCalc)
+        c = Mdf.toCsvFnc(this.srcCalc)
         if (!c) {
           console.warn('Invalid calculation name:', this.srcCalc)
           this.$q.notify({ type: 'negative', message: this.$t('Invalid calculation name') + ' ' + (this.srcCalc || '') })
@@ -1598,7 +1597,7 @@ export default {
             n = f.selection.findIndex(e => e.value === f.totalId)
           } else { // if this is calculated dimension then select first calculated item
             if (f.name === CALC_DIM_NAME) {
-              n = f.selection.findIndex(e => e.value >= CALCULATED_ID_OFFSET)
+              n = f.selection.findIndex(e => e.value >= Mdf.CALCULATED_ID_OFFSET)
             }
           }
           if (n < 0) n = 0
@@ -1802,14 +1801,14 @@ export default {
         const cArr = []
 
         const pushCalc = (ec) => {
-          if (ec.value < CALCULATED_ID_OFFSET) {
+          if (ec.value < Mdf.CALCULATED_ID_OFFSET) {
             cArr.push({
               Calculate: ec.calc,
               CalcId: ec.value, // table expression
               IsAggr: false
             })
           } else {
-            const fnc = Puih.toCalcFnc(this.srcCalc, ec.calc)
+            const fnc = Mdf.toCalcFnc(this.srcCalc, ec.calc)
             if (!fnc) {
               console.warn('Invalid calculation name:', this.srcCalc)
               this.$q.notify({ type: 'negative', message: this.$t('Invalid calculation name') + ' ' + (this.srcCalc || '') })
@@ -1860,14 +1859,14 @@ export default {
         const cEnums = this.dimProp[this.rank + 4].enums // rank + 4: calculated dimension index in dimesions list
 
         const pushCalc = (ec) => {
-          if (ec.value < CALCULATED_ID_OFFSET) {
+          if (ec.value < Mdf.CALCULATED_ID_OFFSET) {
             cArr.push({
               Calculate: ec.calc,
               CalcId: ec.value, // table expression
               IsAggr: false
             })
           } else {
-            const fnc = (ec.exIdx >= 0 && ec.exIdx < cEnums.length) ? Puih.toCompareFnc(this.srcCalc, cEnums[ec.exIdx].name) : ''
+            const fnc = (ec.exIdx >= 0 && ec.exIdx < cEnums.length) ? Mdf.toCompareFnc(this.srcCalc, cEnums[ec.exIdx].name) : ''
             if (!fnc) {
               console.warn('Invalid calculation name:', this.srcCalc)
               this.$q.notify({ type: 'negative', message: this.$t('Invalid calculation name') + ' ' + (this.srcCalc || '') })

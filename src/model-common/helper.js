@@ -219,3 +219,92 @@ export const isPageLayoutRsp = (rsp) => {
 
   return true
 }
+
+export const CALCULATED_ID_OFFSET = 12000 // calculated id offset, for example for Attr34 calculated attribute id is 12034
+
+// return calculation function or comparison expression, for example: AVG => OM_AVG or return empty '' string on error
+export const toCalcFnc = (fncSrc, eSrc) => {
+  switch (fncSrc) {
+    case 'AVG':
+      return 'OM_AVG(' + eSrc + ')'
+    case 'COUNT':
+      return 'OM_COUNT(' + eSrc + ')'
+    case 'SUM':
+      return 'OM_SUM(' + eSrc + ')'
+    case 'MAX':
+      return 'OM_MAX(' + eSrc + ')'
+    case 'MIN':
+      return 'OM_MIN(' + eSrc + ')'
+    case 'VAR':
+      return 'OM_VAR(' + eSrc + ')'
+    case 'SD':
+      return 'OM_SD(' + eSrc + ')'
+    case 'SE':
+      return 'OM_SE(' + eSrc + ')'
+    case 'CV':
+      return 'OM_CV(' + eSrc + ')'
+  }
+  return ''
+}
+
+// return comparison expression, for example: DIFF => expr0[variant] - expr0[base] or return empty '' string on error
+export const toCompareFnc = (fncSrc, eSrc) => {
+  switch (fncSrc) {
+    case 'DIFF':
+      return eSrc + '[variant] - ' + eSrc + '[base]'
+    case 'RATIO':
+      return eSrc + '[variant] / ' + eSrc + '[base]'
+    case 'PERCENT':
+      return '100.0 * ' + eSrc + '[variant] / ' + eSrc + '[base]'
+  }
+  return ''
+}
+
+// return csv calculation name by source function name, ex: AVG => avg or return empty '' string on error
+export const toCsvFnc = (src) => {
+  switch (src) {
+    case 'AVG':
+      return 'avg'
+    case 'COUNT':
+      return 'count'
+    case 'SUM':
+      return 'sum'
+    case 'MAX':
+      return 'max'
+    case 'MIN':
+      return 'min'
+    case 'VAR':
+      return 'var'
+    case 'SD':
+      return 'sd'
+    case 'SE':
+      return 'se'
+    case 'CV':
+      return 'cv'
+    case 'DIFF':
+      return 'diff'
+    case 'RATIO':
+      return 'ratio'
+    case 'PERCENT':
+      return 'percent'
+  }
+  return ''
+}
+
+// return aggregated comparison expression, for example: AVG, DIFF => OM_AVG(Income[variant] - Income[base])
+// if comparison cmpFnc is empty then return aggregation expression: AVG => OM_AVG(Income)
+// or return empty '' string on error
+export const toAggregateCompareFnc = (aggrFnc, cmpFnc, eSrc) => {
+  if (!cmpFnc) {
+    return toCalcFnc(aggrFnc, eSrc)
+  }
+  switch (cmpFnc) {
+    case 'DIFF':
+      return toCalcFnc(aggrFnc, eSrc + '[variant] - ' + eSrc + '[base]')
+    case 'RATIO':
+      return toCalcFnc(aggrFnc, eSrc + '[variant] / ' + eSrc + '[base]')
+    case 'PERCENT':
+      return toCalcFnc(aggrFnc, '100.0 * ' + eSrc + '[variant] / ' + eSrc + '[base]')
+  }
+  return ''
+}
