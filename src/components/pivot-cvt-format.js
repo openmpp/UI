@@ -359,6 +359,7 @@ export const formatByKey = (options) => {
     isDoLess: opts.isDoLess,
     isByKey: opts.isByKey
   }
+
   const defaultiItemsFormat = {}
   for (const fmtKey in opts.formatter) {
     defaultiItemsFormat[fmtKey] = Object.assign({}, opts.formatter[fmtKey].options())
@@ -368,7 +369,7 @@ export const formatByKey = (options) => {
     byKey: (isByKey) => {}, // by key always true
 
     format: (val, fmtKey) => {
-      if (typeof fmtKey === typeof void 0 || !opts.isByKey || typeof opts?.formatter[fmtKey] === typeof void 0) {
+      if (opts.isRawValue || typeof fmtKey === typeof void 0 || !opts.isByKey || typeof opts?.formatter[fmtKey] === typeof void 0) {
         return val
       }
       return opts.formatter[fmtKey].format(val)

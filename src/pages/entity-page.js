@@ -73,6 +73,7 @@ export default {
         formatter: Pcvt.formatDefault,          // disable format(), parse() and validation by default
         cellClass: 'pv-cell-right'              // default cell value style: right justified number
       },
+      attrFormatter: {},          // microdata attributes formatter: by key formatters for each attribute
       readerMicro: void 0,        // microdata row reader
       pvKeyPos: [],               // position of each dimension item in cell key
       locale: '',                 // current locale to format values
@@ -205,6 +206,7 @@ export default {
         }
       }
       this.pvc.formatter = Pcvt.formatDefault({ isNullable: this.isNullable, locale: this.locale })
+      this.attrFormatter = {}
       this.pvc.cellClass = 'pv-cell-right' // numeric cell value style by default
       this.ctrl.formatOpts = void 0
 
@@ -398,13 +400,14 @@ export default {
       this.dimProp.push(fr) // run compare dimension at [rank + 2] position
 
       // setup formatter
+      this.attrFormatter = aFmt
       this.pvc.formatter = Pcvt.formatByKey({
         isNullable: this.isNullable,
         isByKey: true,
         isRawUse: true,
         isRawValue: false,
         locale: this.locale,
-        formatter: aFmt
+        formatter: this.attrFormatter
       })
       this.ctrl.formatOpts = this.pvc.formatter.options()
       this.pvc.dimItemKeys = Pcvt.dimItemKeys(ATTR_DIM_NAME)
@@ -763,6 +766,20 @@ export default {
       this.pvc.reader = this.readerMicro
       this.pvc.dimItemKeys = Pcvt.dimItemKeys(ATTR_DIM_NAME)
 
+      // setup formatter
+      this.pvc.formatter = Pcvt.formatByKey({
+        isNullable: this.isNullable,
+        isRawUse: true,
+        isRawValue: this.pvc.formatter.isRawValue,
+        locale: this.locale,
+        formatter: this.attrFormatter
+      })
+
+      this.ctrl.formatOpts = this.pvc.formatter.options()
+      this.pvc.dimItemKeys = Pcvt.dimItemKeys(ATTR_DIM_NAME)
+      this.pvc.cellClass = 'pv-cell-right' // numeric cell value style by default
+      this.pvc.processValue = Pcvt.asIsPval // no value conversion required, only formatting
+
       // set new view kind and  store pivot view
       this.ctrl.kind = Puih.ekind.MICRO
       this.storeView()
@@ -1098,12 +1115,12 @@ export default {
       // setup formatter
       this.pvc.formatter = Pcvt.formatByKey({
         isNullable: this.isNullable,
-        isByKey: true,
         isRawUse: true,
-        isRawValue: false,
+        isRawValue: this.pvc.formatter.isRawValue,
         locale: this.locale,
         formatter: cFmt
       })
+
       this.ctrl.formatOpts = this.pvc.formatter.options()
       this.pvc.dimItemKeys = Pcvt.dimItemKeys(CALC_DIM_NAME)
       this.pvc.cellClass = 'pv-cell-right' // numeric cell value style by default
@@ -1224,16 +1241,19 @@ export default {
     onShowMoreFormat () {
       if (!this.pvc.formatter) return
       this.pvc.formatter.doMore()
+      this.ctrl.isPvTickle = !this.ctrl.isPvTickle
     },
     // show less decimals (or less details) in table body
     onShowLessFormat () {
       if (!this.pvc.formatter) return
       this.pvc.formatter.doLess()
+      this.ctrl.isPvTickle = !this.ctrl.isPvTickle
     },
     // toogle to formatted value or to raw value in table body
     onToggleRawValue () {
       if (!this.pvc.formatter) return
       this.pvc.formatter.doRawValue()
+      this.ctrl.isPvTickle = !this.ctrl.isPvTickle
     },
     // copy tab separated values to clipboard: forward actions to pivot table component
     onCopyToClipboard () {
