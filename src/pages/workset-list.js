@@ -762,6 +762,7 @@ export default {
         return
       }
 
+      this.$emit('set-param-delete', this.digest, wsName, paramName) // parameter deleted from workset
       this.$q.notify({ type: 'info', message: this.$t('Deleted: ') + paramName })
       this.refreshWsTickle = !this.refreshWsTickle
     },
@@ -819,6 +820,7 @@ export default {
           this.$q.notify({ type: 'negative', message: this.$t('Unable to delete parameter from input scenario') + (msg ? ('. ' + msg) : '') })
           return
         }
+        this.$emit('set-param-delete', this.digest, wsName, pName) // parameter deleted from workset
       }
       this.loadWait = false
 

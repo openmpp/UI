@@ -155,6 +155,7 @@
     @entity-view-saved="onEntityViewSaved"
     @run-list-refresh="onRunListRefresh"
     @set-list-refresh="onWorksetListRefresh"
+    @set-param-delete="doneWorksetParamDelete"
     >
   </router-view>
 
