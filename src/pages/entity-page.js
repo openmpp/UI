@@ -767,13 +767,15 @@ export default {
       this.pvc.dimItemKeys = Pcvt.dimItemKeys(ATTR_DIM_NAME)
 
       // setup formatter
+      const fOpts = this.pvc.formatter.floatOptions() // shared options for float attributes
       this.pvc.formatter = Pcvt.formatByKey({
         isNullable: this.isNullable,
         isRawUse: true,
-        isRawValue: this.pvc.formatter.isRawValue,
+        isRawValue: this.ctrl.formatOpts.isRawValue,
         locale: this.locale,
         formatter: this.attrFormatter
       })
+      this.pvc.formatter.setDecimals(fOpts.nDecimal, fOpts.isAllDecimal) // set number of decimals for float attributes
 
       this.ctrl.formatOpts = this.pvc.formatter.options()
       this.pvc.dimItemKeys = Pcvt.dimItemKeys(ATTR_DIM_NAME)
@@ -1113,13 +1115,15 @@ export default {
       this.dimProp[this.rank + 1].filter = Puih.makeFilter(this.dimProp[this.rank + 1])
 
       // setup formatter
+      const fOpts = this.pvc.formatter.floatOptions() // shared options for float attributes
       this.pvc.formatter = Pcvt.formatByKey({
         isNullable: this.isNullable,
         isRawUse: true,
-        isRawValue: this.pvc.formatter.isRawValue,
+        isRawValue: this.ctrl.formatOpts.isRawValue,
         locale: this.locale,
         formatter: cFmt
       })
+      this.pvc.formatter.setDecimals(fOpts.nDecimal, fOpts.isAllDecimal) // set number of decimals for float attributes
 
       this.ctrl.formatOpts = this.pvc.formatter.options()
       this.pvc.dimItemKeys = Pcvt.dimItemKeys(CALC_DIM_NAME)

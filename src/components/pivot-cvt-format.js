@@ -448,6 +448,25 @@ export const formatByKey = (options) => {
         fo.isAllDecimal = false
       }
       updateAllMoreLess()
+    },
+
+    // get shared float options
+    floatOptions: () => { return Object.assign({}, floatOpts) },
+
+    // set number of decimals and all decimals flag (nDecimal and isAllDecimal) for all float formatters
+    setDecimals: (n, isAll) => {
+      if (n < 0)  n = 0
+      floatOpts.isAllDecimal = isAll || (n > floatOpts.maxDecimal)
+      floatOpts.nDecimal = !floatOpts.isAllDecimal ? n : floatOpts.maxDecimal
+
+      for (const fmtKey in opts.formatter) {
+        const fo = opts.formatter[fmtKey].options()
+        if (!fo || !fo?.isFloat) continue
+
+        fo.isAllDecimal = floatOpts.isAllDecimal || (floatOpts.nDecimal > fo.maxDecimal)
+        fo.nDecimal = !fo.isAllDecimal ? floatOpts.nDecimal : fo.maxDecimal
+      }
+      updateAllMoreLess()
     }
   }
 }
