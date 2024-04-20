@@ -463,7 +463,7 @@ export default {
         }
 
         // if parameter or table tab closed then save list of tab item in state store
-        if (kind === 'run-parameter' || kind === 'set-parameter' || kind === 'table') this.storeTabItems()
+        if (kind === 'run-parameter' || kind === 'set-parameter' || kind === 'table' || kind === 'entity') this.storeTabItems()
       }
 
       // cancel event to avoid bubbling up to the tab router link
@@ -475,7 +475,7 @@ export default {
     storeTabItems () {
       const tv = []
       for (const t of this.tabItems) {
-        if (t.kind === 'run-parameter' || t.kind === 'set-parameter' || t.kind === 'table') {
+        if (t.kind === 'run-parameter' || t.kind === 'set-parameter' || t.kind === 'table' || t.kind === 'entity') {
           tv.push({ kind: t.kind, routeParts: t.routeParts })
         }
       }
@@ -490,7 +490,6 @@ export default {
 
     // if tab not exist then add new tab
     doTabAdd (kind, routeParts, isRestore = false) {
-      // make tab path and title
       const ti = this.makeTabInfo(kind, routeParts)
       if ((ti.path || '') === '') {
         console.warn('tab kind or route part(s) invalid or empty:', kind, routeParts)
@@ -532,13 +531,12 @@ export default {
     makeTabInfo (tabKind, parts) {
       // empty tab info: invalid default value
       const emptyTabInfo = () => {
-        return { kind: (tabKind || ''), path: '', routeParts: { digest: '' }, title: '', pos: 0, updated: false }
+        return { kind: (tabKind || ''), path: '', routeParts: { digest: '' }, pos: 0, updated: false }
       }
 
       // tab kind must be defined and model digest same as current model
       if ((tabKind || '') === '' || !parts || (parts.digest || '') !== this.digest) return emptyTabInfo()
 
-      let rn = ''
       const udgst = encodeURIComponent(this.digest)
 
       switch (tabKind) {
@@ -547,7 +545,6 @@ export default {
             kind: tabKind,
             path: '/model/' + udgst + '/run-list',
             routeParts: parts,
-            title: this.$t('Model Runs'),
             pos: RUN_LST_TAB_POS,
             updated: false
           }
@@ -557,7 +554,6 @@ export default {
             kind: tabKind,
             path: '/model/' + udgst + '/set-list',
             routeParts: parts,
-            title: this.$t('Input Scenarios'),
             pos: WS_LST_TAB_POS,
             updated: false
           }
@@ -568,12 +564,10 @@ export default {
             console.warn('Invalid (empty) run digest or parameter name:', parts.runDigest, parts.parameterName)
             return emptyTabInfo()
           }
-          const pds = Mdf.descrOfDescrNote(Mdf.paramTextByName(this.theModel, parts.parameterName))
           return {
             kind: tabKind,
             path: Mdf.parameterRunPath(this.digest, parts.runDigest, parts.parameterName),
             routeParts: parts,
-            title: (pds !== '') ? pds : parts.parameterName,
             pos: FREE_TAB_POS,
             updated: false
           }
@@ -585,12 +579,10 @@ export default {
             console.warn('Invalid (empty) workset name or parameter name:', parts.worksetName, parts.parameterName)
             return emptyTabInfo()
           }
-          const pds = Mdf.descrOfDescrNote(Mdf.paramTextByName(this.theModel, parts.parameterName))
           return {
             kind: tabKind,
             path: Mdf.parameterWorksetPath(this.digest, parts.worksetName, parts.parameterName),
             routeParts: parts,
-            title: (pds !== '') ? pds : parts.parameterName,
             pos: FREE_TAB_POS,
             updated: false
           }
@@ -602,12 +594,10 @@ export default {
             console.warn('Invalid (empty) run digest or output table name:', parts.runDigest, parts.tableName)
             return emptyTabInfo()
           }
-          const tds = Mdf.tableTextByName(this.theModel, parts.tableName)?.TableDescr || ''
           return {
             kind: tabKind,
             path: Mdf.tablePath(this.digest, parts.runDigest, parts.tableName),
             routeParts: parts,
-            title: (tds !== '') ? tds : parts.tableName,
             pos: FREE_TAB_POS,
             updated: false
           }
@@ -619,12 +609,10 @@ export default {
             console.warn('Invalid (empty) run digest or entity name:', parts.runDigest, parts.entityName)
             return emptyTabInfo()
           }
-          const eds = Mdf.descrOfDescrNote(Mdf.entityTextByName(this.theModel, parts.entityName))
           return {
             kind: tabKind,
             path: Mdf.microdataPath(this.digest, parts.runDigest, parts.entityName),
             routeParts: parts,
-            title: (eds !== '') ? eds : parts.entityName,
             pos: FREE_TAB_POS,
             updated: false
           }
@@ -635,7 +623,6 @@ export default {
             kind: tabKind,
             path: '/model/' + udgst + '/new-run',
             routeParts: parts,
-            title: this.$t('Run the Model'),
             pos: NEW_RUN_TAB_POS,
             updated: false
           }
@@ -645,18 +632,10 @@ export default {
             console.warn('Invalid (empty) run stamp:', parts.runStamp)
             return emptyTabInfo()
           }
-          rn = parts.runStamp
-          for (const rt of this.runTextList) {
-            if (rt.ModelDigest === parts.digest && rt.RunStamp === parts.runStamp) {
-              rn = rt.Name
-              break
-            }
-          }
           return {
             kind: tabKind,
             path: '/model/' + udgst + '/run-log/' + encodeURIComponent(parts.runStamp),
             routeParts: parts,
-            title: rn,
             pos: FREE_TAB_POS,
             updated: false
           }
@@ -667,7 +646,6 @@ export default {
             kind: tabKind,
             path: '/model/' + udgst + '/updown-list',
             routeParts: parts,
-            title: this.$t('Downloads and Uploads'),
             pos: UP_DOWN_TAB_POS,
             updated: false
           }
@@ -675,6 +653,79 @@ export default {
       // default
       console.warn('tab kind invalid:', tabKind)
       return emptyTabInfo()
+    },
+
+    // make tab title: pre-defined name or description of parameter, table or microdata entity
+    tabTitle (tabKind, parts) {
+      switch (tabKind) {
+        case 'run-list':
+          return this.$t('Model Runs')
+
+        case 'set-list':
+          return this.$t('Input Scenarios')
+
+        case 'run-parameter': {
+          if ((parts.runDigest || '') === '' || (parts.parameterName || '') === '') {
+            console.warn('Invalid (empty) run digest or parameter name:', parts.runDigest, parts.parameterName)
+            return ''
+          }
+          const pds = Mdf.descrOfDescrNote(Mdf.paramTextByName(this.theModel, parts.parameterName))
+          return (pds !== '') ? pds : parts.parameterName
+        }
+
+        case 'set-parameter': {
+          if ((parts.worksetName || '') === '' || (parts.parameterName || '') === '') {
+            console.warn('Invalid (empty) workset name or parameter name:', parts.worksetName, parts.parameterName)
+            return ''
+          }
+          const pds = Mdf.descrOfDescrNote(Mdf.paramTextByName(this.theModel, parts.parameterName))
+          return (pds !== '') ? pds : parts.parameterName
+        }
+
+        // path: '/model/' + this.digest + '/run/' + parts.runDigest + '/table/' + parts.tableName,
+        case 'table': {
+          if ((parts.runDigest || '') === '' || (parts.tableName || '') === '') {
+            console.warn('Invalid (empty) run digest or output table name:', parts.runDigest, parts.tableName)
+            return ''
+          }
+          const tds = Mdf.tableTextByName(this.theModel, parts.tableName)?.TableDescr || ''
+          return (tds !== '') ? tds : parts.tableName
+        }
+
+        // path: '/model/' + this.digest + '/run/' + parts.runDigest + '/entity/' + parts.entityName,
+        case 'entity': {
+          if ((parts.runDigest || '') === '' || (parts.entityName || '') === '') {
+            console.warn('Invalid (empty) run digest or entity name:', parts.runDigest, parts.entityName)
+            return ''
+          }
+          const eds = Mdf.descrOfDescrNote(Mdf.entityTextByName(this.theModel, parts.entityName))
+          return (eds !== '') ? eds : parts.entityName
+        }
+
+        case 'new-run':
+          return this.$t('Run the Model')
+
+        case 'run-log': {
+          if ((parts.runStamp || '') === '') {
+            console.warn('Invalid (empty) run stamp:', parts.runStamp)
+            return ''
+          }
+          let rn = parts.runStamp
+          for (const rt of this.runTextList) {
+            if (rt.ModelDigest === parts.digest && rt.RunStamp === parts.runStamp) {
+              rn = rt.Name
+              break
+            }
+          }
+          return rn
+        }
+
+        case 'updown-list':
+          return this.$t('Downloads and Uploads')
+      }
+      // default
+      console.warn('tab kind invalid:', tabKind)
+      return ''
     },
 
     // before route to other page question: "Discard all changes?", user answer: "yes"

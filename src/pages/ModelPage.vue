@@ -75,17 +75,17 @@
             <q-icon v-if="t.kind === 'entity'" name="mdi-microscope" size="sm" class="self-center q-pr-xs"/>
             <q-icon v-if="t.kind === 'run-log'" name="mdi-text-long" size="sm" class="self-center q-pr-xs"/>
             <q-icon v-if="t.kind === 'updown-list'" name="mdi-download-circle-outline" size="sm" class="self-center q-pr-xs"/>
-            <span class="col-shrink om-tab-title" :title="$t(t.title)">{{ $t(t.title) }}</span>
+            <span class="col-shrink om-tab-title" :title="tabTitle(t.kind, t.routeParts)">{{ tabTitle(t.kind, t.routeParts) }}</span>
             <q-badge v-if="t.kind === 'run-list'" transparent outline class="q-ml-xs">{{ runTextCount }}</q-badge>
             <q-badge v-if="t.kind === 'set-list'" transparent outline class="q-ml-xs">{{ worksetTextCount }}</q-badge>
+            <q-icon
+              v-if="!t.updated && !!tabItems && tabItems.length > 1"
+              @click="onTabCloseClick(t.path, $event)"
+              name="mdi-close"
+              class="q-ml-md"
+              :title="$t('close')"
+              />
           </span>
-          <q-icon
-            v-if="!t.updated && !!tabItems && tabItems.length > 1"
-            @click="onTabCloseClick(t.path, $event)"
-            name="mdi-close"
-            class="q-ml-md"
-            :title="$t('close')"
-            />
         </q-route-tab>
       </span>
 
@@ -122,7 +122,7 @@
               <q-icon v-if="t.kind === 'updown-list'" name="mdi-download-circle-outline" />
             </q-item-section>
             <q-item-section>
-              <q-item-label lines="1" :title="$t(t.title)">{{ $t(t.title) }}</q-item-label>
+              <q-item-label lines="1" :title="tabTitle(t.kind, t.routeParts)">{{ tabTitle(t.kind, t.routeParts) }}</q-item-label>
             </q-item-section>
           </q-item>
         </q-list>
