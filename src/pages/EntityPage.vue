@@ -27,11 +27,12 @@
       :title="$t('Menu')"
       :aria-label="$t('Menu')"
       >
-      <q-menu auto-close>
+      <q-menu>
         <q-list dense>
 
           <q-item
             @click="doShowEntityNote"
+            v-close-popup
             clickable
             >
             <q-item-section avatar>
@@ -42,8 +43,144 @@
 
           <q-separator />
 
+          <!-- calculated measures menu -->
+          <q-item
+            clickable
+            >
+            <q-item-section avatar>
+              <q-icon color="primary" name="mdi-function-variant" />
+            </q-item-section>
+            <q-item-section>{{ $t('Aggregate microdata') }}</q-item-section>
+            <q-item-section side>
+              <q-icon name="mdi-menu-right" />
+            </q-item-section>
+            <q-menu anchor="top end" self="top start">
+              <q-list dense>
+                <q-item
+                  @click="onCalcPage()"
+                  :disable="!groupDimCalc?.length || (!calcEnums.length && (!aggrCalc || !attrCalc.length))"
+                  v-close-popup
+                  clickable
+                  >
+                  <q-item-section>{{ $t('Apply') }}</q-item-section>
+                </q-item>
+                <q-item
+                  @click="onCalcEdit()"
+                  :disable="!groupDimCalc?.length || (!calcEnums.length && (!aggrCalc || !attrCalc.length))"
+                  v-close-popup
+                  clickable
+                  >
+                  <q-item-section>{{ $t('Edit') + '\u2026' }}</q-item-section>
+                </q-item>
+
+                <q-item v-if="isRunCompare" clickable>
+                  <q-item-section>{{ $t('Comparison') }}</q-item-section>
+                  <q-item-section side><span class="text-no-wrap mono">{{ cmpCalc }} &#x25B6;</span></q-item-section>
+                  <q-menu anchor="top end" self="top start">
+                    <q-list dense>
+                      <q-item
+                        v-for="c in compareCalcList"
+                        :key="c.code"
+                        @click="onCompareToogle(c.code)"
+                        clickable
+                        >
+                        <template v-if="cmpCalc === c.code">
+                          <q-item-section class="text-primary"><span><span class="mono check-calc">&check;</span>{{ $t(c.label) }}</span></q-item-section>
+                          <q-item-section class="mono text-primary" side>{{ c.code }}</q-item-section>
+                        </template>
+                        <template v-else>
+                          <q-item-section><span><span class="mono check-calc">&nbsp;</span>{{ $t(c.label) }}</span></q-item-section>
+                          <q-item-section class="mono" side>{{ c.code }}</q-item-section>
+                        </template>
+                      </q-item>
+                    </q-list>
+                  </q-menu>
+                </q-item>
+
+                <q-item clickable>
+                  <q-item-section>{{ $t('Aggregation') }}</q-item-section>
+                  <q-item-section side><span class="text-no-wrap mono">{{ aggrCalc }} &#x25B6;</span></q-item-section>
+                  <q-menu anchor="top end" self="top start">
+                    <q-list dense>
+                      <q-item
+                        v-for="c in aggrCalcList"
+                        :key="c.code"
+                        @click="onAggregateSet(c.code)"
+                        clickable
+                        >
+                        <template v-if="aggrCalc === c.code">
+                          <q-item-section class="text-primary"><span><span class="mono check-calc">&check;</span>{{ $t(c.label) }}</span></q-item-section>
+                          <q-item-section class="mono text-primary" side>{{ c.code }}</q-item-section>
+                        </template>
+                        <template v-else>
+                          <q-item-section><span><span class="mono check-calc">&nbsp;</span>{{ $t(c.label) }}</span></q-item-section>
+                          <q-item-section class="mono" side>{{ c.code }}</q-item-section>
+                        </template>
+                      </q-item>
+                    </q-list>
+                  </q-menu>
+                </q-item>
+
+                <q-item clickable>
+                  <q-item-section>{{ $t('Dimensions') }}</q-item-section>
+                  <q-item-section side><span class="text-no-wrap mono">{{ ((groupDimCalc?.length) || 0).toString() + '/' + (rank - 1 > 0 ? rank - 1 : 0).toString() }} &#x25B6;</span></q-item-section>
+                  <q-menu anchor="top end" self="top start">
+                    <q-list dense>
+                      <template v-for="(d, n) in dimProp">
+                        <template v-if="n > 0 && n < rank">
+                          <q-item :key="'by-dim-' + d.name"
+                            @click="onGroupByToogle(d.name)"
+                            clickable
+                            >
+                            <template v-if="isGroupBy(d.name)">
+                              <q-item-section v-if="!pvc.isShowNames" class="text-primary"><span><span class="mono check-calc">&check;</span>{{ d.label }}</span></q-item-section>
+                              <q-item-section v-if="pvc.isShowNames" class="text-primary mono"><span><span class="mono check-calc">&check;</span>{{ d.name }}</span></q-item-section>
+                            </template>
+                            <template v-else>
+                              <q-item-section v-if="!pvc.isShowNames"><span><span class="mono check-calc">&nbsp;</span>{{ d.label }}</span></q-item-section>
+                              <q-item-section v-if="pvc.isShowNames" class="mono"><span><span class="mono check-calc">&nbsp;</span>{{ d.name }}</span></q-item-section>
+                            </template>
+                          </q-item>
+                        </template>
+                      </template>
+                    </q-list>
+                  </q-menu>
+                </q-item>
+
+                <q-item clickable>
+                  <q-item-section>{{ $t('Measures') }}</q-item-section>
+                  <q-item-section side><span class="text-no-wrap mono">{{ (attrCalc?.length || 0).toString() + '/' + attrCount.toString() }} &#x25B6;</span></q-item-section>
+                  <q-menu anchor="top end" self="top start">
+                    <q-list dense>
+                      <template v-for="a in attrEnums">
+                        <template v-if="a?.isFloat || a?.isInt">
+                          <q-item :key="'c-attr-' + a.name"
+                            @click="onCalcAttrToogle(a.name)"
+                            clickable
+                            >
+                            <template v-if="isAttrCalc(a.name)">
+                              <q-item-section v-if="!pvc.isShowNames" class="text-primary"><span><span class="mono check-calc">&check;</span>{{ a.label }}</span></q-item-section>
+                              <q-item-section v-if="pvc.isShowNames" class="text-primary mono"><span><span class="mono check-calc">&check;</span>{{ a.name }}</span></q-item-section>
+                            </template>
+                            <template v-else>
+                              <q-item-section v-if="!pvc.isShowNames"><span><span class="mono check-calc">&nbsp;</span>{{ a.label }}</span></q-item-section>
+                              <q-item-section v-if="pvc.isShowNames" class="mono"><span><span class="mono check-calc">&nbsp;</span>{{ a.name }}</span></q-item-section>
+                            </template>
+                          </q-item>
+                        </template>
+                      </template>
+                    </q-list>
+                  </q-menu>
+                </q-item>
+
+              </q-list>
+            </q-menu>
+          </q-item>
+          <!-- end of calculated measures menu -->
+
           <q-item
             @click="onCopyToClipboard"
+            v-close-popup
             clickable
             >
             <q-item-section avatar>
@@ -53,6 +190,7 @@
           </q-item>
           <q-item
             @click="onDownload"
+            v-close-popup
             clickable
             >
             <q-item-section avatar>
@@ -66,6 +204,7 @@
           <q-item
             @click="onToggleRowColControls"
             :disable="!ctrl.isRowColModeToggle"
+            v-close-popup
             clickable
             >
             <q-item-section avatar>
@@ -78,6 +217,7 @@
             <q-item
               @click="onSetRowColMode(2)"
               :disable="pvc.rowColMode === 2"
+              v-close-popup
               clickable
               >
               <q-item-section avatar>
@@ -88,6 +228,7 @@
             <q-item
               @click="onSetRowColMode(1)"
               :disable="pvc.rowColMode === 1"
+              v-close-popup
               clickable
               >
               <q-item-section avatar>
@@ -98,6 +239,7 @@
             <q-item
               @click="onSetRowColMode(3)"
               :disable="pvc.rowColMode === 3"
+              v-close-popup
               clickable
               >
               <q-item-section avatar>
@@ -108,6 +250,7 @@
             <q-item
               @click="onSetRowColMode(0)"
               :disable="pvc.rowColMode === 0"
+              v-close-popup
               clickable
               >
               <q-item-section avatar>
@@ -121,6 +264,7 @@
             <q-item
               @click="onShowMoreFormat"
               :disable="!ctrl.formatOpts.isDoMore"
+              v-close-popup
               clickable
               >
               <q-item-section avatar>
@@ -131,6 +275,7 @@
             <q-item
               @click="onShowLessFormat"
               :disable="!ctrl.formatOpts.isDoLess"
+              v-close-popup
               clickable
               >
               <q-item-section avatar>
@@ -142,6 +287,7 @@
           <q-item
             v-if="ctrl.formatOpts && ctrl.formatOpts.isRawUse"
             @click="onToggleRawValue"
+            v-close-popup
             clickable
             >
             <q-item-section avatar>
@@ -152,6 +298,7 @@
           <q-item
             @click="onShowItemNames"
             :disable="isScalar"
+            v-close-popup
             clickable
             >
             <q-item-section avatar>
@@ -164,6 +311,7 @@
 
           <q-item
             @click="onSaveDefaultView"
+            v-close-popup
             clickable
             >
             <q-item-section avatar>
@@ -173,6 +321,7 @@
           </q-item>
           <q-item
             @click="onReloadDefaultView"
+            v-close-popup
             clickable
             >
             <q-item-section avatar>
