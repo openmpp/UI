@@ -204,23 +204,7 @@ export default {
         this.runDnsCurrent = ''
         this.dispatchRunDigestSelected({ digest: this.digest, runDigest: '' })
         return
-      }
-      // clean tabs from deleted runs
-      this.doTabFilter(
-        (t) => {
-          if (t?.routeParts?.digest !== this.digest) return true
-          const rd = t?.routeParts?.runDigest || ''
-          if (rd) {
-            return this.runTextList.findIndex(r => r?.RunDigest === rd) < 0
-          }
-          const rs = t?.routeParts?.runStamp || ''
-          if (t.kind === 'run-log' && rs !== '') {
-            return this.runTextList.findIndex(r => r?.RunStamp === rs || r?.RunDigest === rs || r?.Name === rs) < 0
-          }
-          return false
-        }
-      )
-      // if run not selected then use first run: first successful or first completed or first
+      } // else: if run not selected then use first run: first successful or first completed or first
       if (!this.runDigestSelected) {
         this.dispatchRunDigestSelected({ digest: this.digest, runDigest: '' })
         this.runDnsCurrent = Mdf.lastRunDigest(this.runTextList)
@@ -260,19 +244,7 @@ export default {
         this.wsNameCurrent = ''
         this.dispatchWorksetNameSelected({ digest: this.digest, worksetName: '' })
         return
-      }
-      // clean tabs from deleted worksets
-      this.doTabFilter(
-        (t) => {
-          if (t?.routeParts?.digest !== this.digest) return true
-          const nm = t?.routeParts?.worksetName || ''
-          if (nm) {
-            return this.worksetTextList.findIndex(w => w?.Name === nm) < 0
-          }
-          return false
-        }
-      )
-      // if workset already selected then make sure it still exist, if not exist then use first workset
+      } // else: if workset already selected then make sure it still exist, if not exist then use first workset
       if (!!this.worksetNameSelected && this.isExistInWorksetTextList({ ModelDigest: this.digest, Name: this.worksetNameSelected })) {
         this.wsNameCurrent = this.worksetNameSelected
       } else {
@@ -308,8 +280,38 @@ export default {
         this.$q.notify({ type: 'info', message: this.$t('User views uploaded: ') + nViews.toString() })
       }
     },
-    // parameter deleted from workset
-    doneWorksetParamDelete (dgst, wsName, name) {
+    // deleting run or multiple runs
+    onRunListDelete () {
+      this.doTabFilter(
+        (t) => {
+          if (t?.routeParts?.digest !== this.digest) return true
+          const rd = t?.routeParts?.runDigest || ''
+          if (rd) {
+            return this.runTextList.findIndex(r => r?.RunDigest === rd) < 0
+          }
+          const rs = t?.routeParts?.runStamp || ''
+          if (t.kind === 'run-log' && rs !== '') {
+            return this.runTextList.findIndex(r => r?.RunStamp === rs || r?.RunDigest === rs || r?.Name === rs) < 0
+          }
+          return false
+        }
+      )
+    },
+    // deleting workset or multiple worksets
+    onWorksetListDelete () {
+      this.doTabFilter(
+        (t) => {
+          if (t?.routeParts?.digest !== this.digest) return true
+          const nm = t?.routeParts?.worksetName || ''
+          if (nm) {
+            return this.worksetTextList.findIndex(w => w?.Name === nm) < 0
+          }
+          return false
+        }
+      )
+    },
+    // deleting parameter from workset
+    onWorksetParamDelete (dgst, wsName, name) {
       if (!dgst || !wsName || !name) return
 
       // clean tabs from deleted workset parameter
@@ -532,12 +534,10 @@ export default {
       }
 
       if (isActive) {
-        if (activePos >= this.tabItems.length) activePos = this.tabItems.length - 1
-
-        this.activeTabKey = (activePos >= 0) ? this.tabItems[activePos].path : ''
-        if (this.activeTabKey !== '') {
-          this.$router.push(this.activeTabKey)
-        }
+        const len = Mdf.lengthOf(this.tabItems)
+        const n = (activePos < len) ? activePos : activePos - 1
+        this.activeTabKey = (n >= 0) ? this.tabItems[n].path : ''
+        if (this.activeTabKey !== '' && this.activeTabKey !== this.$route.path) this.$router.push(this.activeTabKey)
       }
 
       // if parameter or table tab closed then save list of tab item in state store

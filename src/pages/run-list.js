@@ -728,7 +728,12 @@ export default {
 
       // refresh run list from the server
       // this.$q.notify({ type: 'info', message: this.$t('Start deleting: ') + dgst + ' ' + (runName || '') })
-      setTimeout(() => this.$emit('run-list-refresh'), 521)
+      setTimeout(
+        () => {
+          this.$emit('run-list-refresh')
+          setTimeout(() => this.$emit('run-list-delete'), 521)
+        },
+        521)
     },
 
     // start to delete multiple model runs
@@ -761,7 +766,12 @@ export default {
 
       // refresh run list from the server
       // this.$q.notify({ type: 'info', message: this.$t('Start deleting: ') + dgst + ' ' + (runName || '') })
-      setTimeout(() => this.$emit('run-list-refresh'), 2011)
+      setTimeout(
+        () => {
+          this.$emit('run-list-refresh')
+          setTimeout(() => this.$emit('run-list-delete'), 521)
+        },
+        2011)
     },
 
     // start run download

@@ -346,6 +346,7 @@ export default {
       // if success and if the same model then refresh workset list from the server
       if (isSuccess && dgst && name && dgst === this.digest) {
         this.$emit('set-list-refresh')
+        setTimeout(() => this.$emit('set-list-delete', dgst, name), 521)
       }
     },
     // delete multiple selected worksets
@@ -424,6 +425,7 @@ export default {
       // refresh workset list from the server
       this.$q.notify({ type: 'info', message: this.$t('Deleted: ') + ' [ ' + nLen.toString() + ' ]' })
       this.$emit('set-list-refresh')
+      setTimeout(() => this.$emit('set-list-delete'), 1123)
     },
 
     // click on  workset download: start workset download and show download list page
