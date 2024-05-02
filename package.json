@@ -26,7 +26,7 @@
     "highlight.js": "^11.9.0",
     "marked": "^4.2.12",
     "quasar": "^1.0.0",
-    "sanitize-html": "~2.7.0",
+    "sanitize-html": "~2.12.1",
     "vue-i18n": "^8.0.0",
     "vuedraggable": "^2.24.3"
   },
