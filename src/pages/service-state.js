@@ -42,7 +42,10 @@ export default {
       stopModelDigest: '',
       showDeleteHistoryTickle: false,
       deleteHistoryTitle: '',
-      deleteSubmitStamp: ''
+      deleteSubmitStamp: '',
+      showDeleteAllHistoryTickle: false,
+      deleteAllHistoryKind: '',
+      deleteAllHistoryTitle: ''
     }
   },
 
@@ -361,6 +364,37 @@ export default {
 
       // notify user on success, even run may not exist
       this.$q.notify({ type: 'info', message: this.$t('Moving model run: ') + title })
+    },
+
+    // delete all jobs history: ask user confirmation
+    onDeleteAllHistoryConfirm (isSuccess) {
+      this.deleteAllHistoryTitle = this.$t('Delete all history') + ' [' + (isSuccess ? this.doneHistory.length.toLocaleString() : this.otherHistory.length.toLocaleString()) + '] ?'
+      this.deleteAllHistoryKind = isSuccess ? 'success' : 'not-success'
+      this.showDeleteAllHistoryTickle = !this.showDeleteAllHistoryTickle
+    },
+
+    // user answer is Yes to delete all job history
+    async onYesDeleteAllJobHistory (itemName, itemId, kind) {
+      if (!kind || (kind !== 'success' && kind !== 'not-success')) {
+        console.warn('Unable to delete all jobs history, invalid kind:', kind)
+        this.$q.notify({ type: 'negative', message: this.$t('Unable to delete all jobs history (invalid kind)') })
+        return
+      }
+      const isSuccess = kind === 'success'
+      const nLen = isSuccess ? this.doneHistory.length : this.otherHistory.length
+
+      const u = this.omsUrl +
+        '/api/service/job/delete/history-all/' + (isSuccess ? 'true' : 'false')
+      try {
+        await this.$axios.delete(u) // ignore response on success
+      } catch (e) {
+        console.warn('Unable to delete all jobs history', e)
+        this.$q.notify({ type: 'negative', message: this.$t('Unable to delete all jobs history') })
+        return // exit on error
+      }
+
+      // notify user on success
+      this.$q.notify({ type: 'info', message: this.$t('Deleting all jobs history: ') + nLen.toLocaleString() })
     },
 
     // delete job history: ask user confirmation

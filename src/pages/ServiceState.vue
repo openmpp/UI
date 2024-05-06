@@ -265,10 +265,30 @@
     v-model="isOtherHistoryShow"
     switch-toggle-side
     expand-separator
-    :label="$t('Failed Model Runs: ') + (otherHistory.length || $t('None'))"
     header-class="bg-primary text-white"
     class="q-my-sm"
     >
+    <template v-slot:header>
+      <q-item-section>
+        <div class="row no-wrap items-center full-width">
+          <div class="col-auto">
+            <q-btn
+              :disable="!otherHistory.length"
+              @click.stop="onDeleteAllHistoryConfirm(false)"
+              :round="!otherHistory.length"
+              :outline="!otherHistory.length"
+              :rounded="!!otherHistory.length"
+              no-caps
+              :icon="!!otherHistory.length ? 'mdi-delete' : 'mdi-delete-outline'"
+              :label="!!otherHistory.length ? '[ ' + otherHistory.length.toLocaleString() + ' ]' : ''"
+              :title="$t('Delete all') + (!!otherHistory.length ? ' [ ' + otherHistory.length.toLocaleString() + ' ]' : '\u2026')"
+              class="col-auto bg-white text-primary"
+              />
+          </div>
+          <span class="col-grow q-pl-sm">{{ $t('Failed Model Runs: ') + (otherHistory.length || $t('None')) }}</span>
+        </div>
+      </q-item-section>
+    </template>
     <q-list bordered>
 
       <q-expansion-item
@@ -339,10 +359,30 @@
     v-model="isDoneHistoryShow"
     switch-toggle-side
     expand-separator
-    :label="$t('Completed Model Runs: ') + (doneHistory.length || $t('None'))"
     header-class="bg-primary text-white"
     class="q-my-sm"
     >
+    <template v-slot:header>
+      <q-item-section>
+        <div class="row no-wrap items-center full-width">
+          <div class="col-auto">
+            <q-btn
+              :disable="!doneHistory.length"
+              @click.stop="onDeleteAllHistoryConfirm(true)"
+              :round="!doneHistory.length"
+              :outline="!doneHistory.length"
+              :rounded="!!doneHistory.length"
+              no-caps
+              :icon="!!doneHistory.length ? 'mdi-delete' : 'mdi-delete-outline'"
+              :label="!!doneHistory.length ? '[ ' + doneHistory.length.toLocaleString() + ' ]' : ''"
+              :title="$t('Delete all') + (!!doneHistory.length ? ' [ ' + doneHistory.length.toLocaleString() + ' ]' : '\u2026')"
+              class="col-auto bg-white text-primary"
+              />
+          </div>
+          <span class="col-grow q-pl-sm">{{ $t('Completed Model Runs: ') + (doneHistory.length || $t('None')) }}</span>
+        </div>
+      </q-item-section>
+    </template>
     <q-list bordered>
 
       <q-expansion-item
@@ -416,6 +456,15 @@
     :item-name="deleteHistoryTitle"
     :item-id="deleteSubmitStamp"
     :dialog-title="$t('Delete model run history?')"
+    >
+  </delete-confirm-dialog>
+  <delete-confirm-dialog
+    @delete-yes="onYesDeleteAllJobHistory"
+    :show-tickle="showDeleteAllHistoryTickle"
+    :item-name="deleteAllHistoryTitle"
+    :kind="deleteAllHistoryKind"
+    :dialog-title="$t('Delete all history')"
+    :body-text="$t('Only model run history records deleted. Actual model run results not affected.')"
     >
   </delete-confirm-dialog>
 
