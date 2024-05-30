@@ -43,6 +43,16 @@
 
           <q-separator />
 
+          <q-item
+            @click="doMicroPage"
+            v-close-popup
+            clickable
+            >
+            <q-item-section avatar>
+              <q-icon color="primary" name="mdi-microscope" />
+            </q-item-section>
+            <q-item-section>{{ $t('Microdata view') }}</q-item-section>
+          </q-item>
           <!-- calculated measures menu -->
           <q-item
             clickable
@@ -177,6 +187,18 @@
             </q-menu>
           </q-item>
           <!-- end of calculated measures menu -->
+          <q-item
+            @click="onValueFilter"
+            v-close-popup
+            clickable
+            >
+            <q-item-section avatar>
+              <q-icon color="primary" :name="!!valueFilter.length ? 'mdi-filter-outline' : 'mdi-filter'" />
+            </q-item-section>
+            <q-item-section>{{ $t('Filter by values') + (!!valueFilter.length ? ' [ ' + valueFilter.length.toLocaleString() + ' ]' : '\u2026') }}</q-item-section>
+          </q-item>
+
+          <q-separator />
 
           <q-item
             @click="onCopyToClipboard"
