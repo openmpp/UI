@@ -73,12 +73,13 @@ export const equalFilterState = (fs, dims, skipDims) => {
 // return page layout to read parameter data
 // filter by other dimension(s) selected values
 // do not filter by skipDims dimensions, skipDims can be single name of [array of names]
-export const makeSelectLayout = (name, otherFields, skipDims) => {
+export const makeSelectLayout = (name, otherFields, skipDims, valueFilter) => {
   const layout = {
     Name: name,
     Offset: 0,
     Size: 0,
-    FilterById: []
+    FilterById: [],
+    Filter: []
   }
 
   // make filters for other dimensions to include selected value
@@ -98,6 +99,25 @@ export const makeSelectLayout = (name, otherFields, skipDims) => {
       flt.EnumIds.push(e.value)
     }
     layout.FilterById.push(flt)
+  }
+
+  // add filters by value
+  if (!valueFilter || !Array.isArray(valueFilter)) return layout // exit: no filters by value
+
+  for (const vf of valueFilter) {
+    if (!vf || (vf?.name || '') === '' || (vf?.op || '') === '' || !Array.isArray(vf?.value)) continue
+    if (vf.value.length <= 0) continue
+
+    const flt = {
+      Name: vf.name,
+      Op: vf.op,
+      Values: []
+    }
+    for (const v of vf.value) {
+      const s = (typeof v !== typeof 'string') ? v.toString() : v
+      if ((s || '') !== '') flt.Values.push(v)
+    }
+    layout.Filter.push(flt)
   }
   return layout
 }
@@ -175,4 +195,38 @@ export const makeFilter = (f) => (val, update, abort) => {
       }
     }
   )
+}
+
+/* json body response to read page POST must be:
+{
+  Page: [
+    ....
+  ],
+  Layout: {
+    Offset: 0,
+    Size: 1,
+    IsLastPage: true,
+    IsFullPage: false
+  }
+}
+*/
+// check if response has Page and Layout
+export const isPageLayoutRsp = (rsp) => {
+  if (!rsp) return false
+  if (!rsp.hasOwnProperty('Page') || !Array.isArray(rsp.Page)) return false
+  if (!rsp.hasOwnProperty('Layout')) return false
+  if (!rsp.Layout.hasOwnProperty('Offset') || typeof rsp.Layout.Offset !== typeof 1) return false
+  if (!rsp.Layout.hasOwnProperty('Size') || typeof rsp.Layout.Size !== typeof 1) return false
+  if (!rsp.Layout.hasOwnProperty('IsLastPage') || typeof rsp.Layout.IsLastPage !== typeof true) return false
+  if (!rsp.Layout.hasOwnProperty('IsFullPage') || typeof rsp.Layout.IsFullPage !== typeof true) return false
+
+  return true
+}
+
+// get error message if page reader falied and json resoponse is incorrect
+export const errorFromPageLayoutRsp = (rsp) => {
+  if (!rsp || typeof rsp !== typeof 'string') return ''
+
+  const p = '{"Page":['
+  return (rsp.startsWith(p)) ? rsp.substring(p.length, p.length + 255) : ''
 }

@@ -6,6 +6,7 @@ import RefreshRun from 'components/RefreshRun.vue'
 import RunInfoDialog from 'components/RunInfoDialog.vue'
 import EntityInfoDialog from 'components/EntityInfoDialog.vue'
 import EntityCalcDialog from 'components/EntityCalcDialog.vue'
+import ValueFilterDialog from 'components/ValueFilterDialog.vue'
 import draggable from 'vuedraggable'
 import * as Pcvt from 'components/pivot-cvt'
 import * as Puih from './pivot-ui-helper'
@@ -23,7 +24,7 @@ const LAST_PAGE_OFFSET = 2 * 1024 * 1024 * 1024 // large page offset to get the 
 
 export default {
   name: 'EntityPage',
-  components: { draggable, PvTable, RunBar, RefreshRun, RunInfoDialog, EntityInfoDialog, EntityCalcDialog },
+  components: { draggable, PvTable, RunBar, RefreshRun, RunInfoDialog, EntityInfoDialog, EntityCalcDialog, ValueFilterDialog },
 
   props: {
     digest: { type: String, default: '' },
@@ -52,6 +53,8 @@ export default {
       attrCalc: [],           // selected names of calculated measure attributes
       aggrCalc: '',           // name of aggregation function, ex.: AVG
       cmpCalc: '',            // name of comparison function, ex.: DIFF
+      valueFilter: [],        // measure value filters
+      valueFilterMeasure: [], // list of value filter measures: name and label of attribute enums or calculted enums
       colFields: [],
       rowFields: [],
       otherFields: [],
@@ -88,6 +91,7 @@ export default {
       refreshRunTickle: false,
       runInfoTickle: false,
       entityInfoTickle: false,
+      valueFilterTickle: false,
       calcEditTickle: false,
       calcUpdateTickle: false,
       aggrCalcList: [{  // aggeragation calculations: aggregate measure  attributes over dimensions (aggregate numric attributes over enum-based or boolean attributes)
@@ -513,6 +517,7 @@ export default {
       this.cmpCalc = (typeof mv?.cmpCalc === typeof 'string') ? mv?.cmpCalc : ''
       this.groupBy = Array.isArray(mv?.groupBy) ? mv.groupBy : []
       this.calcEnums = Array.isArray(mv?.calcEnums) ? mv.calcEnums : []
+      this.valueFilter = Array.isArray(mv?.valueFilter) ? mv.valueFilter : []
       if (this.ctrl.kind === Puih.ekind.CMP && !this.isRunCompare) this.ctrl.kind = Puih.ekind.CALC // no runs to compare
 
       this.groupDimCalc = Array.from(this.groupBy)
@@ -663,6 +668,7 @@ export default {
       vs.cmpCalc = this.cmpCalc || ''
       vs.groupBy = Array.isArray(this.groupBy) ? this.groupBy : []
       vs.calcEnums = Array.isArray(this.calcEnums) ? this.calcEnums : []
+      vs.valueFilter = Array.isArray(this.valueFilter) ? this.valueFilter : []
 
       this.dispatchMicrodataView({
         key: this.routeKey,
@@ -785,6 +791,66 @@ export default {
       // set new view kind and  store pivot view
       this.ctrl.kind = Puih.ekind.MICRO
       this.storeView()
+      this.doRefreshDataPage()
+    },
+
+    // open value filter dialog
+    onValueFilter () {
+      // set filter measures from attribute enums or calculated enums
+      this.valueFilterMeasure = []
+
+      if (this.ctrl.kind === Puih.ekind.MICRO) {
+        for (const e of this.attrEnums) {
+          this.valueFilterMeasure.push({
+            name: e.name,
+            label: e.label
+          })
+        }
+      } else {
+        for (const e of this.calcEnums) {
+          this.valueFilterMeasure.push({
+            name: e.name,
+            label: e.label
+          })
+        }
+      }
+
+      this.valueFilterTickle = !this.valueFilterTickle
+    },
+    // update value filters
+    onValueFilterApply (fltLst) {
+      if (!Array.isArray(fltLst)) {
+        this.valueFilter = []
+        return
+      }
+
+      // validate filters
+      const fLst = []
+      for (const f of fltLst) {
+        // measure must be an attribute name or calculation name
+        if ((f?.name || '') === '' || typeof f?.name !== typeof 'string' ||
+          (this.attrEnums.findIndex(e => e.name === f?.name) < 0 && this.calcEnums.findIndex(e => e.name === f?.name) < 0)) {
+          this.$q.notify({ type: 'negative', message: this.$t('Invalid (or empty) filter measure') + ' [' + fLst.length.toString() + '] : ' + (f?.name || '') })
+          return
+        }
+        if ((f?.op || '') === '' || typeof f?.op !== typeof 'string' || Mdf.filterOpList.findIndex(op => op.code === f?.op) < 0) {
+          this.$q.notify({ type: 'negative', message: this.$t('Invalid (or empty) filter condition') + ' [' + fLst.length.toString() + '] : ' + (f?.op || '') })
+          return
+        }
+        if (!Array.isArray(f?.value) || f.value.length < 0) {
+          this.$q.notify({ type: 'negative', message: this.$t('Invalid (or empty) value entered') + ' [' + fLst.length.toString() + ']' })
+          return
+        }
+        fLst.push({
+          name: f.name,
+          op: f.op,
+          value: f.value
+        })
+      }
+
+      // apply new value filters
+      this.valueFilter = fLst
+      this.dispatchMicrodataView({ key: this.routeKey, valueFilter: this.valueFilter })
       this.doRefreshDataPage()
     },
 
@@ -1542,6 +1608,7 @@ export default {
         vs.cmpCalc = this.cmpCalc || ''
         vs.groupBy = this.groupBy
         vs.calcEnums = this.calcEnums
+        vs.valueFilter = Array.isArray(this.valueFilter) ? this.valueFilter : []
 
         this.dispatchMicrodataView({
           key: this.routeKey,
@@ -1732,10 +1799,25 @@ export default {
     async doRefreshDataPage (isFullPage = false) {
       if (!this.checkRunEntity()) return // exit on error
 
+      // value filters: filter only by measures from current view: only attribute enums or calculated enums
+      const vfLst = []
+      for (const f of this.valueFilter) {
+        const isOk = (this.ctrl.kind === Puih.ekind.MICRO) ? (this.attrEnums.findIndex(e => e.name === f.name) >= 0) : (this.calcEnums.findIndex(e => e.name === f.name) >= 0)
+        if (isOk) {
+          vfLst.push(f)
+        } else {
+          const s = Array.isArray(f.value) ? (' ' + f.value.join(', ')) : ''
+          this.$q.notify({
+            type: 'info',
+            message: this.$t('Skip filter: ') + (f.name || '') + ' ' + (f.op || '') + ' ' + (s.length > 40 ? (s.substring(0, 40) + '\u2026') : s)
+          })
+        }
+      }
+
       this.filterState = Puih.makeFilterState(this.otherFields) // save filters: other dimensions selected items
 
       // make microdata read layout
-      const layout = Puih.makeSelectLayout(this.entityName, this.otherFields, [KEY_DIM_NAME, ATTR_DIM_NAME, CALC_DIM_NAME, RUN_DIM_NAME])
+      const layout = Puih.makeSelectLayout(this.entityName, this.otherFields, [KEY_DIM_NAME, ATTR_DIM_NAME, CALC_DIM_NAME, RUN_DIM_NAME], vfLst)
       layout.Offset = 0
       layout.Size = 0
       layout.IsFullPage = false
@@ -1751,6 +1833,7 @@ export default {
       }
       this.doRefreshCalcPage(layout)
     },
+
     // get page of microdata from current model run
     async doRefreshMicroPage (layout) {
       this.loadDone = false
@@ -1766,9 +1849,9 @@ export default {
         const response = await this.$axios.post(u, layout)
         const rsp = response.data
 
-        if (!Mdf.isPageLayoutRsp(rsp)) {
-          console.warn('Invalid response to:', u)
-          this.$q.notify({ type: 'negative', message: this.$t('Server offline or microdata not found: ') + this.entityName })
+        if (!Puih.isPageLayoutRsp(rsp)) {
+          const em = Puih.errorFromPageLayoutRsp(rsp)
+          this.$q.notify({ type: 'negative', message: (((em || '') !== '') ? em : this.$t('Server offline or microdata not found: ') + this.entityName) })
         } else {
           let d = []
           if (!rsp) {
@@ -1820,6 +1903,7 @@ export default {
         })
       }
     },
+
     // get page of aggregated microdata from current model run
     async doRefreshCalcPage (layout) {
       this.loadDone = false
@@ -1862,7 +1946,7 @@ export default {
         ltc.Calculation.push({
           Calculate: ce.calc,
           CalcId: ce.value,
-          Name: 'cm_' + ce.value.toString()
+          Name: ce.name
         })
       }
       // if it is run comparison and runs are not on filters then add run digests
@@ -1882,9 +1966,10 @@ export default {
         const response = await this.$axios.post(u, ltc)
         const rsp = response.data
 
-        if (!Mdf.isPageLayoutRsp(rsp)) {
+        if (!Puih.isPageLayoutRsp(rsp)) {
           console.warn('Invalid response to:', u)
-          this.$q.notify({ type: 'negative', message: this.$t('Server offline or microdata not found: ') + this.entityName })
+          const em = Puih.errorFromPageLayoutRsp(rsp)
+          this.$q.notify({ type: 'negative', message: (((em || '') !== '') ? em : this.$t('Server offline or microdata not found: ') + this.entityName) })
         } else {
           let d = []
           if (!rsp) {

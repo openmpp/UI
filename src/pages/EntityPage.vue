@@ -437,7 +437,7 @@
       :unelevated="ctrl.kind !== 1 && ctrl.kind !== 2"
       dense
       color="primary"
-      class="col-auto rounded-borders"
+      class="col-auto rounded-borders q-mr-xs"
       icon="mdi-function-variant"
       :title="$t('Aggregate microdata')"
       :aria-label="$t('Aggregate microdata')"
@@ -571,6 +571,17 @@
       </q-menu>
     </q-btn>
     <!-- end of calculated measures menu -->
+    <q-btn
+      @click="onValueFilter"
+      unelevated
+      dense
+      color="primary"
+      class="col-auto rounded-borders"
+      :icon="!!valueFilter.length ? 'mdi-filter-outline' : 'mdi-filter'"
+      :label="!!valueFilter.length ? '[ ' + valueFilter.length.toLocaleString() + ' ]' : ''"
+      :title="$t('Filter by values') + (!!valueFilter.length ? ' [ ' + valueFilter.length.toLocaleString() + ' ]' : '\u2026')"
+      :aria-label="$t('Filter by values')"
+      />
 
     <q-separator vertical inset spaced="sm" color="secondary" />
 
@@ -1011,12 +1022,20 @@
   <entity-calc-dialog
     :show-tickle="calcEditTickle"
     :update-tickle="calcUpdateTickle"
-    :entity-name="entityName"
-    :run-digest="runDigest"
     :calc-enums="calcEnums"
     @calc-list-apply="onCalcEditApply"
     >
   </entity-calc-dialog>
+
+  <value-filter-dialog
+    :show-tickle="valueFilterTickle"
+    :update-tickle="refreshTickle"
+    :measure-list="valueFilterMeasure"
+    :value-filter="valueFilter"
+    :is-show-names="pvc.isShowNames"
+    @value-filter-apply="onValueFilterApply"
+    >
+  </value-filter-dialog>
 
   <q-inner-loading :showing="loadWait || loadRunWait">
     <q-spinner-gears size="md" color="primary" />

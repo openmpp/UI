@@ -288,6 +288,9 @@ export const microdataView = (state, mv) => {
   if (Array.isArray(mv?.calcEnums)) {
     state.microdataViews[mv.key].view.calcEnums = Mdf._cloneDeep(mv.calcEnums)
   }
+  if (Array.isArray(mv?.valueFilter)) {
+    state.microdataViews[mv.key].view.valueFilter = Mdf._cloneDeep(mv.valueFilter)
+  }
 }
 
 // delete microdata view by route key, if exist (key must be a string)

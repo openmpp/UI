@@ -164,7 +164,7 @@ export const cleanTextInput = (sValue) => {
   return s || ''
 }
 
-// check if string eneterd and clean it to make compatible with file name input rules:
+// check if string enterd and clean it to make compatible with file name input rules:
 // replace special characters "'`:*?><|$}{@&^;/\ with underscore _ and trim
 export const doFileNameClean = (fnValue) => {
   return (fnValue || '') ? { isEntered: true, name: cleanFileNameInput(fnValue) } : { isEntered: false, name: '' }
@@ -194,30 +194,65 @@ export const cleanFloatInput = (sValue, fDefault = 0.0) => {
   return !isNaN(f) ? f : fDefault
 }
 
-/* json body response to read page POST must be:
-{
-  Page: [
-    ....
-  ],
-  Layout: {
-    Offset: 0,
-    Size: 1,
-    IsLastPage: true,
-    IsFullPage: false
-  }
-}
-*/
-// check if response has Page and Layout
-export const isPageLayoutRsp = (rsp) => {
-  if (!rsp) return false
-  if (!rsp.hasOwnProperty('Page') || !Array.isArray(rsp.Page)) return false
-  if (!rsp.hasOwnProperty('Layout')) return false
-  if (!rsp.Layout.hasOwnProperty('Offset') || typeof rsp.Layout.Offset !== typeof 1) return false
-  if (!rsp.Layout.hasOwnProperty('Size') || typeof rsp.Layout.Size !== typeof 1) return false
-  if (!rsp.Layout.hasOwnProperty('IsLastPage') || typeof rsp.Layout.IsLastPage !== typeof true) return false
-  if (!rsp.Layout.hasOwnProperty('IsFullPage') || typeof rsp.Layout.IsFullPage !== typeof true) return false
+// split csv values line into string array, trim and unquote each value, quotes can be "double" or 'single'
+export const splitCsv = (srcLine) => {
+  if (!srcLine || typeof srcLine !== typeof 'string') return []
 
-  return true
+  // clean string input: replace special characters `$}{@\ with space and trim
+  const clean = (sValue) => {
+    if (typeof sValue !== typeof 'string' || sValue === '' || sValue === void 0) return ''
+    const s = sValue.replace(/[`$}{@\\]/g, '\xa0').trim()
+    return s || ''
+  }
+
+  const str = clean(srcLine).trim()
+  if (str.length <= 0) return []
+
+  // trim and unquote value, quotes can be "double" or 'single'
+  const trimUnquote = (s) => {
+    s = s.trim()
+    if (s.length > 1 && (s[0] === '"' || s[0] === "'") && s[s.length - 1] === s[0]) s = s.substring(1, s.length - 1)
+    return s
+  }
+
+  const csv = []
+  let isQ = false
+  let quote = ''
+  let val = ''
+
+  for (let k = 0; k < str.length; k++) {
+    const c = str[k]
+
+    // if this end of value then it push to result
+    if (!isQ && c === ',') {
+      csv.push(trimUnquote(val))
+      val = ''
+      continue
+    }
+
+    // if open quote found then append it to the value
+    if (!isQ && (c === '"' || c === "'")) {
+      val += c
+      isQ = true
+      quote = c
+      continue
+    }
+    // if closing quote found then check if it is duplicate quote and append one quote for each duplicate
+    if (isQ && c === quote) {
+      if (k >= str.length - 1 || str[k + 1] !== c) val += c
+      isQ = false
+      quote = ''
+      continue
+    }
+
+    val += c
+  }
+  // push last value to result if source string is not empty
+  if (str.length > 0) {
+    csv.push(trimUnquote(val))
+  }
+
+  return csv
 }
 
 export const CALCULATED_ID_OFFSET = 12000 // calculated id offset, for example for Attr34 calculated attribute id is 12034
@@ -308,3 +343,30 @@ export const toAggregateCompareFnc = (aggrFnc, cmpFnc, eSrc) => {
   }
   return ''
 }
+
+// value filter comparisons
+export const filterOpList = [{
+  code: '=',
+  label: '='
+}, {
+  code: '!=',
+  label: '!='
+}, {
+  code: '<',
+  label: '<'
+}, {
+  code: '<=',
+  label: '<='
+}, {
+  code: '>',
+  label: '>'
+}, {
+  code: '>=',
+  label: '>='
+}, {
+  code: 'BETWEEN',
+  label: 'Between min and max'
+}, {
+  code: 'IN',
+  label: 'In the list'
+}]

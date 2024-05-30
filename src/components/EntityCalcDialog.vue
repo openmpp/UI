@@ -15,7 +15,7 @@
     </q-bar>
 
     <q-card-section class="text-body1">
-      <table class="om-p-table">
+      <table class="om-p-table full-width">
           <thead>
             <tr>
               <th class="om-p-head-center text-weight-medium"></th>
@@ -99,7 +99,6 @@
 </template>
 
 <script>
-import { mapState, mapGetters } from 'vuex'
 import * as Mdf from 'src/model-common'
 
 export default {
@@ -107,8 +106,6 @@ export default {
 
   props: {
     showTickle: { type: Boolean, default: false, required: true },
-    entityName: { type: String, default: '', required: true },
-    runDigest: { type: String, default: '', required: true },
     updateTickle: { type: Boolean, default: false },
     calcEnums: { type: Array, default: () => [] }
   },
@@ -122,17 +119,6 @@ export default {
   },
 
   computed: {
-    ...mapState('model', {
-      modelList: state => state.modelList,
-      theModel: state => state.theModel
-    }),
-    ...mapGetters('model', {
-      runTextByDigest: 'runTextByDigest',
-      modelLanguage: 'modelLanguage'
-    }),
-    ...mapState('uiState', {
-      uiLang: state => state.uiLang
-    })
   },
 
   watch: {

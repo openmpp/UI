@@ -1107,9 +1107,10 @@ export default {
         const response = await this.$axios.post(u, layout)
         const rsp = response.data
 
-        if (!Mdf.isPageLayoutRsp(rsp)) {
+        if (!Puih.isPageLayoutRsp(rsp)) {
           console.warn('Invalid response to:', u)
-          this.$q.notify({ type: 'negative', message: this.$t('Server offline or parameter data not found: ') + this.parameterName })
+          const em = Puih.errorFromPageLayoutRsp(rsp)
+          this.$q.notify({ type: 'negative', message: (((em || '') !== '') ? em : this.$t('Server offline or parameter data not found: ') + this.parameterName) })
         } else {
           let d = []
           if (!rsp) {
