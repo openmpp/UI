@@ -830,7 +830,7 @@ export default {
         // measure must be an attribute name or calculation name
         if ((f?.name || '') === '' || typeof f?.name !== typeof 'string' ||
           (this.attrEnums.findIndex(e => e.name === f?.name) < 0 && this.calcEnums.findIndex(e => e.name === f?.name) < 0)) {
-          this.$q.notify({ type: 'negative', message: this.$t('Invalid (or empty) filter measure') + ' [' + fLst.length.toString() + '] : ' + (f?.name || '') })
+          this.$q.notify({ type: 'negative', message: this.$t('Invalid (or empty) filter measure') + ' [' + fLst.length.toString() + '] : ' + (f?.name || '') + ' ' + (f?.label || '') })
           return
         }
         if ((f?.op || '') === '' || typeof f?.op !== typeof 'string' || Mdf.filterOpList.findIndex(op => op.code === f?.op) < 0) {
@@ -843,6 +843,7 @@ export default {
         }
         fLst.push({
           name: f.name,
+          label: f?.label || '',
           op: f.op,
           value: f.value
         })
@@ -1809,7 +1810,7 @@ export default {
           const s = Array.isArray(f.value) ? (' ' + f.value.join(', ')) : ''
           this.$q.notify({
             type: 'info',
-            message: this.$t('Skip filter: ') + (f.name || '') + ' ' + (f.op || '') + ' ' + (s.length > 40 ? (s.substring(0, 40) + '\u2026') : s)
+            message: this.$t('Skip filter: ') + (f?.label || '') + ' ' + (f.name || '') + ' ' + (f.op || '') + ' ' + (s.length > 40 ? (s.substring(0, 40) + '\u2026') : s)
           })
         }
       }

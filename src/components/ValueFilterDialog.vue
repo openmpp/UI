@@ -129,7 +129,7 @@
                   :title="$t('Delete')"
                   :aria-label="$t('Delete')" />
               </td>
-              <td colspan="3" class="om-p-head-left mono">{{ f.label }}</td>
+              <td colspan="3" class="om-p-head-left mono">{{ (f?.label || '') + ' ' + f.name + ' ' + f.op  + ' ' + f.value.join(', ') }}</td>
             </tr>
           </template>
         </tbody>
@@ -167,16 +167,18 @@ export default {
   {
     fltId: 1,
     name: 'Salary',
+    label: 'Salary',
     op: '>',
     value: ['12', '34'],
     inp: '12, 34'
   }
   filters to skip:
   {
+    fltId: 2,
     name: 'ex_12001',
+    label: 'Average Income',
     op: '>',
-    value: ['12', '34'],
-    label: 'ex_12001 > 12, 34...'
+    value: ['12', '34']
   }
   */
 
@@ -211,17 +213,18 @@ export default {
           this.filterList.push({
             fltId: this.nextId++,
             name: f.name,
+            label: f?.label || '',
             op: f.op,
             value: Array.isArray(f.value) ? f.value : [],
             inp: Array.isArray(f.value) ? f.value.join(', ') : ''
           })
         } else {
-          const s = f.value.join(', ')
           this.skipFilter.push({
+            fltId: this.nextId++,
             name: f.name,
+            label: f?.label || '',
             op: f.op,
-            value: Array.isArray(f.value) ? f.value : [],
-            label: f.name + ' ' + f.op + ' ' + (s.length < 255 ? s : (s.substring(0, 255) + '\u2026'))
+            value: Array.isArray(f.value) ? f.value : []
           })
         }
       }
@@ -334,6 +337,7 @@ export default {
 
         fltLst.push({ // append to result
           name: f.name,
+          label: f.label,
           op: f.op,
           value: f.value
         })
@@ -344,6 +348,7 @@ export default {
       for (const f of this.skipFilter) {
         fltLst.push({
           name: f.name,
+          label: f.label,
           op: f.op,
           value: f.value
         })
@@ -368,6 +373,7 @@ export default {
       this.filterList.push({
         fltId: this.nextId++,
         name: this.measureList.length > 0 ? this.measureList[0].name : '',
+        label: this.measureList.length > 0 ? this.measureList[0]?.label : '',
         op: Mdf.filterOpList.length > 0 ? Mdf.filterOpList[0].code : '',
         value: [],
         inp: ''
