@@ -821,17 +821,19 @@ export default {
     onValueFilterApply (fltLst) {
       if (!Array.isArray(fltLst)) {
         this.valueFilter = []
+        console.warn('Invalid (or empty) value filters', fltLst)
+        this.$q.notify({ type: 'negative', message: this.$t('Invalid (or empty) value filters') })
         return
       }
 
-      // validate filters
+      // validate filters and save filter state
       const fLst = []
       for (const f of fltLst) {
         // measure must be an attribute name or calculation name
         if ((f?.name || '') === '' || typeof f?.name !== typeof 'string' ||
           (this.attrEnums.findIndex(e => e.name === f?.name) < 0 && this.calcEnums.findIndex(e => e.name === f?.name) < 0)) {
-          this.$q.notify({ type: 'negative', message: this.$t('Invalid (or empty) filter measure') + ' [' + fLst.length.toString() + '] : ' + (f?.name || '') + ' ' + (f?.label || '') })
-          return
+          this.$q.notify({ type: 'warning', message: this.$t('Invalid (or empty) filter measure') + ' [' + fLst.length.toString() + '] : ' + (f?.name || '') + ' ' + (f?.label || '') })
+          // return
         }
         if ((f?.op || '') === '' || typeof f?.op !== typeof 'string' || Mdf.filterOpList.findIndex(op => op.code === f?.op) < 0) {
           this.$q.notify({ type: 'negative', message: this.$t('Invalid (or empty) filter condition') + ' [' + fLst.length.toString() + '] : ' + (f?.op || '') })
@@ -848,11 +850,10 @@ export default {
           value: f.value
         })
       }
-
-      // apply new value filters
       this.valueFilter = fLst
       this.dispatchMicrodataView({ key: this.routeKey, valueFilter: this.valueFilter })
-      this.doRefreshDataPage()
+
+      this.doRefreshDataPage() // apply new value filters
     },
 
     // user click to show aggregated microdata view

@@ -5,6 +5,7 @@ import RunBar from 'components/RunBar.vue'
 import RefreshRun from 'components/RefreshRun.vue'
 import RunInfoDialog from 'components/RunInfoDialog.vue'
 import TableInfoDialog from 'components/TableInfoDialog.vue'
+import ValueFilterDialog from 'components/ValueFilterDialog.vue'
 import draggable from 'vuedraggable'
 import * as Pcvt from 'components/pivot-cvt'
 import * as Puih from './pivot-ui-helper'
@@ -23,7 +24,7 @@ const LAST_PAGE_OFFSET = 2 * 1024 * 1024 * 1024 // large page offset to get the 
 
 export default {
   name: 'TablePage',
-  components: { draggable, PvTable, RunBar, RefreshRun, RunInfoDialog, TableInfoDialog },
+  components: { draggable, PvTable, RunBar, RefreshRun, RunInfoDialog, TableInfoDialog, ValueFilterDialog },
 
   props: {
     digest: { type: String, default: '' },
@@ -46,6 +47,8 @@ export default {
       dimProp: [],
       calcEnums: [],          // calculation dimension enums for aggregated measure calculation
       compareEnums: [],       // calculation dimension enums for run comparison calculation
+      valueFilter: [],        // measure value filters
+      valueFilterMeasure: [], // list of value filter measures: name and label of attribute enums or calculted enums
       colFields: [],
       rowFields: [],
       otherFields: [],
@@ -86,6 +89,7 @@ export default {
       refreshRunTickle: false,
       runInfoTickle: false,
       tableInfoTickle: false,
+      valueFilterTickle: false,
       aggrCalcList: [{  // aggregation calculations: additional measures as aggregation over accumulators
         code: 'AVG',
         label: 'Average'
@@ -643,6 +647,7 @@ export default {
       // else: restore previous view
       this.ctrl.kind = (typeof tv?.kind === typeof 1) ? (tv.kind % 5 || Puih.tkind.EXPR) : Puih.tkind.EXPR // there are only 5 kinds of view possible for output table
       this.srcCalc = ((this.ctrl.kind === Puih.tkind.CALC || this.ctrl.kind === Puih.tkind.CMP) && typeof tv?.calc === typeof 'string') ? (tv?.calc || '') : ''
+      this.valueFilter = Array.isArray(tv?.valueFilter) ? tv.valueFilter : []
 
       // calculated measure dimension at [rank + 4] position
       const fce = (this.ctrl.kind === Puih.tkind.CALC) ? this.calcEnums : this.compareEnums
@@ -862,6 +867,7 @@ export default {
       vs.calc = this.srcCalc || ''
       vs.pageStart = 0
       vs.pageSize = this.isPages ? ((typeof this.pageSize === typeof 1 && this.pageSize >= 0) ? this.pageSize : SMALL_PAGE_SIZE) : 0
+      vs.valueFilter = Array.isArray(this.valueFilter) ? this.valueFilter : []
 
       this.dispatchTableView({
         key: this.routeKey,
@@ -1176,6 +1182,93 @@ export default {
       }
     },
 
+    // open value filter dialog
+    onValueFilter () {
+      // set filter measures from dimension enums: expressions, accumulators, all accumulators or calculated or compare enums
+      //  [rank]:       expressions measure dimension: expressions as enums
+      //  [rank + 1]:   accumulators measure dimension: accumulators as enums
+      //  [rank + 2]:   all accumulators measure dimension: all accumulators, including derived as enums
+      let src = []
+
+      switch (this.ctrl.kind) {
+        case Puih.tkind.EXPR:
+          src = this.dimProp[this.rank].enums
+          break
+        case Puih.tkind.ACC:
+          src = this.dimProp[this.rank + 1].enums
+          break
+        case Puih.tkind.ALL:
+          src = this.dimProp[this.rank + 2].enums
+          break
+        case Puih.tkind.CALC:
+          src = this.calcEnums
+          break
+        case Puih.tkind.CMP:
+          src = this.compareEnums
+          break
+      }
+      if (!Array.isArray(src) || src.length <= 0) {
+        console.warn('Unable to set value filter, t.kind:', this.ctrl.kind)
+        this.$q.notify({ type: 'negative', message: this.$t('Unable to set value filter: ') + ' ' + this.ctrl.kind.toString() + ' ' + this.tableName })
+        return
+      }
+
+      this.valueFilterMeasure = []
+      for (const e of src) {
+        this.valueFilterMeasure.push({
+          name: e.name,
+          label: e.label
+        })
+      }
+
+      this.valueFilterTickle = !this.valueFilterTickle
+    },
+    // update value filters
+    onValueFilterApply (fltLst) {
+      if (!Array.isArray(fltLst)) {
+        this.valueFilter = []
+        console.warn('Invalid (or empty) value filters', fltLst)
+        this.$q.notify({ type: 'negative', message: this.$t('Invalid (or empty) value filters') })
+        return
+      }
+
+      // validate filters and save filter state
+      const fLst = []
+      for (const f of fltLst) {
+        // measure must be dimension enums: expressions, accumulators, all accumulators or calculated or compare enums
+        //  [rank]:       expressions measure dimension: expressions as enums
+        //  [rank + 1]:   accumulators measure dimension: accumulators as enums
+        //  [rank + 2]:   all accumulators measure dimension: all accumulators, including derived as enums
+        if ((f?.name || '') === '' || typeof f?.name !== typeof 'string' ||
+          (this.dimProp[this.rank].enums.findIndex(e => e.name === f?.name) < 0 &&
+          this.dimProp[this.rank + 1].enums.findIndex(e => e.name === f?.name) < 0 &&
+          this.dimProp[this.rank + 2].enums.findIndex(e => e.name === f?.name) < 0 &&
+          this.calcEnums.findIndex(e => e.name === f?.name) < 0 &&
+          this.compareEnums.findIndex(e => e.name === f?.name) < 0)) {
+          this.$q.notify({ type: 'warning', message: this.$t('Invalid (or empty) filter measure') + ' [' + fLst.length.toString() + '] : ' + (f?.name || '') + ' ' + (f?.label || '') })
+          // return
+        }
+        if ((f?.op || '') === '' || typeof f?.op !== typeof 'string' || Mdf.filterOpList.findIndex(op => op.code === f?.op) < 0) {
+          this.$q.notify({ type: 'negative', message: this.$t('Invalid (or empty) filter condition') + ' [' + fLst.length.toString() + '] : ' + (f?.op || '') })
+          return
+        }
+        if (!Array.isArray(f?.value) || f.value.length < 0) {
+          this.$q.notify({ type: 'negative', message: this.$t('Invalid (or empty) value entered') + ' [' + fLst.length.toString() + ']' })
+          return
+        }
+        fLst.push({
+          name: f.name,
+          label: f?.label || '',
+          op: f.op,
+          value: f.value
+        })
+      }
+      this.valueFilter = fLst
+      this.dispatchTableView({ key: this.routeKey, valueFilter: this.valueFilter })
+
+      this.doRefreshDataPage() // apply new value filters
+    },
+
     // store pivot view, reload data and refresh pivot view
     storeViewAndRefreshData () {
       // set new view kind and  store pivot view
@@ -1184,6 +1277,7 @@ export default {
       vs.calc = this.srcCalc || ''
       vs.pageStart = this.isPages ? this.pageStart : 0
       vs.pageSize = this.isPages ? this.pageSize : 0
+      vs.valueFilter = Array.isArray(this.valueFilter) ? this.valueFilter : []
 
       this.dispatchTableView({
         key: this.routeKey,
@@ -1412,6 +1506,7 @@ export default {
         vs.calc = this.srcCalc || ''
         vs.pageStart = this.isPages ? this.pageStart : 0
         vs.pageSize = this.isPages ? this.pageSize : 0
+        vs.valueFilter = Array.isArray(this.valueFilter) ? this.valueFilter : []
 
         this.dispatchTableView({
           key: this.routeKey,
@@ -1746,14 +1841,50 @@ export default {
     async doRefreshDataPage (isFullPage = false) {
       if (!this.checkRunTable()) return // exit on error
 
-      // save filters: other dimensions selected items
-      this.filterState = Puih.makeFilterState(this.otherFields)
+      // value filters: filter only by measures from current view dimension enums, calculated or compare enums
+      const vfLst = []
+      for (const f of this.valueFilter) {
+        // measure must be dimension enums: expressions, accumulators, all accumulators or calculated or compare enums
+        //  [rank]:       expressions measure dimension: expressions as enums
+        //  [rank + 1]:   accumulators measure dimension: accumulators as enums
+        //  [rank + 2]:   all accumulators measure dimension: all accumulators, including derived as enums
+        let isOk = false
+        switch (this.ctrl.kind) {
+          case Puih.tkind.EXPR:
+            isOk = this.dimProp[this.rank].enums.findIndex(e => e.name === f.name) >= 0
+            break
+          case Puih.tkind.ACC:
+            isOk = this.dimProp[this.rank + 1].enums.findIndex(e => e.name === f.name) >= 0
+            break
+          case Puih.tkind.ALL:
+            isOk = this.dimProp[this.rank + 2].enums.findIndex(e => e.name === f.name) >= 0
+            break
+          case Puih.tkind.CALC:
+            isOk = this.calcEnums.findIndex(e => e.name === f.name) >= 0
+            break
+          case Puih.tkind.CMP:
+            isOk = this.compareEnums.findIndex(e => e.name === f.name) >= 0
+            break
+        }
+        if (isOk) {
+          vfLst.push(f)
+        } else {
+          const s = Array.isArray(f.value) ? (' ' + f.value.join(', ')) : ''
+          this.$q.notify({
+            type: 'info',
+            message: this.$t('Skip filter: ') + (f?.label || '') + ' ' + (f.name || '') + ' ' + (f.op || '') + ' ' + (s.length > 40 ? (s.substring(0, 40) + '\u2026') : s)
+          })
+        }
+      }
+
+      this.filterState = Puih.makeFilterState(this.otherFields) // save filters: other dimensions selected items
 
       // make output table read layout and url
       const layout = Puih.makeSelectLayout(
         this.tableName,
         this.otherFields,
-        [Puih.SUB_ID_DIM, EXPR_DIM_NAME, CALC_DIM_NAME, RUN_DIM_NAME, ACC_DIM_NAME, ALL_ACC_DIM_NAME]
+        [Puih.SUB_ID_DIM, EXPR_DIM_NAME, CALC_DIM_NAME, RUN_DIM_NAME, ACC_DIM_NAME, ALL_ACC_DIM_NAME],
+        vfLst
       )
 
       // if sub_id on other dimensions then add filter by sub-value id
@@ -1805,6 +1936,7 @@ export default {
             cArr.push({
               Calculate: ec.calc,
               CalcId: ec.value, // table expression
+              Name: ec.name,
               IsAggr: false
             })
           } else {
@@ -1817,6 +1949,7 @@ export default {
             cArr.push({
               Calculate: fnc,
               CalcId: ec.value,
+              Name: ec.name,
               IsAggr: true
             })
           }
@@ -1863,6 +1996,7 @@ export default {
             cArr.push({
               Calculate: ec.calc,
               CalcId: ec.value, // table expression
+              Name: ec.name,
               IsAggr: false
             })
           } else {
@@ -1875,6 +2009,7 @@ export default {
             cArr.push({
               Calculate: fnc, // comparison expression
               CalcId: ec.value,
+              Name: ec.name,
               IsAggr: false
             })
           }

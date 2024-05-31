@@ -221,6 +221,9 @@ export const tableView = (state, tv) => {
   if (typeof tv?.pageSize === typeof 1) {
     state.tableViews[tv.key].view.pageSize = tv.pageSize
   }
+  if (Array.isArray(tv?.valueFilter)) {
+    state.tableViews[tv.key].view.valueFilter = Mdf._cloneDeep(tv.valueFilter)
+  }
 }
 
 // delete table view by route key, if exist (key must be a string)

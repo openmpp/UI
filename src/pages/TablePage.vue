@@ -117,6 +117,16 @@
             </q-menu>
           </q-item>
           <!-- end of calculated measures menu -->
+          <q-item
+            @click="onValueFilter"
+            v-close-popup
+            clickable
+            >
+            <q-item-section avatar>
+              <q-icon color="primary" :name="!!valueFilter.length ? 'mdi-filter-outline' : 'mdi-filter'" />
+            </q-item-section>
+            <q-item-section>{{ $t('Filter by values') + (!!valueFilter.length ? ' [ ' + valueFilter.length.toLocaleString() + ' ]' : '\u2026') }}</q-item-section>
+          </q-item>
 
           <q-separator />
 
@@ -389,7 +399,7 @@
       :outline="ctrl.kind === 3 || ctrl.kind === 4"
       dense
       :class="(ctrl.kind !== 3 && ctrl.kind !== 4) ? 'bar-button-on' : 'bar-button-off'"
-      class="col-auto rounded-borders"
+      class="col-auto rounded-borders q-mr-xs"
       icon="mdi-function-variant"
       :title="$t('Calculate expression')"
       :aria-label="$t('Calculate expression')"
@@ -423,6 +433,17 @@
       </q-menu>
     </q-btn>
     <!-- end of calculated measures menu -->
+    <q-btn
+      @click="onValueFilter"
+      unelevated
+      dense
+      color="primary"
+      class="col-auto rounded-borders"
+      :icon="!!valueFilter.length ? 'mdi-filter-outline' : 'mdi-filter'"
+      :label="!!valueFilter.length ? '[ ' + valueFilter.length.toLocaleString() + ' ]' : ''"
+      :title="$t('Filter by values') + (!!valueFilter.length ? ' [ ' + valueFilter.length.toLocaleString() + ' ]' : '\u2026')"
+      :aria-label="$t('Filter by values')"
+      />
 
     <q-separator vertical inset spaced="sm" color="secondary" />
 
@@ -806,6 +827,16 @@
 
   <run-info-dialog :show-tickle="runInfoTickle" :model-digest="digest" :run-digest="runDigest"></run-info-dialog>
   <table-info-dialog :show-tickle="tableInfoTickle" :table-name="tableName" :run-digest="runDigest"></table-info-dialog>
+
+  <value-filter-dialog
+    :show-tickle="valueFilterTickle"
+    :update-tickle="refreshTickle"
+    :measure-list="valueFilterMeasure"
+    :value-filter="valueFilter"
+    :is-show-names="pvc.isShowNames"
+    @value-filter-apply="onValueFilterApply"
+    >
+  </value-filter-dialog>
 
   <q-inner-loading :showing="loadWait || loadRunWait">
     <q-spinner-gears size="md" color="primary" />
