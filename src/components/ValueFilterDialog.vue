@@ -129,7 +129,7 @@
                   :title="$t('Delete')"
                   :aria-label="$t('Delete')" />
               </td>
-              <td colspan="3" class="om-p-head-left mono">{{ (f?.label || '') + ' ' + f.name + ' ' + f.op  + ' ' + f.value.join(', ') }}</td>
+              <td colspan="3" class="om-p-head-left mono">{{ (f?.label || '') + ' (' + f.name + ') ' + f.op  + ' ' + f.value.join(', ') }}</td>
             </tr>
           </template>
         </tbody>

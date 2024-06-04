@@ -160,23 +160,56 @@ export const fileSizeParts = (size) => {
 // clean string input: replace special characters "'`$}{@\ with space and trim
 export const cleanTextInput = (sValue) => {
   if (typeof sValue !== typeof 'string' || sValue === '' || sValue === void 0) return ''
-  const s = sValue.replace(/["'`$}{@\\]/g, '\xa0').trim()
+  let s = sValue.replace(/[`$}{@\\]/g, '\xa0')
+  s = s.replace(/\s+/g, '\xa0').trim()
   return s || ''
 }
 
 // check if string enterd and clean it to make compatible with file name input rules:
 // replace special characters "'`:*?><|$}{@&^;/\ with underscore _ and trim
-export const doFileNameClean = (fnValue) => {
-  return (fnValue || '') ? { isEntered: true, name: cleanFileNameInput(fnValue) } : { isEntered: false, name: '' }
+export const doFileNameClean = (fileName) => {
+  return (fileName || '') ? { isEntered: true, name: cleanFileNameInput(fileName) } : { isEntered: false, name: '' }
 }
 
 // invalid characters for file name, URL or dangerous for js
 export const invalidFileNameChars = '"\'`:*?><|$}{@&^;/\\'
 
-// clean file name input: replace special characters "'`:*?><|@#$%^&;,+=}{][/\ with underscore _ and trim
-export const cleanFileNameInput = (fnValue) => {
-  if (typeof fnValue !== typeof 'string' || fnValue === '' || fnValue === void 0) return ''
-  const s = fnValue.replace(/["'`:*?><|$}{@&^;/\\]/g, '_').trim()
+// clean file name input: replace special characters "'`:*?><|$}{@&^;/\ with underscore _ and trim
+export const cleanFileNameInput = (fileName) => {
+  if (typeof fileName !== typeof 'string' || fileName === '' || fileName === void 0) return ''
+  let s = fileName.replace(/["'`:*?><|$}{@&^;/\\]/g, '_')
+  s = s.replace(/__+/g, '_')
+  s = s.replace(/\s+/g, '\xa0').trim()
+  return s || ''
+}
+
+// clean path input: remove special characters "'`:*?><|$}{@&^; and force it to be relative path and use / separator
+export const cleanPathInput = (path) => {
+  if (typeof path !== typeof 'string' || path === '' || path === void 0) return ''
+
+  // remove special characters and replace all \ with /
+  let s = path.replace(/["'`:*?><|$}{@&^;]/g, '').replace(/\\/g, '/').trim()
+
+  // replace repeated // with single / and remove all ..
+  let n = s.length
+  let nPrev = n
+  do {
+    nPrev = n
+    s = s.replace('//', '/').replace(/\.\./g, '')
+    n = s.length
+  } while (n > 0 && nPrev !== n)
+
+  // remove leading /
+  s = s.replace(/^\//, '')
+  return s || ''
+}
+
+// clean column value input from sql dangerous characters: "'`:?|$}{@&;%\ and -- replace it with underscore _ and trim
+export const cleanColumnValueInput = (src) => {
+  if (typeof src !== typeof 'string' || src === '' || src === void 0) return ''
+  let s = src.replace(/["'`:?|$}{@&;%\\]/g, '_')
+  s = s.replace(/__+/g, '_')
+  s = s.replace(/\s+/g, '\xa0').trim()
   return s || ''
 }
 

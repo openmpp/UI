@@ -902,7 +902,7 @@ export default {
       }
       this.calcEditTickle = !this.calcEditTickle
     },
-    // copy edited calcultion list into clacEnums
+    // copy edited calcultion list into calcEnums
     onCalcEditApply (cLst) {
       if (!Mdf.isLength(cLst) || cLst.findIndex(c => !!c.calc && Mdf.isLength(c.calc.trim())) < 0) {
         console.warn('Invalid (empty) list of calculated measure attributes', cLst)
@@ -911,18 +911,34 @@ export default {
       }
       this.calcEnums = []
 
-      for (const c of cLst) {
+      let nId = Mdf.CALCULATED_ID_OFFSET
+      for (let k = 0; k < cLst.length; k++) {
+        const c = cLst[k]
         c.calc = (c.calc || '').trim()
         if (!c.calc) continue // skip empty calculations
 
-        c.calcId = this.calcEnums.length + Mdf.CALCULATED_ID_OFFSET
-        c.name = 'ex_' + c.calcId.toString()
-        c.label = (c.label || '').trim()
+        // calcId must be unique
+        if (c.calcId < 0 || cLst.findIndex((e, idx) => { return idx !== k && e.calcId === c.calcId }) >= 0) {
+          while (cLst.findIndex(e => e.calcId === nId) >= 0) {
+            nId++
+          }
+          c.calcId = nId
+        }
+
+        // cleanup calculation name and make it unique
+        c.name = Mdf.cleanColumnValueInput(c.name)
+
+        if ((c.name || '') === '' || cLst.findIndex((e, idx) => { return idx !== k && e.name === c.name }) >= 0) {
+          c.name = ((typeof c.name === typeof 'string' && (c.name || '') !== '') ? (c.name + '_') : '') + 'ex_' + c.calcId.toString()
+          if (c.name.length > 32) {
+            c.name = c.name.substring(c.name.length - 32)
+          }
+        }
 
         this.calcEnums.push({
           value: c.calcId,
           name: c.name,
-          label: c.label || c.name,
+          label: (c.label || '').trim() || c.name,
           isInt: false,
           isFloat: true,
           calc: c.calc
@@ -1811,7 +1827,7 @@ export default {
           const s = Array.isArray(f.value) ? (' ' + f.value.join(', ')) : ''
           this.$q.notify({
             type: 'info',
-            message: this.$t('Skip filter: ') + (f?.label || '') + ' ' + (f.name || '') + ' ' + (f.op || '') + ' ' + (s.length > 40 ? (s.substring(0, 40) + '\u2026') : s)
+            message: this.$t('Skip filter: ') + (f?.label || '') + ' (' + (f.name || '') + ') ' + (f.op || '') + ' ' + (s.length > 40 ? (s.substring(0, 40) + '\u2026') : s)
           })
         }
       }

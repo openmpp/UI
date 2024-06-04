@@ -651,27 +651,7 @@ export default {
       this.runOpts.csvDir = isEntered ? dir : ''
     },
     doDirClean (dirValue) {
-      return (dirValue || '') ? { isEntered: true, dir: this.cleanPathInput(dirValue) } : { isEntered: false, dir: '' }
-    },
-    // clean path input: remove special characters "'`$}{@><:|?*&^; and force it to be relative path and use / separator
-    cleanPathInput (sValue) {
-      if (sValue === '' || sValue === void 0) return ''
-
-      // remove special characters and replace all \ with /
-      let s = sValue.replace(/["'`$}{@><:|?*&^;]/g, '').replace(/\\/g, '/').trim()
-
-      // replace repeated // with single / and remove all ..
-      let n = s.length
-      let nPrev = n
-      do {
-        nPrev = n
-        s = s.replace('//', '/').replace(/\.\./g, '')
-        n = s.length
-      } while (n > 0 && nPrev !== n)
-
-      // remove leading /
-      s = s.replace(/^\//, '')
-      return s || ''
+      return (dirValue || '') ? { isEntered: true, dir: Mdf.cleanPathInput(dirValue) } : { isEntered: false, dir: '' }
     },
 
     // apply preset to run options
@@ -894,8 +874,8 @@ export default {
       this.runOpts.runName = Mdf.cleanFileNameInput(this.runOpts.runName)
       this.runOpts.subCount = Mdf.cleanIntNonNegativeInput(this.runOpts.subCount, 1)
       this.runOpts.threadCount = Mdf.cleanIntNonNegativeInput(this.runOpts.threadCount, 1)
-      this.runOpts.workDir = this.cleanPathInput(this.runOpts.workDir)
-      this.runOpts.csvDir = this.cleanPathInput(this.runOpts.csvDir)
+      this.runOpts.workDir = Mdf.cleanPathInput(this.runOpts.workDir)
+      this.runOpts.csvDir = Mdf.cleanPathInput(this.runOpts.csvDir)
       this.runOpts.csvId = (this.csvCodeId || '') !== 'enumCode'
       this.runOpts.useIni = (this.enableIni && this.runOpts.useIni) || false
       this.runOpts.iniAnyKey = (this.enableIniAnyKey && this.runOpts.useIni && this.runOpts.iniAnyKey) || false

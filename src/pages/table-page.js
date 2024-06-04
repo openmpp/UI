@@ -1872,7 +1872,7 @@ export default {
           const s = Array.isArray(f.value) ? (' ' + f.value.join(', ')) : ''
           this.$q.notify({
             type: 'info',
-            message: this.$t('Skip filter: ') + (f?.label || '') + ' ' + (f.name || '') + ' ' + (f.op || '') + ' ' + (s.length > 40 ? (s.substring(0, 40) + '\u2026') : s)
+            message: this.$t('Skip filter: ') + (f?.label || '') + ' (' + (f.name || '') + ') ' + (f.op || '') + ' ' + (s.length > 40 ? (s.substring(0, 40) + '\u2026') : s)
           })
         }
       }

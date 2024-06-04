@@ -711,6 +711,7 @@ export default {
   'Unable to view output table': "Impossible d'afficher le tableau de résultats",
   'Unable to view uploads': "Impossible d'afficher les chargements",
   'Undo': 'Annuler',
+  'Unique name': 'Nom unique',
   'unknown': 'inconnue',
   'unlimited': 'illimitée',
   'Unlock': 'Ouvrir',

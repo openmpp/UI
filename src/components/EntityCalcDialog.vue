@@ -1,5 +1,5 @@
 <template>
-<q-dialog v-model="showDlg" seamless position="bottom">
+<q-dialog v-model="showDlg" seamless position="bottom" full-width>
   <q-card>
 
     <q-bar class="bg-primary text-white">
@@ -26,7 +26,7 @@
           </thead>
         <tbody>
           <template v-for="(c, idx) in calcList">
-            <tr :key="'cne-' + (c.name || idx.toString())">
+            <tr :key="'cne-' + (c.calcId.toString() || idx.toString())">
               <td rowspan="2" class="om-p-cell">
                 <q-btn
                   @click="onDelete(idx)"
@@ -44,7 +44,7 @@
                   maxlength="255"
                   size="80"
                   required
-                  @blur="onCalcBlur"
+                  @blur="onCalcBlur(idx)"
                   :rules="[ val => (val || '') !== '' ]"
                   dense
                   outlined
@@ -54,10 +54,25 @@
                   >
                 </q-input>
               </td>
-              <td class="om-p-cell mono">{{ c.name }}&nbsp;</td>
+              <td class="om-p-cell mono">
+                <q-input
+                  v-model="c.name"
+                  maxlength="32"
+                  size="32"
+                  required
+                  @blur="onNameBlur(idx)"
+                  :rules="[ val => (val || '') !== '' ]"
+                  dense
+                  outlined
+                  hide-bottom-space
+                  :placeholder="$t('Unique name') + ' (' + $t('Required') + ')'"
+                  :title="$t('Unique name')"
+                  >
+                </q-input>
+              </td>
               <td class="om-p-cell mono">{{ !!c.calcId ? c.calcId.toString() : '' }}</td>
             </tr>
-            <tr :key="'clb-' + (c.name || idx.toString())">
+            <tr :key="'clb-' + (c.calcId.toString() || idx.toString())">
               <td colspan="3" class="om-p-cell">
                 <q-input
                   v-model="c.label"
@@ -114,6 +129,7 @@ export default {
     return {
       showDlg: false,
       isEdited: false,
+      nextId: 1,
       calcList: []
     }
   },
@@ -156,15 +172,18 @@ export default {
         const ce = this.calcEnums[k]
         if (!(ce?.calc || '').trim()) continue
 
-        const nId = (ce.value || 0) ? ce.value : k + Mdf.CALCULATED_ID_OFFSET
-        const nm = ce.name || ('ex_' + nId.toString())
         this.calcList.push({
-          calcId: nId,
-          name: nm,
+          calcId: this.calcEnums[k].value,
+          name: this.calcEnums[k].name,
           calc: ce.calc.trim(),
-          label: ce.label || nm
+          label: ce.label || this.calcEnums[k].name
         })
       }
+
+      for (let k = 0; k < this.calcList.length; k++) {
+        this.adjustLineNameCalcId(k)
+      }
+      this.isEdited = this.isAnyDiff()
     },
 
     // send updated version of calculted enums
@@ -173,22 +192,11 @@ export default {
     },
 
     // delete row from calculations list
-    onDelete (idx) {
-      if (idx < 0 || idx >= this.calcList.length) return
-      this.calcList.splice(idx, 1)
+    onDelete (lineIdx) {
+      if (lineIdx < 0 || lineIdx >= this.calcList.length) return
+      this.calcList.splice(lineIdx, 1)
 
-      let nId = Mdf.CALCULATED_ID_OFFSET
-
-      for (let k = 0; k < this.calcList.length; k++) {
-        if ((this.calcList[k].calc || '').trim()) {
-          this.calcList[k].calcId = nId
-          this.calcList[k].name = 'ex_' + nId.toString()
-          nId++
-        } else {
-          this.calcList[k].calcId = 0
-          this.calcList[k].name = ''
-        }
-      }
+      this.adjustLineNameCalcId(lineIdx)
       this.isEdited = this.isAnyDiff()
     },
 
@@ -196,23 +204,27 @@ export default {
     onAppend () {
       if (this.isAnyEmpty()) return
 
-      let nId = Mdf.CALCULATED_ID_OFFSET
-      for (const c of this.calcList) {
-        if ((c.calc || '').trim()) nId++
+      let nId = this.calcList.length + Mdf.CALCULATED_ID_OFFSET
+      while (this.calcList.findIndex(e => e.calcId === nId) >= 0) {
+        nId++
       }
-
       const nm = 'ex_' + nId.toString()
+
       this.calcList.push({
         calcId: nId,
         name: nm,
         calc: '',
         label: nm
       })
+
+      for (let k = 0; k < this.calcList.length; k++) {
+        this.adjustLineNameCalcId(k)
+      }
       this.isEdited = this.isAnyDiff()
     },
 
     // calcultion blur: trim and check if any calculation is empty
-    onCalcBlur (e) {
+    onCalcBlur (lineIdx) {
       for (let k = 0; k < this.calcList.length; k++) {
         if ((this.calcList[k]?.calc || '') === '' || typeof (this.calcList[k]?.calc || '') !== typeof 'string') {
           this.calcList[k].calc = ''
@@ -220,20 +232,42 @@ export default {
           this.calcList[k].calc = this.calcList[k].calc.trim()
         }
       }
+      this.adjustLineNameCalcId(lineIdx)
+      this.isEdited = this.isAnyDiff()
+    },
 
+    // expression name blur: cleanup name, truncate and make it unique
+    onNameBlur (lineIdx) {
+      this.adjustLineNameCalcId(lineIdx)
+      this.isEdited = this.isAnyDiff()
+    },
+
+    // make unique name and calcId
+    adjustLineNameCalcId (lineIdx) {
+      if (typeof lineIdx !== typeof 1 || lineIdx < 0 || lineIdx >= this.calcList.length) return // index out of range
+
+      const c = this.calcList[lineIdx]
+      if ((c.calc || '') === '') return // skip empty calcutions
+
+      // calcId must be unique
       let nId = Mdf.CALCULATED_ID_OFFSET
 
-      for (let k = 0; k < this.calcList.length; k++) {
-        if (this.calcList[k].calc) {
-          this.calcList[k].calcId = nId
-          this.calcList[k].name = 'ex_' + nId.toString()
+      if (c.calcId < 0 || this.calcList.findIndex((e, idx) => { return idx !== lineIdx && e.calcId === c.calcId }) >= 0) {
+        while (this.calcList.findIndex(e => e.calcId === nId) >= 0) {
           nId++
-        } else {
-          this.calcList[k].calcId = 0
-          this.calcList[k].name = ''
+        }
+        c.calcId = nId
+      }
+
+      // cleanup name and make it unique
+      c.name = Mdf.cleanColumnValueInput(c.name)
+
+      if ((c.name || '') === '' || this.calcList.findIndex((e, idx) => { return idx !== lineIdx && e.name === c.name }) >= 0) {
+        c.name = ((typeof c.name === typeof 'string' && (c.name || '') !== '') ? (c.name + '_') : '') + 'ex_' + c.calcId.toString()
+        if (c.name.length > 32) {
+          c.name = c.name.substring(c.name.length - 32)
         }
       }
-      this.isEdited = this.isAnyDiff()
     },
 
     // description label blur: trim labels
