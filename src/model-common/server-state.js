@@ -9,6 +9,7 @@ export const emptyConfig = () => {
     AllowUserHome: false,
     AllowDownload: false,
     AllowUpload: false,
+    AllowFiles: false,
     AllowMicrodata: false,
     IsJobControl: false,
     IsModelDoc: false,
@@ -38,7 +39,8 @@ export const emptyConfig = () => {
 export const isConfig = (c) => {
   if (!c) return false
   if (!c.hasOwnProperty('OmsName') || !c.hasOwnProperty('AllowUserHome') ||
-    !c.hasOwnProperty('AllowDownload') || !c.hasOwnProperty('AllowUpload') || !c.hasOwnProperty('AllowMicrodata') ||
+    !c.hasOwnProperty('AllowDownload') || !c.hasOwnProperty('AllowUpload') ||
+    !c.hasOwnProperty('AllowFiles') || !c.hasOwnProperty('AllowMicrodata') ||
     !c.hasOwnProperty('IsJobControl') || !c.hasOwnProperty('IsModelDoc') ||
     !c.hasOwnProperty('IsDiskUse') || !c.hasOwnProperty('DiskUse') ||
     !c.hasOwnProperty('Env') || !c.hasOwnProperty('ModelCatalog') || !c.hasOwnProperty('RunCatalog')) {
@@ -510,8 +512,8 @@ type PathItem struct {
   ModTime int64  // file modification time in milliseconds since epoch
 }
 */
-// return empty  emptyUpDownFileItem
-export const emptyUpDownFileItem = () => {
+// return empty  emptyFilePathItem
+export const emptyFilePathItem = () => {
   return {
     Path: '',     // file path in / slash form
     IsDir: false, // if true then it is a directory
@@ -522,7 +524,7 @@ export const emptyUpDownFileItem = () => {
 /* eslint-enable no-multi-spaces */
 
 // return true if this is download-or-upload file item
-export const isUpDownFileItem = (fi) => {
+export const isFilePathItem = (fi) => {
   if (!fi) return false
   if (!fi.hasOwnProperty('Path') || typeof fi.Path !== typeof 'string' ||
     !fi.hasOwnProperty('IsDir') || typeof fi.IsDir !== typeof true ||
@@ -534,17 +536,17 @@ export const isUpDownFileItem = (fi) => {
 }
 
 // return true if this is not empty download-or-upload file item
-export const isNotEmptyUpDownFileItem = (fi) => {
-  if (!isUpDownFileItem(fi)) return false
+export const isNotEmptyFilePathItem = (fi) => {
+  if (!isFilePathItem(fi)) return false
   return (fi.Path || '') !== ''
 }
 
-// return true if each array element isUpDownFileItem()
-export const isUpDownFileTree = (pLst) => {
+// return true if each array element isFilePathItem()
+export const isFilePathTree = (pLst) => {
   if (!pLst) return false
   if (!Array.isArray(pLst)) return false
   for (let k = 0; k < pLst.length; k++) {
-    if (!isUpDownFileItem(pLst[k])) return false
+    if (!isFilePathItem(pLst[k])) return false
   }
   return true
 }

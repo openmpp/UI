@@ -9,6 +9,7 @@ model list:
     {
       Model db.ModelDicRow // model_dic db row
       Dir   string         // model directory, relative to model root and slashed: dir/sub
+      IsIni  bool          // if true the default ini file exists: models/bin/dir/sub/modelName.ini
       Extra string         // if not empty then model extra content
     }
   ]
@@ -23,7 +24,7 @@ export const isModelList = (mLst) => {
   return true
 }
 
-// return model row by digest: find first in model list
+// return model list entry by digest: model_dic row and additional properties
 // digest expected to be unique in models tree
 export const modelByDigest = (dgst, mLst) => {
   if (!dgst || typeof dgst !== typeof 'string') return ''
@@ -101,8 +102,7 @@ export const modelDocLinkByDigest = (dgst, mLst, uiLang, modelLang) => {
   return docLink
 }
 
-// return empty Model
-// model-list/text include join of model_dic and model_dic_txt
+// return empty Model and additional properties of model list
 export const emptyModel = () => {
   return {
     Model: {
@@ -111,7 +111,10 @@ export const emptyModel = () => {
       CreateDateTime: '',
       DefaultLangCode: '',
       Version: ''
-    }
+    },
+    Dir: '',
+    IsIni: false,
+    Extra: ''
   }
 }
 

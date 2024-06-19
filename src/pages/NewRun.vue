@@ -97,7 +97,7 @@
 
         <tr>
           <td
-            :disabled="!isReadonlyWorksetCurrent"
+            :disable="!isReadonlyWorksetCurrent"
             class="q-pr-xs"
             >
             <q-checkbox v-model="useWorkset" :disable="!isReadonlyWorksetCurrent" :label="$t('Use Scenario:')"/>
@@ -114,7 +114,7 @@
 
         <tr>
           <td
-            :disabled="!isCompletedRunCurrent || isRunDeleted"
+            :disable="!isCompletedRunCurrent || isRunDeleted"
             class="q-pr-xs"
             >
             <q-checkbox
@@ -428,7 +428,7 @@
           </tr>
 
           <tr
-            :disabled="!runOpts.csvDir"
+            :disable="!runOpts.csvDir"
             >
             <td class="q-pr-xs">{{ $t('CSV file(s) contain') }}:</td>
             <td class="tc-max-width-10 panel-border rounded-borders">
@@ -438,7 +438,7 @@
           </tr>
 
           <tr
-            :disabled="isEmptyProfileList"
+            :disable="isEmptyProfileList"
             >
             <td class="q-pr-xs">{{ $t('Profile Name') }}:</td>
             <td>
@@ -457,7 +457,7 @@
           </tr>
 
           <tr
-            :disabled="isEmptyRunTemplateList || runOpts.mpiNpCount > 0"
+            :disable="isEmptyRunTemplateList || runOpts.mpiNpCount > 0"
             >
             <td class="q-pr-xs">{{ $t('Model Run Template') }}:</td>
             <td>
@@ -478,19 +478,107 @@
           <template v-if="enableIni">
             <tr>
               <td class="q-pr-xs">
-                <q-checkbox v-model="runOpts.useIni" :label="$t('Use INI-file:')" />
+                <q-checkbox v-model="runOpts.useIni" :disable="(runOpts.iniName || '') === ''" :label="$t('Use INI-file:')" />
               </td>
-              <td>{{ runOpts.iniName }}</td>
+              <td>
+                <div class="row">
+                  <q-btn
+                    v-if="serverConfig.AllowFiles"
+                    @click="showIniFilesTree = !showIniFilesTree"
+                    unelevated
+                    dense
+                    color="primary"
+                    class="col-auto rounded-borders q-mr-xs"
+                    icon="mdi-file-tree"
+                    :title="$t('Select INI-file')"
+                    />
+                  <div class="col">{{ userFileLabel(runOpts.iniName) }}</div>
+                </div>
+              </td>
             </tr>
+
+            <template v-if="showIniFilesTree">
+              <tr>
+                <td></td>
+                <td>
+                  <q-input
+                    ref="iniTreeFilterInput"
+                    debounce="500"
+                    v-model="iniTreeFilter"
+                    outlined
+                    dense
+                    :placeholder="$t('Find files...')"
+                    >
+                    <template v-slot:append>
+                      <q-icon v-if="iniTreeFilter !== ''" name="cancel" class="cursor-pointer" @click="resetIniFilter" />
+                      <q-icon v-else name="search" />
+                    </template>
+                  </q-input>
+                </td>
+              </tr>
+
+              <tr>
+                <td></td>
+                <td>
+                  <q-tree
+                    :nodes="iniTreeData"
+                    node-key="key"
+                    default-expand-all
+                    :filter="iniTreeFilter"
+                    :filter-method="doIniTreeFilter"
+                    :no-results-label="$t('No files found')"
+                    >
+                    <template v-slot:default-header="prop">
+                      <div
+                        v-if="prop.node.isGroup"
+                        class="row no-wrap items-center full-width"
+                        >
+                        <div class="col">
+                          <span>{{ prop.node.label }}
+                            <template v-if="!!prop.node.descr"><br /><span class="mono om-text-descr">{{ prop.node.descr }}</span></template>
+                          </span>
+                        </div>
+                      </div>
+                      <div v-else
+                        @click="onIniLeafClick(prop.node.path)"
+                        class="row no-wrap items-center full-width cursor-pointer om-tree-leaf"
+                        :class="{ 'text-primary' : prop.node.path === runOpts.iniName }"
+                        >
+                        <q-btn
+                          v-if="serverConfig.AllowDownload"
+                          :disable="!prop.node.link"
+                          @click.stop="onIniDownloadClick(prop.node.label, '/files/' + prop.node.link)"
+                          flat
+                          round
+                          dense
+                          :color="!!prop.node.link ? 'primary' : 'secondary'"
+                          class="col-auto"
+                          icon="mdi-download-circle-outline"
+                          :title="$t('Download') + ' ' + prop.node.label"
+                          />
+                        <div class="col">
+                          <span><span :class="{ 'text-bold': prop.node.path === runOpts.iniName }">{{ prop.node.label }}</span><br />
+                          <span
+                            class="mono"
+                            :class="prop.node.path === runOpts.iniName ? 'om-text-descr-selected' : 'om-text-descr'"
+                            >{{ prop.node.descr }}</span>
+                          </span>
+                        </div>
+                      </div>
+                    </template>
+                  </q-tree>
+                </td>
+              </tr>
+            </template>
 
             <tr v-if="enableIniAnyKey">
               <td
-                :disabled="!runOpts.useIni"
+                :disable="!runOpts.useIni"
                 class="q-pr-xs"
                 >
                 <q-checkbox v-model="runOpts.iniAnyKey" :disable="!runOpts.useIni" :label="$t('Development options:')"/>
               </td>
-              <td>{{ runOpts.iniName }}</td>
+              <td>{{ userFileLabel(runOpts.iniName) }}</td>
             </tr>
           </template>
 
@@ -535,7 +623,7 @@
           </tr>
 
           <tr
-            :disabled="!serverConfig.IsJobControl"
+            :disable="!serverConfig.IsJobControl"
             >
             <td class="q-pr-xs">{{ $t('Use Jobs Service') }}:</td>
             <td class="tc-max-width-10 row panel-border rounded-borders">
@@ -550,7 +638,7 @@
           </tr>
 
           <tr
-            :disabled="runOpts.mpiNpCount <= 0 && !runOpts.mpiUseJobs"
+            :disable="runOpts.mpiNpCount <= 0 && !runOpts.mpiUseJobs"
             >
             <td class="q-pr-xs">{{ $t('Use MPI Root for Modelling') }}:</td>
             <td class="tc-max-width-10 row panel-border rounded-borders">
@@ -564,7 +652,7 @@
           </tr>
 
           <tr
-            :disabled="runOpts.mpiNpCount <= 0 && !runOpts.mpiUseJobs"
+            :disable="runOpts.mpiNpCount <= 0 && !runOpts.mpiUseJobs"
             >
             <td class="q-pr-xs">{{ $t('MPI Model Run Template') }}:</td>
             <td>
@@ -631,5 +719,9 @@
   }
   .primary-border-025 {
     border: 0.25rem solid $primary;
+  }
+  .file-link {
+    text-decoration: none;
+    // display: inline-block;
   }
 </style>

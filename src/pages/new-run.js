@@ -12,9 +12,11 @@ import GroupInfoDialog from 'components/GroupInfoDialog.vue'
 import EntityInfoDialog from 'components/EntityInfoDialog.vue'
 import EntityAttrInfoDialog from 'components/EntityAttrInfoDialog.vue'
 import MarkdownEditor from 'components/MarkdownEditor.vue'
+import { openURL } from 'quasar'
 
 const ENTITY_ATTR_WARNING_LIMIT = 16 // total number of entity attributes selected to show warning: too many attributes
 const ENTITY_DIM_WARNING_LIMIT = 4 // number of selected dimension attributes in any entity to show warning: too many attributes
+const USER_FILES_PREFIX = 'OM_USER_FILES/'
 
 export default {
   name: 'NewRun',
@@ -52,6 +54,7 @@ export default {
       profileLst: [],
       enableIni: false,
       enableIniAnyKey: false,
+      iniFileLst: [],
       csvCodeId: 'enumCode',
       runOpts: {
         runName: '',
@@ -106,7 +109,10 @@ export default {
       isRunOptsShow: true,
       runInfoTickle: false,
       worksetInfoTickle: false,
-      txtNewRun: [] // array for run description and notes
+      txtNewRun: [], // array for run description and notes
+      iniTreeData: [],
+      showIniFilesTree: false,
+      iniTreeFilter: ''
     }
   },
 
@@ -116,6 +122,8 @@ export default {
     isNotEmptyLanguageList () { return Mdf.isLangList(this.langList) },
     isEmptyProfileList () { return !Mdf.isLength(this.profileLst) },
     isEmptyRunTemplateList () { return !Mdf.isLength(this.runTemplateLst) },
+    isIniDefault () { return this.modelByDigest(this.digest).IsIni },
+    iniDefaultName () { return this.theModel.Model.Name + '.ini' },
     // return true if current can be used for model run: if workset in read-only state
     isReadonlyWorksetCurrent () {
       return this.worksetCurrent?.Name && this.worksetCurrent?.IsReadonly
@@ -136,6 +144,7 @@ export default {
       langList: state => state.langList
     }),
     ...mapGetters('model', {
+      modelByDigest: 'modelByDigest',
       runTextByDigest: 'runTextByDigest',
       isExistInRunTextList: 'isExistInRunTextList',
       worksetTextByName: 'worksetTextByName',
@@ -163,6 +172,18 @@ export default {
       dispatchServerConfig: 'serverConfig',
       dispatchDiskUse: 'diskUse'
     }),
+    fileTimeStamp (t) {
+      if (!t || t <= 0) return ''
+
+      const dt = new Date()
+      dt.setTime(t)
+      return Mdf.dtToTimeStamp(dt)
+    },
+    fileSizeStr (size) {
+      const fs = Mdf.fileSizeParts(size)
+      return fs.val + ' ' + this.$t(fs.name)
+    },
+
     // update page view
     doRefresh () {
       // refersh server config and disk usage
@@ -236,13 +257,26 @@ export default {
       // check if usage of ini-file options allowed by server
       const cfgIni = Mdf.configEnvValue(this.serverConfig, 'OM_CFG_INI_ALLOW').toLowerCase()
       this.enableIni = cfgIni === 'true' || cfgIni === '1' || cfgIni === 'yes'
-      this.runOpts.iniName = this.enableIni ? this.theModel.Model.Name + '.ini' : ''
+      this.runOpts.iniName = ''
+
+      if (this.enableIni) {
+        if (this.serverConfig.AllowFiles) {
+          for (const name of this.iniFileLst) {
+            if (name === USER_FILES_PREFIX + this.iniDefaultName) this.runOpts.iniName = name
+          }
+        }
+        if (!this.runOpts.iniName) this.runOpts.iniName = this.isIniDefault ? this.iniDefaultName : ''
+      }
 
       const cfgAnyIni = Mdf.configEnvValue(this.serverConfig, 'OM_CFG_INI_ANY_KEY').toLowerCase()
       this.enableIniAnyKey = this.enableIni && (cfgAnyIni === 'true' || cfgAnyIni === '1' || cfgAnyIni === 'yes')
 
-      if (!this.enableIni) this.runOpts.useIni = false
+      if (!this.enableIni || (this.runOpts.iniName || '') === '') this.runOpts.useIni = false
       if (!this.enableIniAnyKey) this.runOpts.iniAnyKey = false
+
+      this.iniTreeData = []
+      this.iniTreeFilter = ''
+      this.showIniFilesTree = false
 
       // get profile list from server
       this.runOpts.profile = ''
@@ -388,6 +422,98 @@ export default {
       } else {
         this.runOpts.mpiUseJobs = this.serverConfig.IsJobControl
       }
+    },
+
+    // return path without user files prefix
+    userFileLabel (path) {
+      if (!path || typeof path !== typeof 'string') return ''
+      return path.startsWith(USER_FILES_PREFIX) ? path.substring(USER_FILES_PREFIX.length) : path + ' (' + this.$t('Default') + ')'
+    },
+    // filter ini files tree nodes by name (label) or description
+    doIniTreeFilter (node, filter) {
+      const flt = filter.toLowerCase()
+      return (node.label && node.label.toLowerCase().indexOf(flt) > -1) ||
+        ((node.descr || '') !== '' && node.descr.toLowerCase().indexOf(flt) > -1)
+    },
+    // clear ini files tree filter value
+    resetIniFilter () {
+      this.iniTreeFilter = ''
+      this.$refs.iniTreeFilterInput.focus()
+    },
+    // select ini file
+    onIniLeafClick (path) {
+      if (!path || path === '') return
+
+      this.runOpts.iniName = path
+      this.runOpts.useIni = true
+    },
+    // open file download url
+    onIniDownloadClick (name, path) {
+      openURL(path)
+    },
+
+    // update ini files tree
+    makeIniTreeData (fLst) {
+      this.iniTreeFilter = ''
+      this.showIniFilesTree = false
+      this.iniTreeData = []
+
+      if (!fLst || !Array.isArray(fLst) || fLst.length <= 0) return // empty file list
+
+      // add root folder
+      const fTree = []
+      const fRoot = {
+        key: 'fi-root-0-ini-0',
+        Path: '/',
+        link: '',
+        label: '*.ini',
+        descr: '',
+        children: [],
+        isGroup: true
+      }
+      fTree.push(fRoot)
+
+      // add default modelName.ini, if exists
+      if (this.isIniDefault) {
+        fRoot.children.push({
+          key: 'fi-default-1-model-ini-1',
+          path: this.iniDefaultName,
+          link: '',
+          label: this.userFileLabel(this.iniDefaultName),
+          descr: '',
+          children: [],
+          isGroup: false
+        })
+      }
+
+      // make href link: for each part of the path do encodeURIComponent and keep / as is
+      const pathEncode = (path) => {
+        if (!path || typeof path !== typeof 'string') return ''
+
+        const ps = path.split('/')
+        for (let k = 0; k < ps.length; k++) {
+          ps[k] = encodeURIComponent(ps[k])
+        }
+        return ps.join('/')
+      }
+
+      // add path to ini filess as children of root folder
+      for (const fi of fLst) {
+        if (!fi.Path || fi.Path === '.' || fi.Path === '..') continue
+        if (fi.Path === '/') continue // root folder already in the tree
+
+        fRoot.children.push({
+          key: 'fi-' + fi.Path + '-' + (fi.ModTime || 0).toString(),
+          path: USER_FILES_PREFIX + fi.Path,
+          link: pathEncode(fi.Path),
+          label: fi.Path,
+          descr: this.fileTimeStamp(fi.ModTime) + (!fi.IsDir ? ' : ' + this.fileSizeStr(fi.Size) : ''),
+          children: [],
+          isGroup: fi.IsDir
+        })
+      }
+
+      this.iniTreeData = Object.freeze(fTree)
     },
 
     // show current run info dialog
@@ -1017,10 +1143,11 @@ export default {
     },
 
     // receive server configuration, including configuration of model catalog and run catalog
+    // receive list of ini files from the server if user files enabled
     async doConfigRefresh () {
       this.loadConfig = true
 
-      const u = this.omsUrl + '/api/service/config'
+      let u = this.omsUrl + '/api/service/config'
       try {
         // send request to the server
         const response = await this.$axios.get(u)
@@ -1033,6 +1160,48 @@ export default {
         console.warn('Server offline or configuration retrieve failed.', em)
         this.$q.notify({ type: 'negative', message: this.$t('Server offline or configuration retrieve failed.') })
       }
+
+      // receive list of ini files from the server if user files enabled
+      let fLst = []
+
+      if (this.serverConfig.AllowFiles) {
+        this.iniFileLst = []
+        let isOk = false
+
+        u = this.omsUrl + '/api/files/file-tree/ini/path'
+        try {
+          const response = await this.$axios.get(u)
+          fLst = response.data
+          isOk = true
+        } catch (e) {
+          let em = ''
+          try {
+            if (e.response) em = e.response.data || ''
+          } finally {}
+          console.warn('Server offline or file tree retrieve failed.', em)
+          this.$q.notify({ type: 'negative', message: this.$t('Server offline or INI-files list retrieve failed.') })
+        }
+
+        // if there are ini files in user files then update ini files path list
+        // select default model ini file, if no ini files already selected
+        if (isOk && Array.isArray(fLst) && Mdf.isFilePathTree(fLst)) {
+          let isDefault = false
+          let isCurrent = false
+          const dnUf = USER_FILES_PREFIX + this.iniDefaultName
+          for (const fi of fLst) {
+            if (fi.IsDir || ((fi.Path || '') === '')) continue
+            const p = USER_FILES_PREFIX + fi.Path
+            this.iniFileLst.push(p)
+            if (p === dnUf) isDefault = true
+            if (p === this.runOpts.iniName) isCurrent = true
+          }
+          if (!isCurrent) this.runOpts.iniName = ''
+          if (this.runOpts.iniName === '' && isDefault) this.runOpts.iniName = dnUf
+          if (!this.runOpts.iniName) this.runOpts.iniName = this.isIniDefault ? this.iniDefaultName : ''
+        }
+      }
+      this.makeIniTreeData(fLst)
+
       this.loadConfig = false
     },
 

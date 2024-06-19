@@ -109,7 +109,7 @@ export default {
       if (this.runOpts.progressStep) rv.Opts['OpenM.ProgressStep'] = this.runOpts.progressStep.toString()
       if ((this.runOpts.csvDir || '') !== '') rv.Opts['OpenM.ParamDir'] = this.runOpts.csvDir
       if (this.runOpts.csvId) rv.Opts['OpenM.IdCsv'] = 'true'
-      if (this.runOpts.useIni) rv.Opts['OpenM.IniFile'] = this.runOpts.iniName
+      if (this.runOpts.useIni && ((this.runOpts.iniName || '') !== '')) rv.Opts['OpenM.IniFile'] = this.runOpts.iniName
       if (this.runOpts.useIni && this.runOpts.iniAnyKey) rv.Opts['OpenM.IniAnyKey'] = 'true'
       if ((this.runOpts.profile || '') !== '') rv.Opts['OpenM.Profile'] = this.runOpts.profile
       if (this.runOpts.sparseOutput) rv.Opts['OpenM.SparseOutput'] = 'true'

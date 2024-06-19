@@ -194,9 +194,11 @@
         <q-btn
           v-if="!isDeleteKind(uds.Kind)"
           @click="onFolderTreeClick('down', uds.Folder)"
-          flat
+          :unelevated="((folderSelected || '') !== uds.Folder) || ((upDownSelected || '') !== 'down')"
+          :outline="((folderSelected || '') === uds.Folder) && ((upDownSelected || '') === 'down')"
           dense
-          class="col-auto bg-primary text-white rounded-borders q-mr-xs"
+          color="primary"
+          class="col-auto rounded-borders q-mr-xs"
           icon="mdi-file-tree"
           :title="(((folderSelected || '') !== uds.Folder || (upDownSelected || '') !== 'down') ? $t('Expand') : $t('Collapse')) + ' ' + uds.Folder"
           />

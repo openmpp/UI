@@ -477,7 +477,7 @@ export default {
       }
       this.loadWait = false
 
-      if (!isOk || !fLst || !Array.isArray(fLst) || fLst.length <= 0 || !Mdf.isUpDownFileTree(fLst)) {
+      if (!isOk || !fLst || !Array.isArray(fLst) || fLst.length <= 0 || !Mdf.isFilePathTree(fLst)) {
         return
       }
 
