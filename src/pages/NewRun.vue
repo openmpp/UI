@@ -527,6 +527,7 @@
                     :filter="iniTreeFilter"
                     :filter-method="doIniTreeFilter"
                     :no-results-label="$t('No files found')"
+                    :no-nodes-label="$t('Server offline or no files found')"
                     >
                     <template v-slot:default-header="prop">
                       <div
@@ -547,7 +548,7 @@
                         <q-btn
                           v-if="serverConfig.AllowDownload"
                           :disable="!prop.node.link"
-                          @click.stop="onIniDownloadClick(prop.node.label, '/files/' + prop.node.link)"
+                          @click.stop="onIniDownloadClick(prop.node.label, prop.node.link)"
                           flat
                           round
                           dense

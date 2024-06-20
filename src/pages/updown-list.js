@@ -35,6 +35,7 @@ export default {
       upStatusLst: [],
       downloadExpand: false,
       uploadExpand: false,
+      filesExpand: false,
       folderSelected: '',
       upDownSelected: '',
       totalDownCount: 0,
@@ -65,9 +66,10 @@ export default {
       runInfoDigest: '',
       worksetInfoTickle: false,
       worksetInfoName: '',
-      showDeleteDialogTickle: false,
+      showUpDownDeleteDialogTickle: false,
       folderToDelete: '',
       upDownToDelete: '',
+      dialogTitleToDelete: '',
       folderTreeData: [],
       isAnyFolderDir: false,
       folderTreeFilter: '',
@@ -76,7 +78,22 @@ export default {
       isNoDigestCheck: false,
       isMicroDownload: false,
       wsUploadFile: null,
-      runUploadFile: null
+      runUploadFile: null,
+      filesTreeData: [],
+      filesTreeFilter: '',
+      isFilesTreeExpanded: false,
+      filesTreeExpanded: [],
+      showFilesDeleteDialogTickle: false,
+      nameToDelete: '',
+      pathToDelete: '',
+      newFolderParentName: '',
+      newFolderParentPath: '',
+      newFolderName: '',
+      showFolderPrompt: false,
+      uploadParentName: '',
+      uploadParentPath: '',
+      showUploadFillePrompt: false,
+      uploadFile: null
     }
   },
 
@@ -89,8 +106,10 @@ export default {
     },
     isDownloadEnabled () { return this.serverConfig.AllowDownload },
     isUploadEnabled () { return this.serverConfig.AllowUpload && this.digest },
+    isFilesEnabled () { return this.serverConfig.AllowFiles },
     wsFileSelected () { return !(this.wsUploadFile === null) && (this.wsUploadFile?.name || '') !== '' },
     runFileSelected () { return !(this.runUploadFile === null) && (this.runUploadFile?.name || '') !== '' },
+    uploadFileSelected () { return !(this.uploadFile === null) && (this.uploadFile?.name || '') !== '' },
 
     ...mapState('model', {
       theModel: state => state.theModel,
@@ -241,16 +260,109 @@ export default {
     },
 
     // delete download or upload results by folder name
-    onDeleteClick (upDown, folder) {
+    onUpDownDeleteClick (upDown, folder) {
       this.folderToDelete = folder
       this.upDownToDelete = upDown
-      this.showDeleteDialogTickle = !this.showDeleteDialogTickle
+      this.dialogTitleToDelete = (upDown === 'up' ? this.$t('Delete upload files') : this.$t('Delete download files')) + '?'
+      this.showUpDownDeleteDialogTickle = !this.showUpDownDeleteDialogTickle
     },
     // user answer Yes to delete download or upload results by folder name
     onYesUpDownDelete (folder, itemId, upDown) {
       this.doDeleteUpDown(upDown, folder)
       this.logRefreshPauseToggle()
       this.isLogRefreshPaused = false
+    },
+
+    // filter user files tree nodes by name (label) or description
+    doFilesTreeFilter (node, filter) {
+      const flt = filter.toLowerCase()
+      return (node.label && node.label.toLowerCase().indexOf(flt) > -1) ||
+        ((node.descr || '') !== '' && node.descr.toLowerCase().indexOf(flt) > -1)
+    },
+    // clear user files tree filter value
+    resetFilesFilter () {
+      this.filesTreeFilter = ''
+      this.$refs.filesTreeFilterInput.focus()
+    },
+    // expand or collapse all user files tree nodes
+    doToogleExpandFilesTree () {
+      if (this.isFilesTreeExpanded) {
+        this.$refs.filesTree.collapseAll()
+      } else {
+        this.$refs.filesTree.expandAll()
+      }
+      this.isFilesTreeExpanded = !this.isFilesTreeExpanded
+    },
+    // open file download url
+    onFilesDownloadClick (name, link) {
+      openURL('/files/' + link)
+    },
+    // return true if if file or folder form user files can be deleted
+    isFilesDeleteEnabled (path) {
+      if (!this.serverConfig.AllowFiles || !this.serverConfig.AllowUpload) return false
+      if (!path || path === '' || path === '.' || path === '..' || path === '/') return false
+      return path !== 'download' && path !== '/download' && path !== 'upload' && path !== '/upload'
+    },
+    // delete file of folder from user files
+    onFilesDeleteClick (name, isGrp, path) {
+      this.nameToDelete = name
+      this.pathToDelete = path
+      this.dialogTitleToDelete = (isGrp ? this.$t('Delete folder') : this.$t('Delete file')) + '?'
+      this.showFilesDeleteDialogTickle = !this.showFilesDeleteDialogTickle
+    },
+    // user answer Yes to delete file of folder from user files
+    onYesFilesDelete (name, path, kind) {
+      this.doDeleteFiles(name, path)
+    },
+    // create new folder in user files directory
+    onFilesCreateFolderClick (parentName, parentPath) {
+      this.newFolderParentName = parentName || ''
+      this.newFolderParentPath = parentPath || ''
+      this.newFolderName = ''
+      this.showFolderPrompt = true
+    },
+    // user entered new folder name
+    onYesNewFolderClick () {
+      this.showFolderPrompt = false
+
+      if (!this.serverConfig.AllowFiles || !this.serverConfig.AllowUpload) return
+      if ((this.newFolderName || '') === '') return
+
+      // cleanup and validate new folder name
+      let name = Mdf.cleanPathInput(this.newFolderName)
+
+      if (this.newFolderName === '.' || this.newFolderName === '..' || this.newFolderName === '/' ||
+        this.newFolderName === 'download' || this.newFolderName === 'upload' ||
+        this.newFolderName !== name.trim()) {
+        console.warn('Invalid name of new folder', this.newFolderName)
+        this.$q.notify({ type: 'negative', message: this.$t('Invalid name of new folder: ') + this.newFolderName })
+        return
+      }
+
+      // create new folder under the parent and refersh user files tree
+      if (this.newFolderParentPath !== '' && this.newFolderParentPath !== '.' && this.newFolderParentPath !== '..' && this.newFolderParentPath !== '/') {
+        name = this.newFolderParentPath + '/' + name
+      }
+      this.doCreateNewFolder(name)
+    },
+    // upload file into user files folder
+    onUploadFileClick (parentName, parentPath) {
+      this.uploadParentName = parentName || ''
+      this.uploadParentPath = parentPath || ''
+      this.uploadFile = null
+      this.showUploadFillePrompt = true
+    },
+    // user selected file for upload into user files directory
+    onYesUploadFileClick () {
+      this.showUploadFillePrompt = false
+
+      if (!this.serverConfig.AllowFiles || !this.serverConfig.AllowUpload) return
+      if (!this.uploadFileSelected) return
+
+      // create new folder under the parent and refersh user files tree
+      const pp = (this.uploadParentPath !== '' && this.uploadParentPath !== '.' && this.uploadParentPath !== '..' && this.uploadParentPath !== '/') ? this.uploadParentPath : ''
+
+      this.doUploadFile(pp)
     },
 
     // update page view
@@ -278,8 +390,13 @@ export default {
       this.folderTreeFilter = ''
       this.fastDownload = this.noAccDownload ? 'yes' : 'no'
       this.isMicroDownload = !this.noAccDownload && !this.noMicrodataDownload && !!this.serverConfig.AllowMicrodata
+      this.filesTreeData = []
+      this.filesTreeFilter = ''
+      this.filesTreeExpanded = []
+
       this.stopLogRefresh()
       this.startLogRefresh()
+      this.doUserFilesRefresh()
     },
 
     // pause on/off log files refresh
@@ -482,13 +599,50 @@ export default {
       }
 
       // update folder files tree
-      const td = this.makeFolderTreeData(fLst)
+      const td = this.makeTreeData(fLst)
       this.isAnyFolderDir = td.isAnyDir
       this.folderTreeData = Object.freeze(td.tree)
     },
 
-    // return tree of model parameters
-    makeFolderTreeData (fLst) {
+    // retrieve list of files in download or upload folder
+    async doUserFilesRefresh () {
+      if (!this.isFilesEnabled) return // user files disabled
+
+      this.loadWait = true
+      let isOk = false
+      let fLst = []
+
+      const u = this.omsUrl + '/api/files/file-tree/_/path'
+      try {
+        const response = await this.$axios.get(u)
+        fLst = response.data
+        isOk = true
+      } catch (e) {
+        let em = ''
+        try {
+          if (e.response) em = e.response.data || ''
+        } finally {}
+        console.warn('Server offline or file tree retrieve failed.', em)
+      }
+      this.loadWait = false
+
+      if (!isOk || !fLst || !Array.isArray(fLst) || fLst.length <= 0 || !Mdf.isFilePathTree(fLst)) {
+        return
+      }
+
+      // update user files tree and expand top level groups
+      const td = this.makeTreeData(fLst)
+      this.isAnyFolderDir = td.isAnyDir
+      this.filesTreeData = Object.freeze(td.tree)
+
+      this.filesTreeExpanded = []
+      for (const f of this.filesTreeData) {
+        if (f.isGroup) this.filesTreeExpanded.push(f.key)
+      }
+    },
+
+    // return tree of files: download folder, upload folder or user files tree
+    makeTreeData (fLst) {
       if (!fLst || !Array.isArray(fLst) || fLst.length <= 0) { // empty file list
         return { isAnyDir: false, tree: [] }
       }
@@ -496,6 +650,7 @@ export default {
       // make files (and folders) map: map file path to folder name and item name (file name or sub-folder name)
       const fPath = {}
       let isAny = false
+      let isRoot = false
 
       for (let k = 0; k < fLst.length; k++) {
         if (!fLst[k].Path || fLst[k].Path === '.' || fLst[k].Path === '..') continue
@@ -504,6 +659,7 @@ export default {
 
         // if root folder
         if (fLst[k].Path === '/') {
+          isRoot = true
           fPath[fLst[k].Path] = { base: '', name: '/', label: '/' }
           continue
         }
@@ -518,6 +674,16 @@ export default {
           base: n >= 0 ? fLst[k].Path.substr(0, n) : '',
           name: n >= 0 ? fLst[k].Path.substr(n) : fLst[k].Path,
           label: n >= 0 ? fLst[k].Path.substr(n + 1) : fLst[k].Path
+        }
+      }
+
+      // if root / folder exists then make all top folders and files children of root folder
+      if (isRoot) {
+        for (const pk in fPath) {
+          if (pk === '/' || pk === '.' || pk === '..') continue // skip root and skip invlaid paths
+          if (fPath[pk].base === '') {
+            fPath[pk].base = '/' // top level folder or file is a child or root / folder
+          }
         }
       }
 
@@ -707,6 +873,45 @@ export default {
       this.downloadExpand = false
     },
 
+    // upload file into user files directory
+    async doUploadFile (parentPath) {
+      // check file name and notify user
+      const fName = this.uploadFile?.name
+      if (!fName) {
+        this.$q.notify({ type: 'negative', message: this.$t('Invalid (empty) file name') })
+        this.uploadFile = null
+        return
+      }
+      const fPath = ((parentPath !== '' && parentPath !== '.' && parentPath !== '..' && parentPath !== '/') ? parentPath + '/' : '') + fName
+
+      this.$q.notify({ type: 'info', message: this.$t('Uploading: ') + fName + '\u2026' })
+
+      // make upload multipart form
+      const fd = new FormData()
+      fd.append('user-files.file', this.uploadFile, fName) // name and file name are ignored by server
+
+      const u = this.omsUrl + '/api/files/file?path=' + encodeURIComponent(fPath)
+      try {
+        // update user file, drop response on success
+        await this.$axios.post(u, fd)
+      } catch (e) {
+        let msg = ''
+        try {
+          if (e.response) msg = e.response.data || ''
+        } finally {}
+        console.warn('Unable to upload file to', msg, fPath)
+        this.$q.notify({ type: 'negative', message: this.$t('Unable to upload file: ') + fName })
+        this.uploadFile = null
+        return
+      }
+
+      // notify user and clean upload file name
+      this.uploadFile = null
+      this.$q.notify({ type: 'info', message: this.$t('Uploaded: ') + fPath })
+
+      this.$nextTick(() => { this.doUserFilesRefresh() })
+    },
+
     // delete download or upload by folder name
     async doDeleteUpDown (upDown, folder) {
       if (!folder || !upDown) {
@@ -737,7 +942,78 @@ export default {
         return
       }
 
+      // notify user and refresh files tree
       this.$q.notify({ type: 'info', message: this.$t('Deleted: ') + folder })
+    },
+
+    // delete from user files folder or file
+    async doDeleteFiles (name, path) {
+      if (!name || !path) {
+        console.warn('Unable to delete: invalid (empty) file name or path')
+        return
+      }
+      this.$q.notify({ type: 'info', message: this.$t('Deleting: ') + name })
+
+      this.loadWait = true
+      let isOk = false
+
+      const u = this.omsUrl + '/api/files/delete?path=' + encodeURIComponent(path)
+      try {
+        // send delete request to the server, response expected to be empty on success
+        await this.$axios.delete(u)
+        isOk = true
+      } catch (e) {
+        let em = ''
+        try {
+          if (e.response) em = e.response.data || ''
+        } finally {}
+        console.warn('Error at delete of:', path, em)
+      }
+      this.loadWait = false
+
+      if (!isOk) {
+        this.$q.notify({ type: 'negative', message: this.$t('Unable to delete: ') + path })
+        return
+      }
+
+      // notify user and refresh files tree
+      this.$q.notify({ type: 'info', message: this.$t('Deleted: ') + name })
+      this.doUserFilesRefresh()
+    },
+
+    // create new folder in user files directory
+    async doCreateNewFolder (path) {
+      if (!path) {
+        console.warn('Unable to create folder: invalid (empty) file name or path')
+        return
+      }
+      this.$q.notify({ type: 'info', message: this.$t('Creating: ') + path })
+
+      this.loadWait = true
+      let isOk = false
+
+      const u = this.omsUrl + '/api/files/folder?path=' + encodeURIComponent(path)
+      try {
+        // send create request to the server, response expected to be empty on success
+        await this.$axios.put(u)
+        isOk = true
+      } catch (e) {
+        let em = ''
+        try {
+          if (e.response) em = e.response.data || ''
+        } finally {}
+        console.warn('Error at creating of:', path, em)
+      }
+      this.loadWait = false
+
+      if (!isOk) {
+        this.$q.notify({ type: 'negative', message: this.$t('Unable to create: ') + path })
+        return
+      }
+
+      // notify user and refresh files tree
+      // this.$q.notify({ type: 'info', message: this.$t('Created: ') + path })
+      this.doUserFilesRefresh()
     },
 
     // receive server configuration, including configuration of model catalog and run catalog

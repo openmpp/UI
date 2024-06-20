@@ -204,7 +204,7 @@
           />
         <q-btn
           v-if="!isDeleteKind(uds.Kind) && !isProgress(uds.Status)"
-          @click="onDeleteClick('down', uds.Folder)"
+          @click="onUpDownDeleteClick('down', uds.Folder)"
           flat
           dense
           class="col-auto bg-primary text-white rounded-borders q-mr-xs"
@@ -389,15 +389,17 @@
         <q-btn
           v-if="!isDeleteKind(uds.Kind)"
           @click="onFolderTreeClick('up', uds.Folder)"
-          flat
+          :unelevated="((folderSelected || '') !== uds.Folder) || ((upDownSelected || '') !== 'up')"
+          :outline="((folderSelected || '') === uds.Folder) && ((upDownSelected || '') === 'up')"
           dense
-          class="col-auto bg-primary text-white rounded-borders q-mr-xs"
+          color="primary"
+          class="col-auto rounded-borders q-mr-xs"
           icon="mdi-file-tree"
           :title="(((folderSelected || '') !== uds.Folder || (upDownSelected || '') !== 'up') ? $t('Expand') : $t('Collapse')) + ' ' + uds.Folder"
           />
         <q-btn
           v-if="!isDeleteKind(uds.Kind) && !isProgress(uds.Status)"
-          @click="onDeleteClick('up', uds.Folder)"
+          @click="onUpDownDeleteClick('up', uds.Folder)"
           flat
           dense
           class="col-auto bg-primary text-white rounded-borders q-mr-xs"
@@ -546,6 +548,147 @@
   </q-card>
   </q-expansion-item>
 
+  <q-expansion-item
+    :disable="!isFilesEnabled"
+    v-model="filesExpand"
+    group="up-down-expand"
+    @show="doUserFilesRefresh"
+    switch-toggle-side
+    expand-separator
+    :label="$t('Files')"
+    header-class="bg-primary text-white"
+    class="q-ma-sm"
+    >
+  <q-card
+    class="up-down-card q-my-sm"
+    >
+    <q-card-section class="q-pb-sm">
+
+      <div
+        class="row no-wrap items-center full-width"
+        >
+        <q-btn
+          v-if="isAnyFolderDir"
+          @click="doToogleExpandFilesTree"
+          dense
+          color="primary"
+          class="col-auto rounded-borders q-mr-xs om-tree-control-button"
+          :icon="isFilesTreeExpanded ? 'keyboard_arrow_up' : 'keyboard_arrow_down'"
+          :title="isFilesTreeExpanded ? $t('Collapse all') : $t('Expand all')"
+          />
+        <q-btn
+          @click="doUserFilesRefresh"
+          dense
+          color="primary"
+          class="col-auto rounded-borders q-mr-xs om-tree-control-button"
+          icon="refresh"
+          :title="$t('Refresh')"
+          :aria-label="$t('Refresh')"
+          />
+        <span class="col-grow">
+          <q-input
+            ref="filesTreeFilterInput"
+            debounce="500"
+            v-model="filesTreeFilter"
+            outlined
+            dense
+            :placeholder="$t('Find files...')"
+            >
+            <template v-slot:append>
+              <q-icon v-if="filesTreeFilter !== ''" name="cancel" class="cursor-pointer" @click="resetFilesFilter" />
+              <q-icon v-else name="search" />
+            </template>
+          </q-input>
+        </span>
+      </div>
+
+      <div class="q-px-sm">
+        <q-tree
+          ref="filesTree"
+          :nodes="filesTreeData"
+          node-key="key"
+          :expanded.sync="filesTreeExpanded"
+          :filter="filesTreeFilter"
+          :filter-method="doFilesTreeFilter"
+          :no-results-label="$t('No files found')"
+          :no-nodes-label="$t('Server offline or no files found')"
+          >
+          <template v-slot:default-header="prop">
+
+            <div
+              v-if="prop.node.isGroup"
+              class="row no-wrap items-center full-width"
+              >
+              <q-btn
+                v-if="serverConfig.AllowUpload"
+                @click.stop="onFilesCreateFolderClick(prop.node.label, prop.node.Path)"
+                flat
+                round
+                dense
+                color="primary"
+                class="col-auto"
+                icon="mdi-folder-plus-outline"
+                :title="$t('Create new folder')"
+                />
+              <q-btn
+                v-if="serverConfig.AllowUpload"
+                @click.stop="onUploadFileClick(prop.node.label, prop.node.Path)"
+                flat
+                round
+                dense
+                color="primary"
+                class="col-auto"
+                icon="mdi-upload-circle-outline"
+                :title="$t('Upload file')"
+                />
+              <q-btn
+                v-if="serverConfig.AllowUpload"
+                :disable="!isFilesDeleteEnabled(prop.node.Path)"
+                @click.stop="onFilesDeleteClick(prop.node.label, true, prop.node.Path)"
+                flat
+                round
+                dense
+                :color="isFilesDeleteEnabled(prop.node.Path) ? 'primary' : 'secondary'"
+                class="col-auto"
+                icon="mdi-delete-outline"
+                :title="$t('Delete: ') + ' ' + prop.node.label"
+                />
+              <div class="col">
+                <span>{{ (prop.node.label !== '/' || !prop.node.descr) ? prop.node.label : '' }} <br v-if="!!prop.node.label && prop.node.label !== '/'"/>
+                <span class="mono om-text-descr">{{ prop.node.descr }}</span></span>
+              </div>
+            </div>
+
+            <div v-else
+              @click="onFilesDownloadClick(prop.node.label, prop.node.link)"
+              class="row no-wrap items-center full-width cursor-pointer om-tree-leaf file-link"
+              >
+              <q-btn
+                v-if="serverConfig.AllowUpload"
+                :disable="!isFilesDeleteEnabled(prop.node.Path)"
+                @click.stop="onFilesDeleteClick(prop.node.label, false, prop.node.Path)"
+                flat
+                round
+                dense
+                :color="isFilesDeleteEnabled(prop.node.Path) ? 'primary' : 'secondary'"
+                class="col-auto"
+                icon="mdi-delete-outline"
+                :title="$t('Delete: ') + ' ' + prop.node.label"
+                />
+              <div class="col">
+                <span class="text-primary">{{ prop.node.label }}<br />
+                <span class="mono om-text-descr">{{ prop.node.descr }}</span></span>
+              </div>
+            </div>
+
+            </template>
+        </q-tree>
+      </div>
+
+    </q-card-section>
+  </q-card>
+  </q-expansion-item>
+
   <model-info-dialog :show-tickle="modelInfoTickle" :digest="modelInfoDigest"></model-info-dialog>
   <run-info-dialog :show-tickle="runInfoTickle" :model-digest="modelInfoDigest" :run-digest="runInfoDigest"></run-info-dialog>
   <workset-info-dialog :show-tickle="worksetInfoTickle" :model-digest="modelInfoDigest" :workset-name="worksetInfoName"></workset-info-dialog>
@@ -561,12 +704,87 @@
 
   <delete-confirm-dialog
     @delete-yes="onYesUpDownDelete"
-    :show-tickle="showDeleteDialogTickle"
+    :show-tickle="showUpDownDeleteDialogTickle"
     :item-name="folderToDelete"
     :kind="upDownToDelete"
-    :dialog-title="(upDownToDelete === 'up' ? $t('Delete upload files') :  $t('Delete download files')) + '?'"
+    :dialog-title="dialogTitleToDelete"
     >
   </delete-confirm-dialog>
+
+  <delete-confirm-dialog
+    @delete-yes="onYesFilesDelete"
+    :show-tickle="showFilesDeleteDialogTickle"
+    :item-name="nameToDelete"
+    :item-id="pathToDelete"
+    :dialog-title="dialogTitleToDelete"
+    >
+  </delete-confirm-dialog>
+
+  <q-dialog v-model="showFolderPrompt">
+    <q-card class="file-prompt text-body1">
+
+      <q-card-section class="text-h6 bg-primary text-white">{{ $t('Enter new folder name') }}</q-card-section>
+
+      <q-card-section horizontal class="items-center q-pa-sm">
+        <q-avatar icon="mdi-folder-plus" color="primary" text-color="white" />
+        <q-input
+          v-model="newFolderName"
+          autofocus
+          dense
+          outlined
+          hide-bottom-space
+          maxlength="255"
+          size="80"
+          color="primary"
+          class="q-ml-xs"
+          @keyup.enter="onYesNewFolderClick"
+          />
+      </q-card-section>
+
+      <q-card-actions align="right">
+        <q-btn :label="$t('Cancel')" flat color="primary" v-close-popup />
+        <q-btn
+          @click="onYesNewFolderClick"
+          :label="$t('OK')" flat color="primary" v-close-popup />
+        </q-card-actions>
+
+    </q-card>
+  </q-dialog>
+
+  <q-dialog v-model="showUploadFillePrompt">
+    <q-card class="file-prompt text-body1">
+
+      <q-card-section class="text-h6 bg-primary text-white">{{ $t('Upload file') }}</q-card-section>
+
+      <q-card-section horizontal class="items-center q-pa-sm">
+        <q-avatar icon="mdi-upload-circle" color="primary" text-color="white" />
+        <q-file
+          v-model="uploadFile"
+          :disable="!isUploadEnabled"
+          outlined
+          dense
+          autofocus
+          clearable
+          hide-bottom-space
+          maxlength="255"
+          size="80"
+          color="primary"
+          class="col-grow q-ml-xs"
+          :label="$t('Select file to upload')"
+          >
+        </q-file>
+      </q-card-section>
+
+      <q-card-actions align="right">
+        <q-btn :label="$t('Cancel')" flat color="primary" v-close-popup />
+        <q-btn
+          :disable="!isUploadEnabled || !uploadFileSelected"
+          @click="onYesUploadFileClick"
+          :label="$t('OK')" flat color="primary" v-close-popup />
+        </q-card-actions>
+
+    </q-card>
+  </q-dialog>
 
   <q-inner-loading :showing="loadWsListWait || loadConfig || loadDiskUse">
     <q-spinner-gears size="lg" color="primary" />
@@ -581,6 +799,9 @@
   .file-link {
     text-decoration: none;
     // display: inline-block;
+  }
+  .file-prompt {
+    min-width: 40rem;
   }
   // override card shadow inside of expansion item
   .q-expansion-item__content > div.up-down-card {

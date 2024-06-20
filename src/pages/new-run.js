@@ -448,8 +448,8 @@ export default {
       this.runOpts.useIni = true
     },
     // open file download url
-    onIniDownloadClick (name, path) {
-      openURL(path)
+    onIniDownloadClick (name, link) {
+      openURL('/files/' + link)
     },
 
     // update ini files tree
@@ -497,7 +497,7 @@ export default {
         return ps.join('/')
       }
 
-      // add path to ini filess as children of root folder
+      // add path to ini files as children of root folder
       for (const fi of fLst) {
         if (!fi.Path || fi.Path === '.' || fi.Path === '..') continue
         if (fi.Path === '/') continue // root folder already in the tree
