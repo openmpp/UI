@@ -323,7 +323,7 @@ export const toCompareFnc = (fncSrc, eSrc) => {
     case 'RATIO':
       return eSrc + '[variant] / ' + eSrc + '[base]'
     case 'PERCENT':
-      return '100.0 * ' + eSrc + '[variant] / ' + eSrc + '[base]'
+      return '100.0 * (' + eSrc + '[variant] - ' + eSrc + '[base]) / ' + eSrc + '[base]'
   }
   return ''
 }
@@ -372,7 +372,7 @@ export const toAggregateCompareFnc = (aggrFnc, cmpFnc, eSrc) => {
     case 'RATIO':
       return toCalcFnc(aggrFnc, eSrc + '[variant] / ' + eSrc + '[base]')
     case 'PERCENT':
-      return toCalcFnc(aggrFnc, '100.0 * ' + eSrc + '[variant] / ' + eSrc + '[base]')
+      return toCalcFnc(aggrFnc, '100.0 * (' + eSrc + '[variant] - ' + eSrc + '[base]) / ' + eSrc + '[base]')
   }
   return ''
 }

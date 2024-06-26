@@ -45,7 +45,7 @@
             <td class="om-p-head-left">{{ $t('Import Digest') }}</td>
             <td class="om-p-cell-left mono">{{ paramText.Param.ImportDigest }}</td>
           </tr>
-          <tr>
+          <tr v-if="(runDigest || '') !== ''">
             <td class="om-p-head-left">{{ $t('Value Digest') }}</td>
             <td class="om-p-cell-left mono">{{ paramRunSet.ValueDigest || $t('Empty') }}</td>
           </tr>

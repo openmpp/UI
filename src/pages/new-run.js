@@ -426,7 +426,7 @@ export default {
 
     // return path without user files prefix
     userFileLabel (path) {
-      if (!path || typeof path !== typeof 'string') return ''
+      if (!path || typeof path !== typeof 'string') return '(' + this.$t('None') + ')'
       return path.startsWith(USER_FILES_PREFIX) ? path.substring(USER_FILES_PREFIX.length) : path + ' (' + this.$t('Default') + ')'
     },
     // filter ini files tree nodes by name (label) or description

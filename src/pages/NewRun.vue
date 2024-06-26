@@ -481,7 +481,7 @@
                 <q-checkbox v-model="runOpts.useIni" :disable="(runOpts.iniName || '') === ''" :label="$t('Use INI-file:')" />
               </td>
               <td>
-                <div class="row">
+                <div class="row items-center">
                   <q-btn
                     v-if="serverConfig.AllowFiles"
                     @click="showIniFilesTree = !showIniFilesTree"
