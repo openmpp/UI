@@ -19,7 +19,7 @@ export const removeEmptyGroups = gTree => {
   // add top level tree nodes as starting point
   const wStack = []
   wStack.push({
-    key: 'param-tree-top-level-node',
+    key: 'walk-tree-top-level-node',
     index: 0,
     isGroup: true,
     children: []

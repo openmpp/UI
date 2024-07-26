@@ -106,7 +106,6 @@ export default {
     },
     isDownloadEnabled () { return this.serverConfig.AllowDownload },
     isUploadEnabled () { return this.serverConfig.AllowUpload && this.digest },
-    isFilesEnabled () { return this.serverConfig.AllowFiles },
     wsFileSelected () { return !(this.wsUploadFile === null) && (this.wsUploadFile?.name || '') !== '' },
     runFileSelected () { return !(this.runUploadFile === null) && (this.runUploadFile?.name || '') !== '' },
     uploadFileSelected () { return !(this.uploadFile === null) && (this.uploadFile?.name || '') !== '' },
@@ -164,13 +163,7 @@ export default {
     isUploadKind (kind) { return kind === 'upload' },
     isAnyDownloadKind (kind) { return kind === 'model' || kind === 'run' || kind === 'workset' },
     isUnkownKind (kind) { return kind !== 'model' && kind !== 'run' && kind !== 'workset' && kind !== 'delete' && kind !== 'upload' },
-    fileTimeStamp (t) {
-      if (!t || t <= 0) return ''
-
-      const dt = new Date()
-      dt.setTime(t)
-      return Mdf.dtToTimeStamp(dt)
-    },
+    fileTimeStamp (t) { return Mdf.modTsToTimeStamp(t) },
     fileSizeStr (size) {
       const fs = Mdf.fileSizeParts(size)
       return fs.val + ' ' + this.$t(fs.name)
@@ -599,14 +592,14 @@ export default {
       }
 
       // update folder files tree
-      const td = this.makeTreeData(fLst)
+      const td = Mdf.makeFileTree(fLst, 'fi')
       this.isAnyFolderDir = td.isAnyDir
       this.folderTreeData = Object.freeze(td.tree)
     },
 
     // retrieve list of files in download or upload folder
     async doUserFilesRefresh () {
-      if (!this.isFilesEnabled) return // user files disabled
+      if (!this.serverConfig.AllowFiles) return // user files disabled
 
       this.loadWait = true
       let isOk = false
@@ -631,7 +624,7 @@ export default {
       }
 
       // update user files tree and expand top level groups
-      const td = this.makeTreeData(fLst)
+      const td = Mdf.makeFileTree(fLst, 'fi')
       this.isAnyFolderDir = td.isAnyDir
       this.filesTreeData = Object.freeze(td.tree)
 
@@ -639,134 +632,6 @@ export default {
       for (const f of this.filesTreeData) {
         if (f.isGroup) this.filesTreeExpanded.push(f.key)
       }
-    },
-
-    // return tree of files: download folder, upload folder or user files tree
-    makeTreeData (fLst) {
-      if (!fLst || !Array.isArray(fLst) || fLst.length <= 0) { // empty file list
-        return { isAnyDir: false, tree: [] }
-      }
-
-      // make files (and folders) map: map file path to folder name and item name (file name or sub-folder name)
-      const fPath = {}
-      let isAny = false
-      let isRoot = false
-
-      for (let k = 0; k < fLst.length; k++) {
-        if (!fLst[k].Path || fLst[k].Path === '.' || fLst[k].Path === '..') continue
-
-        isAny = isAny || fLst[k].IsDir
-
-        // if root folder
-        if (fLst[k].Path === '/') {
-          isRoot = true
-          fPath[fLst[k].Path] = { base: '', name: '/', label: '/' }
-          continue
-        }
-
-        // remove trailing / from path
-        if (fLst[k].Path.endsWith('/')) fLst[k].Path = fLst[k].Path.substr(0, fLst[k].Path.length - 1)
-
-        // split path to the base folder and name, use name without leading / as label
-        const n = fLst[k].Path.lastIndexOf('/')
-
-        fPath[fLst[k].Path] = {
-          base: n >= 0 ? fLst[k].Path.substr(0, n) : '',
-          name: n >= 0 ? fLst[k].Path.substr(n) : fLst[k].Path,
-          label: n >= 0 ? fLst[k].Path.substr(n + 1) : fLst[k].Path
-        }
-      }
-
-      // if root / folder exists then make all top folders and files children of root folder
-      if (isRoot) {
-        for (const pk in fPath) {
-          if (pk === '/' || pk === '.' || pk === '..') continue // skip root and skip invlaid paths
-          if (fPath[pk].base === '') {
-            fPath[pk].base = '/' // top level folder or file is a child or root / folder
-          }
-        }
-      }
-
-      // make href link: for each part of the path do encodeURIComponent and keep / as is
-      const pathEncode = (path) => {
-        if (!path || typeof path !== typeof 'string') return ''
-
-        const ps = path.split('/')
-        for (let k = 0; k < ps.length; k++) {
-          ps[k] = encodeURIComponent(ps[k])
-        }
-        return ps.join('/')
-      }
-
-      // add top level folders and files as starting point into the tree
-      const fTree = []
-      const fProc = []
-      const fDone = {}
-      const fTopFiles = []
-
-      for (const fi of fLst) {
-        if (!fi.Path || fi.Path === '.' || fi.Path === '..') continue
-
-        if (fPath[fi.Path].base !== '') continue // not a top level folder or file
-
-        // make tree node
-        const fn = {
-          key: 'fi-' + fi.Path + '-' + (fi.ModTime || 0).toString(),
-          Path: fi.Path,
-          link: pathEncode(fi.Path),
-          label: fPath[fi.Path].label,
-          descr: this.fileTimeStamp(fi.ModTime) + (!fi.IsDir ? ' : ' + this.fileSizeStr(fi.Size) : ''),
-          children: [],
-          isGroup: fi.IsDir
-        }
-        fDone[fi.Path] = fn
-
-        // if this is top level folder then add it to list of root folders
-        if (fi.IsDir) {
-          fTree.push(fn)
-          fProc.push(fn)
-        } else { // this is top level file
-          fTopFiles.push(fn)
-        }
-      }
-
-      // build folders and files tree
-      while (fProc.length > 0) {
-        const fNow = fProc.pop()
-
-        // make all children of current item
-        for (const fi of fLst) {
-          if (!fi.Path || fi.Path === '.' || fi.Path === '..') continue
-          if (fDone[fi.Path]) continue
-
-          if (fPath[fi.Path].base !== fNow.Path) continue
-
-          const fn = {
-            key: 'fi-' + fi.Path + '-' + (fi.ModTime || 0).toString(),
-            Path: fi.Path,
-            link: pathEncode(fi.Path),
-            label: fPath[fi.Path].label,
-            descr: this.fileTimeStamp(fi.ModTime) + (!fi.IsDir ? ' : ' + this.fileSizeStr(fi.Size) : ''),
-            children: [],
-            isGroup: fi.IsDir
-          }
-          fNow.children.push(fn)
-          fDone[fi.Path] = fn
-
-          if (fi.IsDir) fProc.push(fn)
-        }
-      }
-
-      // update description
-      for (const p in fDone) {
-        const fn = fDone[p]
-        if (fn.isGroup) fn.descr = fn.descr + ' : ' + (fn.children.length || 0).toString() + ' ' + this.$t('file(s)')
-      }
-
-      // push top level files after top level folders
-      fTree.push(...fTopFiles)
-
-      return { isAnyDir: isAny, tree: fTree }
     },
 
     // upload model run zip file

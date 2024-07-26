@@ -389,98 +389,10 @@
             </td>
           </tr>
 
-          <tr>
-            <td class="q-pr-xs">{{ $t('Working Directory') }}:</td>
-            <td>
-              <q-input
-                v-model="runOpts.workDir"
-                maxlength="2048"
-                size="80"
-                @blur="onWorkDirBlur"
-                outlined
-                dense
-                clearable
-                hide-bottom-space
-                :placeholder="$t('Relative path to working directory to run the model')"
-                :title="$t('Path to working directory to run the model')"
-                >
-              </q-input>
-            </td>
-          </tr>
-
-          <tr>
-            <td class="q-pr-xs">{{ $t('CSV Directory') }}:</td>
-            <td>
-              <q-input
-                v-model="runOpts.csvDir"
-                maxlength="2048"
-                size="80"
-                @blur="onCsvDirBlur"
-                outlined
-                dense
-                clearable
-                hide-bottom-space
-                :placeholder="$t('Relative path to parameters.csv directory')"
-                :title="$t('Path to parameters.csv directory')"
-                >
-              </q-input>
-            </td>
-          </tr>
-
-          <tr
-            :disable="!runOpts.csvDir"
-            >
-            <td class="q-pr-xs">{{ $t('CSV file(s) contain') }}:</td>
-            <td class="tc-max-width-10 panel-border rounded-borders">
-              <q-radio v-model="csvCodeId" val="enumCode" :label="$t('Enum Code')" class="q-pr-sm"/>
-              <q-radio v-model="csvCodeId" val="enumId" :label="$t('Enum Id')" />
-            </td>
-          </tr>
-
-          <tr
-            :disable="isEmptyProfileList"
-            >
-            <td class="q-pr-xs">{{ $t('Profile Name') }}:</td>
-            <td>
-              <q-select
-                v-model="runOpts.profile"
-                :options="profileLst"
-                :disable="isEmptyProfileList"
-                outlined
-                dense
-                clearable
-                hide-bottom-space
-                class="tc-min-width-10"
-                :title="$t('Profile name in database to get model run options')"
-                />
-            </td>
-          </tr>
-
-          <tr
-            :disable="isEmptyRunTemplateList || runOpts.mpiNpCount > 0"
-            >
-            <td class="q-pr-xs">{{ $t('Model Run Template') }}:</td>
-            <td>
-              <q-select
-                v-model="runOpts.runTmpl"
-                :options="runTemplateLst"
-                :disable="isEmptyRunTemplateList || runOpts.mpiNpCount > 0"
-                outlined
-                dense
-                clearable
-                hide-bottom-space
-                class="tc-min-width-10"
-                :title="$t('Template to run the model')"
-                />
-            </td>
-          </tr>
-
+          <!-- ini file -->
           <template v-if="enableIni">
             <tr>
               <td class="q-pr-xs">
-                <q-checkbox v-model="runOpts.useIni" :disable="(runOpts.iniName || '') === ''" :label="$t('Use INI-file:')" />
-              </td>
-              <td>
                 <div class="row items-center">
                   <q-btn
                     v-if="serverConfig.AllowFiles"
@@ -488,19 +400,21 @@
                     unelevated
                     dense
                     color="primary"
-                    class="col-auto rounded-borders q-mr-xs"
-                    icon="mdi-file-tree"
+                    class="col-auto rounded-borders"
+                    :icon="showIniFilesTree ? 'keyboard_arrow_up' : 'keyboard_arrow_down'"
                     :title="$t('Select INI-file')"
                     />
-                  <div class="col">{{ userFileLabel(runOpts.iniName) }}</div>
+                  <div class="col"><q-checkbox v-model="runOpts.useIni" :disable="(runOpts.iniName || '') === ''" :label="$t('Use INI-file:')" /></div>
                 </div>
+              </td>
+              <td :class="runOpts.useIni ? ['panel-border', 'rounded-borders'] : []">
+                <div class="q-pl-xs"><span v-if="!!runOpts.iniName">{{ iniFileLabel(runOpts.iniName) }}</span><span v-else class="om-text-descr">{{ '(' + $t('None') + ')' }}</span></div>
               </td>
             </tr>
 
             <template v-if="showIniFilesTree">
               <tr>
-                <td></td>
-                <td>
+                <td colspan="2">
                   <q-input
                     ref="iniTreeFilterInput"
                     debounce="500"
@@ -518,8 +432,7 @@
               </tr>
 
               <tr>
-                <td></td>
-                <td>
+                <td colspan="2">
                   <q-tree
                     :nodes="iniTreeData"
                     node-key="key"
@@ -548,7 +461,7 @@
                         <q-btn
                           v-if="serverConfig.AllowDownload"
                           :disable="!prop.node.link"
-                          @click.stop="onIniDownloadClick(prop.node.label, prop.node.link)"
+                          @click.stop="onFileDownloadClick(prop.node.label, prop.node.link)"
                           flat
                           round
                           dense
@@ -579,9 +492,166 @@
                 >
                 <q-checkbox v-model="runOpts.iniAnyKey" :disable="!runOpts.useIni" :label="$t('Development options:')"/>
               </td>
-              <td>{{ userFileLabel(runOpts.iniName) }}</td>
+              <td :class="(runOpts.useIni && runOpts.iniAnyKey) ? ['panel-border', 'rounded-borders'] : []">
+                <span v-if="!!runOpts.iniName" class="q-pl-xs">{{ iniFileLabel(runOpts.iniName) }}</span><span v-else class="om-text-descr">{{ '(' + $t('None') + ')' }}</span>
+              </td>
             </tr>
+
           </template>
+          <!-- end of ini file -->
+
+          <!-- csv files -->
+          <template v-if="serverConfig.AllowFiles">
+            <tr>
+              <td class="q-pr-xs">
+                <div class="row items-center">
+                  <q-btn
+                    @click="showCsvFilesTree = !showCsvFilesTree"
+                    unelevated
+                    dense
+                    color="primary"
+                    class="col-auto rounded-borders"
+                    :icon="showCsvFilesTree ? 'keyboard_arrow_up' : 'keyboard_arrow_down'"
+                    :title="$t('Select CSV Directory')"
+                    />
+                  <div class="col"><q-checkbox v-model="runOpts.useCsvDir" :disable="(runOpts.csvDir || '') === ''" :label="$t('Use CSV Directory:')" /></div>
+                </div>
+              </td>
+              <td :class="runOpts.useCsvDir ? ['panel-border', 'rounded-borders'] : []">
+                <div class="q-pl-xs"><span v-if="!!runOpts.csvDir">{{ csvDirLabel(runOpts.csvDir) }}</span><span v-else class="om-text-descr">{{ '(' + $t('None') + ')' }}</span></div>
+              </td>
+            </tr>
+
+            <template v-if="showCsvFilesTree">
+              <tr>
+                <td colspan="2">
+                  <q-input
+                    ref="csvTreeFilterInput"
+                    debounce="500"
+                    v-model="csvTreeFilter"
+                    outlined
+                    dense
+                    :placeholder="$t('Find files...')"
+                    >
+                    <template v-slot:append>
+                      <q-icon v-if="csvTreeFilter !== ''" name="cancel" class="cursor-pointer" @click="resetCsvFilter" />
+                      <q-icon v-else name="search" />
+                    </template>
+                  </q-input>
+                </td>
+              </tr>
+
+              <tr>
+                <td colspan="2">
+                  <q-tree
+                    :nodes="csvTreeData"
+                    node-key="key"
+                    :expanded.sync="csvTreeExpanded"
+                    :filter="csvTreeFilter"
+                    :filter-method="doCsvTreeFilter"
+                    :no-results-label="$t('No files found')"
+                    :no-nodes-label="$t('Server offline or no files found')"
+                    >
+                    <template v-slot:default-header="prop">
+                      <div
+                        v-if="prop.node.isGroup"
+                        @click.stop="onCsvDirClick(prop.node.Path)"
+                        class="row no-wrap items-center full-width"
+                        :class="isCsvDirPath(prop.node.Path) ? ['text-primary', 'text-weight-bold'] : []"
+                        >
+                        <div class="col">
+                          <span>{{ prop.node.label }} <br v-if="!!prop.node.label && prop.node.Path !== '/'"/>
+                            <span class="mono om-text-descr">{{ prop.node.descr + ' : ' + csvFileCount(prop.node.children).toString() + ' ' + $t('file(s)') }}</span>
+                          </span>
+                        </div>
+                      </div>
+                      <div v-else
+                        :disable="!serverConfig.AllowDownload || !prop.node.link"
+                        @click.stop="onFileDownloadClick(prop.node.label, prop.node.link)"
+                        class="row no-wrap items-center full-width cursor-pointer om-tree-leaf"
+                        >
+                        <div class="col">
+                          <span class="text-primary">{{ prop.node.label }}<br />
+                          <span class="mono om-text-descr">{{ prop.node.descr  + ' : ' + fileSizeStr(prop.node?.Size || 0) }}</span></span>
+                        </div>
+                      </div>
+                    </template>
+                  </q-tree>
+                </td>
+              </tr>
+            </template>
+
+            <tr>
+              <td
+                :disable="!runOpts.useCsvDir"
+                class="q-pr-xs"
+                >
+                <q-checkbox v-model="runOpts.csvId" :disable="!runOpts.useCsvDir" :label="$t('CSV file(s) contains Id:')"/>
+              </td>
+              <td :class="(runOpts.useCsvDir && runOpts.csvId) ? ['panel-border', 'rounded-borders'] : []">
+                <div class="q-pl-xs"><span v-if="!!runOpts.csvDir">{{ csvDirLabel(runOpts.csvDir) }}</span><span v-else class="om-text-descr">{{ '(' + $t('None') + ')' }}</span></div>
+              </td>
+            </tr>
+
+          </template>
+          <!-- end of csv files -->
+
+          <tr
+            :disable="isEmptyRunTemplateList || runOpts.mpiNpCount > 0"
+            >
+            <td class="q-pr-xs">{{ $t('Model Run Template') }}:</td>
+            <td>
+              <q-select
+                v-model="runOpts.runTmpl"
+                :options="runTemplateLst"
+                :disable="isEmptyRunTemplateList || runOpts.mpiNpCount > 0"
+                outlined
+                dense
+                clearable
+                hide-bottom-space
+                class="tc-min-width-10"
+                :title="$t('Template to run the model')"
+                />
+            </td>
+          </tr>
+
+          <tr>
+            <td class="q-pr-xs">{{ $t('Working Directory') }}:</td>
+            <td>
+              <q-input
+                v-model="runOpts.workDir"
+                maxlength="2048"
+                size="80"
+                @blur="onWorkDirBlur"
+                outlined
+                dense
+                clearable
+                hide-bottom-space
+                :placeholder="$t('Relative path to working directory to run the model')"
+                :title="$t('Path to working directory to run the model')"
+                >
+              </q-input>
+            </td>
+          </tr>
+
+          <tr
+            :disable="isEmptyProfileList"
+            >
+            <td class="q-pr-xs">{{ $t('Profile Name') }}:</td>
+            <td>
+              <q-select
+                v-model="runOpts.profile"
+                :options="profileLst"
+                :disable="isEmptyProfileList"
+                outlined
+                dense
+                clearable
+                hide-bottom-space
+                class="tc-min-width-10"
+                :title="$t('Profile name in database to get model run options')"
+                />
+            </td>
+          </tr>
 
         </table>
       </q-card-section>
@@ -694,7 +764,7 @@
   <entity-info-dialog :show-tickle="entityInfoTickle" :entity-name="entityInfoName"></entity-info-dialog>
   <entity-attr-info-dialog :show-tickle="attrInfoTickle" :entity-name="entityInfoName" :attr-name="attrInfoName"></entity-attr-info-dialog>
 
-  <q-inner-loading :showing="loadWait || loadConfig || loadDiskUse">
+  <q-inner-loading :showing="loadWait || loadConfig || loadDiskUse || loadIni || loadCsv || loadProfile">
     <q-spinner-gears size="md" color="primary" />
   </q-inner-loading>
 

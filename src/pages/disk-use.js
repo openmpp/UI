@@ -71,13 +71,7 @@ export default {
     ...mapActions('model', {
       dispatchModelList: 'modelList'
     }),
-    fileTimeStamp (t) {
-      if (!t || t <= 0) return ''
-
-      const dt = new Date()
-      dt.setTime(t)
-      return Mdf.dtToTimeStamp(dt)
-    },
+    fileTimeStamp (t) { return Mdf.modTsToTimeStamp(t) },
     fileSizeStr (size) {
       const fs = Mdf.fileSizeParts(size)
       return fs.val + ' ' + this.$t(fs.name)

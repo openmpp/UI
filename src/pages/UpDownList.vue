@@ -549,7 +549,7 @@
   </q-expansion-item>
 
   <q-expansion-item
-    :disable="!isFilesEnabled"
+    :disable="!serverConfig.AllowFiles"
     v-model="filesExpand"
     group="up-down-expand"
     @show="doUserFilesRefresh"
@@ -655,7 +655,7 @@
                 />
               <div class="col">
                 <span>{{ (prop.node.label !== '/' || !prop.node.descr) ? prop.node.label : '' }} <br v-if="!!prop.node.label && prop.node.label !== '/'"/>
-                <span class="mono om-text-descr">{{ prop.node.descr }}</span></span>
+                <span class="mono om-text-descr">{{ prop.node.descr + ' : ' + ((prop.node.children.length || 0).toString() + ' ' + $t('file(s)')) }}</span></span>
               </div>
             </div>
 
@@ -677,7 +677,7 @@
                 />
               <div class="col">
                 <span class="text-primary">{{ prop.node.label }}<br />
-                <span class="mono om-text-descr">{{ prop.node.descr }}</span></span>
+                <span class="mono om-text-descr">{{ prop.node.descr  + ' : ' + fileSizeStr(prop.node?.Size || 0) }}</span></span>
               </div>
             </div>
 

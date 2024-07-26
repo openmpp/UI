@@ -78,6 +78,14 @@ export const isUnderscoreTimeStamp = (ts) => {
   return true
 }
 
+// convert file modification time tp timestamp string: YYYY-MM-DD hh:mm:ss.SSS
+export const modTsToTimeStamp = (t) => {
+  if (!t || t <= 0) return ''
+  const dt = new Date()
+  dt.setTime(t)
+  return dtToTimeStamp(dt)
+}
+
 // format date-time to timestamp string: YYYY-MM-DD hh:mm:ss.SSS
 export const dtToTimeStamp = (dt) => {
   if (!dt || !(dt instanceof Date)) return ''

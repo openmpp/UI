@@ -20,6 +20,7 @@ export default {
         progressPercent: 1,
         progressStep: 0,
         workDir: '',
+        useCsvDir: false,
         csvDir: '',
         csvId: false,
         iniName: '',
@@ -107,8 +108,8 @@ export default {
       if ((this.runOpts.workDir || '') !== '') rv.Dir = this.runOpts.workDir
       if ((this.runOpts.progressPercent || 1) !== 1) rv.Opts['OpenM.ProgressPercent'] = this.runOpts.progressPercent.toString()
       if (this.runOpts.progressStep) rv.Opts['OpenM.ProgressStep'] = this.runOpts.progressStep.toString()
-      if ((this.runOpts.csvDir || '') !== '') rv.Opts['OpenM.ParamDir'] = this.runOpts.csvDir
-      if (this.runOpts.csvId) rv.Opts['OpenM.IdCsv'] = 'true'
+      if (this.runOpts.useCsvDir && (this.runOpts.csvDir || '') !== '') rv.Opts['OpenM.ParamDir'] = this.runOpts.csvDir
+      if (this.runOpts.useCsvDir && this.runOpts.csvId) rv.Opts['OpenM.IdCsv'] = 'true'
       if (this.runOpts.useIni && ((this.runOpts.iniName || '') !== '')) rv.Opts['OpenM.IniFile'] = this.runOpts.iniName
       if (this.runOpts.useIni && this.runOpts.iniAnyKey) rv.Opts['OpenM.IniAnyKey'] = 'true'
       if ((this.runOpts.profile || '') !== '') rv.Opts['OpenM.Profile'] = this.runOpts.profile

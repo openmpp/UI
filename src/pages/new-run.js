@@ -55,7 +55,6 @@ export default {
       enableIni: false,
       enableIniAnyKey: false,
       iniFileLst: [],
-      csvCodeId: 'enumCode',
       runOpts: {
         runName: '',
         worksetName: '',
@@ -66,6 +65,7 @@ export default {
         progressPercent: 1,
         progressStep: 0,
         workDir: '',
+        useCsvDir: false,
         csvDir: '',
         csvId: false,
         iniName: '',
@@ -104,12 +104,19 @@ export default {
       },
       loadWait: false,
       loadConfig: false,
+      loadIni: false,
+      loadCsv: false,
+      loadProfile: false,
       isDiskOver: false,
       loadDiskUse: false,
       isRunOptsShow: true,
       runInfoTickle: false,
       worksetInfoTickle: false,
       txtNewRun: [], // array for run description and notes
+      csvTreeData: [],
+      showCsvFilesTree: false,
+      csvTreeFilter: '',
+      csvTreeExpanded: [],
       iniTreeData: [],
       showIniFilesTree: false,
       iniTreeFilter: ''
@@ -172,13 +179,7 @@ export default {
       dispatchServerConfig: 'serverConfig',
       dispatchDiskUse: 'diskUse'
     }),
-    fileTimeStamp (t) {
-      if (!t || t <= 0) return ''
-
-      const dt = new Date()
-      dt.setTime(t)
-      return Mdf.dtToTimeStamp(dt)
-    },
+    fileTimeStamp (t) { return Mdf.modTsToTimeStamp(t) },
     fileSizeStr (size) {
       const fs = Mdf.fileSizeParts(size)
       return fs.val + ' ' + this.$t(fs.name)
@@ -189,6 +190,8 @@ export default {
       // refersh server config and disk usage
       this.doConfigRefresh()
       this.doGetDiskUse()
+      this.doIniRefresh()
+      this.doCsvRefresh()
 
       // use selected run digest as base run digest or previous run digest if user resubmitting the run
       // use selected workset name or previous run workset name if user resubmitting the run
@@ -253,6 +256,13 @@ export default {
         }
         if (!isFound) this.runOpts.mpiTmpl = this.mpiTemplateLst[0]
       }
+
+      // csv directory usage
+      this.runOpts.useCsvDir = this.serverConfig.AllowFiles && ((this.runOpts.csvDir || '') !== '')
+      this.csvTreeData = []
+      this.csvTreeFilter = ''
+      this.showCsvFilesTree = false
+      this.csvTreeExpanded = []
 
       // check if usage of ini-file options allowed by server
       const cfgIni = Mdf.configEnvValue(this.serverConfig, 'OM_CFG_INI_ALLOW').toLowerCase()
@@ -424,11 +434,49 @@ export default {
       }
     },
 
-    // return path without user files prefix
-    userFileLabel (path) {
-      if (!path || typeof path !== typeof 'string') return '(' + this.$t('None') + ')'
-      return path.startsWith(USER_FILES_PREFIX) ? path.substring(USER_FILES_PREFIX.length) : path + ' (' + this.$t('Default') + ')'
+    // filter csv files tree nodes by name (label) or description
+    doCsvTreeFilter (node, filter) {
+      const flt = filter.toLowerCase()
+      return (node.label && node.label.toLowerCase().indexOf(flt) > -1) ||
+        ((node.descr || '') !== '' && node.descr.toLowerCase().indexOf(flt) > -1)
     },
+    // clear csv files tree filter value
+    resetCsvFilter () {
+      this.csvTreeFilter = ''
+      this.$refs.csvTreeFilterInput.focus()
+    },
+    // select csv directory
+    onCsvDirClick (path) {
+      if (!this.serverConfig.AllowFiles || !path || typeof path !== typeof 'string' || path === '') return
+
+      this.runOpts.csvDir = (!path.startsWith(USER_FILES_PREFIX) ? USER_FILES_PREFIX : '') + path
+      this.runOpts.useCsvDir = true
+    },
+    // return true if this is a path to selected csv directory
+    isCsvDirPath (path) {
+      return !!path && typeof path === typeof 'string' && this.runOpts.csvDir === USER_FILES_PREFIX + path
+    },
+    // return csv directory path without user files prefix
+    csvDirLabel (path) {
+      if (!path || typeof path !== typeof 'string') return ''
+      return path.startsWith(USER_FILES_PREFIX) ? path.substring(USER_FILES_PREFIX.length) : path
+    },
+    // return count of of *.csv and *.tsv files
+    // it can be a compatibility issues if server is on Linux and files extension is in upper case, e.g. *.CSV
+    csvFileCount (cLst) {
+      if (!cLst || !Array.isArray(cLst)) return 0
+
+      let nc = 0
+      for (const c of cLst) {
+        if (!c || !c.hasOwnProperty('key')) continue
+        if (!c.hasOwnProperty('isGroup') || typeof c.isGroup !== typeof true || c.isGroup) continue // skip directories
+        if (!c.hasOwnProperty('Path') || typeof c.Path !== typeof 'string') continue
+
+        if (c.Path.endsWith('.csv') || c.Path.endsWith('.tsv')) nc++
+      }
+      return nc
+    },
+
     // filter ini files tree nodes by name (label) or description
     doIniTreeFilter (node, filter) {
       const flt = filter.toLowerCase()
@@ -442,13 +490,19 @@ export default {
     },
     // select ini file
     onIniLeafClick (path) {
-      if (!path || path === '') return
+      if (!this.enableIni || !path || path === '') return
 
       this.runOpts.iniName = path
       this.runOpts.useIni = true
     },
+    // return ini file path without user files prefix
+    iniFileLabel (path) {
+      if (!path || typeof path !== typeof 'string') return ''
+      return path.startsWith(USER_FILES_PREFIX) ? path.substring(USER_FILES_PREFIX.length) : path + ' (' + this.$t('Default') + ')'
+    },
+
     // open file download url
-    onIniDownloadClick (name, link) {
+    onFileDownloadClick (name, link) {
       openURL('/files/' + link)
     },
 
@@ -479,7 +533,7 @@ export default {
           key: 'fi-default-1-model-ini-1',
           path: this.iniDefaultName,
           link: '',
-          label: this.userFileLabel(this.iniDefaultName),
+          label: this.iniFileLabel(this.iniDefaultName),
           descr: '',
           children: [],
           isGroup: false
@@ -497,10 +551,10 @@ export default {
         return ps.join('/')
       }
 
-      // add path to ini files as children of root folder
+      // add path to all ini files as children of root folder, skip any other folders
       for (const fi of fLst) {
         if (!fi.Path || fi.Path === '.' || fi.Path === '..') continue
-        if (fi.Path === '/') continue // root folder already in the tree
+        if (fi.Path === '/' || fi.IsDir) continue // skip all folders
 
         fRoot.children.push({
           key: 'fi-' + fi.Path + '-' + (fi.ModTime || 0).toString(),
@@ -514,6 +568,38 @@ export default {
       }
 
       this.iniTreeData = Object.freeze(fTree)
+    },
+
+    // update csv files tree
+    makeCsvTreeData (fLst) {
+      this.csvTreeFilter = ''
+      this.showCsvFilesTree = false
+      this.csvTreeData = []
+      if (!fLst || !Array.isArray(fLst) || fLst.length <= 0) return // empty file list
+
+      // update user files tree
+      const td = Mdf.makeFileTree(fLst, 'ct')
+
+      if (td.isRootDir) {
+        this.csvTreeData = Object.freeze(td.tree)
+      } else {
+        const fRoot = {
+          key: 'ct-root-0-csv-0',
+          Path: '/',
+          link: '',
+          label: '*.csv *.tsv',
+          descr: '',
+          children: td.tree,
+          isGroup: true
+        }
+        this.csvTreeData = Object.freeze([fRoot])
+      }
+
+      // expand top level groups
+      this.csvTreeExpanded = []
+      for (const f of this.csvTreeData) {
+        if (f.isGroup) this.csvTreeExpanded.push(f.key)
+      }
     },
 
     // show current run info dialog
@@ -771,11 +857,6 @@ export default {
       const { isEntered, dir } = this.doDirClean(this.runOpts.workDir)
       this.runOpts.workDir = isEntered ? dir : ''
     },
-    // check if csv directory path entered and cleanup input to be compatible with file paths rules
-    onCsvDirBlur () {
-      const { isEntered, dir } = this.doDirClean(this.runOpts.csvDir)
-      this.runOpts.csvDir = isEntered ? dir : ''
-    },
     doDirClean (dirValue) {
       return (dirValue || '') ? { isEntered: true, dir: Mdf.cleanPathInput(dirValue) } : { isEntered: false, dir: '' }
     },
@@ -808,10 +889,15 @@ export default {
       }
       this.runOpts.workDir = ps.workDir ?? this.runOpts.workDir
       this.runOpts.csvDir = ps.csvDir ?? this.runOpts.csvDir
-      this.csvCodeId = ps.csvCodeId ?? this.csvCodeId
+      this.runOpts.useCsvDir = this.serverConfig.AllowFiles && ((this.runOpts.csvDir || '') !== '') && (ps.useCsvDir ?? this.runOpts.useCsvDir)
+      this.runOpts.csvId = this.serverConfig.AllowFiles && ((this.runOpts.csvDir || '') !== '') && (ps.csvId ?? this.runOpt.csvId)
       if (this.enableIni) {
-        this.runOpts.useIni = ps.useIni ?? this.runOpts.useIni
+        this.runOpts.iniName = ps.iniName ?? this.runOpts.iniName
+        this.runOpts.useIni = ((this.runOpts.iniName || '') !== '') && (ps.useIni ?? this.runOpts.useIni)
         if (this.enableIniAnyKey && this.runOpts.useIni) this.runOpts.iniAnyKey = ps.iniAnyKey ?? this.runOpts.iniAnyKey
+      } else {
+        this.runOpts.useIni = false
+        this.enableIniAnyKey = false
       }
       this.runOpts.profile = ps.profile ?? this.runOpts.profile
       this.runOpts.sparseOutput = ps.sparseOutput ?? this.runOpts.sparseOutput
@@ -829,8 +915,9 @@ export default {
 
       this.advOptsExpanded = (ps.threadCount || 0) > 1 ||
         (ps.workDir || '') !== '' ||
+        !!ps.useCsvDir ||
         (ps.csvDir || '') !== '' ||
-        (ps.csvCodeId || 'enumCode') !== 'enumCode' ||
+        !!ps.csvId ||
         !!ps.useIni ||
         !!ps.iniAnyKey ||
         (ps.profile || '') !== '' ||
@@ -871,14 +958,14 @@ export default {
       if (this.runOpts.progressStep < 0) {
         this.runOpts.progressStep = 0
       }
-
       this.runOpts.workDir = rReq.Dir ?? this.runOpts.workDir
-      this.runOpts.csvDir = Mdf.getRunOption(rReq.Opts, 'OpenM.ParamDir') || this.runOpts.csvDir
-      this.runOpts.csvId = Mdf.getBoolRunOption(rReq.Opts, 'OpenM.IdCsv')
-      if (this.runOpts.csvId) {
-        this.csvCodeId = 'enumId'
-      }
 
+      this.runOpts.useCsvDir = false
+      if (this.serverConfig.AllowFiles) {
+        this.runOpts.csvDir = Mdf.getRunOption(rReq.Opts, 'OpenM.ParamDir') || ''
+        this.runOpts.useCsvDir = this.runOpts.csvDir !== ''
+        if (this.runOpts.useCsvDir) this.runOpts.csvId = Mdf.getBoolRunOption(rReq.Opts, 'OpenM.IdCsv')
+      }
       if (this.enableIni) {
         this.runOpts.iniName = Mdf.getRunOption(rReq.Opts, 'OpenM.IniFile')
         this.runOpts.useIni = this.runOpts.iniName !== ''
@@ -963,7 +1050,7 @@ export default {
       this.advOptsExpanded = (rReq.Threads || 0) > 1 ||
         (rReq.Dir || '') !== '' ||
         (this.runOpts.csvDir || '') !== '' ||
-        (this.csvCodeId || 'enumCode') !== 'enumCode' ||
+        !!this.csvId ||
         !!this.runOpts.useIni ||
         !!this.runOpts.iniAnyKey ||
         (this.runOpts.profile || '') !== '' ||
@@ -980,7 +1067,7 @@ export default {
       const dgst = (this.useBaseRun && this.isCompletedRunCurrent) ? this.runCurrent?.RunDigest || '' : ''
       const wsName = (this.useWorkset && this.isReadonlyWorksetCurrent) ? this.worksetCurrent?.Name || '' : ''
 
-      if (!dgst && !this.runOpts.csvDir) {
+      if (!dgst && (!this.serverConfig.AllowFiles || !this.runOpts.useCsvDir || ((this.runOpts.csvDir || '') === ''))) {
         if (!wsName) {
           this.$q.notify({ type: 'warning', message: this.$t('Please use input scenario or base model run or CSV files to specifiy input parameters') })
           return
@@ -1002,7 +1089,6 @@ export default {
       this.runOpts.threadCount = Mdf.cleanIntNonNegativeInput(this.runOpts.threadCount, 1)
       this.runOpts.workDir = Mdf.cleanPathInput(this.runOpts.workDir)
       this.runOpts.csvDir = Mdf.cleanPathInput(this.runOpts.csvDir)
-      this.runOpts.csvId = (this.csvCodeId || '') !== 'enumCode'
       this.runOpts.useIni = (this.enableIni && this.runOpts.useIni) || false
       this.runOpts.iniAnyKey = (this.enableIniAnyKey && this.runOpts.useIni && this.runOpts.iniAnyKey) || false
       this.runOpts.profile = Mdf.cleanTextInput(this.runOpts.profile)
@@ -1143,11 +1229,10 @@ export default {
     },
 
     // receive server configuration, including configuration of model catalog and run catalog
-    // receive list of ini files from the server if user files enabled
     async doConfigRefresh () {
       this.loadConfig = true
 
-      let u = this.omsUrl + '/api/service/config'
+      const u = this.omsUrl + '/api/service/config'
       try {
         // send request to the server
         const response = await this.$axios.get(u)
@@ -1161,6 +1246,13 @@ export default {
         this.$q.notify({ type: 'negative', message: this.$t('Server offline or configuration retrieve failed.') })
       }
 
+      this.loadConfig = false
+    },
+
+    // receive list of ini files from the server if user files enabled
+    async doIniRefresh () {
+      this.loadIni = true
+
       // receive list of ini files from the server if user files enabled
       let fLst = []
 
@@ -1168,7 +1260,7 @@ export default {
         this.iniFileLst = []
         let isOk = false
 
-        u = this.omsUrl + '/api/files/file-tree/ini/path'
+        const u = this.omsUrl + '/api/files/file-tree/ini/path'
         try {
           const response = await this.$axios.get(u)
           fLst = response.data
@@ -1178,8 +1270,8 @@ export default {
           try {
             if (e.response) em = e.response.data || ''
           } finally {}
-          console.warn('Server offline or file tree retrieve failed.', em)
-          this.$q.notify({ type: 'negative', message: this.$t('Server offline or INI-files list retrieve failed.') })
+          console.warn('Server offline or INI files list retrieve failed.', em)
+          this.$q.notify({ type: 'negative', message: this.$t('Server offline or INI files list retrieve failed.') })
         }
 
         // if there are ini files in user files then update ini files path list
@@ -1202,7 +1294,49 @@ export default {
       }
       this.makeIniTreeData(fLst)
 
-      this.loadConfig = false
+      this.loadIni = false
+    },
+
+    // receive csv files tree from the server if user files enabled
+    async doCsvRefresh () {
+      this.loadCsv = true
+
+      // receive list of csv and tsv files from the server if user files enabled
+      let fLst = []
+
+      if (this.serverConfig.AllowFiles) {
+        let isOk = false
+
+        const u = this.omsUrl + '/api/files/file-tree/' + encodeURIComponent('csv,tsv') + '/path'
+        try {
+          const response = await this.$axios.get(u)
+          fLst = response.data
+          isOk = true
+        } catch (e) {
+          let em = ''
+          try {
+            if (e.response) em = e.response.data || ''
+          } finally {}
+          console.warn('Server offline or CSV files tree retrieve failed.', em)
+          this.$q.notify({ type: 'negative', message: this.$t('Server offline or CSV files tree retrieve failed.') })
+        }
+
+        // if there are csv files in user files then update csv files tree
+        // if current csv directory not does exists then de-select current csv directory
+        if (isOk && Array.isArray(fLst) && Mdf.isFilePathTree(fLst)) {
+          let isCurrent = false
+          for (const fi of fLst) {
+            if (fi.IsDir || ((fi.Path || '') === '')) continue
+            isCurrent = fi.Path === this.runOpts.csvDir
+            if (isCurrent) break
+          }
+          if (!isCurrent) this.runOpts.csvDir = ''
+        }
+        if (this.runOpts.csvDir === '') this.runOpts.useCsvDir = false
+      }
+      this.makeCsvTreeData(fLst)
+
+      this.loadCsv = false
     },
 
     // receive disk space usage from server
@@ -1239,7 +1373,7 @@ export default {
     // receive profile list by model digest
     async doProfileListRefresh () {
       let isOk = false
-      this.loadWait = true
+      this.loadProfile = true
 
       const u = this.omsUrl + '/api/model/' + encodeURIComponent(this.digest) + '/profile-list'
       try {
@@ -1265,7 +1399,7 @@ export default {
       if (!isOk) {
         this.$q.notify({ type: 'negative', message: this.$t('Server offline or profile list retrieve failed: ') + this.digest })
       }
-      this.loadWait = false
+      this.loadProfile = false
     }
   },
 
