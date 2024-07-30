@@ -456,7 +456,7 @@
                       <div v-else
                         @click="onIniLeafClick(prop.node.path)"
                         class="row no-wrap items-center full-width cursor-pointer om-tree-leaf"
-                        :class="{ 'text-primary' : prop.node.path === runOpts.iniName }"
+                        :class="{ 'text-primary' : (runOpts.useIni && prop.node.path === runOpts.iniName) }"
                         >
                         <q-btn
                           v-if="serverConfig.AllowDownload"
@@ -471,10 +471,10 @@
                           :title="$t('Download') + ' ' + prop.node.label"
                           />
                         <div class="col">
-                          <span><span :class="{ 'text-bold': prop.node.path === runOpts.iniName }">{{ prop.node.label }}</span><br />
+                          <span><span :class="{ 'text-bold': (runOpts.useIni && prop.node.path === runOpts.iniName) }">{{ prop.node.label }}</span><br />
                           <span
                             class="mono"
-                            :class="prop.node.path === runOpts.iniName ? 'om-text-descr-selected' : 'om-text-descr'"
+                            :class="(runOpts.useIni && prop.node.path === runOpts.iniName) ? 'om-text-descr-selected' : 'om-text-descr'"
                             >{{ prop.node.descr }}</span>
                           </span>
                         </div>
@@ -565,11 +565,23 @@
                           </span>
                         </div>
                       </div>
+
                       <div v-else
                         :disable="!serverConfig.AllowDownload || !prop.node.link"
-                        @click.stop="onFileDownloadClick(prop.node.label, prop.node.link)"
+                        @click="onFileDownloadClick(prop.node.label, prop.node.link)"
                         class="row no-wrap items-center full-width cursor-pointer om-tree-leaf"
                         >
+                        <q-btn
+                          v-if="serverConfig.AllowDownload"
+                          :disable="!prop.node.link"
+                          flat
+                          round
+                          dense
+                          :color="!!prop.node.link ? 'primary' : 'secondary'"
+                          class="col-auto"
+                          icon="mdi-download-circle-outline"
+                          :title="$t('Download') + ' ' + prop.node.label"
+                          />
                         <div class="col">
                           <span class="text-primary">{{ prop.node.label }}<br />
                           <span class="mono om-text-descr">{{ prop.node.descr  + ' : ' + fileSizeStr(prop.node?.Size || 0) }}</span></span>

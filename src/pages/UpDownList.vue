@@ -638,7 +638,7 @@
                 dense
                 color="primary"
                 class="col-auto"
-                icon="mdi-upload-circle-outline"
+                icon="mdi-upload"
                 :title="$t('Upload file')"
                 />
               <q-btn
@@ -674,6 +674,15 @@
                 class="col-auto"
                 icon="mdi-delete-outline"
                 :title="$t('Delete: ') + ' ' + prop.node.label"
+                />
+              <q-btn
+                flat
+                round
+                dense
+                color="primary"
+                class="col-auto"
+                icon="mdi-download-circle-outline"
+                :title="$t('Download') + ' ' + prop.node.label"
                 />
               <div class="col">
                 <span class="text-primary">{{ prop.node.label }}<br />
@@ -757,7 +766,15 @@
       <q-card-section class="text-h6 bg-primary text-white">{{ $t('Upload file') }}</q-card-section>
 
       <q-card-section horizontal class="items-center q-pa-sm">
-        <q-avatar icon="mdi-upload-circle" color="primary" text-color="white" />
+        <q-btn
+          @click="onYesUploadFileClick"
+          :disable="isDiskOver || !isUploadEnabled || !uploadFileSelected"
+          flat
+          dense
+          class="col-auto bg-primary text-white rounded-borders"
+          icon="mdi-upload"
+          :title="$t('Upload file')"
+          />
         <q-file
           v-model="uploadFile"
           :disable="!isUploadEnabled"
@@ -778,7 +795,7 @@
       <q-card-actions align="right">
         <q-btn :label="$t('Cancel')" flat color="primary" v-close-popup />
         <q-btn
-          :disable="!isUploadEnabled || !uploadFileSelected"
+          :disable="isDiskOver || !isUploadEnabled || !uploadFileSelected"
           @click="onYesUploadFileClick"
           :label="$t('OK')" flat color="primary" v-close-popup />
         </q-card-actions>

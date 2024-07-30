@@ -454,7 +454,7 @@ export default {
     },
     // return true if this is a path to selected csv directory
     isCsvDirPath (path) {
-      return !!path && typeof path === typeof 'string' && this.runOpts.csvDir === USER_FILES_PREFIX + path
+      return !!path && typeof path === typeof 'string' && this.runOpts.useCsvDir && this.runOpts.csvDir === USER_FILES_PREFIX + path
     },
     // return csv directory path without user files prefix
     csvDirLabel (path) {
@@ -890,7 +890,7 @@ export default {
       this.runOpts.workDir = ps.workDir ?? this.runOpts.workDir
       this.runOpts.csvDir = ps.csvDir ?? this.runOpts.csvDir
       this.runOpts.useCsvDir = this.serverConfig.AllowFiles && ((this.runOpts.csvDir || '') !== '') && (ps.useCsvDir ?? this.runOpts.useCsvDir)
-      this.runOpts.csvId = this.serverConfig.AllowFiles && ((this.runOpts.csvDir || '') !== '') && (ps.csvId ?? this.runOpt.csvId)
+      this.runOpts.csvId = this.serverConfig.AllowFiles && ((this.runOpts.csvDir || '') !== '') && (ps.csvId ?? this.runOpts.csvId)
       if (this.enableIni) {
         this.runOpts.iniName = ps.iniName ?? this.runOpts.iniName
         this.runOpts.useIni = ((this.runOpts.iniName || '') !== '') && (ps.useIni ?? this.runOpts.useIni)
