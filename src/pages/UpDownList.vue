@@ -735,7 +735,15 @@
       <q-card-section class="text-h6 bg-primary text-white">{{ $t('Enter new folder name') }}</q-card-section>
 
       <q-card-section horizontal class="items-center q-pa-sm">
-        <q-avatar icon="mdi-folder-plus" color="primary" text-color="white" />
+        <q-btn
+          @click="onYesNewFolderClick"
+          :disable="!isUploadEnabled || !newFolderName"
+          flat
+          dense
+          class="col-auto bg-primary text-white rounded-borders"
+          icon="mdi-folder-plus"
+          :title="$t('Create new folder')"
+          />
         <q-input
           v-model="newFolderName"
           autofocus
