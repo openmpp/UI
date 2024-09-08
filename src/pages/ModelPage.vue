@@ -53,34 +53,34 @@
       class="col inline"
       >
       <span
-        v-for="t in tabItems"
-        :key="t.path"
+        v-for="tb in tabItems"
+        :key="tb.path"
         class="row no-wrap om-tab-hdr text-white"
-        :class="{'om-bg-inactive': t.path !== activeTabKey}"
+        :class="{'om-bg-inactive': tb.path !== activeTabKey}"
         >
         <q-route-tab
-          :name="t.path"
-          :to="t.path"
+          :name="tb.path"
+          :to="tb.path"
           exact
           class="full-width q-pa-xs"
           >
           <span class="row inline full-width no-wrap justify-start">
-            <q-icon v-if="t.kind === 'run-list'" name="mdi-folder-table" size="sm" class="self-center q-pr-xs"/>
-            <q-icon v-if="t.kind === 'set-list'" name="mdi-folder-edit" size="sm" class="self-center q-pr-xs"/>
-            <q-icon v-if="t.kind === 'new-run'" name="mdi-run" size="sm" class="self-center q-pr-xs"/>
-            <q-icon v-if="t.kind === 'run-parameter'" name="mdi-table-arrow-left" size="sm" class="self-center q-pr-xs"/>
-            <q-icon v-if="!t.updated && t.kind === 'set-parameter'" name="mdi-table-edit" size="sm" class="self-center q-pr-xs"/>
-            <q-icon v-if="t.updated && t.kind === 'set-parameter'" name="mdi-content-save-edit" size="sm" class="self-center q-pr-xs"/>
-            <q-icon v-if="t.kind === 'table'" name="mdi-table-large" size="sm" class="self-center q-pr-xs"/>
-            <q-icon v-if="t.kind === 'entity'" name="mdi-microscope" size="sm" class="self-center q-pr-xs"/>
-            <q-icon v-if="t.kind === 'run-log'" name="mdi-text-long" size="sm" class="self-center q-pr-xs"/>
-            <q-icon v-if="t.kind === 'updown-list'" name="mdi-download-circle-outline" size="sm" class="self-center q-pr-xs"/>
-            <span class="col-shrink om-tab-title" :title="tabTitle(t.kind, t.routeParts)">{{ tabTitle(t.kind, t.routeParts) }}</span>
-            <q-badge v-if="t.kind === 'run-list'" transparent outline class="q-ml-xs">{{ runTextCount }}</q-badge>
-            <q-badge v-if="t.kind === 'set-list'" transparent outline class="q-ml-xs">{{ worksetTextCount }}</q-badge>
+            <q-icon v-if="tb.kind === 'run-list'" name="mdi-folder-table" size="sm" class="self-center q-pr-xs"/>
+            <q-icon v-if="tb.kind === 'set-list'" name="mdi-folder-edit" size="sm" class="self-center q-pr-xs"/>
+            <q-icon v-if="tb.kind === 'new-run'" name="mdi-run" size="sm" class="self-center q-pr-xs"/>
+            <q-icon v-if="tb.kind === 'run-parameter'" name="mdi-table-arrow-left" size="sm" class="self-center q-pr-xs"/>
+            <q-icon v-if="!tb.updated && tb.kind === 'set-parameter'" name="mdi-table-edit" size="sm" class="self-center q-pr-xs"/>
+            <q-icon v-if="tb.updated && tb.kind === 'set-parameter'" name="mdi-content-save-edit" size="sm" class="self-center q-pr-xs"/>
+            <q-icon v-if="tb.kind === 'table'" name="mdi-table-large" size="sm" class="self-center q-pr-xs"/>
+            <q-icon v-if="tb.kind === 'entity'" name="mdi-microscope" size="sm" class="self-center q-pr-xs"/>
+            <q-icon v-if="tb.kind === 'run-log'" name="mdi-text-long" size="sm" class="self-center q-pr-xs"/>
+            <q-icon v-if="tb.kind === 'updown-list'" name="mdi-download-circle-outline" size="sm" class="self-center q-pr-xs"/>
+            <span class="col-shrink om-tab-title" :title="tabTitle(tb.kind, tb.routeParts)">{{ tabTitle(tb.kind, tb.routeParts) }}</span>
+            <q-badge v-if="tb.kind === 'run-list'" transparent outline class="q-ml-xs">{{ runTextCount }}</q-badge>
+            <q-badge v-if="tb.kind === 'set-list'" transparent outline class="q-ml-xs">{{ worksetTextCount }}</q-badge>
             <q-icon
-              v-if="!t.updated && !!tabItems && tabItems.length > 1"
-              @click="onTabCloseClick(t.path, $event)"
+              v-if="!tb.updated && !!tabItems && tabItems.length > 1"
+              @click="onTabCloseClick(tb.path, $event)"
               name="mdi-close"
               class="q-ml-md"
               :title="$t('close')"
@@ -103,26 +103,26 @@
       <q-menu auto-close>
         <q-list dense>
           <q-item
-            v-for="t in tabItems"
-            :key="t.path"
-            :name="t.path"
-            :to="t.path"
+            v-for="tb in tabItems"
+            :key="tb.path"
+            :name="tb.path"
+            :to="tb.path"
             clickable
             >
             <q-item-section avatar>
-              <q-icon v-if="t.kind === 'run-list'" name="mdi-folder-table-outline" />
-              <q-icon v-if="t.kind === 'set-list'" name="mdi-folder-edit-outline" />
-              <q-icon v-if="t.kind === 'new-run'" name="mdi-run" />
-              <q-icon v-if="t.kind === 'run-parameter'" name="mdi-table-arrow-left" />
-              <q-icon v-if="!t.updated && t.kind === 'set-parameter'" name="mdi-table-edit" />
-              <q-icon v-if="t.updated && t.kind === 'set-parameter'" name="mdi-content-save-edit" />
-              <q-icon v-if="t.kind === 'table'" name="mdi-table-large" />
-              <q-icon v-if="t.kind === 'entity'" name="mdi-microscope" />
-              <q-icon v-if="t.kind === 'run-log'" name="mdi-text-long" />
-              <q-icon v-if="t.kind === 'updown-list'" name="mdi-download-circle-outline" />
+              <q-icon v-if="tb.kind === 'run-list'" name="mdi-folder-table-outline" />
+              <q-icon v-if="tb.kind === 'set-list'" name="mdi-folder-edit-outline" />
+              <q-icon v-if="tb.kind === 'new-run'" name="mdi-run" />
+              <q-icon v-if="tb.kind === 'run-parameter'" name="mdi-table-arrow-left" />
+              <q-icon v-if="!tb.updated && tb.kind === 'set-parameter'" name="mdi-table-edit" />
+              <q-icon v-if="tb.updated && tb.kind === 'set-parameter'" name="mdi-content-save-edit" />
+              <q-icon v-if="tb.kind === 'table'" name="mdi-table-large" />
+              <q-icon v-if="tb.kind === 'entity'" name="mdi-microscope" />
+              <q-icon v-if="tb.kind === 'run-log'" name="mdi-text-long" />
+              <q-icon v-if="tb.kind === 'updown-list'" name="mdi-download-circle-outline" />
             </q-item-section>
             <q-item-section>
-              <q-item-label lines="1" :title="tabTitle(t.kind, t.routeParts)">{{ tabTitle(t.kind, t.routeParts) }}</q-item-label>
+              <q-item-label lines="1" :title="tabTitle(tb.kind, tb.routeParts)">{{ tabTitle(tb.kind, tb.routeParts) }}</q-item-label>
             </q-item-section>
           </q-item>
         </q-list>
@@ -132,7 +132,6 @@
   </div>
 
   <router-view
-    ref="theTab"
     :refresh-tickle="refreshTickle"
     :to-up-down-section="toUpDownSection"
     @tab-mounted="onTabMounted"
@@ -157,7 +156,7 @@
     @set-list-refresh="onWorksetListRefresh"
     @run-list-delete="onRunListDelete"
     @set-list-delete="onWorksetListDelete"
-    @set-param-delete="onWorksetParamDelete"
+    @set-parameter-delete="onWorksetParamDelete"
     >
   </router-view>
 

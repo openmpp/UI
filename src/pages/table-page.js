@@ -1,4 +1,7 @@
-import { mapState, mapGetters, mapActions } from 'vuex'
+import { mapState, mapActions } from 'pinia'
+import { useModelStore } from '../stores/model'
+import { useServerStateStore } from '../stores/server-state'
+import { useUiStateStore } from '../stores/ui-state'
 import * as Mdf from 'src/model-common'
 import * as Idb from 'src/idb/idb'
 import RunBar from 'components/RunBar.vue'
@@ -6,7 +9,7 @@ import RefreshRun from 'components/RefreshRun.vue'
 import RunInfoDialog from 'components/RunInfoDialog.vue'
 import TableInfoDialog from 'components/TableInfoDialog.vue'
 import ValueFilterDialog from 'components/ValueFilterDialog.vue'
-import draggable from 'vuedraggable'
+import { VueDraggableNext } from 'vue-draggable-next'
 import * as Pcvt from 'components/pivot-cvt'
 import * as Puih from './pivot-ui-helper'
 import PvTable from 'components/PvTable'
@@ -24,7 +27,7 @@ const LAST_PAGE_OFFSET = 2 * 1024 * 1024 * 1024 // large page offset to get the 
 
 export default {
   name: 'TablePage',
-  components: { draggable, PvTable, RunBar, RefreshRun, RunInfoDialog, TableInfoDialog, ValueFilterDialog },
+  components: { draggable: VueDraggableNext, PvTable, RunBar, RefreshRun, RunInfoDialog, TableInfoDialog, ValueFilterDialog },
 
   props: {
     digest: { type: String, default: '' },
@@ -59,8 +62,13 @@ export default {
         isRowColModeToggle: true,
         isPvTickle: false,      // used to update view of pivot table (on data selection change)
         isPvDimsTickle: false,  // used to update dimensions in pivot table (on label change)
-        formatOpts: void 0,     // hide format controls by default
-        kind: Puih.tkind.EXPR   // table view content: expressions, accumulators, all-accumulators
+        // formatOpts: void 0,     // hide format controls by default
+        kind: Puih.tkind.EXPR,  // table view content: expressions, accumulators, all-accumulators
+        //
+        isRawUseView: false, // v3 copy of isRawUse
+        isRawView: false,    // v3 copy of isRawValue
+        isMoreView: false,   // v3 copy of isDoMore
+        isLessView: false    // v3 copy of isDoLess
       },
       pvc: {
         rowColMode: Pcvt.SPANS_AND_DIMS_PVT,  // rows and columns mode: 2 = use spans and show dim names
@@ -78,6 +86,7 @@ export default {
       pvKeyPos: [],           // position of each dimension item in cell key
       srcCalc: '',            // calculation source name, ex.: AVG
       isDragging: false,      // if true then user is dragging dimension select control
+      selectDimName: '',      // selected dimension name
       exprDimPos: 0,          // expression dimension position: table ExprPos
       totalEnumLabel: '',     // total enum item label, language-specific, ex.: All
       isPages: false,
@@ -140,23 +149,17 @@ export default {
       return !!mv && Array.isArray(mv?.digestCompareList) && mv.digestCompareList.length > 0
     },
 
-    ...mapState('model', {
-      theModel: state => state.theModel,
-      wordList: state => state.wordList
+    ...mapState(useModelStore, [
+      'theModel',
+      'wordList'
+    ]),
+    ...mapState(useServerStateStore, {
+      omsUrl: 'omsUrl'
     }),
-    ...mapGetters('model', {
-      runTextByDigest: 'runTextByDigest'
-    }),
-    ...mapState('uiState', {
-      uiLang: state => state.uiLang
-    }),
-    ...mapGetters('uiState', {
-      modelViewSelected: 'modelViewSelected',
-      tableView: 'tableView'
-    }),
-    ...mapState('serverState', {
-      omsUrl: state => state.omsUrl
-    })
+    ...mapState(useUiStateStore, [
+      'uiLang',
+      'tableView'
+    ])
   },
 
   watch: {
@@ -164,11 +167,19 @@ export default {
     refreshTickle () { this.doRefresh() }
   },
 
+  emits: ['table-view-saved', 'tab-mounted'],
+
   methods: {
-    ...mapActions('uiState', {
-      dispatchTableView: 'tableView',
-      dispatchTableViewDelete: 'tableViewDelete'
-    }),
+    ...mapActions(useModelStore, [
+      'runTextByDigest'
+    ]),
+    ...mapActions(useUiStateStore, [
+      'modelViewSelected',
+      //
+      'dispatchTableView',
+      'dispatchTableViewDelete'
+    ]),
+
     async doRefresh () {
       this.initView()
       await this.setPageView()
@@ -255,7 +266,7 @@ export default {
           }
         }
 
-        f.enums = Object.freeze(eLst)
+        f.enums = eLst
         f.options = f.enums
         f.filter = Puih.makeFilter(f)
 
@@ -359,12 +370,12 @@ export default {
       }
       if (maxDec < 0) maxDec = Pcvt.maxDecimalDefault // if model decimals=-1, which is display all then limit decimals = 4
 
-      fe.enums = Object.freeze(eLst)
+      fe.enums = eLst
       fe.options = fe.enums
       fe.filter = Puih.makeFilter(fe)
       this.dimProp[this.rank] = fe // expression measure dimension at [rank] position
 
-      fc.enums = Object.freeze(this.calcEnums)
+      fc.enums = this.calcEnums
       fc.options = fc.enums
       fc.filter = Puih.makeFilter(fc)
       this.dimProp[this.rank + 4] = fc // calculated measure dimension at [rank + 4] position
@@ -397,7 +408,7 @@ export default {
           })
         }
 
-        fa.enums = Object.freeze(eaLst)
+        fa.enums = eaLst
         fa.options = fa.enums
         fa.filter = Puih.makeFilter(fa)
 
@@ -423,7 +434,7 @@ export default {
       for (let k = 0; k < this.subCount; k++) {
         esLst[k] = { value: k, name: k.toString(), label: k.toString() }
       }
-      fs.enums = Object.freeze(esLst)
+      fs.enums = esLst
       fs.options = fs.enums
       fs.filter = Puih.makeFilter(fs)
 
@@ -627,9 +638,15 @@ export default {
         isByKey: (this.ctrl.kind === Puih.tkind.EXPR || this.ctrl.kind === Puih.tkind.CALC),
         itemsFormat: exprFmt
       })
-      this.ctrl.formatOpts = this.pvc.formatter.options()
       this.pvc.dimItemKeys = Pcvt.dimItemKeys(EXPR_DIM_NAME)
       this.pvc.cellClass = 'pv-cell-right'
+
+      // this.ctrl.formatOpts = this.pvc.formatter.options()
+      // format view controls
+      this.ctrl.isRawUseView = this.pvc.formatter.options().isRawUse
+      this.ctrl.isRawView = this.pvc.formatter.options().isRawValue
+      this.ctrl.isMoreView = this.pvc.formatter.options().isDoMore
+      this.ctrl.isLessView = this.pvc.formatter.options().isDoLess
     },
 
     // set page view: use previous page view from store or default
@@ -651,7 +668,7 @@ export default {
 
       // calculated measure dimension at [rank + 4] position
       const fce = (this.ctrl.kind === Puih.tkind.CALC) ? this.calcEnums : this.compareEnums
-      this.dimProp[this.rank + 4].enums = Object.freeze(fce)
+      this.dimProp[this.rank + 4].enums = fce
       this.dimProp[this.rank + 4].options = this.dimProp[this.rank + 4].enums
       this.dimProp[this.rank + 4].filter = Puih.makeFilter(this.dimProp[this.rank + 4])
 
@@ -1070,7 +1087,7 @@ export default {
       const mNewIdx = this.rank + 4
 
       const fce = (!isCmp) ? this.calcEnums : this.compareEnums
-      this.dimProp[mNewIdx].enums = Object.freeze(fce)
+      this.dimProp[mNewIdx].enums = fce
       this.dimProp[mNewIdx].options = this.dimProp[mNewIdx].enums
       this.dimProp[mNewIdx].filter = Puih.makeFilter(this.dimProp[mNewIdx])
 
@@ -1159,6 +1176,20 @@ export default {
     },
     // set calculation items decimals: zero decimals if calculation is count else max decimals
     setCalcDecimals (src) {
+      const itFmt = this.pvc.formatter.options().itemsFormat
+      for (const cId in itFmt) {
+        if (cId >= Mdf.CALCULATED_ID_OFFSET && itFmt[cId] !== void 0) {
+          if (src === 'COUNT') {
+            itFmt[cId].nDecimal = 0
+            itFmt[cId].maxDecimal = 0
+          }
+          if (src === 'PERCENT') {
+            itFmt[cId].nDecimal = 2
+            itFmt[cId].maxDecimal = 2
+          }
+        }
+      }
+      /*
       for (const cId in this.ctrl.formatOpts.itemsFormat) {
         if (cId >= Mdf.CALCULATED_ID_OFFSET && this.ctrl.formatOpts.itemsFormat[cId] !== void 0) {
           if (src === 'COUNT') {
@@ -1171,6 +1202,7 @@ export default {
           }
         }
       }
+      */
     },
     // update name and label for calculated items
     setCalcEnumsNameLabel (src, ecLst) {
@@ -1413,7 +1445,7 @@ export default {
       }
       // calculated measure dimension at [rank + 4] position
       const fce = (this.ctrl.kind === Puih.tkind.CALC) ? this.calcEnums : this.compareEnums
-      this.dimProp[this.rank + 4].enums = Object.freeze(fce)
+      this.dimProp[this.rank + 4].enums = fce
       this.dimProp[this.rank + 4].options = this.dimProp[this.rank + 4].enums
       this.dimProp[this.rank + 4].filter = Puih.makeFilter(this.dimProp[this.rank + 4])
 
@@ -1546,16 +1578,28 @@ export default {
     onShowMoreFormat () {
       if (!this.pvc.formatter) return
       this.pvc.formatter.doMore()
+      this.ctrl.isMoreView = this.pvc.formatter.options().isDoMore
+      this.ctrl.isLessView = this.pvc.formatter.options().isDoLess
+      this.ctrl.isRawView = this.pvc.formatter.options().isRawValue
+      this.ctrl.isPvTickle = !this.ctrl.isPvTickle
     },
     // show less decimals (or less details) in table body
     onShowLessFormat () {
       if (!this.pvc.formatter) return
       this.pvc.formatter.doLess()
+      this.ctrl.isMoreView = this.pvc.formatter.options().isDoMore
+      this.ctrl.isLessView = this.pvc.formatter.options().isDoLess
+      this.ctrl.isRawView = this.pvc.formatter.options().isRawValue
+      this.ctrl.isPvTickle = !this.ctrl.isPvTickle
     },
     // toogle to formatted value or to raw value in table body
     onToggleRawValue () {
       if (!this.pvc.formatter) return
       this.pvc.formatter.doRawValue()
+      this.ctrl.isMoreView = this.pvc.formatter.options().isDoMore
+      this.ctrl.isLessView = this.pvc.formatter.options().isDoLess
+      this.ctrl.isRawView = this.pvc.formatter.options().isRawValue
+      this.ctrl.isPvTickle = !this.ctrl.isPvTickle
     },
     // copy tab separated values to clipboard: forward actions to pivot table component
     onCopyToClipboard () {
@@ -1563,7 +1607,8 @@ export default {
     },
 
     // view table rows by pages
-    onPageSize () {
+    onPageSize (size) {
+      this.pageSize = size
       if (this.isAllPageSize()) {
         this.pageStart = 0
         this.pageSize = 0
@@ -1767,7 +1812,61 @@ export default {
         kind: this.ctrl.kind
       })
     },
+    onUpdateSelect (vals) {
+      if (this.isDragging) return // exit: this is drag-and-drop, no changes in selection yet
 
+      // find dimension and check if it other panel
+      const f = this.dimProp.find((d) => d.name === this.selectDimName)
+      if (!f) {
+        console.warn('Invalid (empty) selected dimension:', this.selectDimName)
+        this.$q.notify({ type: 'negative', message: this.$t('Invalid (empty) selected dimension') })
+        return
+      }
+      const isOther = this.otherFields.findIndex((p) => f.name === p.name) >= 0
+
+      // sync dimension selection values
+      f.selection.splice(0, f.selection.length)
+      if (!isOther) {
+        f.selection.push(...vals)
+      } else {
+        f.singleSelection = vals
+        f.selection.push(vals)
+      }
+      f.selection.sort(
+        (left, right) => (left.value === right.value) ? 0 : ((left.value < right.value) ? -1 : 1)
+      )
+
+      // update pivot view:
+      //   if other dimesions filters same as before then update pivot table view now
+      //   else refresh data
+      if (!isOther || Puih.equalFilterState(this.filterState, this.otherFields, ALL_ACC_DIM_NAME)) {
+        this.ctrl.isPvTickle = !this.ctrl.isPvTickle
+        if (f.name === ALL_ACC_DIM_NAME) {
+          this.filterState = Puih.makeFilterState(this.otherFields)
+        }
+      } else {
+        this.doRefreshDataPage()
+      }
+      // update pivot view rows, columns, other dimensions
+      this.dispatchTableView({
+        key: this.routeKey,
+        rows: Pcvt.pivotStateFields(this.rowFields),
+        cols: Pcvt.pivotStateFields(this.colFields),
+        others: Pcvt.pivotStateFields(this.otherFields),
+        kind: this.ctrl.kind
+      })
+    },
+    onFocusSelect (e) {
+      this.selectDimName = ''
+      const p = e?.target?.closest('div[id^=item-draggable-]')
+      if (p) {
+        this.selectDimName = (p?.getAttribute('id') || '').slice('item-draggable-'.length)
+      }
+      if (!this.selectDimName) {
+        console.warn('Invalid (empty) selected dimension:', this.selectDimName)
+        this.$q.notify({ type: 'negative', message: this.$t('Invalid (empty) selected dimension') })
+      }
+    },
     // do "select all" items: all which are visible through filter options
     onSelectAll (name) {
       const f = this.dimProp.find((d) => d.name === name)

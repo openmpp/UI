@@ -282,10 +282,10 @@
             </q-item>
           </template>
 
-          <template v-if="ctrl.formatOpts && ctrl.formatOpts.isFloat">
+          <template v-if="ctrl.isFloatView">
             <q-item
               @click="onShowMoreFormat"
-              :disable="!ctrl.formatOpts.isDoMore"
+              :disable="!ctrl.isMoreView"
               v-close-popup
               clickable
               >
@@ -296,7 +296,7 @@
             </q-item>
             <q-item
               @click="onShowLessFormat"
-              :disable="!ctrl.formatOpts.isDoLess"
+              :disable="!ctrl.isLessView"
               v-close-popup
               clickable
               >
@@ -307,7 +307,7 @@
             </q-item>
           </template>
           <q-item
-            v-if="ctrl.formatOpts && ctrl.formatOpts.isRawUse"
+            v-if="ctrl.isRawUseView"
             @click="onToggleRawValue"
             v-close-popup
             clickable
@@ -315,7 +315,7 @@
             <q-item-section avatar>
               <q-icon color="primary" name="mdi-loupe" />
             </q-item-section>
-            <q-item-section>{{ !ctrl.formatOpts.isRawValue ? $t('Show raw source value') : $t('Show formatted value') }}</q-item-section>
+            <q-item-section>{{ !ctrl.isRawView ? $t('Show raw source value') : $t('Show formatted value') }}</q-item-section>
           </q-item>
           <q-item
             @click="onShowItemNames"
@@ -426,8 +426,8 @@
           :title="$t('Last page')"
           />
         <q-select
-          v-model="pageSize"
-          @input="onPageSize"
+          :model-value="pageSize"
+           @update:model-value="onPageSize"
           :options="[10, 40, 100, 200, 400, 1000, 2000, 4000, 10000, 20000, 0]"
           :option-label="(val) => (!val || typeof val !== typeof 1 || val <= 0) ? $t('All') : val.toLocaleString()"
           outlined
@@ -634,7 +634,7 @@
       :unelevated="ctrl.isRowColControls"
       dense
       color="primary"
-      :class="{ 'q-mr-xs' : ctrl.isRowColModeToggle || ctrl.formatOpts }"
+      :class="{ 'q-mr-xs' : ctrl.isRowColModeToggle }"
       class="col-auto rounded-borders q-mr-xs"
       :icon="ctrl.isRowColControls ? 'mdi-table-headers-eye-off' : 'mdi-table-headers-eye'"
       :title="ctrl.isRowColControls ? $t('Hide rows and columns bars') : $t('Show rows and columns bars')"
@@ -677,17 +677,16 @@
           unelevated
           dense
           color="primary"
-          class="col-auto rounded-borders"
-          :class="{ 'q-mr-xs' : ctrl.formatOpts }"
+          class="col-auto rounded-borders q-mr-xs"
           icon="mdi-view-module-outline"
           :title="$t('Table view: always show rows and columns item')"
           />
       </template>
 
-    <template v-if="ctrl.formatOpts && ctrl.formatOpts.isFloat">
+    <template v-if="ctrl.isFloatView">
       <q-btn
         @click="onShowMoreFormat"
-        :disable="!ctrl.formatOpts.isDoMore"
+        :disable="!ctrl.isMoreView"
         unelevated
         dense
         color="primary"
@@ -697,7 +696,7 @@
         />
       <q-btn
         @click="onShowLessFormat"
-        :disable="!ctrl.formatOpts.isDoLess"
+        :disable="!ctrl.isLessView"
         unelevated
         dense
         color="primary"
@@ -707,15 +706,15 @@
         />
     </template>
     <q-btn
-      v-if="ctrl.formatOpts && ctrl.formatOpts.isRawUse"
+      v-if="ctrl.isRawUseView"
       @click="onToggleRawValue"
-      :unelevated="!ctrl.formatOpts.isRawValue"
-      :outline="ctrl.formatOpts.isRawValue"
+      :unelevated="!ctrl.isRawView"
+      :outline="ctrl.isRawView"
       dense
       color="primary"
       class="col-auto rounded-borders"
       icon="mdi-loupe"
-      :title="!ctrl.formatOpts.isRawValue ? $t('Show raw source value') : $t('Show formatted value')"
+      :title="!ctrl.isRawView ? $t('Show raw source value') : $t('Show formatted value')"
       />
     <q-btn
       @click="onShowItemNames"
@@ -770,7 +769,7 @@
       <draggable
         v-model="otherFields"
         group="fields"
-        :disabled="isOtherDropDisabled"
+        :disabled="!!isOtherDropDisabled ? true : null"
         @start="onDrag"
         @end="onDrop"
         @choose="onChoose"
@@ -780,7 +779,9 @@
         >
         <div v-for="f in otherFields" :key="f.name" :id="'item-draggable-' + f.name" class="field-drag om-text-medium">
           <q-select
-            v-model="f.singleSelection"
+           :model-value="f.singleSelection"
+            @update:model-value="onUpdateSelect"
+            @focus="onFocusSelect"
             :options="f.options"
             :option-label="pvc.isShowNames ? 'name' : 'label'"
             @input="onSelectInput('other', f.name, f.singleSelection)"
@@ -862,7 +863,9 @@
           </template>
           <template v-else>
             <q-select
-              v-model="f.selection"
+              :model-value="f.selection"
+              @update:model-value="onUpdateSelect"
+              @focus="onFocusSelect"
               :options="f.options"
               :option-label="pvc.isShowNames ? 'name' : 'label'"
               @input="onSelectInput('col', f.name, f.selection)"
@@ -952,8 +955,9 @@
           </template>
           <template v-else>
             <q-select
-              v-model="f.selection"
-              :name="f.name"
+              :model-value="f.selection"
+              @update:model-value="onUpdateSelect"
+              @focus="onFocusSelect"
               :options="f.options"
               :option-label="pvc.isShowNames ? 'name' : 'label'"
               @input="onSelectInput('row', f.name, f.selection)"

@@ -19,7 +19,7 @@
       class="col-auto"
       >
       <span v-if="isNotEmptyRun">{{ runText.Name }}<br />
-      <span class="om-text-descr"><span class="mono">{{ lastDateTimeStr }} </span>{{ descrOfRun }}</span></span>
+      <span class="om-text-descr"><span class="mono q-pr-sm">{{ lastDateTimeStr }}</span>{{ descrOfRun }}</span></span>
       <span v-else disabled>{{ $t('Server offline or model run not found') }}</span>
     </div>
 
@@ -27,7 +27,9 @@
 </template>
 
 <script>
-import { mapState, mapGetters } from 'vuex'
+import { mapState, mapActions } from 'pinia'
+import { useModelStore } from '../stores/model'
+import { useServerStateStore } from '../stores/server-state'
 import * as Mdf from 'src/model-common'
 
 export default {
@@ -53,14 +55,11 @@ export default {
     lastDateTimeStr () { return Mdf.dtStr(this.runText.UpdateDateTime) },
     descrOfRun () { return Mdf.descrOfTxt(this.runText) },
 
-    ...mapState('model', {
-      runTextListUpdated: state => state.runTextListUpdated
-    }),
-    ...mapGetters('model', {
-      runTextByDigest: 'runTextByDigest'
-    }),
-    ...mapState('serverState', {
-      serverConfig: state => state.config
+    ...mapState(useModelStore, [
+      'runTextListUpdated'
+    ]),
+    ...mapState(useServerStateStore, {
+      serverConfig: 'config'
     })
   },
 
@@ -71,7 +70,11 @@ export default {
     runTextListUpdated () { this.doRefresh() }
   },
 
+  emits: ['run-info-click'],
+
   methods: {
+    ...mapActions(useModelStore, ['runTextByDigest']),
+
     doRefresh () {
       this.runText = this.runTextByDigest({ ModelDigest: this.modelDigest, RunDigest: this.runDigest })
     },

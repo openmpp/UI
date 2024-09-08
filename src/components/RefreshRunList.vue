@@ -1,6 +1,9 @@
 <!-- reload run-text-list by digest -->
 <script>
-import { mapState, mapActions } from 'vuex'
+import { mapState, mapActions } from 'pinia'
+import { useModelStore } from '../stores/model'
+import { useServerStateStore } from '../stores/server-state'
+import { useUiStateStore } from '../stores/ui-state'
 
 export default {
   name: 'RefreshRunList',
@@ -11,7 +14,7 @@ export default {
     refreshRunListTickle: { type: Boolean, default: false }
   },
 
-  render () { return {} }, // no html
+  render () { return null }, // no html
 
   data () {
     return {
@@ -21,15 +24,13 @@ export default {
   },
 
   computed: {
-    ...mapState('model', {
-      runTextList: state => state.runTextList
+    ...mapState(useModelStore, [
+      'runTextList'
+    ]),
+    ...mapState(useServerStateStore, {
+      omsUrl: 'omsUrl'
     }),
-    ...mapState('uiState', {
-      uiLang: state => state.uiLang
-    }),
-    ...mapState('serverState', {
-      omsUrl: state => state.omsUrl
-    })
+    ...mapState(useUiStateStore, ['uiLang'])
   },
 
   watch: {
@@ -37,10 +38,11 @@ export default {
     refreshRunListTickle () { this.doRefresh() }
   },
 
+  emits: ['done', 'wait'],
+
   methods: {
-    ...mapActions('model', {
-      dispatchRunTextList: 'runTextList'
-    }),
+    ...mapActions(useModelStore, ['dispatchRunTextList']),
+
     // refersh run list
     async doRefresh () {
       if (!this.digest) {

@@ -225,9 +225,6 @@ export default {
     }
   },
 
-  watch: {
-  },
-
   methods: {
     isNotEmptyJob () { return Mdf.isNotEmptyJobItem(this.jobItem) },
     isAnyMicrodata () {

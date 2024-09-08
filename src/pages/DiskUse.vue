@@ -125,7 +125,7 @@
                 unelevated
                 round
                 color="primary"
-                icon="mdi-update"
+                icon="mdi-delete-clock"
                 :title="$t('Cleanup model database')"
                 />
             </td>

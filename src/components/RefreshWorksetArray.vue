@@ -1,6 +1,9 @@
 <!-- reload array of workset-text by model digest and array of workset names -->
 <script>
-import { mapState, mapActions } from 'vuex'
+import { mapState, mapActions } from 'pinia'
+import { useModelStore } from '../stores/model'
+import { useServerStateStore } from '../stores/server-state'
+import { useUiStateStore } from '../stores/ui-state'
 
 export default {
   name: 'RefreshWorksetArray',
@@ -12,7 +15,7 @@ export default {
     refreshAllTickle: { type: Boolean, default: false }
   },
 
-  render () { return {} }, // no html
+  render () { return null }, // no html
 
   data () {
     return {
@@ -22,12 +25,10 @@ export default {
   },
 
   computed: {
-    ...mapState('uiState', {
-      uiLang: state => state.uiLang
+    ...mapState(useServerStateStore, {
+      omsUrl: 'omsUrl'
     }),
-    ...mapState('serverState', {
-      omsUrl: state => state.omsUrl
-    })
+    ...mapState(useUiStateStore, ['uiLang'])
   },
 
   watch: {
@@ -35,10 +36,11 @@ export default {
     refreshAllTickle () { this.doRefresh() }
   },
 
+  emits: ['done', 'wait'],
+
   methods: {
-    ...mapActions('model', {
-      dispatchWorksetText: 'worksetText'
-    }),
+    ...mapActions(useModelStore, ['dispatchWorksetText']),
+
     // refersh array of workset-text by array of worksets names
     async doRefresh () {
       if (!Array.isArray(this.worksetNameArray) || (this.worksetNameArray.length || 0) === 0) return // exit if array of names is empty: nothing to do

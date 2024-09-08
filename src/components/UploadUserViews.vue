@@ -1,6 +1,8 @@
 <!-- upload user model views on server to save in home directory model view file -->
 <script>
-import { mapState } from 'vuex'
+import { mapState } from 'pinia'
+import { useModelStore } from '../stores/model'
+import { useServerStateStore } from '../stores/server-state'
 import * as Mdf from 'src/model-common'
 import * as Idb from 'src/idb/idb'
 
@@ -12,7 +14,7 @@ export default {
     uploadViewsTickle: { type: Boolean, default: false }
   },
 
-  render () { return {} }, // no html
+  render () { return null }, // no html
 
   data () {
     return {
@@ -22,18 +24,20 @@ export default {
   },
 
   computed: {
-    ...mapState('model', {
-      theModel: state => state.theModel
-    }),
-    ...mapState('serverState', {
-      omsUrl: state => state.omsUrl,
-      serverConfig: state => state.config
+    ...mapState(useModelStore, [
+      'theModel'
+    ]),
+    ...mapState(useServerStateStore, {
+      omsUrl: 'omsUrl',
+      serverConfig: 'config'
     })
   },
 
   watch: {
     uploadViewsTickle () { this.doUpload() }
   },
+
+  emits: ['done', 'wait'],
 
   methods: {
     // upload model views into user home directory
@@ -62,7 +66,7 @@ export default {
           for (const key of keyArr) {
             const v = await rd.getByKey(key)
 
-            if (v || v === {}) {
+            if (v) {
               let i = this.theModel.ParamTxt.findIndex(p => p.Param.Name === key)
               if (i >= 0) pvRows.push({ name: key, view: v })
 

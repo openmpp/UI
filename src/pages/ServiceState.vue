@@ -139,7 +139,7 @@
             </div>
           </q-item-section>
           <q-item-section>
-            <q-item-label>{{ aj.ModelName }}:<span class="om-text-descr q-pl-sm">{{ getRunTitle(aj) }}</span></q-item-label>
+            <q-item-label>{{ aj.ModelName }}<span class="om-text-descr">: {{ getRunTitle(aj) }}</span></q-item-label>
             <q-item-label class="om-text-descr">
               {{ $t('Submitted:') }} <span class="mono">{{ fromUnderscoreTs(aj.SubmitStamp) }}</span>
               <span class="q-ml-md">{{ $t('Run Stamp:') }} <span class="mono">{{ fromUnderscoreTs(aj.RunStamp) }}</span></span>
@@ -170,7 +170,7 @@
       <template v-slot:header>
         <q-item-section>
           <q-item-label>
-            <span>{{ $t('Model Run Queue') }} </span><span v-if="srvState.IsQueuePaused">({{ $t('paused') }})</span>: <span>{{ srvState.Queue.length || $t('None') }}</span>
+            <span>{{ $t('Model Run Queue') }}</span><span v-if="srvState.IsQueuePaused" class="q-pl-sm">({{ $t('paused') }})</span>: <span>{{ srvState.Queue.length || $t('None') }}</span>
             <span v-if="srvState.QueueTotalRes.Cpu > 0" class="q-mx-md">&#124;</span>
             <span v-if="srvState.QueueTotalRes.Cpu">{{ $t('MPI CPU Cores') }}: {{ srvState.QueueTotalRes.Cpu }}</span>
             <span v-if="srvState.LocalQueueRes.Cpu > 0" class="q-mx-md">&#124;</span>
@@ -241,7 +241,7 @@
             </div>
           </q-item-section>
           <q-item-section>
-            <q-item-label>{{ qj.ModelName }}:<span class="om-text-descr q-pl-sm">{{ getRunTitle(qj) }}</span></q-item-label>
+            <q-item-label>{{ qj.ModelName }}<span class="om-text-descr">: {{ getRunTitle(qj) }}</span></q-item-label>
             <q-item-label class="om-text-descr">
               {{ $t('Submitted:') }} <span class="mono">{{ fromUnderscoreTs(qj.SubmitStamp) }}</span> <span v-if="qj.IsOverLimit" class="text-negative q-ml-md">{{ $t('Exceed resource limit') }}</span>
             </q-item-label>
@@ -332,7 +332,7 @@
           </q-item-section>
           <q-item-section>
             <q-item-label>
-              <span class="om-text-descr text-negative">{{ $t(runStatusDescr(hj.JobStatus)) }}</span>
+              <span class="om-text-descr text-negative q-pr-sm">{{ $t(runStatusDescr(hj.JobStatus)) }}</span>
               <span> {{ hj.ModelName }}<span class="om-text-descr" v-if="getHistoryTitle(hj)">: {{ getHistoryTitle(hj) }}</span></span>
             </q-item-label>
             <q-item-label class="om-text-descr">
@@ -418,8 +418,8 @@
           </q-item-section>
           <q-item-section>
             <q-item-label>
-              <span class="om-text-descr text-primary">{{ $t(runStatusDescr(hj.JobStatus)) }}</span>
-              <span> {{ hj.ModelName }}<span class="om-text-descr" v-if="getHistoryTitle(hj)">: {{ getHistoryTitle(hj) }}</span></span>
+              <span class="om-text-descr text-primary q-pr-sm">{{ $t(runStatusDescr(hj.JobStatus)) }}</span>
+              <span>{{ hj.ModelName }}<span class="om-text-descr" v-if="getHistoryTitle(hj)">: {{ getHistoryTitle(hj) }}</span></span>
             </q-item-label>
             <q-item-label class="om-text-descr">
               {{ $t('Submitted:') }} <span class="mono">{{ fromUnderscoreTs(hj.SubmitStamp) }}</span>

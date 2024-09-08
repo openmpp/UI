@@ -25,9 +25,9 @@
             </tr>
           </thead>
         <tbody>
-          <template v-for="(c, idx) in calcList">
-            <tr :key="'cne-' + (c.calcId.toString() || idx.toString())">
-              <td rowspan="2" class="om-p-cell">
+          <template v-for="(c, idx) in calcList"  :key="'cln-' + (c.calcId.toString() || idx.toString())">
+            <tr>
+              <td rowspan="2" class="om-p-cell-center">
                 <q-btn
                   @click="onDelete(idx)"
                   unelevated
@@ -72,7 +72,7 @@
               </td>
               <td class="om-p-cell mono">{{ !!c.calcId ? c.calcId.toString() : '' }}</td>
             </tr>
-            <tr :key="'clb-' + (c.calcId.toString() || idx.toString())">
+            <tr>
               <td colspan="3" class="om-p-cell">
                 <q-input
                   v-model="c.label"
@@ -91,14 +91,14 @@
             </tr>
           </template>
           <tr>
-            <td class="om-p-cell">
+            <td class="om-p-cell-center">
               <q-btn
                 @click="onAppend()"
                 :disable="isAnyEmpty()"
                 unelevated
                 round
                 dense
-                class="col-auto text-primary round"
+                class="text-primary round"
                 icon="mdi-plus-thick"
                 :title="$t('Append')"
                 :aria-label="$t('Append')" />
@@ -134,9 +134,6 @@ export default {
     }
   },
 
-  computed: {
-  },
-
   watch: {
     updateTickle () {
       this.updateCalc()
@@ -146,6 +143,9 @@ export default {
       this.showDlg = true
     }
   },
+
+  emits: ['calc-list-apply'],
+
   methods: {
     // check if any calculation is empty
     isAnyEmpty () { return this.calcList.findIndex(c => (c?.calc || '').trim() === '') >= 0 },

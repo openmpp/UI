@@ -1,4 +1,7 @@
-import { mapState, mapGetters, mapActions } from 'vuex'
+import { mapState, mapActions } from 'pinia'
+import { useModelStore } from '../stores/model'
+import { useServerStateStore } from '../stores/server-state'
+import { useUiStateStore } from '../stores/ui-state'
 import * as Mdf from 'src/model-common'
 import ConfirmDialog from 'components/ConfirmDialog.vue'
 import DeleteConfirmDialog from 'components/DeleteConfirmDialog.vue'
@@ -42,22 +45,19 @@ export default {
     isUploadEnabled () { return this.serverConfig.AllowUpload },
     isCleanupLogList () { return Mdf.lengthOf(this.cleanupLogLst) > 0 },
 
-    ...mapState('model', {
-      modelList: state => state.modelList
+    ...mapState(useModelStore, [
+      'modelList',
+      'modelLanguage'
+    ]),
+    ...mapState(useServerStateStore, {
+      omsUrl: 'omsUrl',
+      serverConfig: 'config',
+      diskUseState: 'diskUse'
     }),
-    ...mapGetters('model', {
-      modelByDigest: 'modelByDigest',
-      modelLanguage: 'modelLanguage'
-    }),
-    ...mapState('serverState', {
-      omsUrl: state => state.omsUrl,
-      serverConfig: state => state.config,
-      diskUseState: state => state.diskUse
-    }),
-    ...mapState('uiState', {
-      uiLang: state => state.uiLang
-    })
+    ...mapState(useUiStateStore, ['uiLang'])
   },
+
+  emits: ['disk-use-refresh'],
 
   watch: {
     refreshTickle () { this.$emit('disk-use-refresh') },
@@ -68,9 +68,12 @@ export default {
   },
 
   methods: {
-    ...mapActions('model', {
-      dispatchModelList: 'modelList'
-    }),
+    ...mapActions(useModelStore, [
+      'modelByDigest',
+      //
+      'dispatchModelList']
+    ),
+
     fileTimeStamp (t) { return Mdf.modTsToTimeStamp(t) },
     fileSizeStr (size) {
       const fs = Mdf.fileSizeParts(size)
@@ -463,7 +466,7 @@ export default {
     this.getCleanupLogList()
     this.diskUseRefreshInt = setInterval(() => { this.$emit('disk-use-refresh') }, DISK_USE_REFRESH_TIME)
   },
-  beforeDestroy () {
+  beforeUnmount () {
     clearInterval(this.diskUseRefreshInt)
   }
 }

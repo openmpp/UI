@@ -35,7 +35,8 @@
       :nodes="treeData"
       node-key="key"
       default-expand-all
-      :expanded.sync="expandedKeys"
+      no-transition
+      v-model:expanded="expandedKeys"
       :filter="treeFilter"
       :filter-method="doModelFilter"
       :no-results-label="$t('No models found')"
@@ -62,6 +63,7 @@
             :outline="prop.node.digest === theModelDigest"
             round
             dense
+            padding="xs"
             color="primary"
             class="col-auto"
             :icon="prop.node.digest === theModelDigest ? 'mdi-information' : 'mdi-information-outline'"
@@ -73,6 +75,7 @@
             flat
             round
             dense
+            padding="xs"
             :color="isModelDocLink(prop.node.digest) ? 'primary' : 'secondary'"
             class="col-auto"
             icon="mdi-book-open-outline"
@@ -84,6 +87,7 @@
             flat
             round
             dense
+            padding="xs"
             color="primary"
             class="col-auto"
             icon="mdi-download-circle-outline"
@@ -92,7 +96,7 @@
           <router-link
             :to="'/model/' + prop.node.digest"
             :title="prop.node.label"
-            class="col om-tree-leaf-link"
+            class="col om-tree-leaf-link q-ml-xs"
             :class="{ 'text-primary' : prop.node.digest === theModelDigest }"
             >
             <span><span :class="{ 'text-bold': prop.node.digest === theModelDigest }">{{ prop.node.label }}</span><br />
@@ -124,7 +128,10 @@
 </template>
 
 <script>
-import { mapState, mapGetters, mapActions } from 'vuex'
+import { mapState, mapActions } from 'pinia'
+import { useModelStore } from '../stores/model'
+import { useServerStateStore } from '../stores/server-state'
+import { useUiStateStore } from '../stores/ui-state'
 import * as Mdf from 'src/model-common'
 import ModelInfoDialog from 'components/ModelInfoDialog.vue'
 import ConfirmDialog from 'components/ConfirmDialog.vue'
@@ -166,37 +173,38 @@ export default {
   computed: {
     theModelDigest () { return Mdf.modelDigest(this.theModel) },
 
-    ...mapState('model', {
-      modelList: state => state.modelList,
-      theModel: state => state.theModel
+    ...mapState(useModelStore, [
+      'theModel',
+      'modelList',
+      'modelCount',
+      'modelLanguage'
+    ]),
+    ...mapState(useServerStateStore, {
+      omsUrl: 'omsUrl',
+      serverConfig: 'config'
     }),
-    ...mapGetters('model', {
-      modelCount: 'modelListCount',
-      modelLanguage: 'modelLanguage'
-    }),
-    ...mapState('uiState', {
-      uiLang: state => state.uiLang,
-      modelTreeExpandedKeys: state => state.modelTreeExpandedKeys,
-      noAccDownload: state => state.noAccDownload,
-      noMicrodataDownload: state => state.noMicrodataDownload
-    }),
-    ...mapState('serverState', {
-      omsUrl: state => state.omsUrl,
-      serverConfig: state => state.config
-    })
+    ...mapState(useUiStateStore, [
+      'modelTreeExpandedKeys',
+      'noAccDownload',
+      'noMicrodataDownload',
+      'uiLang'
+    ])
   },
 
   watch: {
     refreshTickle () { this.doRefresh() }
   },
 
+  emits: ['download-select'],
+
   methods: {
-    ...mapActions('model', {
-      dispatchModelList: 'modelList'
-    }),
-    ...mapActions('uiState', {
-      dispatchModelTreeExpandedKeys: 'modelTreeExpandedKeys'
-    }),
+    ...mapActions(useModelStore, [
+      'dispatchModelList'
+    ]),
+    ...mapActions(useUiStateStore, [
+      'dispatchModelTreeExpandedKeys'
+    ]),
+
     // expand or collapse all tree nodes
     doToogleExpandTree () {
       if (this.isAllExpanded) {

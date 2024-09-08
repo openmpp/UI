@@ -1,6 +1,8 @@
 <!-- create new workset: verify workset data and send request to the server -->
 <script>
-import { mapState, mapGetters } from 'vuex'
+import { mapState, mapActions } from 'pinia'
+import { useModelStore } from '../stores/model'
+import { useServerStateStore } from '../stores/server-state'
 import * as Mdf from 'src/model-common'
 
 export default {
@@ -18,7 +20,7 @@ export default {
     copyFromWorkset: { type: Array, default: () => [] }
   },
 
-  render () { return {} }, // no html
+  render () { return null }, // no html
 
   data () {
     return {
@@ -28,15 +30,11 @@ export default {
   },
 
   computed: {
-    ...mapState('model', {
-      theModel: state => state.theModel
-    }),
-    ...mapGetters('model', {
-      worksetTextByName: 'worksetTextByName',
-      isExistInWorksetTextList: 'isExistInWorksetTextList'
-    }),
-    ...mapState('serverState', {
-      omsUrl: state => state.omsUrl
+    ...mapState(useModelStore, [
+      'theModel'
+    ]),
+    ...mapState(useServerStateStore, {
+      omsUrl: 'omsUrl'
     })
   },
 
@@ -44,7 +42,14 @@ export default {
     createNow () { if (this.createNow) this.doCreate() }
   },
 
+  emits: ['done', 'wait'],
+
   methods: {
+    ...mapActions(useModelStore, [
+      'worksetTextByName',
+      'isExistInWorksetTextList'
+    ]),
+
     // validate and create new workset
     doCreate () {
       if (!this.modelDigest) {

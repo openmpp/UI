@@ -47,7 +47,10 @@
 </template>
 
 <script>
-import { mapState } from 'vuex'
+import { mapState } from 'pinia'
+import { useModelStore } from '../stores/model'
+import { useServerStateStore } from '../stores/server-state'
+import { useUiStateStore } from '../stores/ui-state'
 import * as Mdf from 'src/model-common'
 import OmTableTree from 'components/OmTableTree.vue'
 import * as Tsc from 'components/tree-common.js'
@@ -101,17 +104,15 @@ export default {
       return ((s || '') !== '') ? parseInt(s) : 0
     },
 
-    ...mapState('model', {
-      theModel: state => state.theModel,
-      theModelUpdated: state => state.theModelUpdated
+    ...mapState(useModelStore, [
+      'theModel',
+      'theModelUpdated'
+    ]),
+    ...mapState(useServerStateStore, {
+      omsUrl: 'omsUrl',
+      serverConfig: 'config'
     }),
-    ...mapState('serverState', {
-      omsUrl: state => state.omsUrl,
-      serverConfig: state => state.config
-    }),
-    ...mapState('uiState', {
-      treeLabelKind: state => state.treeLabelKind
-    })
+    ...mapState(useUiStateStore, ['treeLabelKind'])
   },
 
   watch: {
@@ -120,6 +121,18 @@ export default {
     refreshParamTreeTickle () { this.doRefresh() },
     theModelUpdated () { this.doRefresh() }
   },
+
+  emits: [
+    'run-parameter-tree-updated',
+    'run-parameter-clear-in-list',
+    'run-parameter-select',
+    'run-parameter-add',
+    'run-parameter-remove',
+    'run-parameter-group-add',
+    'run-parameter-group-remove',
+    'run-parameter-info-show',
+    'run-parameter-group-info-show'
+  ],
 
   methods: {
     // update parameters tree data and refresh tree view
@@ -296,7 +309,7 @@ export default {
         }) >= 0
         if (isNotTop) continue // not a top level group
 
-        const g = Mdf._cloneDeep(gUse[iGid].item)
+        const g = Mdf.dashCloneDeep(gUse[iGid].item)
         gTree.push(g)
         gProc.push({
           gId: iGid,
@@ -330,8 +343,8 @@ export default {
 
               const g = {
                 gId: pc.ChildGroupId,
-                path: Mdf._cloneDeep(gpNow.path),
-                item: Mdf._cloneDeep(gChildUse.item)
+                path: Mdf.dashCloneDeep(gpNow.path),
+                item: Mdf.dashCloneDeep(gChildUse.item)
               }
               g.item.key = 'pgr-' + pc.ChildGroupId + '-' + this.nextId++
               g.path.push(g.gId)

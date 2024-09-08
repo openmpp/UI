@@ -111,7 +111,7 @@ export const runTableByName = (rt, name) => {
   if (!name || !isNotEmptyRunText(rt)) return emptyRunTable()
 
   for (let k = 0; k < rt.Table.length; k++) {
-    if ((rt.Table[k]?.Name || '') === name) return Hlpr._cloneDeep(rt.Table[k])
+    if ((rt.Table[k]?.Name || '') === name) return rt.Table[k]
   }
   return emptyRunTable() // not found
 }

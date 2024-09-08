@@ -49,15 +49,17 @@ export default {
     iconName: { type: String, default: '' }
   },
 
-  watch: {
-    showTickle () { this.showDlg = true }
-  },
-
   data () {
     return {
       showDlg: false
     }
   },
+
+  watch: {
+    showTickle () { this.showDlg = true }
+  },
+
+  emits: ['confirm-yes'],
 
   methods: {
     onYesClick () {

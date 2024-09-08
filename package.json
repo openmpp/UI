@@ -18,28 +18,30 @@
     "test": "echo \"No test specified\" && exit 0"
   },
   "dependencies": {
-    "@fontsource/roboto-mono": "^4.5.10",
-    "@quasar/extras": "^1.0.0",
-    "axios": "^1.6.2",
-    "core-js": "^3.6.5",
+    "@fontsource/roboto-mono": "^5.0.18",
+    "@quasar/extras": "^1.16.12",
+    "quasar": "^2.16.8",
+    "vue": "^3.4.37",
+    "vue-i18n": "^9.13.1",
+    "vue-router": "^4.4.3",
+    "pinia": "^2.2.1",
+    "axios": "^1.7.3",
     "easymde": "^2.18.0",
-    "highlight.js": "^11.9.0",
-    "marked": "^4.2.12",
-    "quasar": "^1.0.0",
-    "sanitize-html": "~2.7.0",
-    "vue-i18n": "^8.0.0",
-    "vuedraggable": "^2.24.3"
+    "highlight.js": "^11.10.0",
+    "marked-highlight": "^2.1.4",
+    "sanitize-html": "^2.13.0",
+    "vue-draggable-next": "^2.2.1"
   },
   "devDependencies": {
     "@babel/eslint-parser": "^7.13.14",
-    "@quasar/app": "^2.0.0",
-    "eslint": "^8.10.0",
+    "@quasar/app-webpack": "^3.13.3",
+    "eslint": "^8.11.0",
     "eslint-config-standard": "^17.0.0",
     "eslint-plugin-import": "^2.19.1",
     "eslint-plugin-n": "^15.0.0",
     "eslint-plugin-promise": "^6.0.0",
     "eslint-plugin-vue": "^9.0.0",
-    "eslint-webpack-plugin": "^2.0.0"
+    "eslint-webpack-plugin": "^3.1.1"
   },
   "browserslist": [
     "last 10 Chrome versions",

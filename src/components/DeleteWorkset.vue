@@ -1,6 +1,7 @@
 <!-- delete workset by model digest and workset name -->
 <script>
-import { mapState } from 'vuex'
+import { mapState } from 'pinia'
+import { useServerStateStore } from '../stores/server-state'
 
 export default {
   name: 'DeleteWorkset',
@@ -11,7 +12,7 @@ export default {
     deleteNow: { type: Boolean, default: false }
   },
 
-  render () { return {} }, // no html
+  render () { return null }, // no html
 
   data () {
     return {
@@ -21,14 +22,16 @@ export default {
   },
 
   computed: {
-    ...mapState('serverState', {
-      omsUrl: state => state.omsUrl
+    ...mapState(useServerStateStore, {
+      omsUrl: 'omsUrl'
     })
   },
 
   watch: {
     deleteNow () { if (this.deleteNow) this.doDelete() }
   },
+
+  emits: ['done', 'wait'],
 
   methods: {
     // delete workset by model digest and workset name

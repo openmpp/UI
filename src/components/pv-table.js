@@ -183,6 +183,8 @@ export default {
     }
   },
 
+  emits: ['pv-edit', 'pv-key-pos'],
+
   methods: {
     // table body cell render keys to force update
     getRenderKey (key) {

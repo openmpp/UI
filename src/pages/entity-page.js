@@ -1,4 +1,7 @@
-import { mapState, mapGetters, mapActions } from 'vuex'
+import { mapState, mapActions } from 'pinia'
+import { useModelStore } from '../stores/model'
+import { useServerStateStore } from '../stores/server-state'
+import { useUiStateStore } from '../stores/ui-state'
 import * as Mdf from 'src/model-common'
 import * as Idb from 'src/idb/idb'
 import RunBar from 'components/RunBar.vue'
@@ -7,7 +10,7 @@ import RunInfoDialog from 'components/RunInfoDialog.vue'
 import EntityInfoDialog from 'components/EntityInfoDialog.vue'
 import EntityCalcDialog from 'components/EntityCalcDialog.vue'
 import ValueFilterDialog from 'components/ValueFilterDialog.vue'
-import draggable from 'vuedraggable'
+import { VueDraggableNext } from 'vue-draggable-next'
 import * as Pcvt from 'components/pivot-cvt'
 import * as Puih from './pivot-ui-helper'
 import PvTable from 'components/PvTable'
@@ -24,7 +27,7 @@ const LAST_PAGE_OFFSET = 2 * 1024 * 1024 * 1024 // large page offset to get the 
 
 export default {
   name: 'EntityPage',
-  components: { draggable, PvTable, RunBar, RefreshRun, RunInfoDialog, EntityInfoDialog, EntityCalcDialog, ValueFilterDialog },
+  components: { draggable: VueDraggableNext, PvTable, RunBar, RefreshRun, RunInfoDialog, EntityInfoDialog, EntityCalcDialog, ValueFilterDialog },
 
   props: {
     digest: { type: String, default: '' },
@@ -65,8 +68,13 @@ export default {
         isRowColModeToggle: true,
         isPvTickle: false,      // used to update view of pivot table (on data selection change)
         isPvDimsTickle: false,  // used to update dimensions in pivot table (on label change)
-        formatOpts: void 0,     // hide format controls by default
-        kind: Puih.ekind.MICRO  // entity view content: microdata, aggregated (calculated), run compare
+        kind: Puih.ekind.MICRO,  // entity view content: microdata, aggregated (calculated), run compare
+        //
+        isRawUseView: false, // v3 copy of isRawUse
+        isRawView: false,    // v3 copy of isRawValue
+        isFloatView: false,  // v3 copy of isFloat
+        isMoreView: false,   // v3 copy of isDoMore
+        isLessView: false    // v3 copy of isDoLess
       },
       pvc: {
         rowColMode: Pcvt.NO_SPANS_AND_DIMS_PVT, // rows and columns mode: 3 = no spans and show dim names
@@ -81,6 +89,7 @@ export default {
       pvKeyPos: [],               // position of each dimension item in cell key
       locale: '',                 // current locale to format values
       isDragging: false,          // if true then user is dragging dimension select control
+      selectDimName: '',      // selected dimension name
       isOtherDropDisabled: false, // if true then others drop area disabled
       isPages: false,
       pageStart: 0,
@@ -144,22 +153,13 @@ export default {
       return !!mv && Array.isArray(mv?.digestCompareList) && mv.digestCompareList.length > 0
     },
 
-    ...mapState('model', {
-      theModel: state => state.theModel
+    ...mapState(useModelStore, [
+      'theModel'
+    ]),
+    ...mapState(useServerStateStore, {
+      omsUrl: 'omsUrl'
     }),
-    ...mapGetters('model', {
-      runTextByDigest: 'runTextByDigest'
-    }),
-    ...mapState('uiState', {
-      uiLang: state => state.uiLang
-    }),
-    ...mapGetters('uiState', {
-      modelViewSelected: 'modelViewSelected',
-      microdataView: 'microdataView'
-    }),
-    ...mapState('serverState', {
-      omsUrl: state => state.omsUrl
-    })
+    ...mapState(useUiStateStore, ['uiLang'])
   },
 
   watch: {
@@ -167,11 +167,20 @@ export default {
     refreshTickle () { this.doRefresh() }
   },
 
+  emits: ['entity-view-saved', 'tab-mounted'],
+
   methods: {
-    ...mapActions('uiState', {
-      dispatchMicrodataView: 'microdataView',
-      dispatchMicrodataViewDelete: 'microdataViewDelete'
-    }),
+    ...mapActions(useModelStore, [
+      'runTextByDigest'
+    ]),
+    ...mapActions(useUiStateStore, [
+      'modelViewSelected',
+      'microdataView',
+      //
+      'dispatchMicrodataView',
+      'dispatchMicrodataViewDelete']
+    ),
+
     async doRefresh () {
       this.initView()
       await this.setPageView()
@@ -212,7 +221,6 @@ export default {
       this.pvc.formatter = Pcvt.formatDefault({ isNullable: this.isNullable, locale: this.locale })
       this.attrFormatter = {}
       this.pvc.cellClass = 'pv-cell-right' // numeric cell value style by default
-      this.ctrl.formatOpts = void 0
 
       this.pvc.processValue = Pcvt.asIsPval // no value conversion required, only formatting
 
@@ -299,7 +307,7 @@ export default {
           for (let j = 0; j < eLst.length; j++) {
             eLst[j] = Mdf.enumItemByIdx(tTxt, j)
           }
-          f.enums = Object.freeze(eLst)
+          f.enums = eLst
           f.options = f.enums
           f.filter = Puih.makeFilter(f)
 
@@ -354,12 +362,12 @@ export default {
       // if there are any attributes of built-in type then append measure dimensions:
       //   [rank]:     "normal" attributes dimension: attributes as enums
       //   [rank + 1]: calculated attributes dimension: calculated attributes as enums
-      fa.enums = Object.freeze(this.attrEnums)
+      fa.enums = this.attrEnums
       fa.options = fa.enums
       fa.filter = Puih.makeFilter(fa)
       this.dimProp.push(fa) // measure attributes dimension at [rank] position
 
-      fc.enums = Object.freeze(this.calcEnums)
+      fc.enums = this.calcEnums
       fc.options = fc.enums
       fc.filter = Puih.makeFilter(fc)
       this.dimProp.push(fc) // calculated measure dimension at [rank + 1] position
@@ -381,8 +389,8 @@ export default {
       fr.enums = [{
         value: this.runText.RunId,
         name: this.runText.Name,
-        digest: this.runDigest,
-        label: Mdf.descrOfTxt(this.runText) || this.runText.Name
+        label: Mdf.descrOfTxt(this.runText) || this.runText.Name,
+        digest: this.runDigest
       }]
       if (this.isRunCompare) {
         const mv = this.modelViewSelected(this.digest)
@@ -392,8 +400,8 @@ export default {
             fr.enums.push({
               value: rt.RunId,
               name: rt.Name,
-              digest: d,
-              label: Mdf.descrOfTxt(rt) || rt.Name
+              label: Mdf.descrOfTxt(rt) || rt.Name,
+              digest: d
             })
           }
         }
@@ -413,10 +421,16 @@ export default {
         locale: this.locale,
         formatter: this.attrFormatter
       })
-      this.ctrl.formatOpts = this.pvc.formatter.options()
       this.pvc.dimItemKeys = Pcvt.dimItemKeys(ATTR_DIM_NAME)
       this.pvc.cellClass = 'pv-cell-right' // numeric cell value style by default
       this.pvc.processValue = Pcvt.asIsPval // no value conversion required, only formatting
+
+      // format view controls
+      this.ctrl.isRawUseView = this.pvc.formatter.options().isRawUse
+      this.ctrl.isRawView = this.pvc.formatter.options().isRawValue
+      this.ctrl.isFloatView = this.pvc.formatter.options().isFloat
+      this.ctrl.isMoreView = this.pvc.formatter.options().isDoMore
+      this.ctrl.isLessView = this.pvc.formatter.options().isDoLess
     },
     // create microdata row reader
     makeMicroReader () {
@@ -524,7 +538,7 @@ export default {
       this.attrCalc = []
 
       // [rank + 1]: calculated measure dimension
-      this.dimProp[this.rank + 1].enums = Object.freeze(this.calcEnums)
+      this.dimProp[this.rank + 1].enums = this.calcEnums
       this.dimProp[this.rank + 1].options = this.dimProp[this.rank + 1].enums
       this.dimProp[this.rank + 1].filter = Puih.makeFilter(this.dimProp[this.rank + 1])
 
@@ -777,16 +791,22 @@ export default {
       this.pvc.formatter = Pcvt.formatByKey({
         isNullable: this.isNullable,
         isRawUse: true,
-        isRawValue: this.ctrl.formatOpts.isRawValue,
+        isRawValue: this.ctrl.isRawView,
         locale: this.locale,
         formatter: this.attrFormatter
       })
       this.pvc.formatter.setDecimals(fOpts.nDecimal, fOpts.isAllDecimal) // set number of decimals for float attributes
 
-      this.ctrl.formatOpts = this.pvc.formatter.options()
       this.pvc.dimItemKeys = Pcvt.dimItemKeys(ATTR_DIM_NAME)
       this.pvc.cellClass = 'pv-cell-right' // numeric cell value style by default
       this.pvc.processValue = Pcvt.asIsPval // no value conversion required, only formatting
+
+      // format view controls
+      this.ctrl.isRawUseView = this.pvc.formatter.options().isRawUse
+      this.ctrl.isRawView = this.pvc.formatter.options().isRawValue
+      this.ctrl.isFloatView = this.pvc.formatter.options().isFloat
+      this.ctrl.isMoreView = this.pvc.formatter.options().isDoMore
+      this.ctrl.isLessView = this.pvc.formatter.options().isDoLess
 
       // set new view kind and  store pivot view
       this.ctrl.kind = Puih.ekind.MICRO
@@ -1031,7 +1051,7 @@ export default {
       // if there is no calculated measure dimension then push it on columns
       // [rank + 1]: calculated attributes dimension: calculated attributes as enums
       const mNewIdx = this.rank + 1
-      this.dimProp[mNewIdx].enums = Object.freeze(this.calcEnums)
+      this.dimProp[mNewIdx].enums = this.calcEnums
 
       let n = this.replaceMeasureDim(ATTR_DIM_NAME, mNewIdx, this.rowFields, false)
       if (n < 0) n = this.replaceMeasureDim(ATTR_DIM_NAME, mNewIdx, this.colFields, false)
@@ -1194,7 +1214,7 @@ export default {
       }
 
       // [rank + 1]: calculated attributes dimension: calculated attributes as enums
-      this.dimProp[this.rank + 1].enums = Object.freeze(this.calcEnums)
+      this.dimProp[this.rank + 1].enums = this.calcEnums
       this.dimProp[this.rank + 1].options = this.calcEnums
       this.dimProp[this.rank + 1].filter = Puih.makeFilter(this.dimProp[this.rank + 1])
 
@@ -1203,16 +1223,22 @@ export default {
       this.pvc.formatter = Pcvt.formatByKey({
         isNullable: this.isNullable,
         isRawUse: true,
-        isRawValue: this.ctrl.formatOpts.isRawValue,
+        isRawValue: this.ctrl.isRawView,
         locale: this.locale,
         formatter: cFmt
       })
       this.pvc.formatter.setDecimals(fOpts.nDecimal, fOpts.isAllDecimal) // set number of decimals for float attributes
 
-      this.ctrl.formatOpts = this.pvc.formatter.options()
       this.pvc.dimItemKeys = Pcvt.dimItemKeys(CALC_DIM_NAME)
       this.pvc.cellClass = 'pv-cell-right' // numeric cell value style by default
       this.pvc.processValue = Pcvt.asIsPval // no value conversion required, only formatting
+
+      // format view controls
+      this.ctrl.isRawUseView = this.pvc.formatter.options().isRawUse
+      this.ctrl.isRawView = this.pvc.formatter.options().isRawValue
+      this.ctrl.isFloatView = this.pvc.formatter.options().isFloat
+      this.ctrl.isMoreView = this.pvc.formatter.options().isDoMore
+      this.ctrl.isLessView = this.pvc.formatter.options().isDoLess
     },
     // create row reader for aggregated microdata or for microdata run comparison based on current group by dimensions
     makeCalcReader () {
@@ -1329,18 +1355,27 @@ export default {
     onShowMoreFormat () {
       if (!this.pvc.formatter) return
       this.pvc.formatter.doMore()
+      this.ctrl.isMoreView = this.pvc.formatter.options().isDoMore
+      this.ctrl.isLessView = this.pvc.formatter.options().isDoLess
+      this.ctrl.isRawView = this.pvc.formatter.options().isRawValue
       this.ctrl.isPvTickle = !this.ctrl.isPvTickle
     },
     // show less decimals (or less details) in table body
     onShowLessFormat () {
       if (!this.pvc.formatter) return
       this.pvc.formatter.doLess()
+      this.ctrl.isMoreView = this.pvc.formatter.options().isDoMore
+      this.ctrl.isLessView = this.pvc.formatter.options().isDoLess
+      this.ctrl.isRawView = this.pvc.formatter.options().isRawValue
       this.ctrl.isPvTickle = !this.ctrl.isPvTickle
     },
     // toogle to formatted value or to raw value in table body
     onToggleRawValue () {
       if (!this.pvc.formatter) return
       this.pvc.formatter.doRawValue()
+      this.ctrl.isMoreView = this.pvc.formatter.options().isDoMore
+      this.ctrl.isLessView = this.pvc.formatter.options().isDoLess
+      this.ctrl.isRawView = this.pvc.formatter.options().isRawValue
       this.ctrl.isPvTickle = !this.ctrl.isPvTickle
     },
     // copy tab separated values to clipboard: forward actions to pivot table component
@@ -1349,7 +1384,8 @@ export default {
     },
 
     // view table rows by pages
-    onPageSize () {
+    onPageSize (size) {
+      this.pageSize = size
       if (this.isAllPageSize()) {
         this.pageStart = 0
         this.pageSize = 0
@@ -1543,7 +1579,7 @@ export default {
       this.attrCalc = []
 
       // [rank + 1]: calculated measure dimension
-      this.dimProp[this.rank + 1].enums = Object.freeze(this.calcEnums)
+      this.dimProp[this.rank + 1].enums = this.calcEnums
       this.dimProp[this.rank + 1].options = this.dimProp[this.rank + 1].enums
       this.dimProp[this.rank + 1].filter = Puih.makeFilter(this.dimProp[this.rank + 1])
 
@@ -1741,7 +1777,61 @@ export default {
         kind: this.ctrl.kind
       })
     },
+    onUpdateSelect (vals) {
+      if (this.isDragging) return // exit: this is drag-and-drop, no changes in selection yet
 
+      // find dimension and check if it other panel
+      const f = this.dimProp.find((d) => d.name === this.selectDimName)
+      if (!f) {
+        console.warn('Invalid (empty) selected dimension:', this.selectDimName)
+        this.$q.notify({ type: 'negative', message: this.$t('Invalid (empty) selected dimension') })
+        return
+      }
+      const isOther = this.otherFields.findIndex((p) => f.name === p.name) >= 0
+
+      // sync dimension selection values
+      f.selection.splice(0, f.selection.length)
+      if (!isOther) {
+        f.selection.push(...vals)
+      } else {
+        f.singleSelection = vals
+        f.selection.push(vals)
+      }
+      f.selection.sort(
+        (left, right) => (left.value === right.value) ? 0 : ((left.value < right.value) ? -1 : 1)
+      )
+
+      // update pivot view:
+      //   if other dimesions filters same as before then update pivot table view now
+      //   else refresh data
+      if (!isOther || Puih.equalFilterState(this.filterState, this.otherFields, [KEY_DIM_NAME, ATTR_DIM_NAME])) {
+        this.ctrl.isPvTickle = !this.ctrl.isPvTickle
+        if (f.name === ATTR_DIM_NAME) {
+          this.filterState = Puih.makeFilterState(this.otherFields)
+        }
+      } else {
+        this.doRefreshDataPage()
+      }
+      // update pivot view rows, columns, other dimensions
+      this.dispatchMicrodataView({
+        key: this.routeKey,
+        rows: Pcvt.pivotStateFields(this.rowFields),
+        cols: Pcvt.pivotStateFields(this.colFields),
+        others: Pcvt.pivotStateFields(this.otherFields),
+        kind: this.ctrl.kind
+      })
+    },
+    onFocusSelect (e) {
+      this.selectDimName = ''
+      const p = e?.target?.closest('div[id^=item-draggable-]')
+      if (p) {
+        this.selectDimName = (p?.getAttribute('id') || '').slice('item-draggable-'.length)
+      }
+      if (!this.selectDimName) {
+        console.warn('Invalid (empty) selected dimension:', this.selectDimName)
+        this.$q.notify({ type: 'negative', message: this.$t('Invalid (empty) selected dimension') })
+      }
+    },
     // do "select all" items: all which are visible through filter options
     onSelectAll (name) {
       const f = this.dimProp.find((d) => d.name === name)
@@ -1894,7 +1984,7 @@ export default {
               label: this.inpData[j]?.Key.toString() || this.$t('Invalid key')
             }
           }
-          this.dimProp[0].enums = Object.freeze(eLst)
+          this.dimProp[0].enums = eLst
           this.dimProp[0].selection = Array.from(eLst)
           this.dimProp[0].singleSelection = (this.dimProp[0].selection.length > 0) ? this.dimProp[0].selection[0] : {}
 

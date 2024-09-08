@@ -222,7 +222,7 @@ export const formatBool = (options) => {
   }
 }
 
-// format number
+// format number, shared portion
 /* eslint-disable no-multi-spaces */
 const formatNumber = {
   makeOpts: (options) => {

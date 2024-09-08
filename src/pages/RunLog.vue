@@ -157,7 +157,9 @@
 </template>
 
 <script>
-import { mapState, mapGetters, mapActions } from 'vuex'
+import { mapState, mapActions } from 'pinia'
+import { useModelStore } from '../stores/model'
+import { useServerStateStore } from '../stores/server-state'
 import * as Mdf from 'src/model-common'
 import RefreshRunLog from 'components/RefreshRunLog.vue'
 import RefreshRunProgress from 'components/RefreshRunProgress.vue'
@@ -215,11 +217,8 @@ export default {
       return this.lastProgressDt ? Mdf.dtToTimeStamp(new Date(this.lastProgressDt)) : ''
     },
 
-    ...mapState('serverState', {
-      omsUrl: state => state.omsUrl
-    }),
-    ...mapGetters('model', {
-      runTextByDigest: 'runTextByDigest'
+    ...mapState(useServerStateStore, {
+      omsUrl: 'omsUrl'
     })
   },
 
@@ -228,10 +227,15 @@ export default {
     stamp () { this.initView() }
   },
 
+  emits: ['run-list-refresh', 'run-completed-list', 'tab-mounted'],
+
   methods: {
-    ...mapActions('model', {
-      dispatchRunTextStatusUpdate: 'runTextStatusUpdate'
-    }),
+    ...mapActions(useModelStore, [
+      'runTextByDigest',
+      //
+      'dispatchRunTextStatusUpdate'
+    ]),
+
     isSuccess (status) { return status === Mdf.RUN_SUCCESS },
     isInProgress (status) { return status === Mdf.RUN_IN_PROGRESS || status === Mdf.RUN_INITIAL },
     runStatusDescr (status) { return Mdf.statusText(status) },
@@ -410,7 +414,7 @@ export default {
     this.initView()
     this.$emit('tab-mounted', 'run-log', { digest: this.digest, runStamp: this.stamp })
   },
-  beforeDestroy () {
+  beforeUnmount () {
     this.stopRefreshProgress()
   }
 }

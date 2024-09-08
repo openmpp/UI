@@ -2,7 +2,6 @@
 
 import * as Mdl from './model'
 import * as Tdf from './type'
-import * as Hlpr from './helper'
 
 // number of model parameters
 export const paramCount = (md) => {
@@ -139,7 +138,7 @@ export const paramRunSetByName = (runOrSet, name) => {
   if (!Array.isArray(runOrSet?.Param) || (runOrSet?.Param?.length || 0) === 0) return emptyParamRunSet()
   for (let k = 0; k < runOrSet.Param.length; k++) {
     if (isNotEmptyParamRunSet(runOrSet.Param[k]) && runOrSet.Param[k].Name === name) {
-      return Hlpr._cloneDeep(runOrSet.Param[k])
+      return runOrSet.Param[k]
     }
   }
   return emptyParamRunSet() // not found

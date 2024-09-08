@@ -38,15 +38,17 @@ export default {
     dialogTitle: { type: String, required: true }
   },
 
-  watch: {
-    showTickle () { this.showDlg = true }
-  },
-
   data () {
     return {
       showDlg: false
     }
   },
+
+  watch: {
+    showTickle () { this.showDlg = true }
+  },
+
+  emits: ['discard-changes-yes'],
 
   methods: {
     onYesDiscardChanges () {

@@ -1,6 +1,7 @@
 <!-- monitor progress of model run: receive run progress from the server -->
 <script>
-import { mapState } from 'vuex'
+import { mapState } from 'pinia'
+import { useServerStateStore } from '../stores/server-state'
 import * as Mdf from 'src/model-common'
 
 export default {
@@ -12,7 +13,7 @@ export default {
     refreshTickle: { type: Boolean, default: false }
   },
 
-  render () { return {} }, // no html
+  render () { return null }, // no html
 
   data () {
     return {
@@ -22,8 +23,8 @@ export default {
   },
 
   computed: {
-    ...mapState('serverState', {
-      omsUrl: state => state.omsUrl
+    ...mapState(useServerStateStore, {
+      omsUrl: 'omsUrl'
     })
   },
 
@@ -31,6 +32,8 @@ export default {
     runStamp () { this.doRefresh() },
     refreshTickle () { this.doRefresh() }
   },
+
+  emits: ['done', 'wait'],
 
   methods: {
     // receive run status and progress from the server

@@ -48,15 +48,17 @@ export default {
     iconName: { type: String, default: 'mdi-delete' }
   },
 
-  watch: {
-    showTickle () { this.showDlg = true }
-  },
-
   data () {
     return {
       showDlg: false
     }
   },
+
+  watch: {
+    showTickle () { this.showDlg = true }
+  },
+
+  emits: ['delete-yes'],
 
   methods: {
     onYesDeleteClick () {

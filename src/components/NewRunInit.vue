@@ -1,6 +1,8 @@
 <!-- initiate (start) new model run: send request to the server -->
 <script>
-import { mapState } from 'vuex'
+import { mapState } from 'pinia'
+import { useServerStateStore } from '../stores/server-state'
+import { useUiStateStore } from '../stores/ui-state'
 import * as Mdf from 'src/model-common'
 
 export default {
@@ -46,7 +48,7 @@ export default {
     }
   },
 
-  render () { return {} }, // no html
+  render () { return null }, // no html
 
   data () {
     return {
@@ -56,18 +58,14 @@ export default {
   },
 
   computed: {
-    ...mapState('uiState', {
-      uiLang: state => state.uiLang
+    ...mapState(useServerStateStore, {
+      omsUrl: 'omsUrl',
+      serverConfig: 'config'
     }),
-    ...mapState('serverState', {
-      omsUrl: state => state.omsUrl,
-      serverConfig: state => state.config
-    })
+    ...mapState(useUiStateStore, ['uiLang'])
   },
 
-  watch: {
-    // refresh handlers
-  },
+  emits: ['done', 'wait'],
 
   methods: {
     // initiate new model run: send request to the server

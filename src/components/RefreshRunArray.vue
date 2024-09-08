@@ -1,6 +1,9 @@
 <!-- reload array of run-text by model digest and array of run digests -->
 <script>
-import { mapState, mapActions } from 'vuex'
+import { mapState, mapActions } from 'pinia'
+import { useModelStore } from '../stores/model'
+import { useServerStateStore } from '../stores/server-state'
+import { useUiStateStore } from '../stores/ui-state'
 
 export default {
   name: 'RefreshRunArray',
@@ -12,7 +15,7 @@ export default {
     refreshAllTickle: { type: Boolean, default: false }
   },
 
-  render () { return {} }, // no html
+  render () { return null }, // no html
 
   data () {
     return {
@@ -22,12 +25,10 @@ export default {
   },
 
   computed: {
-    ...mapState('uiState', {
-      uiLang: state => state.uiLang
+    ...mapState(useServerStateStore, {
+      omsUrl: 'omsUrl'
     }),
-    ...mapState('serverState', {
-      omsUrl: state => state.omsUrl
-    })
+    ...mapState(useUiStateStore, ['uiLang'])
   },
 
   watch: {
@@ -35,10 +36,11 @@ export default {
     refreshAllTickle () { this.doRefresh() }
   },
 
+  emits: ['done', 'wait'],
+
   methods: {
-    ...mapActions('model', {
-      dispatchRunText: 'runText'
-    }),
+    ...mapActions(useModelStore, ['dispatchRunText']),
+
     // refersh run-text array by array of runs digests
     async doRefresh () {
       if (!Array.isArray(this.runDigestArray) || (this.runDigestArray.length || 0) === 0) return // exit if array of runs is empty: nothing to do

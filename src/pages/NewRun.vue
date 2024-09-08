@@ -49,7 +49,7 @@
       </div>
 
       <table v-show="isRunOptsShow">
-
+      <tbody>
         <tr>
           <td class="q-pr-xs"><span v-if="!runOpts.runName" class="text-negative text-weight-bold">* </span><span>{{ $t('Run Name') }}:</span></td>
           <td>
@@ -119,7 +119,7 @@
             >
             <q-checkbox
               v-model="useBaseRun"
-              @click.native="onUseBaseRunClick"
+              @click="onUseBaseRunClick"
               :disable="!isCompletedRunCurrent"
               :label="$t('Use Base Run:')"/>
           </td>
@@ -151,7 +151,7 @@
           </td>
           <td class="om-text-descr-title">{{ p.descr }}</td>
         </tr>
-
+      </tbody>
       </table>
 
     </q-card-section>
@@ -320,7 +320,7 @@
       >
       <q-card-section>
         <table>
-
+        <tbody>
           <tr>
             <td class="q-pr-xs">{{ $t('Modelling Threads max') }}:</td>
             <td>
@@ -437,6 +437,7 @@
                     :nodes="iniTreeData"
                     node-key="key"
                     default-expand-all
+                    no-transition
                     :filter="iniTreeFilter"
                     :filter-method="doIniTreeFilter"
                     :no-results-label="$t('No files found')"
@@ -466,11 +467,12 @@
                           round
                           dense
                           :color="!!prop.node.link ? 'primary' : 'secondary'"
+                          padding="xs"
                           class="col-auto"
                           icon="mdi-download-circle-outline"
                           :title="$t('Download') + ' ' + prop.node.label"
                           />
-                        <div class="col">
+                        <div class="col q-ml-xs">
                           <span><span :class="{ 'text-bold': (runOpts.useIni && prop.node.path === runOpts.iniName) }">{{ prop.node.label }}</span><br />
                           <span
                             class="mono"
@@ -546,7 +548,8 @@
                   <q-tree
                     :nodes="csvTreeData"
                     node-key="key"
-                    :expanded.sync="csvTreeExpanded"
+                    no-transition
+                    v-model:expanded="csvTreeExpanded"
                     :filter="csvTreeFilter"
                     :filter-method="doCsvTreeFilter"
                     :no-results-label="$t('No files found')"
@@ -578,11 +581,12 @@
                           round
                           dense
                           :color="!!prop.node.link ? 'primary' : 'secondary'"
+                          padding="xs"
                           class="col-auto"
                           icon="mdi-download-circle-outline"
                           :title="$t('Download') + ' ' + prop.node.label"
                           />
-                        <div class="col">
+                        <div class="col q-ml-xs">
                           <span class="text-primary">{{ prop.node.label }}<br />
                           <span class="mono om-text-descr">{{ prop.node.descr  + ' : ' + fileSizeStr(prop.node?.Size || 0) }}</span></span>
                         </div>
@@ -664,7 +668,7 @@
                 />
             </td>
           </tr>
-
+        </tbody>
         </table>
       </q-card-section>
     </q-expansion-item>
@@ -672,7 +676,7 @@
 
   <q-card class="q-ma-sm">
     <q-expansion-item
-    v-model="mpiOptsExpanded"
+      v-model="mpiOptsExpanded"
       switch-toggle-side
       expand-separator
       header-class="bg-primary text-white"
@@ -680,7 +684,7 @@
       >
       <q-card-section>
         <table>
-
+        <tbody>
           <tr>
             <td class="q-pr-xs">{{ $t('MPI Number of Processes') }}:</td>
             <td>
@@ -712,7 +716,7 @@
             <td class="tc-max-width-10 row panel-border rounded-borders">
               <q-space />
               <q-toggle
-                @click.native="onMpiUseJobs"
+                @click="onMpiUseJobs"
                 v-model="runOpts.mpiUseJobs"
                 :disable="!serverConfig.IsJobControl"
                 :title="runOpts.mpiUseJobs ? $t('Use jobs service to run the model') : $t('Do not use jobs service to run the model')"
@@ -752,7 +756,7 @@
                 />
             </td>
           </tr>
-
+        </tbody>
         </table>
       </q-card-section>
     </q-expansion-item>

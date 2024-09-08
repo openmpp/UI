@@ -37,7 +37,6 @@
             <td class="om-p-head-left">{{ $t('Duration') }}</td>
             <td class="om-p-cell-left mono">{{ duration }}</td>
           </tr>
-        </tbody>
           <tr>
             <td class="om-p-head-left">{{ $t('Run Stamp') }}</td>
             <td class="om-p-cell-left mono">{{ runText.RunStamp }}</td>
@@ -50,6 +49,7 @@
             <td class="om-p-head-left">{{ $t('Value Digest') }}</td>
             <td class="om-p-cell-left mono">{{ runText.ValueDigest }}</td>
           </tr>
+        </tbody>
       </table>
     </q-card-section>
 
@@ -126,7 +126,10 @@
 </template>
 
 <script>
-import { mapState, mapGetters } from 'vuex'
+import { mapState, mapActions } from 'pinia'
+import { useModelStore } from '../stores/model'
+import { useServerStateStore } from '../stores/server-state'
+import { useUiStateStore } from '../stores/ui-state'
 import * as Mdf from 'src/model-common'
 import { marked } from 'marked'
 import hljs from 'highlight.js'
@@ -166,22 +169,14 @@ export default {
   computed: {
     isMicrodata () { return !!this.serverConfig.AllowMicrodata && Mdf.entityCount(this.theModel) > 0 },
 
-    ...mapState('model', {
-      theModel: state => state.theModel,
-      runTextList: state => state.runTextList
+    ...mapState(useModelStore, [
+      'theModel',
+      'runTextList'
+    ]),
+    ...mapState(useServerStateStore, {
+      serverConfig: 'config'
     }),
-    ...mapGetters('model', {
-      runTextByDigest: 'runTextByDigest'
-    }),
-    ...mapState('uiState', {
-      runDigestSelected: state => state.runDigestSelected
-    }),
-    ...mapGetters('uiState', {
-      modelViewSelected: 'modelViewSelected'
-    }),
-    ...mapState('serverState', {
-      serverConfig: state => state.config
-    })
+    ...mapState(useUiStateStore, ['runDigestSelected'])
   },
 
   watch: {
@@ -276,6 +271,11 @@ export default {
 
       this.showDlg = true
     }
+  },
+
+  methods: {
+    ...mapActions(useModelStore, ['runTextByDigest']),
+    ...mapActions(useUiStateStore, ['modelViewSelected'])
   }
 }
 </script>

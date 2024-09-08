@@ -56,7 +56,8 @@
 </template>
 
 <script>
-import { mapGetters } from 'vuex'
+import { mapActions } from 'pinia'
+import { useModelStore } from '../stores/model'
 import * as Mdf from 'src/model-common'
 import RefreshWorkset from 'components/RefreshWorkset.vue'
 import { marked } from 'marked'
@@ -85,12 +86,6 @@ export default {
       loadWsWait: false,
       wsName: ''
     }
-  },
-
-  computed: {
-    ...mapGetters('model', {
-      worksetTextByName: 'worksetTextByName'
-    })
   },
 
   watch: {
@@ -129,6 +124,8 @@ export default {
   },
 
   methods: {
+    ...mapActions(useModelStore, ['worksetTextByName']),
+
     // update workset info on refresh workset completed
     doneWsLoad (isSuccess, name) {
       this.loadWsWait = false

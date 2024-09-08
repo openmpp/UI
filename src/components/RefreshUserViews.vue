@@ -1,6 +1,8 @@
 <!-- reload user views by model name if user home directory allowed on the server -->
 <script>
-import { mapState } from 'vuex'
+import { mapState } from 'pinia'
+import { useModelStore } from '../stores/model'
+import { useServerStateStore } from '../stores/server-state'
 import * as Mdf from 'src/model-common'
 import * as Idb from 'src/idb/idb'
 
@@ -11,7 +13,7 @@ export default {
     modelName: { type: String, default: '' }
   },
 
-  render () { return {} }, // no html
+  render () { return null }, // no html
 
   data () {
     return {
@@ -21,17 +23,16 @@ export default {
   },
 
   computed: {
-    ...mapState('model', {
-      theModel: state => state.theModel
-    }),
-    ...mapState('serverState', {
-      omsUrl: state => state.omsUrl,
-      serverConfig: state => state.config
+    ...mapState(useModelStore, [
+      'theModel'
+    ]),
+    ...mapState(useServerStateStore, {
+      omsUrl: 'omsUrl',
+      serverConfig: 'config'
     })
   },
 
-  watch: {
-  },
+  emits: ['done', 'wait'],
 
   methods: {
     // refersh user views from the server and update inxeded db

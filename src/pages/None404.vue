@@ -15,7 +15,7 @@
       text-color="gery-8"
       unelevated
       to="/"
-      :label="$t('Go Home')"
+      :label="$t('Go to Models List')"
       no-caps
     />
   </div>

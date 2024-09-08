@@ -1,4 +1,7 @@
-import { mapState, mapGetters } from 'vuex'
+import { mapState, mapActions } from 'pinia'
+import { useModelStore } from '../stores/model'
+import { useServerStateStore } from '../stores/server-state'
+import { useUiStateStore } from '../stores/ui-state'
 import * as Mdf from 'src/model-common'
 import WorksetParameterList from 'components/WorksetParameterList.vue'
 import RunParameterList from 'components/RunParameterList.vue'
@@ -103,26 +106,22 @@ export default {
     fileSelected () { return !(this.uploadFile === null) },
     isDiskOver () { return !!this?.serverConfig?.IsDiskUse && !!this.diskUseState?.DiskUse?.IsOver },
 
-    ...mapState('model', {
-      theModel: state => state.theModel,
-      groupParameterLeafs: state => state.groupParameterLeafs,
-      worksetTextList: state => state.worksetTextList,
-      worksetTextListUpdated: state => state.worksetTextListUpdated
+    ...mapState(useModelStore, [
+      'theModel',
+      'groupParameterLeafs',
+      'worksetTextList',
+      'worksetTextListUpdated'
+    ]),
+    ...mapState(useServerStateStore, {
+      omsUrl: 'omsUrl',
+      serverConfig: 'config',
+      diskUseState: 'diskUse'
     }),
-    ...mapGetters('model', {
-      runTextByDigest: 'runTextByDigest',
-      worksetTextByName: 'worksetTextByName'
-    }),
-    ...mapState('serverState', {
-      omsUrl: state => state.omsUrl,
-      serverConfig: state => state.config,
-      diskUseState: state => state.diskUse
-    }),
-    ...mapState('uiState', {
-      runDigestSelected: state => state.runDigestSelected,
-      worksetNameSelected: state => state.worksetNameSelected,
-      uiLang: state => state.uiLang
-    })
+    ...mapState(useUiStateStore, [
+      'runDigestSelected',
+      'worksetNameSelected',
+      'uiLang'
+    ])
   },
 
   watch: {
@@ -141,7 +140,25 @@ export default {
     }
   },
 
+  emits: [
+    'set-select',
+    'new-run-select',
+    'set-update-readonly',
+    'set-parameter-select',
+    'set-parameter-delete',
+    'set-list-refresh',
+    'set-list-delete',
+    'upload-select',
+    'download-select',
+    'tab-mounted'
+  ],
+
   methods: {
+    ...mapActions(useModelStore, [
+      'runTextByDigest',
+      'worksetTextByName'
+    ]),
+
     dateTimeStr (dt) { return Mdf.dtStr(dt) },
     isEdit () { return this.isFromRunShow || this.isFromWorksetShow || this.isNewWorksetShow || this.isShowNoteEditor },
 
@@ -764,7 +781,7 @@ export default {
         return
       }
 
-      this.$emit('set-param-delete', this.digest, wsName, paramName) // parameter deleted from workset
+      this.$emit('set-parameter-delete', this.digest, wsName, paramName) // parameter deleted from workset
       this.$q.notify({ type: 'info', message: this.$t('Deleted: ') + paramName })
       this.refreshWsTickle = !this.refreshWsTickle
     },
@@ -822,7 +839,7 @@ export default {
           this.$q.notify({ type: 'negative', message: this.$t('Unable to delete parameter from input scenario') + (msg ? ('. ' + msg) : '') })
           return
         }
-        this.$emit('set-param-delete', this.digest, wsName, pName) // parameter deleted from workset
+        this.$emit('set-parameter-delete', this.digest, wsName, pName) // parameter deleted from workset
       }
       this.loadWait = false
 

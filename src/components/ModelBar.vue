@@ -18,14 +18,15 @@
       class="col-auto"
       >
       <span>{{ model.Model.Name }}<br />
-      <span class="om-text-descr"><span class="mono">{{ createDateTimeStr }} </span>{{ descrOfModel }}</span></span>
+      <span class="om-text-descr"><span class="mono q-pr-sm">{{ createDateTimeStr }}</span>{{ descrOfModel }}</span></span>
     </div>
 
   </div>
 </template>
 
 <script>
-import { mapGetters } from 'vuex'
+import { mapActions } from 'pinia'
+import { useModelStore } from '../stores/model'
 import * as Mdf from 'src/model-common'
 
 export default {
@@ -44,18 +45,18 @@ export default {
   computed: {
     isNoModel () { return !Mdf.isModel(this.model) || Mdf.isEmptyModel(this.model) },
     createDateTimeStr () { return Mdf.dtStr(this.model.Model.CreateDateTime) },
-    descrOfModel () { return (this.model?.Model?.Version ? this.model?.Model?.Version + ' ' : '') + Mdf.modelTitle(this.model) },
-
-    ...mapGetters('model', {
-      modelByDigest: 'modelByDigest'
-    })
+    descrOfModel () { return (this.model?.Model?.Version ? this.model?.Model?.Version + ' ' : '') + Mdf.modelTitle(this.model) }
   },
 
   watch: {
     modelDigest () { this.doRefresh() }
   },
 
+  emits: ['model-info-click'],
+
   methods: {
+    ...mapActions(useModelStore, ['modelByDigest']),
+
     doRefresh () {
       this.model = this.modelByDigest(this.modelDigest)
     },

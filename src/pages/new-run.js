@@ -1,4 +1,7 @@
-import { mapState, mapGetters, mapActions } from 'vuex'
+import { mapState, mapActions } from 'pinia'
+import { useModelStore } from '../stores/model'
+import { useServerStateStore } from '../stores/server-state'
+import { useUiStateStore } from '../stores/ui-state'
 import * as Mdf from 'src/model-common'
 import NewRunInit from 'components/NewRunInit.vue'
 import RunBar from 'components/RunBar.vue'
@@ -145,28 +148,22 @@ export default {
     isMicrodata () { return !!this.serverConfig.AllowMicrodata && Mdf.entityCount(this.theModel) > 0 },
     isNoEntityAttrsUse () { return !this.entityAttrsUse || this.entityAttrsUse.length <= 0 },
 
-    ...mapState('model', {
-      theModel: state => state.theModel,
-      groupTableLeafs: state => state.groupTableLeafs,
-      langList: state => state.langList
+    ...mapState(useModelStore, [
+      'theModel',
+      'modelLanguage',
+      'groupTableLeafs',
+      'langList'
+    ]),
+    ...mapState(useServerStateStore, {
+      omsUrl: 'omsUrl',
+      serverConfig: 'config',
+      diskUseState: 'diskUse'
     }),
-    ...mapGetters('model', {
-      modelByDigest: 'modelByDigest',
-      runTextByDigest: 'runTextByDigest',
-      isExistInRunTextList: 'isExistInRunTextList',
-      worksetTextByName: 'worksetTextByName',
-      modelLanguage: 'modelLanguage'
-    }),
-    ...mapState('uiState', {
-      runDigestSelected: state => state.runDigestSelected,
-      worksetNameSelected: state => state.worksetNameSelected,
-      uiLang: state => state.uiLang
-    }),
-    ...mapState('serverState', {
-      omsUrl: state => state.omsUrl,
-      serverConfig: state => state.config,
-      diskUseState: state => state.diskUse
-    })
+    ...mapState(useUiStateStore, [
+      'runDigestSelected',
+      'worksetNameSelected',
+      'uiLang'
+    ])
   },
 
   watch: {
@@ -174,11 +171,25 @@ export default {
     refreshTickle () { this.doRefresh() }
   },
 
+  emits: [
+    'run-job-select',
+    'run-log-select',
+    'run-list-refresh',
+    'tab-mounted'
+  ],
+
   methods: {
-    ...mapActions('serverState', {
-      dispatchServerConfig: 'serverConfig',
-      dispatchDiskUse: 'diskUse'
-    }),
+    ...mapActions(useModelStore, [
+      'modelByDigest',
+      'runTextByDigest',
+      'isExistInRunTextList',
+      'worksetTextByName'
+    ]),
+    ...mapActions(useServerStateStore, [
+      'dispatchServerConfig',
+      'dispatchDiskUse'
+    ]),
+
     fileTimeStamp (t) { return Mdf.modTsToTimeStamp(t) },
     fileSizeStr (size) {
       const fs = Mdf.fileSizeParts(size)

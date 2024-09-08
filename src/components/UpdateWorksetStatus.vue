@@ -1,6 +1,8 @@
 <!-- update workset readonly status by model digest and workset name -->
 <script>
-import { mapState, mapActions } from 'vuex'
+import { mapState, mapActions } from 'pinia'
+import { useModelStore } from '../stores/model'
+import { useServerStateStore } from '../stores/server-state'
 
 export default {
   name: 'UpdateWorksetStatus',
@@ -12,7 +14,7 @@ export default {
     updateStatusTickle: { type: Boolean, default: false }
   },
 
-  render () { return {} }, // no html
+  render () { return null }, // no html
 
   data () {
     return {
@@ -22,8 +24,8 @@ export default {
   },
 
   computed: {
-    ...mapState('serverState', {
-      omsUrl: state => state.omsUrl
+    ...mapState(useServerStateStore, {
+      omsUrl: 'omsUrl'
     })
   },
 
@@ -31,10 +33,11 @@ export default {
     updateStatusTickle () { this.doUpdate() }
   },
 
+  emits: ['done', 'wait'],
+
   methods: {
-    ...mapActions('model', {
-      dispatchWorksetStatus: 'worksetStatus'
-    }),
+    ...mapActions(useModelStore, ['dispatchWorksetStatus']),
+
     // refersh workset list
     async doUpdate () {
       if (!this.modelDigest || !this.worksetName) {

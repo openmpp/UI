@@ -272,7 +272,10 @@
 </template>
 
 <script>
-import { mapState, mapGetters, mapActions } from 'vuex'
+import { mapState, mapActions } from 'pinia'
+import { useModelStore } from '../stores/model'
+import { useServerStateStore } from '../stores/server-state'
+import { useUiStateStore } from '../stores/ui-state'
 import * as Mdf from 'src/model-common'
 import * as Idb from 'src/idb/idb'
 import { exportFile } from 'quasar'
@@ -308,23 +311,21 @@ export default {
       return this.uploadFile instanceof File && (this.uploadFile?.name || '') !== '' && this.uploadFile?.type === 'application/json'
     },
 
-    ...mapState('model', {
-      theModel: state => state.theModel,
-      runTextList: state => state.runTextList,
-      worksetTextList: state => state.worksetTextList
+    ...mapState(useModelStore, [
+      'theModel',
+      'runTextList',
+      'worksetTextList',
+      'modelCount'
+    ]),
+    ...mapState(useServerStateStore, {
+      serverConfig: 'config'
     }),
-    ...mapGetters('model', {
-      modelCount: 'modelListCount'
-    }),
-    ...mapState('serverState', {
-      serverConfig: state => state.config
-    }),
-    ...mapState('uiState', {
-      uiLang: state => state.uiLang,
-      treeLabelKind: state => state.treeLabelKind,
-      noAccDownload: state => state.noAccDownload,
-      noMicrodataDownload: state => state.noMicrodataDownload
-    })
+    ...mapState(useUiStateStore, [
+      'uiLang',
+      'treeLabelKind',
+      'noAccDownload',
+      'noMicrodataDownload'
+    ])
   },
 
   watch: {
@@ -344,19 +345,19 @@ export default {
   },
 
   methods: {
-    ...mapActions('model', {
-      dispatchTheModel: 'theModel',
-      dispatchModelList: 'modelList',
-      dispatchRunTextList: 'runTextList',
-      dispatchWorksetTextList: 'worksetTextList'
-    }),
-    ...mapActions('uiState', {
-      dispatchUiLang: 'uiLang',
-      dispatchNoAccDownload: 'noAccDownload',
-      dispatchNoMicrodataDownload: 'noMicrodataDownload',
-      dispatchTreeLabelKind: 'treeLabelKind',
-      dispatchViewDeleteByModel: 'viewDeleteByModel'
-    }),
+    ...mapActions(useModelStore, [
+      'dispatchTheModel',
+      'dispatchModelList',
+      'dispatchRunTextList',
+      'dispatchWorksetTextList'
+    ]),
+    ...mapActions(useUiStateStore, [
+      'dispatchUiLang',
+      'dispatchNoAccDownload',
+      'dispatchNoMicrodataDownload',
+      'dispatchTreeLabelKind',
+      'dispatchViewDeleteByModel'
+    ]),
     // refresh model settings: select from indexed db
     doRefresh () {
       this.clearState()
@@ -602,7 +603,7 @@ export default {
 
         for (const key of keyArr) {
           const v = await rd.getByKey(key)
-          if (v || v === {}) {
+          if (v) {
             this.dbRows.push({ name: key, view: v })
           }
         }

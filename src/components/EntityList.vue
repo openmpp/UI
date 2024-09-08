@@ -45,7 +45,10 @@
 </template>
 
 <script>
-import { mapState, mapGetters } from 'vuex'
+import { mapState, mapActions } from 'pinia'
+import { useModelStore } from '../stores/model'
+import { useServerStateStore } from '../stores/server-state'
+import { useUiStateStore } from '../stores/ui-state'
 import * as Mdf from 'src/model-common'
 import OmTableTree from 'components/OmTableTree.vue'
 import { openURL } from 'quasar'
@@ -98,21 +101,16 @@ export default {
       return ((s || '') !== '') ? parseInt(s) : 0
     },
 
-    ...mapState('model', {
-      theModel: state => state.theModel,
-      theModelUpdated: state => state.theModelUpdated,
-      runTextListUpdated: state => state.runTextListUpdated
+    ...mapState(useModelStore, [
+      'theModel',
+      'theModelUpdated',
+      'runTextListUpdated'
+    ]),
+    ...mapState(useServerStateStore, {
+      omsUrl: 'omsUrl',
+      serverConfig: 'config'
     }),
-    ...mapGetters('model', {
-      runTextByDigest: 'runTextByDigest'
-    }),
-    ...mapState('serverState', {
-      omsUrl: state => state.omsUrl,
-      serverConfig: state => state.config
-    }),
-    ...mapState('uiState', {
-      treeLabelKind: state => state.treeLabelKind
-    })
+    ...mapState(useUiStateStore, ['treeLabelKind'])
   },
 
   watch: {
@@ -123,7 +121,21 @@ export default {
     runTextListUpdated () { if (this.runDigest) this.doRefresh() }
   },
 
+  emits: [
+    'entity-tree-updated',
+    'entity-clear-in-list',
+    'entity-select',
+    'entity-attr-add',
+    'entity-add',
+    'entity-attr-remove',
+    'entity-remove',
+    'entity-attr-info-show',
+    'entity-info-show'
+  ],
+
   methods: {
+    ...mapActions(useModelStore, ['runTextByDigest']),
+
     // update entity attributes tree data and refresh tree view
     doRefresh () {
       if (this.runDigest) {

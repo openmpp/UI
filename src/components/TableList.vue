@@ -48,7 +48,10 @@
 </template>
 
 <script>
-import { mapState, mapGetters } from 'vuex'
+import { mapState, mapActions } from 'pinia'
+import { useModelStore } from '../stores/model'
+import { useServerStateStore } from '../stores/server-state'
+import { useUiStateStore } from '../stores/ui-state'
 import * as Mdf from 'src/model-common'
 import OmTableTree from 'components/OmTableTree.vue'
 import * as Tsc from 'components/tree-common.js'
@@ -103,21 +106,16 @@ export default {
       return ((s || '') !== '') ? parseInt(s) : 0
     },
 
-    ...mapState('model', {
-      theModel: state => state.theModel,
-      theModelUpdated: state => state.theModelUpdated,
-      runTextListUpdated: state => state.runTextListUpdated
+    ...mapState(useModelStore, [
+      'theModel',
+      'theModelUpdated',
+      'runTextListUpdated'
+    ]),
+    ...mapState(useServerStateStore, {
+      omsUrl: 'omsUrl',
+      serverConfig: 'config'
     }),
-    ...mapGetters('model', {
-      runTextByDigest: 'runTextByDigest'
-    }),
-    ...mapState('serverState', {
-      omsUrl: state => state.omsUrl,
-      serverConfig: state => state.config
-    }),
-    ...mapState('uiState', {
-      treeLabelKind: state => state.treeLabelKind
-    })
+    ...mapState(useUiStateStore, ['treeLabelKind'])
   },
 
   watch: {
@@ -128,7 +126,21 @@ export default {
     runTextListUpdated () { this.doRefresh() }
   },
 
+  emits: [
+    'table-tree-updated',
+    'table-clear-in-list',
+    'table-select',
+    'table-add',
+    'table-remove',
+    'table-group-add',
+    'table-group-remove',
+    'table-info-show',
+    'table-group-info-show'
+  ],
+
   methods: {
+    ...mapActions(useModelStore, ['runTextByDigest']),
+
     // update output tables tree data and refresh tree view
     doRefresh () {
       if (this.runDigest) {
@@ -316,7 +328,7 @@ export default {
         }) >= 0
         if (isNotTop) continue // not a top level group
 
-        const g = Mdf._cloneDeep(gUse[iGId].item)
+        const g = Mdf.dashCloneDeep(gUse[iGId].item)
         gTree.push(g)
         gProc.push({
           gId: iGId,
@@ -348,8 +360,8 @@ export default {
 
               const g = {
                 gId: pc.ChildGroupId,
-                path: Mdf._cloneDeep(gpNow.path),
-                item: Mdf._cloneDeep(gChildUse.item)
+                path: Mdf.dashCloneDeep(gpNow.path),
+                item: Mdf.dashCloneDeep(gChildUse.item)
               }
               g.item.key = 'tgr-' + pc.ChildGroupId + '-' + this.nextId++
               g.path.push(g.gId)

@@ -221,7 +221,7 @@
           class="col-auto q-ml-xs"
           >
           <span>{{ runCurrent.Name }}<br />
-          <span class="om-text-descr"><span class="mono">{{ dateTimeStr(runCurrent.UpdateDateTime) }} </span>{{ descrRunCurrent }}</span></span>
+          <span class="om-text-descr"><span class="mono q-pr-sm">{{ dateTimeStr(runCurrent.UpdateDateTime) }}</span>{{ descrRunCurrent }}</span></span>
         </div>
       </transition>
 
@@ -373,9 +373,10 @@
         :nodes="runTreeData"
         node-key="key"
         tick-strategy="leaf-filtered"
+        no-transition
         no-connectors
-        :expanded.sync="runTreeExpanded"
-        :ticked.sync="runTreeTicked"
+        v-model:expanded="runTreeExpanded"
+        v-model:ticked="runTreeTicked"
         :filter="runFilter"
         :filter-method="doRunTreeFilter"
         :no-results-label="$t('No model runs found')"
@@ -396,6 +397,7 @@
                 :rounded="!!runTreeTicked.length"
                 no-caps
                 color="primary"
+                padding="xs"
                 class="col-auto"
                 :icon="!!runTreeTicked.length ? 'mdi-delete' : 'mdi-delete-outline'"
                 :label="!!runTreeTicked.length ? '[ ' + runTreeTicked.length.toLocaleString() + ' ]' : ''"
@@ -434,6 +436,7 @@
               round
               dense
               :color="isRunDeleted(prop.node.status, prop.node.label) ? 'negative' : (isSuccess(prop.node.status) || isInProgress(prop.node.status) ? 'primary' : 'warning')"
+              padding="xs"
               class="col-auto"
               :icon="isSuccess(prop.node.status) ? (prop.node.digest === runDigestSelected ? 'mdi-information' : 'mdi-information-outline') : (isInProgress(prop.node.status) ? 'mdi-run' : 'mdi-alert-circle-outline')"
               :title="(isRunDeleted(prop.node.status, prop.node.label) ? $t('Deleted') : $t('About')) + ' ' + prop.node.label"
@@ -455,6 +458,7 @@
               flat
               round
               dense
+              padding="xs"
               class="col-auto"
               :class="(!isSuccess(prop.node.status) || prop.node.digest === runDigestSelected) ? 'text-secondary' : (isDigestCompare(prop.node.digest) ? 'text-white bg-primary' : 'text-primary')"
               icon="mdi-not-equal-variant"
@@ -479,16 +483,17 @@
               round
               dense
               :color="isSuccess(prop.node.status) ? 'primary' : 'secondary'"
+              padding="xs"
               class="col-auto"
               icon="mdi-download-circle-outline"
               :title="$t('Download') + ' ' + prop.node.label"
               />
-            <div class="col">
+            <div class="col q-ml-xs">
               <span><span :class="{ 'text-bold': prop.node.digest === runDigestSelected }">{{ prop.node.label }}</span><br />
               <span
                 :class="prop.node.digest === runDigestSelected ? 'om-text-descr-selected' : 'om-text-descr'"
                 >
-                <span class="mono">{{ prop.node.lastTime }} </span>{{ prop.node.descr }}</span></span>
+                <span class="mono q-pr-sm">{{ prop.node.lastTime }}</span>{{ prop.node.descr }}</span></span>
             </div>
           </div>
 

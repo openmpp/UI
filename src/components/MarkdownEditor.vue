@@ -89,9 +89,6 @@ export default {
     langCode: { type: String, default: 'EN' } // MDE default spellchecker support only English US
   },
 
-  watch: {
-  },
-
   data () {
     return {
       theEasyMde: null,
@@ -101,6 +98,8 @@ export default {
       showEditDiscardTickle: false
     }
   },
+
+  emits: ['save-note', 'cancel-note'],
 
   methods: {
     // cleanup description input
@@ -191,7 +190,7 @@ export default {
       this.theEasyMde.value(this.noteEdit)
     }
   },
-  destroyed () {
+  unmounted () {
     if (this.theEasyMde) {
       this.theEasyMde.toTextArea()
       this.theEasyMde = null

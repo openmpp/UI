@@ -14,7 +14,7 @@
           <tr>
             <th class="om-p-cell">
               <q-btn
-                v-if="serverConfig.AllowDownload"
+                v-if="isDownloadEnabled || isUploadEnabled"
                 @click="logRefreshPauseToggle"
                 flat
                 dense
@@ -40,14 +40,14 @@
           </tr>
         </thead>
         <tbody>
-          <tr>
+          <tr v-if="isDownloadEnabled">
             <td colspan="2" class="om-p-head-left">{{ $t('Downloads') }}</td>
             <td class="om-p-cell-right mono">{{ readyDownCount }}</td>
             <td class="om-p-cell-right mono">{{ progressDownCount }}</td>
             <td class="om-p-cell-right mono">{{ errorDownCount }}</td>
             <td class="om-p-cell-right mono">{{ totalDownCount }}</td>
           </tr>
-          <tr>
+          <tr v-if="isDownloadEnabled">
             <td colspan="2" class="om-p-head-left">{{ $t('Uploads') }}</td>
             <td class="om-p-cell-right mono">{{ readyUpCount }}</td>
             <td class="om-p-cell-right mono">{{ progressUpCount }}</td>
@@ -165,6 +165,38 @@
                 />
             </td>
             <td colspan="6" class="om-p-cell-left"><span class="q-pl-sm">{{ $t('Ignore input scenario model digest (model version)') }}</span></td>
+          </tr>
+
+          <tr>
+            <td colspan="6" class="om-p-title text-weight-medium">{{ $t('Cleanup downloads or uploads of all models') }}</td>
+          </tr>
+          <tr>
+            <td colspan="1" class="om-p-cell-center">
+              <q-btn
+                :disable="!serverConfig.AllowDownload || totalDownCount <= 0"
+                @click.stop="onAllUpDownDeleteClick('download')"
+                unelevated
+                dense
+                color="primary"
+                icon="mdi-delete-outline"
+                :title="$t('Delete all download files')"
+                />
+            </td>
+            <td colspan="5" class="om-p-cell">{{ $t('Delete all files of all models in download folder') }}</td>
+          </tr>
+          <tr>
+            <td colspan="1" class="om-p-cell-center">
+                <q-btn
+                  :disable="!serverConfig.AllowUpload || totalUpCount <= 0"
+                  @click.stop="onAllUpDownDeleteClick('upload')"
+                  unelevated
+                  dense
+                  color="primary"
+                  icon="mdi-delete-outline"
+                  :title="$t('Delete all upload files')"
+                  />
+            </td>
+            <td colspan="5" class="om-p-cell">{{ $t('Delete all files of all models in upload folder') }}</td>
           </tr>
         </tbody>
       </table>
@@ -326,6 +358,7 @@
             ref="folderTree"
             :nodes="folderTreeData"
             node-key="key"
+            no-transition
             :filter="folderTreeFilter"
             :filter-method="doFolderTreeFilter"
             :no-results-label="$t('No files found')"
@@ -349,8 +382,8 @@
                 :href="'/download/' + prop.node.link"
                 target="_blank"
                 :download="prop.node.label"
-                :title="$t('Download') + ' ' + prop.node.label"
                 class="row no-wrap items-center full-width cursor-pointer om-tree-leaf file-link"
+                :title="$t('Download') + ' ' + prop.node.label"
                 >
                 <span class="text-primary">{{ prop.node.label }}<br />
                 <span class="mono om-text-descr">{{ prop.node.descr }}</span></span>
@@ -507,6 +540,7 @@
             ref="folderTree"
             :nodes="folderTreeData"
             node-key="key"
+            no-transition
             :filter="folderTreeFilter"
             :filter-method="doFolderTreeFilter"
             :no-results-label="$t('No files found')"
@@ -530,8 +564,8 @@
                 :href="'/upload/' + prop.node.link"
                 target="_blank"
                 :download="prop.node.label"
-                :title="$t('Download') + ' ' + prop.node.label"
                 class="row no-wrap items-center full-width cursor-pointer om-tree-leaf file-link"
+                :title="$t('Download') + ' ' + prop.node.label"
                 >
                 <span class="text-primary">{{ prop.node.label }}<br />
                 <span class="mono om-text-descr">{{ prop.node.descr }}</span></span>
@@ -560,6 +594,7 @@
     class="q-ma-sm"
     >
   <q-card
+    v-if="filesExpand"
     class="up-down-card q-my-sm"
     >
     <q-card-section class="q-pb-sm">
@@ -607,7 +642,8 @@
           ref="filesTree"
           :nodes="filesTreeData"
           node-key="key"
-          :expanded.sync="filesTreeExpanded"
+          no-transition
+          v-model:expanded="filesTreeExpanded"
           :filter="filesTreeFilter"
           :filter-method="doFilesTreeFilter"
           :no-results-label="$t('No files found')"
@@ -619,8 +655,8 @@
               v-if="prop.node.isGroup"
               class="row no-wrap items-center full-width"
               >
-              <q-btn
-                v-if="serverConfig.AllowUpload"
+              <template v-if="serverConfig.AllowUpload">
+                <q-btn
                 @click.stop="onFilesCreateFolderClick(prop.node.label, prop.node.Path)"
                 flat
                 round
@@ -631,7 +667,6 @@
                 :title="$t('Create new folder')"
                 />
               <q-btn
-                v-if="serverConfig.AllowUpload"
                 @click.stop="onUploadFileClick(prop.node.label, prop.node.Path)"
                 flat
                 round
@@ -642,8 +677,8 @@
                 :title="$t('Upload file')"
                 />
               <q-btn
-                v-if="serverConfig.AllowUpload"
-                :disable="!isFilesDeleteEnabled(prop.node.Path)"
+                v-if="!isUpDownPath(prop.node.Path)"
+                :disable="!isFilesDeleteEnabled(prop.node.Path) || (prop.node.children.length || 0) <= 0"
                 @click.stop="onFilesDeleteClick(prop.node.label, true, prop.node.Path)"
                 flat
                 round
@@ -651,9 +686,21 @@
                 :color="isFilesDeleteEnabled(prop.node.Path) ? 'primary' : 'secondary'"
                 class="col-auto"
                 icon="mdi-delete-outline"
-                :title="$t('Delete: ') + ' ' + prop.node.label"
+                :title="($t('Delete: ') + ' ' + prop.node.label)"
                 />
-              <div class="col">
+                <q-btn
+                  v-else
+                  :disable="!isFilesDeleteEnabled(prop.node.Path) || (prop.node.children.length || 0) <= 0"
+                  @click.stop="onAllUpDownDeleteClick(prop.node.Path)"
+                  unelevated
+                  dense
+                  :color="isFilesDeleteEnabled(prop.node.Path) ? 'primary' : 'secondary'"
+                  class="col-auto"
+                  icon="mdi-delete-outline"
+                  :title="(prop.node.Path === 'upload') ? $t('Delete all upload files') : $t('Delete all download files')"
+                  />
+              </template>
+              <div class="col q-pl-xs">
                 <span>{{ (prop.node.label !== '/' || !prop.node.descr) ? prop.node.label : '' }} <br v-if="!!prop.node.label && prop.node.label !== '/'"/>
                 <span class="mono om-text-descr">{{ prop.node.descr + ' : ' + ((prop.node.children.length || 0).toString() + ' ' + $t('file(s)')) }}</span></span>
               </div>
@@ -725,6 +772,7 @@
     :show-tickle="showFilesDeleteDialogTickle"
     :item-name="nameToDelete"
     :item-id="pathToDelete"
+    :kind="upDownToDelete"
     :dialog-title="dialogTitleToDelete"
     >
   </delete-confirm-dialog>

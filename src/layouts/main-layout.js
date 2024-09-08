@@ -1,4 +1,7 @@
-import { mapState, mapGetters, mapActions } from 'vuex'
+import { mapState, mapActions } from 'pinia'
+import { useModelStore } from '../stores/model'
+import { useServerStateStore } from '../stores/server-state'
+import { useUiStateStore } from '../stores/ui-state'
 import languages from 'quasar/lang/index.json'
 import * as Mdf from 'src/model-common'
 import ModelInfoDialog from 'components/ModelInfoDialog.vue'
@@ -24,7 +27,7 @@ export default {
       diskUseRefreshInt: '',
       diskUseMs: DISK_USE_MIN_REFRESH_TIME,
       langCode: this.$q.lang.getLocale(),
-      appLanguages: languages.filter(lang => ['fr', 'en-us'].includes(lang.isoName))
+      appLanguages: languages.filter(lang => ['fr', 'en-US'].includes(lang.isoName))
     }
   },
 
@@ -47,28 +50,26 @@ export default {
       return !this.loadConfigDone
     },
 
-    ...mapState('model', {
-      theModel: state => state.theModel,
-      modelList: state => state.modelList,
-      theModelDir: state => state.theModelDir,
-      runTextList: state => state.runTextList,
-      worksetTextList: state => state.worksetTextList
+    ...mapState(useModelStore, [
+      'theModel',
+      'theModelDir',
+      'modelList',
+      'runTextList',
+      'worksetTextList',
+      'modelCount',
+      'modelLanguage'
+    ]),
+    ...mapState(useServerStateStore, {
+      omsUrl: 'omsUrl',
+      serverConfig: 'config',
+      diskUseState: 'diskUse'
     }),
-    ...mapGetters('model', {
-      modelCount: 'modelListCount',
-      modelLanguage: 'modelLanguage'
-    }),
-    ...mapState('serverState', {
-      omsUrl: state => state.omsUrl,
-      serverConfig: state => state.config,
-      diskUseState: state => state.diskUse
-    }),
-    ...mapState('uiState', {
-      uiLang: state => state.uiLang,
-      runDigestSelected: state => state.runDigestSelected,
-      worksetNameSelected: state => state.worksetNameSelected,
-      taskNameSelected: state => state.taskNameSelected
-    })
+    ...mapState(useUiStateStore, [
+      'uiLang',
+      'runDigestSelected',
+      'worksetNameSelected',
+      'taskNameSelected'
+    ])
   },
 
   watch: {
@@ -76,8 +77,8 @@ export default {
     uiLang () {
       if (!this.uiLang) {
         let lc = this.$q.lang.getLocale()
-        if (this.appLanguages.findIndex((ln) => ln.isoName === lc) < 0) { // language not included in translation pack, use default en-us
-          lc = 'en-us'
+        if (this.appLanguages.findIndex((ln) => ln.isoName === lc) < 0) { // language not included in translation pack, use default en-US
+          lc = 'en-US'
         }
         this.langCode = lc
         this.$i18n.locale = lc
@@ -87,7 +88,7 @@ export default {
     langCode (lc) {
       // dynamic import, so loading on demand only
       import(
-        /* webpackInclude: /(fr|en-us)\.js$/ */
+        /* webpackInclude: /(fr|en-US)\.js$/ */
         'quasar/lang/' + lc
       ).then(lang => {
         this.$q.lang.set(lang.default) // switch quasar language
@@ -101,13 +102,12 @@ export default {
   },
 
   methods: {
-    ...mapActions('uiState', {
-      dispatchUiLang: 'uiLang'
-    }),
-    ...mapActions('serverState', {
-      dispatchServerConfig: 'serverConfig',
-      dispatchDiskUse: 'diskUse'
-    }),
+    ...mapActions(useServerStateStore, [
+      'dispatchServerConfig',
+      'dispatchDiskUse'
+    ]),
+    ...mapActions(useUiStateStore, ['dispatchUiLang']),
+
     // show model notes dialog
     doShowModelNote () {
       this.modelInfoTickle = !this.modelInfoTickle
@@ -263,7 +263,8 @@ export default {
   mounted () {
     this.doConfigRefresh()
   },
-  beforeDestroy () {
+
+  beforeUnmount () {
     clearInterval(this.diskUseRefreshInt)
   },
 

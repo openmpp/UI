@@ -1,4 +1,7 @@
-import { mapState, mapGetters, mapActions } from 'vuex'
+import { mapState, mapActions } from 'pinia'
+import { useModelStore } from '../stores/model'
+import { useServerStateStore } from '../stores/server-state'
+import { useUiStateStore } from '../stores/ui-state'
 import * as Mdf from 'src/model-common'
 import * as Idb from 'src/idb/idb'
 import RunBar from 'components/RunBar.vue'
@@ -9,7 +12,7 @@ import RunInfoDialog from 'components/RunInfoDialog.vue'
 import WorksetInfoDialog from 'components/WorksetInfoDialog.vue'
 import ParameterInfoDialog from 'components/ParameterInfoDialog.vue'
 import EditDiscardDialog from 'components/EditDiscardDialog.vue'
-import draggable from 'vuedraggable'
+import { VueDraggableNext } from 'vue-draggable-next'
 import * as Pcvt from 'components/pivot-cvt'
 import * as Puih from './pivot-ui-helper'
 import PvTable from 'components/PvTable'
@@ -24,7 +27,7 @@ const LAST_PAGE_OFFSET = 2 * 1024 * 1024 * 1024 // large page offset to get the 
 export default {
   name: 'ParameterPage',
   components: {
-    draggable,
+    draggable: VueDraggableNext,
     PvTable,
     RunBar,
     WorksetBar,
@@ -70,8 +73,13 @@ export default {
         isRowColModeToggle: true,
         isPvTickle: false,      // used to update view of pivot table (on data selection change, on edit/save change)
         isPvDimsTickle: false,  // used to update dimensions in pivot table (on label change)
-        formatOpts: void 0,     // hide format controls by default
-        isRawShow: false        // for number editor this is raw value format status before editor started
+        isRawShow: false,       // for number editor this is raw value format status before editor started
+        //
+        isRawUseView: false, // v3 copy of isRawUse
+        isRawView: false,    // v3 copy of isRawValue
+        isFloatView: false,  // v3 copy of isFloat
+        isMoreView: false,   // v3 copy of isDoMore
+        isLessView: false    // v3 copy of isDoLess
       },
       pvc: {
         rowColMode: Pcvt.SPANS_AND_DIMS_PVT,  // rows and columns mode: 2 = use spans and show dim names
@@ -84,6 +92,7 @@ export default {
       pvKeyPos: [],           // position of each dimension item in cell key
       edt: Pcvt.emptyEdit(),  // editor options and state shared with child
       isDragging: false,      // if true then user is dragging dimension select control
+      selectDimName: '',      // selected dimension name
       isPages: false,
       pageStart: 0,
       pageSize: 0,
@@ -123,25 +132,15 @@ export default {
     fileSelected () { return !(this.uploadFile === null) },
     isEditUpdated () { return this.edt.isUpdated },
 
-    ...mapState('model', {
-      theModel: state => state.theModel,
-      worksetTextListUpdated: state => state.worksetTextListUpdated
+    ...mapState(useModelStore, [
+      'theModel',
+      'worksetTextListUpdated'
+    ]),
+    ...mapState(useServerStateStore, {
+      omsUrl: 'omsUrl',
+      serverConfig: 'config'
     }),
-    ...mapGetters('model', {
-      runTextByDigest: 'runTextByDigest',
-      worksetTextByName: 'worksetTextByName'
-    }),
-    ...mapState('uiState', {
-      uiLang: state => state.uiLang
-    }),
-    ...mapGetters('uiState', {
-      paramViewWorksetUpdatedCount: 'paramViewWorksetUpdatedCount',
-      paramView: 'paramView'
-    }),
-    ...mapState('serverState', {
-      omsUrl: state => state.omsUrl,
-      serverConfig: state => state.config
-    })
+    ...mapState(useUiStateStore, ['uiLang'])
   },
 
   watch: {
@@ -151,11 +150,27 @@ export default {
     worksetTextListUpdated () { this.onWorksetUpdated() }
   },
 
+  emits: [
+    'edit-updated',
+    'new-run-select',
+    'set-update-readonly',
+    'parameter-view-saved',
+    'tab-mounted'
+  ],
+
   methods: {
-    ...mapActions('uiState', {
-      dispatchParamView: 'paramView',
-      dispatchParamViewDelete: 'paramViewDelete'
-    }),
+    ...mapActions(useModelStore, [
+      'runTextByDigest',
+      'worksetTextByName'
+    ]),
+    ...mapActions(useUiStateStore, [
+      'paramViewWorksetUpdatedCount',
+      'paramView',
+      //
+      'dispatchParamView',
+      'dispatchParamViewDelete'
+    ]),
+
     // show run parameter notes dialog
     doShowParamNote () {
       this.paramInfoTickle = !this.paramInfoTickle
@@ -222,16 +237,28 @@ export default {
     onShowMoreFormat () {
       if (!this.pvc.formatter) return
       this.pvc.formatter.doMore()
+      this.ctrl.isMoreView = this.pvc.formatter.options().isDoMore
+      this.ctrl.isLessView = this.pvc.formatter.options().isDoLess
+      this.ctrl.isRawView = this.pvc.formatter.options().isRawValue
+      this.ctrl.isPvTickle = !this.ctrl.isPvTickle
     },
     // show less decimals (or less details) in table body
     onShowLessFormat () {
       if (!this.pvc.formatter) return
       this.pvc.formatter.doLess()
+      this.ctrl.isMoreView = this.pvc.formatter.options().isDoMore
+      this.ctrl.isLessView = this.pvc.formatter.options().isDoLess
+      this.ctrl.isRawView = this.pvc.formatter.options().isRawValue
+      this.ctrl.isPvTickle = !this.ctrl.isPvTickle
     },
     // toogle to formatted value or to raw value in table body
     onToggleRawValue () {
       if (!this.pvc.formatter) return
       this.pvc.formatter.doRawValue()
+      this.ctrl.isMoreView = this.pvc.formatter.options().isDoMore
+      this.ctrl.isLessView = this.pvc.formatter.options().isDoLess
+      this.ctrl.isRawView = this.pvc.formatter.options().isRawValue // this.pvc.formatter.options().isRawValue
+      this.ctrl.isPvTickle = !this.ctrl.isPvTickle
     },
     // copy tab separated values to clipboard: forward actions to pivot table component
     onCopyToClipboard () {
@@ -253,7 +280,8 @@ export default {
     },
 
     // view parameter rows by pages
-    onPageSize () {
+    onPageSize (size) {
+      this.pageSize = size
       if (this.isAllPageSize()) {
         this.pageStart = 0
         this.pageSize = 0
@@ -473,10 +501,10 @@ export default {
       // for numeric editor display raw value during editing and restore raw value format status after edit completed
       if (this.edt.kind === Pcvt.EDIT_NUMBER && this.pvc.formatter) {
         if (this.edt.isEdit) {
-          this.ctrl.isRawShow = this.ctrl.formatOpts.isRawValue
+          this.ctrl.isRawShow = this.pvc.formatter.options().isRawValue
           if (!this.ctrl.isRawShow) this.pvc.formatter.doRawValue() // show raw value on edit start
         } else {
-          if (this.ctrl.formatOpts.isRawValue !== this.ctrl.isRawShow) this.pvc.formatter.doRawValue() // switch back to formatted value on edit complete
+          if (this.pvc.formatter.options().isRawValue !== this.ctrl.isRawShow) this.pvc.formatter.doRawValue() // switch back to formatted value on edit complete
         }
       }
 
@@ -489,7 +517,7 @@ export default {
       this.dispatchParamView({ key: this.routeKey, edit: this.edt })
 
       if (this.edt.kind === Pcvt.EDIT_NUMBER && this.pvc.formatter) {
-        if (this.ctrl.formatOpts.isRawValue !== this.ctrl.isRawShow) this.pvc.formatter.doRawValue() // switch back to formatted value on edit complete
+        if (this.pvc.formatter.options().isRawValue !== this.ctrl.isRawShow) this.pvc.formatter.doRawValue() // switch back to formatted value on edit complete
       }
       this.updateWorksetReadonly(true) // set workset read only if all parameters saved and workset note editor closed
     },
@@ -498,7 +526,7 @@ export default {
     onEditSave () {
       this.doSaveDataPage()
       if (this.edt.kind === Pcvt.EDIT_NUMBER && this.pvc.formatter) {
-        if (this.ctrl.formatOpts.isRawValue !== this.ctrl.isRawShow) this.pvc.formatter.doRawValue() // switch back to formatted value on edit complete
+        if (this.pvc.formatter.options().isRawValue !== this.ctrl.isRawShow) this.pvc.formatter.doRawValue() // switch back to formatted value on edit complete
       }
     },
 
@@ -567,7 +595,7 @@ export default {
       // sync other dimension(s) single selection value with selection array(s) filter
       if (panel === 'other') {
         f.singleSelection = {}
-        f.selection = []
+        f.selection.splice(0, f.selection.length)
         if (vals) {
           f.singleSelection = vals
           f.selection.push(vals)
@@ -593,7 +621,57 @@ export default {
         others: Pcvt.pivotStateFields(this.otherFields)
       })
     },
+    onUpdateSelect (vals) {
+      if (this.isDragging) return // exit: this is drag-and-drop, no changes in selection yet
 
+      // find dimension and check if it other panel
+      const f = this.dimProp.find((d) => d.name === this.selectDimName)
+      if (!f) {
+        console.warn('Invalid (empty) selected dimension:', this.selectDimName)
+        this.$q.notify({ type: 'negative', message: this.$t('Invalid (empty) selected dimension') })
+        return
+      }
+      const isOther = this.otherFields.findIndex((p) => f.name === p.name) >= 0
+
+      // sync dimension selection values
+      f.selection.splice(0, f.selection.length)
+      if (!isOther) {
+        f.selection.push(...vals)
+      } else {
+        f.singleSelection = vals
+        f.selection.push(vals)
+      }
+      f.selection.sort(
+        (left, right) => (left.value === right.value) ? 0 : ((left.value < right.value) ? -1 : 1)
+      )
+
+      // update pivot view:
+      //   if other dimesions filters same as before then update pivot table view now
+      //   else refresh data
+      if (!isOther || Puih.equalFilterState(this.filterState, this.otherFields)) {
+        this.ctrl.isPvTickle = !this.ctrl.isPvTickle
+      } else {
+        this.doRefreshDataPage()
+      }
+      // update pivot view rows, columns, other dimensions
+      this.dispatchParamView({
+        key: this.routeKey,
+        rows: Pcvt.pivotStateFields(this.rowFields),
+        cols: Pcvt.pivotStateFields(this.colFields),
+        others: Pcvt.pivotStateFields(this.otherFields)
+      })
+    },
+    onFocusSelect (e) {
+      this.selectDimName = ''
+      const p = e?.target?.closest('div[id^=item-draggable-]')
+      if (p) {
+        this.selectDimName = (p?.getAttribute('id') || '').slice('item-draggable-'.length)
+      }
+      if (!this.selectDimName) {
+        console.warn('Invalid (empty) selected dimension:', this.selectDimName)
+        this.$q.notify({ type: 'negative', message: this.$t('Invalid (empty) selected dimension') })
+      }
+    },
     // do "select all" items: all which are visible through filter options
     onSelectAll (name) {
       const f = this.dimProp.find((d) => d.name === name)
@@ -624,7 +702,7 @@ export default {
       // if options not filtered then clear all selection (select nothing)
       // else remove from selection all filtered options
       if (f.options.length === f.enums.length) {
-        f.selection = []
+        f.selection.splice(0, f.selection.length)
       } else {
         f.selection = f.selection.filter(sv => f.options.findIndex(ov => ov.value === sv.value) < 0)
       }
@@ -709,7 +787,7 @@ export default {
       // make dimensions:
       //  [rank] of enum-based dimensions
       //  sub-value id dimension, if parameter has sub-values
-      this.dimProp = []
+      this.dimProp.splice(0, this.dimProp.length)
 
       for (let n = 0; n < this.paramText.ParamDimsTxt.length; n++) {
         const dt = this.paramText.ParamDimsTxt[n]
@@ -799,7 +877,6 @@ export default {
       this.pvc.processValue = Pcvt.asIsPval
       this.pvc.formatter = Pcvt.formatDefault({ isNullable: this.isNullable, locale: lc })
       this.pvc.cellClass = 'pv-cell-right' // numeric cell value style by default
-      this.ctrl.formatOpts = void 0
       this.edt.kind = Pcvt.EDIT_NUMBER
 
       if (Mdf.isBuiltIn(this.paramType.Type)) {
@@ -834,7 +911,12 @@ export default {
         this.edt.kind = Pcvt.EDIT_ENUM
       }
 
-      this.ctrl.formatOpts = this.pvc.formatter.options()
+      // format view controls
+      this.ctrl.isRawUseView = this.pvc.formatter.options().isRawUse
+      this.ctrl.isRawView = this.pvc.formatter.options().isRawValue
+      this.ctrl.isFloatView = this.pvc.formatter.options().isFloat
+      this.ctrl.isMoreView = this.pvc.formatter.options().isDoMore
+      this.ctrl.isLessView = this.pvc.formatter.options().isDoLess
 
       // set columns layout and refresh the data
       await this.setPageView()
@@ -855,13 +937,13 @@ export default {
       // else: restore previous view
 
       // restore rows, columns, others layout and items selection
-      const restore = (pvSrc) => {
-        const dst = []
+      const restore = (pvSrc, dst) => {
+        dst.splice(0, dst.length)
         for (const p of pvSrc) {
           const f = this.dimProp.find((d) => d.name === p.name)
           if (!f) continue
 
-          f.selection = []
+          f.selection.splice(0, f.selection.length)
           for (const v of p.values) {
             const e = f.enums.find((fe) => fe.value === v)
             if (e) {
@@ -872,11 +954,10 @@ export default {
 
           dst.push(f)
         }
-        return dst
       }
-      this.rowFields = restore(pv.rows)
-      this.colFields = restore(pv.cols)
-      this.otherFields = restore(pv.others)
+      restore(pv.rows, this.rowFields)
+      restore(pv.cols, this.colFields)
+      restore(pv.others, this.otherFields)
 
       // if there are any dimensions which are not in rows, columns or others then push it to others
       // it is possible if view restored and sub-value dimension is added by parameter upload
@@ -886,7 +967,7 @@ export default {
         if (this.otherFields.findIndex((p) => f.name === p.name) >= 0) continue
 
         // append to other fields
-        f.selection = []
+        f.selection.splice(0, f.selection.length)
         f.selection.push(f.enums[0])
         f.singleSelection = (f.selection.length > 0) ? f.selection[0] : {}
         this.otherFields.push(f)
@@ -922,32 +1003,29 @@ export default {
       //   last-1 dimension on rows
       //   last dimension on columns
       //   the rest on other fields
-      const rf = []
-      const cf = []
-      const tf = []
-      if (this.dimProp.length === 1) rf.push(this.dimProp[0])
+      this.rowFields.splice(0, this.rowFields.length)
+      this.colFields.splice(0, this.colFields.length)
+      this.otherFields.splice(0, this.otherFields.length)
+
+      if (this.dimProp.length === 1) this.rowFields.push(this.dimProp[0])
       if (this.dimProp.length > 1) {
-        rf.push(this.dimProp[this.dimProp.length - 2])
-        cf.push(this.dimProp[this.dimProp.length - 1])
+        this.rowFields.push(this.dimProp[this.dimProp.length - 2])
+        this.colFields.push(this.dimProp[this.dimProp.length - 1])
       }
 
       for (let k = 0; k < this.dimProp.length; k++) {
         const f = this.dimProp[k]
-        f.selection = []
+        f.selection.splice(0, f.selection.length)
 
         // if other then single selection else rows and columns: multiple selection
         if (k < this.dimProp.length - 2) {
-          tf.push(f)
+          this.otherFields.push(f)
           f.selection.push(f.enums[0])
         } else {
-          f.selection = Array.from(f.enums)
+          f.selection.push(...f.enums)
         }
         f.singleSelection = (f.selection.length > 0) ? f.selection[0] : {}
       }
-
-      this.rowFields = rf
-      this.colFields = cf
-      this.otherFields = tf
 
       // default row-column mode: no row-column headers for scalar parameters without sub-values
       this.pvc.rowColMode = !this.isScalar ? Pcvt.SPANS_AND_DIMS_PVT : Pcvt.NO_SPANS_NO_DIMS_PVT

@@ -246,7 +246,7 @@
           class="col-auto"
           >
           <span>{{ worksetNameSelected }}<br />
-          <span class="om-text-descr"><span class="mono">{{ dateTimeStr(worksetCurrent.UpdateDateTime) }} </span>{{ descrWorksetCurrent }}</span></span>
+          <span class="om-text-descr"><span class="mono q-pr-sm">{{ dateTimeStr(worksetCurrent.UpdateDateTime) }}</span>{{ descrWorksetCurrent }}</span></span>
         </div>
       </transition>
     </div>
@@ -450,9 +450,10 @@
         :nodes="wsTreeData"
         node-key="key"
         tick-strategy="leaf-filtered"
+        no-transition
         no-connectors
-        :expanded.sync="wsTreeExpanded"
-        :ticked.sync="wsTreeTicked"
+        v-model:expanded="wsTreeExpanded"
+        v-model:ticked="wsTreeTicked"
         :filter="wsTreeFilter"
         :filter-method="doWsTreeFilter"
         :no-results-label="$t('No input scenarios found')"
@@ -511,6 +512,7 @@
               round
               dense
               color="primary"
+              padding="xs"
               class="col-auto"
               :icon="prop.node.label === worksetNameSelected ? 'mdi-information' : 'mdi-information-outline'"
               :title="$t('About') + ' ' + prop.node.label"
@@ -522,6 +524,7 @@
               flat
               round
               dense
+              padding="xs"
               class="col-auto"
               :class="(!prop.node.isReadonly || prop.node.label === worksetNameSelected || isReadonlyWorksetCurrent) ? 'text-secondary' : (prop.node.label !== worksetNameFrom ? 'text-primary' : 'text-white bg-primary')"
               icon="mdi-table-plus"
@@ -535,6 +538,7 @@
               round
               dense
               :color="(prop.node.isReadonly && !isEdit())? 'primary' : 'secondary'"
+              padding="xs"
               class="col-auto"
               icon="mdi-run"
               :title="$t('Run the Model using Scenario') + ' ' +  prop.node.label"
@@ -547,6 +551,7 @@
               round
               dense
               :color="(!prop.node.isReadonly && !isEdit())? 'primary' : 'secondary'"
+              padding="xs"
               class="col-auto"
               icon="mdi-delete-outline"
               :title="$t('Delete') + ' ' + prop.node.label"
@@ -559,16 +564,17 @@
               round
               dense
               :color="(prop.node.isReadonly && !isEdit()) ? 'primary' : 'secondary'"
+              padding="xs"
               class="col-auto"
               icon="mdi-download-circle-outline"
               :title="$t('Download') + ' ' + prop.node.label"
               />
-            <div class="col">
+            <div class="col q-ml-xs">
               <span><span :class="{ 'text-bold': prop.node.label === worksetNameSelected }">{{ prop.node.label }}</span><br />
               <span
                 :class="prop.node.label === worksetNameSelected ? 'om-text-descr-selected' : 'om-text-descr'"
                 >
-                <span class="mono">{{ prop.node.lastTime }} </span>{{ prop.node.descr }}</span></span>
+                <span class="mono q-pr-sm">{{ prop.node.lastTime }}</span>{{ prop.node.descr }}</span></span>
             </div>
           </div>
 

@@ -90,6 +90,7 @@ Expected array of tree items as:
       ref="tableTree"
       :nodes="treeData"
       node-key="key"
+      no-transition
       :filter="treeFilter"
       :filter-method="doTreeFilter"
       :no-results-label="noResultsLabel"
@@ -110,6 +111,7 @@ Expected array of tree items as:
             dense
             :disable="prop.node.isAboutEmpty"
             color="primary"
+            padding="xs"
             class="col-auto"
             icon="mdi-information-outline"
             :title="$t('About') + ' ' + prop.node.label"
@@ -122,6 +124,7 @@ Expected array of tree items as:
             round
             dense
             :color="!isAddDisabled ? 'primary' : 'secondary'"
+            padding="xs"
             class="col-auto"
             icon="mdi-plus-circle-outline"
             :title="$t('Add') + ' ' + prop.node.label"
@@ -134,6 +137,7 @@ Expected array of tree items as:
             round
             dense
             :color="!isRemoveDisabled ? 'primary' : 'secondary'"
+            padding="xs"
             class="col-auto"
             icon="mdi-minus-circle-outline"
             :title="$t('Remove') + ' ' + prop.node.label"
@@ -146,6 +150,7 @@ Expected array of tree items as:
             round
             dense
             :color="!isDownloadDisabled ? 'primary' : 'secondary'"
+            padding="xs"
             class="col-auto"
             icon="mdi-download-circle-outline"
             :title="$t('Download') + ' ' + prop.node.label"
@@ -187,6 +192,7 @@ Expected array of tree items as:
             dense
             :disable="prop.node.isAboutEmpty"
             color="primary"
+            padding="xs"
             class="col-auto"
             icon="mdi-information-outline"
             :title="$t('About') + ' ' + prop.node.label"
@@ -199,6 +205,7 @@ Expected array of tree items as:
             round
             dense
             :color="!isAddDisabled ? 'primary' : 'secondary'"
+            padding="xs"
             class="col-auto"
             icon="mdi-plus-circle-outline"
             :title="$t('Add') + ' ' + prop.node.label"
@@ -211,6 +218,7 @@ Expected array of tree items as:
             round
             dense
             :color="!isRemoveDisabled ? 'primary' : 'secondary'"
+            padding="xs"
             class="col-auto"
             icon="mdi-minus-circle-outline"
             :title="$t('Remove') + ' ' + prop.node.label"
@@ -223,6 +231,7 @@ Expected array of tree items as:
             round
             dense
             :color="!isDownloadDisabled ? 'primary' : 'secondary'"
+            padding="xs"
             class="col-auto"
             icon="mdi-download-circle-outline"
             :title="$t('Download') + ' ' + prop.node.label"
@@ -313,9 +322,6 @@ export default {
     }
   },
 
-  computed: {
-  },
-
   watch: {
     refreshTreeTickle () {
       this.isTreeExpanded = this.isAllExpand
@@ -326,6 +332,22 @@ export default {
       this.doRefresh()
     }
   },
+
+  emits: [
+    'om-table-tree-show-hidden',
+    'om-table-tree-show-not-in-list',
+    'om-table-tree-clear-in-list',
+    'om-table-tree-group-note',
+    'om-table-tree-group-add',
+    'om-table-tree-group-remove',
+    'om-table-tree-group-download',
+    'om-table-tree-group-select',
+    'om-table-tree-leaf-note',
+    'om-table-tree-leaf-add',
+    'om-table-tree-leaf-remove',
+    'om-table-tree-leaf-download',
+    'om-table-tree-leaf-select'
+  ],
 
   methods: {
     // update view on tree data change

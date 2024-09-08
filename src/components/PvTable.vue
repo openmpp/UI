@@ -46,9 +46,8 @@
           class="pv-rc-pad"></th>
         <th
           class="pv-rc-cell">{{!pvControl.isShowNames ? cf.label : cf.name}}</th>
-        <template v-for="(col, nCol) in pvt.cols">
+        <template v-for="(col, nCol) in pvt.cols" :key="pvt.colKeys[nCol]">
           <th
-            :key="pvt.colKeys[nCol]"
             :rowspan="(!!rowFields.length && nFld === colFields.length - 1) ? 2 : 1"
             class="pv-col-head">
               {{getDimItemLabel(cf.name, col[nFld])}}
@@ -93,9 +92,8 @@
           :colspan="rowFields.length"
           :rowspan="colFields.length"
           class="pv-rc-pad"></th>
-        <template v-for="(col, nCol) in pvt.cols">
+        <template v-for="(col, nCol) in pvt.cols" :key="pvt.colKeys[nCol]">
           <th
-            :key="pvt.colKeys[nCol]"
             class="pv-col-head">
               {{getDimItemLabel(cf.name, col[nFld])}}
           </th>

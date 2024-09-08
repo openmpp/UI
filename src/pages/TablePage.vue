@@ -212,32 +212,30 @@
             </q-item>
           </template>
 
-          <template v-if="ctrl.formatOpts && ctrl.formatOpts.isFloat">
-            <q-item
-              @click="onShowMoreFormat"
-              :disable="!ctrl.formatOpts.isDoMore"
-              clickable
-              v-close-popup
-              >
-              <q-item-section avatar>
-                <q-icon color="primary" name="mdi-decimal-increase" />
-              </q-item-section>
-              <q-item-section>{{ $t('Increase precision') }}</q-item-section>
-            </q-item>
-            <q-item
-              @click="onShowLessFormat"
-              :disable="!ctrl.formatOpts.isDoLess"
-              clickable
-              v-close-popup
-              >
-              <q-item-section avatar>
-                <q-icon color="primary" name="mdi-decimal-decrease" />
-              </q-item-section>
-              <q-item-section>{{ $t('Decrease precision') }}</q-item-section>
-            </q-item>
-          </template>
           <q-item
-            v-if="ctrl.formatOpts && ctrl.formatOpts.isRawUse"
+            @click="onShowMoreFormat"
+            :disable="!ctrl.isMoreView"
+            clickable
+            v-close-popup
+            >
+            <q-item-section avatar>
+              <q-icon color="primary" name="mdi-decimal-increase" />
+            </q-item-section>
+            <q-item-section>{{ $t('Increase precision') }}</q-item-section>
+          </q-item>
+          <q-item
+            @click="onShowLessFormat"
+            :disable="!ctrl.isLessView"
+            clickable
+            v-close-popup
+            >
+            <q-item-section avatar>
+              <q-icon color="primary" name="mdi-decimal-decrease" />
+            </q-item-section>
+            <q-item-section>{{ $t('Decrease precision') }}</q-item-section>
+          </q-item>
+          <q-item
+            v-if="ctrl.isRawUseView"
             @click="onToggleRawValue"
             clickable
             v-close-popup
@@ -245,7 +243,7 @@
             <q-item-section avatar>
               <q-icon color="primary" name="mdi-loupe" />
             </q-item-section>
-            <q-item-section>{{ !ctrl.formatOpts.isRawValue ? $t('Show raw source value') : $t('Show formatted value') }}</q-item-section>
+            <q-item-section>{{ !ctrl.isRawView ? $t('Show raw source value') : $t('Show formatted value') }}</q-item-section>
           </q-item>
           <q-item
             @click="onShowItemNames"
@@ -350,8 +348,8 @@
           :title="$t('Last page')"
           />
         <q-select
-          v-model="pageSize"
-          @input="onPageSize"
+          :model-value="pageSize"
+           @update:model-value="onPageSize"
           :options="[10, 40, 100, 200, 400, 1000, 2000, 4000, 10000, 20000, 0]"
           :option-label="(val) => (!val || typeof val !== typeof 1 || val <= 0) ? $t('All') : val.toLocaleString()"
           outlined
@@ -472,7 +470,7 @@
       :unelevated="ctrl.isRowColControls"
       dense
       color="primary"
-      :class="{ 'q-mr-xs' : ctrl.isRowColModeToggle || ctrl.formatOpts }"
+      :class="{ 'q-mr-xs' : ctrl.isRowColModeToggle }"
       class="col-auto rounded-borders q-mr-xs"
       :icon="ctrl.isRowColControls ? 'mdi-table-headers-eye-off' : 'mdi-table-headers-eye'"
       :title="ctrl.isRowColControls ? $t('Hide rows and columns bars') : $t('Show rows and columns bars')"
@@ -511,43 +509,40 @@
         :disable="pvc.rowColMode === 0"
         flat
         dense
-        class="col-auto bg-primary text-white rounded-borders"
-        :class="{ 'q-mr-xs' : ctrl.formatOpts }"
+        class="col-auto bg-primary text-white rounded-borders q-mr-xs"
         icon="mdi-view-module-outline"
         :title="$t('Table view: always show rows and columns item')"
         />
     </template>
 
-    <template v-if="ctrl.formatOpts && ctrl.formatOpts.isFloat">
-      <q-btn
-        @click="onShowMoreFormat"
-        :disable="!ctrl.formatOpts.isDoMore"
-        flat
-        dense
-        class="col-auto bg-primary text-white rounded-borders q-mr-xs"
-        icon="mdi-decimal-increase"
-        :title="$t('Increase precision')"
-        />
-      <q-btn
-        @click="onShowLessFormat"
-        :disable="!ctrl.formatOpts.isDoLess"
-        flat
-        dense
-        class="col-auto bg-primary text-white rounded-borders q-mr-xs"
-        icon="mdi-decimal-decrease"
-        :title="$t('Decrease precision')"
-        />
-    </template>
     <q-btn
-      v-if="ctrl.formatOpts && ctrl.formatOpts.isRawUse"
-      @click="onToggleRawValue"
-      :flat="!ctrl.formatOpts.isRawValue"
-      :outline="ctrl.formatOpts.isRawValue"
+      @click="onShowMoreFormat"
+      :disable="!ctrl.isMoreView"
+      flat
       dense
-      :class="!ctrl.formatOpts.isRawValue ? 'bar-button-on' : 'bar-button-off'"
+      class="col-auto bg-primary text-white rounded-borders q-mr-xs"
+      icon="mdi-decimal-increase"
+      :title="$t('Increase precision')"
+      />
+    <q-btn
+      @click="onShowLessFormat"
+      :disable="!ctrl.isLessView"
+      flat
+      dense
+      class="col-auto bg-primary text-white rounded-borders q-mr-xs"
+      icon="mdi-decimal-decrease"
+      :title="$t('Decrease precision')"
+      />
+    <q-btn
+      v-if="ctrl.isRawUseView"
+      @click="onToggleRawValue"
+      :flat="!ctrl.isRawView"
+      :outline="ctrl.isRawView"
+      dense
+      :class="!ctrl.isRawView ? 'bar-button-on' : 'bar-button-off'"
       class="col-auto rounded-borders q-mr-xs"
       icon="mdi-loupe"
-      :title="!ctrl.formatOpts.isRawValue ? $t('Show raw source value') : $t('Show formatted value')"
+      :title="!ctrl.isRawView ? $t('Show raw source value') : $t('Show formatted value')"
       />
     <q-btn
       @click="onShowItemNames"
@@ -605,9 +600,11 @@
         class="other-fields other-drag"
         :class="{'drag-area-hint': isDragging}"
         >
-        <div v-for="f in otherFields" :key="f.name" class="field-drag om-text-medium">
+        <div v-for="f in otherFields" :key="f.name" :id="'item-draggable-' + f.name" class="field-drag om-text-medium">
           <q-select
-            v-model="f.singleSelection"
+            :model-value="f.singleSelection"
+            @update:model-value="onUpdateSelect"
+            @focus="onFocusSelect"
             :options="f.options"
             :option-label="pvc.isShowNames ? 'name' : 'label'"
             @input="onSelectInput('other', f.name, f.singleSelection)"
@@ -668,9 +665,11 @@
         class="col-fields col-drag"
         :class="{'drag-area-hint': isDragging}"
         >
-        <div v-for="f in colFields" :key="f.name" class="field-drag om-text-medium">
+        <div v-for="f in colFields" :key="f.name" :id="'item-draggable-' + f.name" class="field-drag om-text-medium">
           <q-select
-            v-model="f.selection"
+            :model-value="f.selection"
+            @update:model-value="onUpdateSelect"
+            @focus="onFocusSelect"
             :options="f.options"
             :option-label="pvc.isShowNames ? 'name' : 'label'"
             @input="onSelectInput('col', f.name, f.selection)"
@@ -738,10 +737,11 @@
         class="row-fields row-drag"
         :class="{'drag-area-hint': isDragging}"
         >
-        <div v-for="f in rowFields" :key="f.name" class="field-drag om-text-medium">
+        <div v-for="f in rowFields" :key="f.name" :id="'item-draggable-' + f.name" class="field-drag om-text-medium">
           <q-select
-            v-model="f.selection"
-            :name="f.name"
+            :model-value="f.selection"
+            @update:model-value="onUpdateSelect"
+            @focus="onFocusSelect"
             :options="f.options"
             :option-label="pvc.isShowNames ? 'name' : 'label'"
             @input="onSelectInput('row', f.name, f.selection)"
@@ -885,10 +885,15 @@
   .drag-area-hint {
     background-color: whitesmoke;
   }
+  .drag-area-disabled {
+    background-color: lightgrey;
+    opacity: 0.5;
+    border: 1px solid red;
+  }
   .sortable-ghost {
     opacity: 0.5;
   }
-  .col-drag {
+  .top-col-drag {
     @extend .flex-item;
     @extend .drag-area;
     flex-direction: row;
@@ -896,9 +901,12 @@
     justify-content: flex-start;
     width: 100%;
   }
+  .col-drag {
+    @extend .top-col-drag;
+    border-top-style: none;
+  }
   .other-drag {
-    @extend .col-drag;
-    border-bottom-style: none;
+    @extend .top-col-drag;
   }
   .row-drag {
     @extend .flex-item;

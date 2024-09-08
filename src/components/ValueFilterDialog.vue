@@ -25,15 +25,15 @@
             </tr>
           </thead>
         <tbody>
-          <template v-for="(f, idx) in filterList">
-            <tr :key="'vf-' + f.fltId.toString()">
-              <td class="om-p-cell">
+          <template v-for="(f, idx) in filterList" :key="'vft-' + f.fltId.toString()">
+            <tr>
+              <td class="om-p-cell-center">
                 <q-btn
                   @click="onDelete(idx)"
                   unelevated
                   round
                   dense
-                  class="col-auto text-primary round"
+                  class="text-primary round"
                   icon="mdi-delete"
                   :title="$t('Delete')"
                   :aria-label="$t('Delete')" />
@@ -103,28 +103,28 @@
             </tr>
           </template>
           <tr>
-            <td class="om-p-cell">
+            <td class="om-p-cell-center">
               <q-btn
                 @click="doAppend()"
                 unelevated
                 round
                 dense
-                class="col-auto text-primary round"
+                class="text-primary round"
                 icon="mdi-plus-thick"
                 :title="$t('Append')"
                 :aria-label="$t('Append')" />
             </td>
             <td colspan="3" class="om-p-head"></td>
           </tr>
-          <template v-for="(f, idx) in skipFilter">
-            <tr :key="'sf-' + idx.toString() + '-' + f.name">
-              <td class="om-p-cell">
+          <template v-for="(f, idx) in skipFilter" :key="'sft-' + idx.toString() + '-' + f.name">
+            <tr>
+              <td class="om-p-cell-center">
                 <q-btn
                   @click="onSkipDelete(idx)"
                   unelevated
                   round
                   dense
-                  class="col-auto text-primary round"
+                  class="text-primary round"
                   icon="mdi-delete"
                   :title="$t('Delete')"
                   :aria-label="$t('Delete')" />
@@ -182,9 +182,6 @@ export default {
   }
   */
 
-  computed: {
-  },
-
   watch: {
     showTickle () {
       this.initView()
@@ -193,6 +190,8 @@ export default {
     updateTickle () { this.updateOpMeasure() },
     isShowNames () { this.updateOpMeasure() }
   },
+
+  emits: ['value-filter-apply'],
 
   methods: {
     // initial view: open dialog

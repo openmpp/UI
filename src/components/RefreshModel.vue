@@ -1,6 +1,9 @@
 <!-- reload current model by digest -->
 <script>
-import { mapState, mapActions } from 'vuex'
+import { mapState, mapActions } from 'pinia'
+import { useModelStore } from '../stores/model'
+import { useServerStateStore } from '../stores/server-state'
+import { useUiStateStore } from '../stores/ui-state'
 import * as Mdf from 'src/model-common'
 
 export default {
@@ -11,7 +14,7 @@ export default {
     refreshTickle: { type: Boolean, default: false }
   },
 
-  render () { return {} }, // no html
+  render () { return null }, // no html
 
   data () {
     return {
@@ -21,27 +24,28 @@ export default {
   },
 
   computed: {
-    ...mapState('model', {
-      theModel: state => state.theModel
+    ...mapState(useModelStore, [
+      'theModel'
+    ]),
+    ...mapState(useServerStateStore, {
+      omsUrl: 'omsUrl'
     }),
-    ...mapState('uiState', {
-      uiLang: state => state.uiLang
-    }),
-    ...mapState('serverState', {
-      omsUrl: state => state.omsUrl
-    })
+    ...mapState(useUiStateStore, ['uiLang'])
   },
 
   watch: {
     refreshTickle () { this.doRefresh() }
   },
 
+  emits: ['done', 'wait'],
+
   methods: {
-    ...mapActions('model', {
-      dispatchTheModel: 'theModel',
-      dispatchWordList: 'wordList',
-      dispatchLangList: 'langList'
-    }),
+    ...mapActions(useModelStore, [
+      'dispatchTheModel',
+      'dispatchWordList',
+      'dispatchLangList'
+    ]),
+
     // refersh current model
     async doRefresh () {
       if (!this.digest) {

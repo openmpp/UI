@@ -1,4 +1,5 @@
-import { mapState } from 'vuex'
+import { mapState } from 'pinia'
+import { useServerStateStore } from '../stores/server-state'
 import * as Mdf from 'src/model-common'
 import JobInfoCard from 'components/JobInfoCard.vue'
 import DeleteConfirmDialog from 'components/DeleteConfirmDialog.vue'
@@ -53,9 +54,9 @@ export default {
     isJobControl () { return !!this.serverConfig.IsJobControl },
     isMicrodata () { return !!this.serverConfig.AllowMicrodata },
 
-    ...mapState('serverState', {
-      omsUrl: state => state.omsUrl,
-      serverConfig: state => state.config
+    ...mapState(useServerStateStore, {
+      omsUrl: 'omsUrl',
+      serverConfig: 'config'
     })
   },
 
@@ -436,7 +437,7 @@ export default {
   mounted () {
     this.initView()
   },
-  beforeDestroy () {
+  beforeUnmount () {
     this.stopRefresh()
   }
 }

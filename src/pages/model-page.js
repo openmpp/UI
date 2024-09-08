@@ -1,4 +1,7 @@
-import { mapState, mapGetters, mapActions } from 'vuex'
+import { mapState, mapActions } from 'pinia'
+import { useModelStore } from '../stores/model'
+import { useServerStateStore } from '../stores/server-state'
+import { useUiStateStore } from '../stores/ui-state'
 import * as Mdf from 'src/model-common'
 import RefreshModel from 'components/RefreshModel.vue'
 import RefreshRun from 'components/RefreshRun.vue'
@@ -101,24 +104,20 @@ export default {
     runTextCount () { return Mdf.runTextCount(this.runTextList) },
     worksetTextCount () { return Mdf.worksetTextCount(this.worksetTextList) },
 
-    ...mapState('model', {
-      theModel: state => state.theModel,
-      runTextList: state => state.runTextList,
-      worksetTextList: state => state.worksetTextList
+    ...mapState(useModelStore, [
+      'theModel',
+      'runTextList',
+      'worksetTextList'
+    ]),
+    ...mapState(useServerStateStore, {
+      omsUrl: 'omsUrl',
+      serverConfig: 'config',
+      diskUseState: 'diskUse'
     }),
-    ...mapGetters('model', {
-      runTextByDigest: 'runTextByDigest',
-      isExistInWorksetTextList: 'isExistInWorksetTextList'
-    }),
-    ...mapState('uiState', {
-      runDigestSelected: state => state.runDigestSelected,
-      worksetNameSelected: state => state.worksetNameSelected
-    }),
-    ...mapGetters('uiState', {
-      paramViewUpdatedCount: 'paramViewUpdatedCount',
-      paramViewWorksetUpdatedCount: 'paramViewWorksetUpdatedCount',
-      tabsView: 'tabsView'
-    })
+    ...mapState(useUiStateStore, [
+      'runDigestSelected',
+      'worksetNameSelected'
+    ])
   },
 
   watch: {
@@ -127,13 +126,22 @@ export default {
   },
 
   methods: {
-    ...mapActions('uiState', {
-      dispatchRunDigestSelected: 'runDigestSelected',
-      dispatchWorksetNameSelected: 'worksetNameSelected',
-      dispatchParamViewDeleteByModel: 'paramViewDeleteByModel',
-      dispatchViewSelectedRestore: 'viewSelectedRestore',
-      dispatchTabsView: 'tabsView'
-    }),
+    ...mapActions(useModelStore, [
+      'runTextByDigest',
+      'isExistInWorksetTextList'
+    ]),
+    ...mapActions(useUiStateStore, [
+      'tabsView',
+      'paramViewUpdatedCount',
+      'paramViewWorksetUpdatedCount',
+      //
+      'dispatchRunDigestSelected',
+      'dispatchWorksetNameSelected',
+      'dispatchViewSelectedRestore',
+      'dispatchParamViewDeleteByModel',
+      'dispatchTabsView'
+    ]),
+
     // update page view
     initalView () {
       this.doTabAdd('run-list', { digest: this.digest })

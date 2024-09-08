@@ -107,7 +107,10 @@
 </template>
 
 <script>
-import { mapState, mapGetters } from 'vuex'
+import { mapState, mapActions } from 'pinia'
+import { useModelStore } from '../stores/model'
+import { useServerStateStore } from '../stores/server-state'
+import { useUiStateStore } from '../stores/ui-state'
 import * as Mdf from 'src/model-common'
 import { marked } from 'marked'
 import hljs from 'highlight.js'
@@ -139,21 +142,15 @@ export default {
   },
 
   computed: {
-    ...mapState('model', {
-      modelList: state => state.modelList,
-      theModel: state => state.theModel
+    ...mapState(useModelStore, [
+      'theModel',
+      'modelList',
+      'modelLanguage'
+    ]),
+    ...mapState(useServerStateStore, {
+      serverConfig: 'config'
     }),
-    ...mapGetters('model', {
-      runTextByDigest: 'runTextByDigest',
-      worksetTextByName: 'worksetTextByName',
-      modelLanguage: 'modelLanguage'
-    }),
-    ...mapState('serverState', {
-      serverConfig: state => state.config
-    }),
-    ...mapState('uiState', {
-      uiLang: state => state.uiLang
-    })
+    ...mapState(useUiStateStore, ['uiLang'])
   },
 
   watch: {
@@ -229,6 +226,13 @@ export default {
 
       this.showDlg = true
     }
+  },
+
+  methods: {
+    ...mapActions(useModelStore, [
+      'runTextByDigest',
+      'worksetTextByName'
+    ])
   }
 }
 </script>

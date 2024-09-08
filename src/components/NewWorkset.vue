@@ -2,7 +2,7 @@
 
 <q-card-section>
   <table>
-
+  <tbody>
     <tr class="section-title">
       <td>
         <q-btn
@@ -52,7 +52,7 @@
         </q-input>
       </td>
     </tr>
-
+  </tbody>
   </table>
 
   <markdown-editor
@@ -78,7 +78,8 @@
 </template>
 
 <script>
-import { mapState, mapGetters } from 'vuex'
+import { mapState, mapActions } from 'pinia'
+import { useModelStore } from '../stores/model'
 import * as Mdf from 'src/model-common'
 import MarkdownEditor from 'components/MarkdownEditor.vue'
 
@@ -104,13 +105,10 @@ export default {
     // return true if name of new workset is empty after cleanup
     isEmptyNewName () { return (Mdf.cleanFileNameInput(this.newName) || '') === '' },
 
-    ...mapState('model', {
-      langList: state => state.langList
-    }),
-    ...mapGetters('model', {
-      isExistInWorksetTextList: 'isExistInWorksetTextList',
-      modelLanguage: 'modelLanguage'
-    })
+    ...mapState(useModelStore, [
+      'langList',
+      'modelLanguage'
+    ])
   },
 
   watch: {
@@ -118,7 +116,11 @@ export default {
     refreshTickle () { this.doRefresh() }
   },
 
+  emits: ['save-new-set', 'cancel-new-set'],
+
   methods: {
+    ...mapActions(useModelStore, ['isExistInWorksetTextList']),
+
     // update page view
     doRefresh () {
       // make list of model languages, description and notes for workset editor

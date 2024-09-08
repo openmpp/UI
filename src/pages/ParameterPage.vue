@@ -234,10 +234,10 @@
             </q-item>
           </template>
 
-          <template v-if="ctrl.formatOpts && ctrl.formatOpts.isFloat">
+          <template v-if="ctrl.isFloatView">
             <q-item
               @click="onShowMoreFormat"
-              :disable="!ctrl.formatOpts.isDoMore"
+              :disable="!ctrl.isMoreView"
               clickable
               >
               <q-item-section avatar>
@@ -247,7 +247,7 @@
             </q-item>
             <q-item
               @click="onShowLessFormat"
-              :disable="!ctrl.formatOpts.isDoLess"
+              :disable="!ctrl.isLessView"
               clickable
               >
               <q-item-section avatar>
@@ -257,14 +257,14 @@
             </q-item>
           </template>
           <q-item
-            v-if="ctrl.formatOpts && ctrl.formatOpts.isRawUse"
+            v-if="ctrl.isRawUseView"
             @click="onToggleRawValue"
             clickable
             >
             <q-item-section avatar>
               <q-icon color="primary" name="mdi-loupe" />
             </q-item-section>
-            <q-item-section>{{ !ctrl.formatOpts.isRawValue ? $t('Show raw source value') : $t('Show formatted value') }}</q-item-section>
+            <q-item-section>{{ !ctrl.isRawView ? $t('Show raw source value') : $t('Show formatted value') }}</q-item-section>
           </q-item>
           <q-item
             @click="onShowItemNames"
@@ -368,8 +368,8 @@
           :title="$t('Last page')"
           />
         <q-select
-          v-model="pageSize"
-          @input="onPageSize"
+          :model-value="pageSize"
+           @update:model-value="onPageSize"
           :options="[10, 40, 100, 200, 400, 1000, 2000, 4000, 10000, 20000, 0]"
           :option-label="(val) => (!val || typeof val !== typeof 1 || val <= 0) ? $t('All') : val.toLocaleString()"
           outlined
@@ -501,7 +501,7 @@
       :unelevated="ctrl.isRowColControls"
       dense
       color="primary"
-      :class="{ 'q-mr-xs' : ctrl.isRowColModeToggle || ctrl.formatOpts }"
+      :class="{ 'q-mr-xs' : ctrl.isRowColModeToggle }"
       class="col-auto rounded-borders q-mr-xs"
       :icon="ctrl.isRowColControls ? 'mdi-table-headers-eye-off' : 'mdi-table-headers-eye'"
       :title="ctrl.isRowColControls ? $t('Hide rows and columns bars') : $t('Show rows and columns bars')"
@@ -540,17 +540,16 @@
         :disable="pvc.rowColMode === 0"
         flat
         dense
-        class="col-auto bg-primary text-white rounded-borders"
-        :class="{ 'q-mr-xs' : ctrl.formatOpts }"
+        class="col-auto bg-primary text-white rounded-borders q-mr-xs"
         icon="mdi-view-module-outline"
         :title="$t('Table view: always show rows and columns item')"
         />
     </template>
 
-    <template v-if="ctrl.formatOpts && ctrl.formatOpts.isFloat">
+    <template v-if="ctrl.isFloatView">
       <q-btn
         @click="onShowMoreFormat"
-        :disable="!ctrl.formatOpts.isDoMore || edt.isEdit"
+        :disable="!ctrl.isMoreView || edt.isEdit"
         flat
         dense
         class="col-auto bg-primary text-white rounded-borders q-mr-xs"
@@ -559,7 +558,7 @@
         />
       <q-btn
         @click="onShowLessFormat"
-        :disable="!ctrl.formatOpts.isDoLess || edt.isEdit"
+        :disable="!ctrl.isLessView || edt.isEdit"
         flat
         dense
         class="col-auto bg-primary text-white rounded-borders q-mr-xs"
@@ -568,16 +567,16 @@
         />
     </template>
     <q-btn
-      v-if="ctrl.formatOpts && ctrl.formatOpts.isRawUse"
+      v-if="ctrl.isRawUseView"
       @click="onToggleRawValue"
       :disable="edt.isEdit"
-      :flat="!ctrl.formatOpts.isRawValue || edt.isEdit"
-      :outline="ctrl.formatOpts.isRawValue && !edt.isEdit"
+      :flat="!ctrl.isRawView || edt.isEdit"
+      :outline="ctrl.isRawView && !edt.isEdit"
       dense
-      :class="(!ctrl.formatOpts.isRawValue || edt.isEdit) ? 'bar-button-on' : 'bar-button-off'"
+      :class="(!ctrl.isRawView || edt.isEdit) ? 'bar-button-on' : 'bar-button-off'"
       class="col-auto rounded-borders q-mr-xs"
       icon="mdi-loupe"
-      :title="!ctrl.formatOpts.isRawValue ? $t('Show raw source value') : $t('Show formatted value')"
+      :title="!ctrl.isRawView ? $t('Show raw source value') : $t('Show formatted value')"
       />
     <q-btn
       @click="onShowItemNames"
@@ -714,16 +713,18 @@
       >
       <draggable
         v-model="otherFields"
-        :disabled="edt.isEdit"
+        :disabled="!!edt.isEdit ? true : null"
         group="fields"
         @start="onDrag"
         @end="onDrop"
         class="other-fields other-drag"
-        :class="{'drag-area-hint': isDragging}"
+        :class="{'drag-area-hint': isDragging, 'drag-area-disabled': edt.isEdit}"
         >
-        <div v-for="f in otherFields" :key="f.name" class="field-drag om-text-medium">
+        <div v-for="f in otherFields" :key="f.name" :id="'item-draggable-' + f.name" class="field-drag om-text-medium">
           <q-select
-            v-model="f.singleSelection"
+            :model-value="f.singleSelection"
+            @update:model-value="onUpdateSelect"
+            @focus="onFocusSelect"
             :disable="edt.isEdit"
             :options="f.options"
             :option-label="pvc.isShowNames ? 'name' : 'label'"
@@ -743,24 +744,24 @@
             <template v-slot:before>
               <q-icon
                 name="mdi-hand-back-left"
-                :disabled="edt.isEdit"
                 size="xs"
                 class="bg-primary text-white rounded-borders select-handle-move"
+                :class="{'disabled': edt.isEdit}"
                 :title="$t('Drag and drop')"
                 />
               <div class="column">
                 <q-icon
                   name="check"
-                  :disabled="edt.isEdit"
                   size="xs"
                   class="row bg-primary text-white rounded-borders select-handle-button om-bg-inactive q-mb-xs"
+                  :class="{'disabled': edt.isEdit}"
                   :title="$t('Select all')"
                   />
                 <q-icon
                   name="cancel"
-                  :disabled="edt.isEdit"
                   size="xs"
                   class="row bg-primary text-white rounded-borders select-handle-button om-bg-inactive"
+                  :class="{'disabled': edt.isEdit}"
                   :title="$t('Clear all')"
                   />
               </div>
@@ -788,9 +789,11 @@
         class="col-fields col-drag"
         :class="{'drag-area-hint': isDragging}"
         >
-        <div v-for="f in colFields" :key="f.name" class="field-drag om-text-medium">
+        <div v-for="f in colFields" :key="f.name" :id="'item-draggable-' + f.name" class="field-drag om-text-medium">
           <q-select
-            v-model="f.selection"
+            :model-value="f.selection"
+            @update:model-value="onUpdateSelect"
+            @focus="onFocusSelect"
             :options="f.options"
             :option-label="pvc.isShowNames ? 'name' : 'label'"
             @input="onSelectInput('col', f.name, f.selection)"
@@ -858,10 +861,11 @@
         class="row-fields row-drag"
         :class="{'drag-area-hint': isDragging}"
         >
-        <div v-for="f in rowFields" :key="f.name" class="field-drag om-text-medium">
+        <div v-for="f in rowFields" :key="f.name" :id="'item-draggable-' + f.name" class="field-drag om-text-medium">
           <q-select
-            v-model="f.selection"
-            :name="f.name"
+            :model-value="f.selection"
+            @update:model-value="onUpdateSelect"
+            @focus="onFocusSelect"
             :options="f.options"
             :option-label="pvc.isShowNames ? 'name' : 'label'"
             @input="onSelectInput('row', f.name, f.selection)"
@@ -1020,10 +1024,15 @@
   .drag-area-hint {
     background-color: whitesmoke;
   }
+  .drag-area-disabled {
+    background-color: lightgrey;
+    opacity: 0.5;
+    border: 1px solid red;
+  }
   .sortable-ghost {
     opacity: 0.5;
   }
-  .col-drag {
+  .top-col-drag {
     @extend .flex-item;
     @extend .drag-area;
     flex-direction: row;
@@ -1031,9 +1040,12 @@
     justify-content: flex-start;
     width: 100%;
   }
+  .col-drag {
+    @extend .top-col-drag;
+    border-top-style: none;
+  }
   .other-drag {
-    @extend .col-drag;
-    border-bottom-style: none;
+    @extend .top-col-drag;
   }
   .row-drag {
     @extend .flex-item;

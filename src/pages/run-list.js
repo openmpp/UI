@@ -1,4 +1,7 @@
-import { mapState, mapGetters, mapActions } from 'vuex'
+import { mapState, mapActions } from 'pinia'
+import { useModelStore } from '../stores/model'
+import { useServerStateStore } from '../stores/server-state'
+import { useUiStateStore } from '../stores/ui-state'
 import * as Mdf from 'src/model-common'
 import RunParameterList from 'components/RunParameterList.vue'
 import TableList from 'components/TableList.vue'
@@ -113,28 +116,22 @@ export default {
     isMicrodata () { return !!this.serverConfig.AllowMicrodata && Mdf.entityCount(this.theModel) > 0 },
     isDiskOver () { return !!this?.serverConfig?.IsDiskUse && !!this.diskUseState?.DiskUse?.IsOver },
 
-    ...mapState('model', {
-      theModel: state => state.theModel,
-      runTextList: state => state.runTextList,
-      runTextListUpdated: state => state.runTextListUpdated
+    ...mapState(useModelStore, [
+      'theModel',
+      'runTextList',
+      'runTextListUpdated'
+    ]),
+    ...mapState(useServerStateStore, {
+      omsUrl: 'omsUrl',
+      serverConfig: 'config',
+      diskUseState: 'diskUse'
     }),
-    ...mapGetters('model', {
-      runTextByDigest: 'runTextByDigest'
-    }),
-    ...mapState('uiState', {
-      runDigestSelected: state => state.runDigestSelected,
-      uiLang: state => state.uiLang,
-      noAccDownload: state => state.noAccDownload,
-      noMicrodataDownload: state => state.noMicrodataDownload
-    }),
-    ...mapState('serverState', {
-      omsUrl: state => state.omsUrl,
-      serverConfig: state => state.config,
-      diskUseState: state => state.diskUse
-    }),
-    ...mapGetters('uiState', {
-      modelViewSelected: 'modelViewSelected'
-    })
+    ...mapState(useUiStateStore, [
+      'uiLang',
+      'runDigestSelected',
+      'noAccDownload',
+      'noMicrodataDownload'
+    ])
   },
 
   watch: {
@@ -147,12 +144,32 @@ export default {
     }
   },
 
+  emits: [
+    'run-select',
+    'run-list-refresh',
+    'run-list-delete',
+    'run-log-select',
+    'set-select',
+    'run-parameter-select',
+    'table-select',
+    'entity-select',
+    'download-select',
+    'upload-select',
+    'tab-mounted'
+  ],
+
   methods: {
-    ...mapActions('uiState', {
-      dispatchAddRunCompareDigest: 'addRunCompareDigest',
-      dispatchDeleteRunCompareDigest: 'deleteRunCompareDigest',
-      dispatchRunCompareDigestList: 'runCompareDigestList'
-    }),
+    ...mapActions(useModelStore, [
+      'runTextByDigest'
+    ]),
+    ...mapActions(useUiStateStore, [
+      'modelViewSelected',
+      //
+      'dispatchAddRunCompareDigest',
+      'dispatchDeleteRunCompareDigest',
+      'dispatchRunCompareDigestList'
+    ]),
+
     isSuccess (status) { return status === Mdf.RUN_SUCCESS },
     isInProgress (status) { return status === Mdf.RUN_IN_PROGRESS || status === Mdf.RUN_INITIAL },
     isRunDeleted (status, name) { return Mdf.isRunDeletedStatus(status, name) },

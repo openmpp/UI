@@ -94,14 +94,16 @@
       class="col-auto q-ml-xs"
       >
       <span>{{ worksetName }}<br />
-      <span class="om-text-descr"><span class="mono">{{ lastDateTimeStr }} </span>{{ descrOfWorkset }}</span></span>
+      <span class="om-text-descr"><span class="mono q-pr-sm">{{ lastDateTimeStr }}</span>{{ descrOfWorkset }}</span></span>
     </div>
 
   </div>
 </template>
 
 <script>
-import { mapState, mapGetters } from 'vuex'
+import { mapState, mapActions } from 'pinia'
+import { useModelStore } from '../stores/model'
+import { useServerStateStore } from '../stores/server-state'
 import * as Mdf from 'src/model-common'
 
 export default {
@@ -133,14 +135,11 @@ export default {
       return Mdf.isNotEmptyWorksetText(this.worksetText) && this.worksetText.IsReadonly
     },
 
-    ...mapState('model', {
-      worksetTextListUpdated: state => state.worksetTextListUpdated
-    }),
-    ...mapGetters('model', {
-      worksetTextByName: 'worksetTextByName'
-    }),
-    ...mapState('serverState', {
-      serverConfig: state => state.config
+    ...mapState(useModelStore, [
+      'worksetTextListUpdated'
+    ]),
+    ...mapState(useServerStateStore, {
+      serverConfig: 'config'
     })
   },
 
@@ -151,7 +150,11 @@ export default {
     worksetTextListUpdated () { this.doRefresh() }
   },
 
+  emits: ['set-info-click', 'new-run-select', 'set-update-readonly'],
+
   methods: {
+    ...mapActions(useModelStore, ['worksetTextByName']),
+
     doRefresh () {
       this.worksetText = this.worksetTextByName({ ModelDigest: this.modelDigest, Name: this.worksetName })
     },

@@ -1,4 +1,7 @@
-import { mapState, mapGetters, mapActions } from 'vuex'
+import { mapState, mapActions } from 'pinia'
+import { useModelStore } from '../stores/model'
+import { useServerStateStore } from '../stores/server-state'
+import { useUiStateStore } from '../stores/ui-state'
 import * as Mdf from 'src/model-common'
 import ModelBar from 'components/ModelBar.vue'
 import RunBar from 'components/RunBar.vue'
@@ -110,23 +113,20 @@ export default {
     runFileSelected () { return !(this.runUploadFile === null) && (this.runUploadFile?.name || '') !== '' },
     uploadFileSelected () { return !(this.uploadFile === null) && (this.uploadFile?.name || '') !== '' },
 
-    ...mapState('model', {
-      theModel: state => state.theModel,
-      runTextList: state => state.runTextList,
-      worksetTextList: state => state.worksetTextList
+    ...mapState(useModelStore, [
+      'theModel',
+      'runTextList',
+      'worksetTextList'
+    ]),
+    ...mapState(useServerStateStore, {
+      omsUrl: 'omsUrl',
+      serverConfig: 'config',
+      diskUseState: 'diskUse'
     }),
-    ...mapGetters('model', {
-      runTextByDigest: 'runTextByDigest'
-    }),
-    ...mapState('uiState', {
-      noAccDownload: state => state.noAccDownload,
-      noMicrodataDownload: state => state.noMicrodataDownload
-    }),
-    ...mapState('serverState', {
-      omsUrl: state => state.omsUrl,
-      serverConfig: state => state.config,
-      diskUseState: state => state.diskUse
-    })
+    ...mapState(useUiStateStore, [
+      'noAccDownload',
+      'noMicrodataDownload'
+    ])
   },
 
   watch: {
@@ -144,15 +144,21 @@ export default {
     }
   },
 
+  emits: ['upload-select', 'tab-mounted'],
+
   methods: {
-    ...mapActions('serverState', {
-      dispatchServerConfig: 'serverConfig',
-      dispatchDiskUse: 'diskUse'
-    }),
-    ...mapActions('uiState', {
-      dispatchNoAccDownload: 'noAccDownload',
-      dispatchNoMicrodataDownload: 'noMicrodataDownload'
-    }),
+    ...mapActions(useModelStore, [
+      'runTextByDigest'
+    ]),
+    ...mapActions(useServerStateStore, [
+      'dispatchServerConfig',
+      'dispatchDiskUse'
+    ]),
+    ...mapActions(useUiStateStore, [
+      'dispatchNoAccDownload',
+      'dispatchNoMicrodataDownload'
+    ]),
+
     isReady (status) { return status === 'ready' },
     isProgress (status) { return status === 'progress' },
     isError (status) { return status === 'error' },
@@ -290,23 +296,50 @@ export default {
     onFilesDownloadClick (name, link) {
       openURL('/files/' + link)
     },
+
     // return true if if file or folder form user files can be deleted
     isFilesDeleteEnabled (path) {
       if (!this.serverConfig.AllowFiles || !this.serverConfig.AllowUpload) return false
-      if (!path || path === '' || path === '.' || path === '..' || path === '/') return false
-      return path !== 'download' && path !== '/download' && path !== 'upload' && path !== '/upload'
+      return !!path && typeof path === typeof 'string' && path !== '' && path !== '.' && path !== '..' && path !== '/'
     },
-    // delete file of folder from user files
+    // retrun true if it is a special path: download or upload folder
+    isUpDownPath (path) {
+      return path === 'download' || path === 'upload'
+    },
+    // delete file or folder from user files
     onFilesDeleteClick (name, isGrp, path) {
       this.nameToDelete = name
       this.pathToDelete = path
-      this.dialogTitleToDelete = (isGrp ? this.$t('Delete folder') : this.$t('Delete file')) + '?'
+      this.upDownToDelete = ''
+      this.dialogTitleToDelete = (!isGrp ? this.$t('Delete file') : this.$t('Delete folder')) + '?'
+      this.showFilesDeleteDialogTickle = !this.showFilesDeleteDialogTickle
+    },
+    // delete all downloads or upload files
+    onAllUpDownDeleteClick (path) {
+      if (path !== 'download' && path !== 'upload') {
+        console.warn('Invalid path at delete all downloads or upload files:', path)
+        return
+      }
+      if (path === 'download') {
+        this.upDownToDelete = 'down'
+        this.dialogTitleToDelete = this.$t('Delete all download files') + '?'
+        this.nameToDelete = this.$t('Delete all files of all models in download folder')
+      } else {
+        this.upDownToDelete = 'up'
+        this.dialogTitleToDelete = this.$t('Delete all upload files') + '?'
+        this.nameToDelete = this.$t('Delete all files of all models in upload folder')
+      }
       this.showFilesDeleteDialogTickle = !this.showFilesDeleteDialogTickle
     },
     // user answer Yes to delete file of folder from user files
     onYesFilesDelete (name, path, kind) {
+      if (kind) {
+        this.doAllDeleteUpDown(kind)
+        return
+      }
       this.doDeleteFiles(name, path)
     },
+
     // create new folder in user files directory
     onFilesCreateFolderClick (parentName, parentPath) {
       this.newFolderParentName = parentName || ''
@@ -617,9 +650,9 @@ export default {
         } finally {}
         console.warn('Server offline or file tree retrieve failed.', em)
       }
-      this.loadWait = false
 
       if (!isOk || !fLst || !Array.isArray(fLst) || fLst.length <= 0 || !Mdf.isFilePathTree(fLst)) {
+        this.loadWait = false
         return
       }
 
@@ -632,6 +665,7 @@ export default {
       for (const f of this.filesTreeData) {
         if (f.isGroup) this.filesTreeExpanded.push(f.key)
       }
+      this.loadWait = false
     },
 
     // upload model run zip file
@@ -809,6 +843,11 @@ export default {
 
       // notify user and refresh files tree
       this.$q.notify({ type: 'info', message: this.$t('Deleted: ') + folder })
+
+      this.logRefreshPauseToggle()
+      this.isLogRefreshPaused = false
+      this.uploadExpand = upDown === 'up'
+      this.downloadExpand = upDown !== 'up'
     },
 
     // delete from user files folder or file
@@ -844,6 +883,44 @@ export default {
       // notify user and refresh files tree
       this.$q.notify({ type: 'info', message: this.$t('Deleted: ') + name })
       this.doUserFilesRefresh()
+    },
+
+    // delete all download files or all upload files
+    async doAllDeleteUpDown (upDown) {
+      if (!upDown) {
+        console.warn('Unable to delete: invalid (empty) upload-download direction')
+        return
+      }
+      this.$q.notify({ type: 'info', message: (upDown === 'up' ? this.$t('Deleting all upload files') : this.$t('Deleting all download files')) })
+
+      this.loadWait = true
+      let isOk = false
+
+      const u = this.omsUrl + '/api/' + (upDown === 'up' ? 'upload' : 'download') + '/delete-all'
+      try {
+        // send delete request to the server, response expected to be empty on success
+        await this.$axios.delete(u)
+        isOk = true
+      } catch (e) {
+        let em = ''
+        try {
+          if (e.response) em = e.response.data || ''
+        } finally {}
+        console.warn('Error at delete all files:', em)
+      }
+      this.loadWait = false
+
+      if (!isOk) {
+        this.$q.notify({ type: 'negative', message: (upDown === 'up' ? this.$t('Unable to delete upload files') : this.$t('Unable to delete download files')) })
+        return
+      }
+
+      // notify user and refresh files tree, downloads and uploads
+      this.$q.notify({ type: 'info', message: this.$t('Files deleted.') })
+
+      this.doUserFilesRefresh()
+      this.logRefreshPauseToggle()
+      this.isLogRefreshPaused = false
     },
 
     // create new folder in user files directory
@@ -937,7 +1014,7 @@ export default {
     this.initView()
     this.$emit('tab-mounted', 'updown-list', { digest: this.digest })
   },
-  beforeDestroy () {
+  beforeUnmount () {
     this.stopLogRefresh()
   }
 }

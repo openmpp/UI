@@ -37,7 +37,10 @@
 </template>
 
 <script>
-import { mapState, mapGetters } from 'vuex'
+import { mapState, mapActions } from 'pinia'
+import { useModelStore } from '../stores/model'
+import { useServerStateStore } from '../stores/server-state'
+import { useUiStateStore } from '../stores/ui-state'
 import * as Mdf from 'src/model-common'
 import OmTableTree from 'components/OmTableTree.vue'
 import * as Tsc from 'components/tree-common.js'
@@ -82,20 +85,15 @@ export default {
       return ((s || '') !== '') ? parseInt(s) : 0
     },
 
-    ...mapState('model', {
-      theModel: state => state.theModel,
-      theModelUpdated: state => state.theModelUpdated
+    ...mapState(useModelStore, [
+      'theModel',
+      'theModelUpdated'
+    ]),
+    ...mapState(useServerStateStore, {
+      omsUrl: 'omsUrl',
+      serverConfig: 'config'
     }),
-    ...mapGetters('model', {
-      worksetTextByName: 'worksetTextByName'
-    }),
-    ...mapState('serverState', {
-      omsUrl: state => state.omsUrl,
-      serverConfig: state => state.config
-    }),
-    ...mapState('uiState', {
-      treeLabelKind: state => state.treeLabelKind
-    })
+    ...mapState(useUiStateStore, ['treeLabelKind'])
   },
 
   watch: {
@@ -105,7 +103,20 @@ export default {
     theModelUpdated () { this.doRefresh() }
   },
 
+  emits: [
+    'set-parameter-tree-updated',
+    'set-parameter-select',
+    'set-parameter-add',
+    'set-parameter-group-add',
+    'set-parameter-remove',
+    'set-parameter-group-remove',
+    'set-parameter-info-show',
+    'set-parameter-group-info-show'
+  ],
+
   methods: {
+    ...mapActions(useModelStore, ['worksetTextByName']),
+
     // update parameters tree data and refresh tree view
     doRefresh () {
       this.worksetCurrent = this.worksetTextByName({ ModelDigest: Mdf.modelDigest(this.theModel), Name: this.worksetName })
@@ -288,7 +299,7 @@ export default {
         }) >= 0
         if (isNotTop) continue // not a top level group
 
-        const cg = Mdf._cloneDeep(gUse[iGid].item)
+        const cg = Mdf.dashCloneDeep(gUse[iGid].item)
         gTree.push(cg)
         gProc.push({
           gId: iGid,
@@ -321,8 +332,8 @@ export default {
 
               const g = {
                 gId: pc.ChildGroupId,
-                path: Mdf._cloneDeep(gpNow.path),
-                item: Mdf._cloneDeep(gChildUse.item)
+                path: Mdf.dashCloneDeep(gpNow.path),
+                item: Mdf.dashCloneDeep(gChildUse.item)
               }
               g.item.key = 'pgr-' + pc.ChildGroupId + '-' + this.nextId++
               g.path.push(g.gId)
@@ -335,7 +346,7 @@ export default {
           if (pc.ChildLeafId >= 0) {
             const p = pUse[pc.ChildLeafId]
             if (p) {
-              const pn = Mdf._cloneDeep(p.item)
+              const pn = Mdf.dashCloneDeep(p.item)
               pn.key = 'ptl-' + pc.ChildLeafId + '-' + this.nextId++
               gpNow.item.children.push(pn)
               p.isLeaf = true

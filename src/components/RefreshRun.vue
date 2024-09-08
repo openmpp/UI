@@ -1,6 +1,9 @@
 <!-- reload run-text by model digest and run digest -->
 <script>
-import { mapState, mapGetters, mapActions } from 'vuex'
+import { mapState, mapActions } from 'pinia'
+import { useModelStore } from '../stores/model'
+import { useServerStateStore } from '../stores/server-state'
+import { useUiStateStore } from '../stores/ui-state'
 import * as Mdf from 'src/model-common'
 
 export default {
@@ -13,7 +16,7 @@ export default {
     refreshRunTickle: { type: Boolean, default: false }
   },
 
-  render () { return {} }, // no html
+  render () { return null }, // no html
 
   data () {
     return {
@@ -23,19 +26,16 @@ export default {
   },
 
   computed: {
-    ...mapState('model', {
-      theModel: state => state.theModel
+    ...mapState(useModelStore, [
+      'theModel'
+    ]),
+    ...mapState(useServerStateStore, {
+      omsUrl: 'omsUrl'
     }),
-    ...mapGetters('model', {
-      runTextByDigest: 'runTextByDigest'
-    }),
-    ...mapState('uiState', {
-      runDigestSelected: state => state.runDigestSelected,
-      uiLang: state => state.uiLang
-    }),
-    ...mapState('serverState', {
-      omsUrl: state => state.omsUrl
-    })
+    ...mapState(useUiStateStore, [
+      'runDigestSelected',
+      'uiLang'
+    ])
   },
 
   watch: {
@@ -43,10 +43,15 @@ export default {
     refreshRunTickle () { this.doRefresh() }
   },
 
+  emits: ['done', 'wait'],
+
   methods: {
-    ...mapActions('model', {
-      dispatchRunText: 'runText'
-    }),
+    ...mapActions(useModelStore, [
+      'runTextByDigest',
+      //
+      'dispatchRunText'
+    ]),
+
     // refersh run text
     async doRefresh () {
       if (!this.runDigest) return // exit on empty run digest
