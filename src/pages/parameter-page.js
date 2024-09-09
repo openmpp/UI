@@ -75,11 +75,11 @@ export default {
         isPvDimsTickle: false,  // used to update dimensions in pivot table (on label change)
         isRawShow: false,       // for number editor this is raw value format status before editor started
         //
-        isRawUseView: false, // v3 copy of isRawUse
-        isRawView: false,    // v3 copy of isRawValue
-        isFloatView: false,  // v3 copy of isFloat
-        isMoreView: false,   // v3 copy of isDoMore
-        isLessView: false    // v3 copy of isDoLess
+        isRawUseView: false, // vue3 copy of isRawUse
+        isRawView: false,    // vue3 copy of isRawValue
+        isFloatView: false,  // vue3 copy of isFloat
+        isMoreView: false,   // vue3 copy of isDoMore
+        isLessView: false    // vue3 copy of isDoLess
       },
       pvc: {
         rowColMode: Pcvt.SPANS_AND_DIMS_PVT,  // rows and columns mode: 2 = use spans and show dim names

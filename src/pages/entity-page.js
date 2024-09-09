@@ -70,11 +70,11 @@ export default {
         isPvDimsTickle: false,  // used to update dimensions in pivot table (on label change)
         kind: Puih.ekind.MICRO,  // entity view content: microdata, aggregated (calculated), run compare
         //
-        isRawUseView: false, // v3 copy of isRawUse
-        isRawView: false,    // v3 copy of isRawValue
-        isFloatView: false,  // v3 copy of isFloat
-        isMoreView: false,   // v3 copy of isDoMore
-        isLessView: false    // v3 copy of isDoLess
+        isRawUseView: false, // vue3 copy of isRawUse
+        isRawView: false,    // vue3 copy of isRawValue
+        isFloatView: false,  // vue3 copy of isFloat
+        isMoreView: false,   // vue3 copy of isDoMore
+        isLessView: false    // vue3 copy of isDoLess
       },
       pvc: {
         rowColMode: Pcvt.NO_SPANS_AND_DIMS_PVT, // rows and columns mode: 3 = no spans and show dim names

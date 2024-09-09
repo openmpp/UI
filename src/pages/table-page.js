@@ -65,10 +65,10 @@ export default {
         // formatOpts: void 0,     // hide format controls by default
         kind: Puih.tkind.EXPR,  // table view content: expressions, accumulators, all-accumulators
         //
-        isRawUseView: false, // v3 copy of isRawUse
-        isRawView: false,    // v3 copy of isRawValue
-        isMoreView: false,   // v3 copy of isDoMore
-        isLessView: false    // v3 copy of isDoLess
+        isRawUseView: false, // vue3 copy of isRawUse
+        isRawView: false,    // vue3 copy of isRawValue
+        isMoreView: false,   // vue3 copy of isDoMore
+        isLessView: false    // vue3 copy of isDoLess
       },
       pvc: {
         rowColMode: Pcvt.SPANS_AND_DIMS_PVT,  // rows and columns mode: 2 = use spans and show dim names

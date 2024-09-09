@@ -1,8 +1,14 @@
-/* eslint-env node */
+/* eslint-disable */
 
-module.exports = {
-  plugins: [
-    '@babel/plugin-transform-nullish-coalescing-operator',
-    '@babel/plugin-transform-optional-chaining'
-  ]
+module.exports = api => {
+  return {
+    presets: [
+      [
+        '@quasar/babel-preset-app',
+        api.caller(caller => caller && caller.target === 'node')
+          ? { targets: { node: 'current' } }
+          : {}
+      ]
+    ]
+  }
 }
