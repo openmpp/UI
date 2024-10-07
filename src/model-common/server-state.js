@@ -14,6 +14,7 @@ export const emptyConfig = () => {
     IsJobControl: false,
     IsModelDoc: false,
     IsDiskUse: false,
+    IsDiskCleanup: false,
     DiskUse: {
       DiskScanMs: 0,
       Limit: 0,
@@ -273,6 +274,7 @@ export const configRunOptsPresets = (c, modelName, uiLang, modelLc) => {
       }
   ],
   IsDiskUse: true,
+  IsDiskCleanup: false,
   IsDiskOver: false,
   DiskScanMs: 123000,
   Limit: 12884901888,
@@ -299,6 +301,7 @@ export const emptyServiceState = () => {
     History: [],
     ComputeState: [],
     IsDiskUse: false,
+    IsDiskCleanup: false,
     IsDiskOver: false,
     DiskScanMs: 0,
     Limit: 0,

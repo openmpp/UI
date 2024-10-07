@@ -84,7 +84,7 @@
           <tr>
             <th class="om-p-head-center">{{ $t('Status') }}</th>
             <th class="om-p-head-center">{{ $t('Open / Close') }}</th>
-            <th class="om-p-head-center">{{ $t('Cleanup') }}</th>
+            <th v-if="isCleanupEnabled" class="om-p-head-center">{{ $t('Cleanup') }}</th>
             <th class="om-p-head-center text-weight-medium">{{ $t('Size') }}</th>
             <th class="om-p-head-center text-weight-medium">{{ $t('Updated') }}</th>
             <th class="om-p-head-center text-weight-medium">{{ $t('Model Database') }}</th>
@@ -117,10 +117,10 @@
                 :title="$t('Open model database')"
                 />
             </td>
-            <td class="om-p-cell-center">
+            <td v-if="isCleanupEnabled" class="om-p-cell-center">
               <q-btn
                 v-if="dbu.isOff || dbu.isOn"
-                :disable="dbu.isOn"
+                :disable="dbu.isOn || !isCleanupEnabled"
                 @click="onCleanupDb(dbu)"
                 unelevated
                 round

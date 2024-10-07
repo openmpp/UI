@@ -40,6 +40,7 @@ export default {
   computed: {
     isDiskUse () { return !!this.serverConfig.IsDiskUse },
     isOver () { return !!this.diskUseState.DiskUse.IsOver },
+    isCleanupEnabled () { return !!this.serverConfig?.IsDiskCleanup },
     updateTs () { return this.diskUseState.DiskUse.UpdateTs },
     isDownloadEnabled () { return this.serverConfig.AllowDownload },
     isUploadEnabled () { return this.serverConfig.AllowUpload },
@@ -160,8 +161,11 @@ export default {
         })
       }
 
-      // sort models by folder + name, put models without folders at the bottom
+      // sort models by db size and folder + name, put models without folders at the bottom
       du.sort((left, right) => {
+        if (left.size < right.size) return 1
+        if (left.size > right.size) return -1
+
         const nL = left.name.toLowerCase()
         const nR = right.name.toLowerCase()
         const pL = left.path.toLowerCase()
