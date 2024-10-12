@@ -223,6 +223,7 @@ export default {
       if (isOk) {
         this.isDiskUse = this.diskUseState.IsDiskUse
         this.diskUseMs = this.getDiskUseRefreshMs(this.diskUseState.DiskUse.DiskScanMs)
+        this.nDiskUseErr = 0
       } else {
         this.nDiskUseErr++
       }
