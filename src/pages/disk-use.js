@@ -140,6 +140,7 @@ export default {
 
       // for each model get name, desription and folder
       const du = []
+      const df = []
 
       for (const d of this.diskUseState.DbDiskUse) {
         if (!Mdf.isDbDiskUse(d)) continue
@@ -147,7 +148,7 @@ export default {
         const m = Mdf.modelByDigest(d.Digest, this.modelList)
         const plc = d.DbPath ? d.DbPath.toLowerCase() : ''
 
-        du.push({
+        const e = {
           digest: d.Digest,
           size: d.Size,
           modTs: d.ModTs,
@@ -157,8 +158,10 @@ export default {
           path: d.DbPath,
           isOn: ((d.Digest || '') !== '') && plc.endsWith('.sqlite'),
           isOff: ((d.Digest || '') === '') && plc.endsWith('.sqlite'),
-          isWork: plc.endsWith('.db')
-        })
+          isCleanup: plc.endsWith('.db')
+        }
+        du.push(e)
+        if (e.path.endsWith('-sqlite.db')) df.push(e.path)
       }
 
       // sort models by db size and folder + name, put models without folders at the bottom
@@ -176,6 +179,16 @@ export default {
 
         return (pL < pR) ? -1 : ((pL > pR) ? 1 : 0)
       })
+      // keep cleanup-in-progress files together: put model.db next to model-sqlite.db
+      for (const pf of df) {
+        const pt = pf.substring(0, pf.length - '-sqlite.db'.length) + '.db'
+        const iTo = du.findIndex(d => d.path === pt)
+        if (iTo < 0) continue
+
+        const t = du.splice(iTo, 1)[0]
+        const iFrom = du.findIndex(d => d.path === pf)
+        du.splice(iFrom + 1, 0, t)
+      }
 
       this.dbUseLst = Object.freeze(du)
     },

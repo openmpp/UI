@@ -95,7 +95,7 @@
             <td class="om-p-cell-center">
               <q-icon v-if="dbu.isOn" size="lg" color="primary" name="mdi-database-check-outline" :title="$t('model database') + ' ' + dbu.nameVer" />
               <q-icon v-if="dbu.isOff" size="lg" color="primary" name="mdi-database-lock" :title="$t('model database offline')" />
-              <q-icon v-if="dbu.isWork" size="lg" color="primary" name="mdi-database-clock" :title="$t('model database maintenance in progress')" />
+              <q-icon v-if="dbu.isCleanup" size="lg" color="primary" name="mdi-database-clock" :title="$t('model database maintenance in progress')" />
             </td>
             <td class="om-p-cell-center">
               <q-btn
