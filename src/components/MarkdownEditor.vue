@@ -49,11 +49,15 @@
 
     </div>
 
-    <textarea
-      style="display: none"
-      :id="mdeTextId"
+    <MdEditor
+      v-model="noteEdit"
       :placeholder="notePrompt ? notePrompt : (theName ? $t('Notes for') + ' ' + theName : $t('Notes'))"
-      ></textarea>
+      preview-theme="github"
+      :language="langCode"
+      :no-upload-img="true"
+      :code-foldable="false"
+      :toolbars-exclude="['image', 'save', 'github']"
+      />
 
     <edit-discard-dialog
       @discard-changes-yes="onYesDiscardChanges"
@@ -65,15 +69,15 @@
 </template>
 
 <script>
-import EasyMDE from 'easymde'
-import hljs from 'highlight.js'
-import sanitizeHtml from 'sanitize-html'
 import EditDiscardDialog from 'components/EditDiscardDialog.vue'
 import * as Mdf from 'src/model-common'
+import { MdEditor } from 'md-editor-v3'
+import sanitizeHtml from 'sanitize-html'
+import 'md-editor-v3/lib/style.css'
 
 export default {
   name: 'MarkdownEditor',
-  components: { EditDiscardDialog },
+  components: { MdEditor, EditDiscardDialog },
 
   props: {
     theKey: { type: String, default: '' },
@@ -86,13 +90,11 @@ export default {
     notesEditable: { type: Boolean, default: false },
     isHideSave: { type: Boolean, default: false },
     isHideCancel: { type: Boolean, default: false },
-    langCode: { type: String, default: 'EN' } // MDE default spellchecker support only English US
+    langCode: { type: String, default: 'en-US' }
   },
 
   data () {
     return {
-      theEasyMde: null,
-      mdeTextId: 'easy-mde-text-' + (this.theKey || ''),
       descrEdit: '',
       noteEdit: '',
       showEditDiscardTickle: false
@@ -110,7 +112,7 @@ export default {
     // send description and notes to the parent
     onSaveNote () {
       if (this.notesEditable) {
-        this.noteEdit = sanitizeHtml(this.theEasyMde.value() || '') // remove unsafe html tags
+        this.noteEdit = sanitizeHtml(this.noteEdit || '') // remove unsafe html tags
       }
       this.$emit(
         'save-note',
@@ -124,13 +126,13 @@ export default {
     // return true if description or notes updated (edited)
     isUpdated () {
       return (this.descriptionEditable && this.theDescr !== this.descrEdit) ||
-        (this.notesEditable && this.theNote !== this.theEasyMde.value())
+        (this.notesEditable && this.theNote !== this.noteEdit)
     },
 
     // return description and notes
     getDescrNote () {
       if (this.notesEditable) {
-        this.noteEdit = sanitizeHtml(this.theEasyMde.value() || '') // remove unsafe html tags
+        this.noteEdit = sanitizeHtml(this.noteEdit || '') // remove unsafe html tags
       }
       return {
         descr: this.descriptionEditable ? this.descrEdit : this.theDescr,
@@ -157,48 +159,10 @@ export default {
   // create description and notes editor
   mounted () {
     if (this.descriptionEditable) this.descrEdit = this.theDescr
-
-    if (this.notesEditable) {
-      this.theEasyMde = new EasyMDE({
-        element: document.getElementById(this.mdeTextId),
-        sideBySideFullscreen: false,
-        autoDownloadFontAwesome: false,
-        toolbar: [
-          'undo', 'redo', '|',
-          'bold', 'italic', 'heading-3', 'heading-bigger', 'heading-smaller', '|',
-          'quote', 'code', '|',
-          'unordered-list', 'ordered-list', 'table', '|',
-          'side-by-side', '|',
-          'guide'],
-        spellChecker: (this.langCode || '').toLocaleLowerCase().startsWith('en'), // EasyMDE spell checker is en-US only
-        renderingConfig: {
-          codeSyntaxHighlighting: true,
-          sanitizerFunction: (renderedHTML) => { return sanitizeHtml(renderedHTML) },
-          markedOptions: {
-            highlight: (code, lang) => {
-              const language = hljs.getLanguage(lang) ? lang : 'plaintext'
-              return hljs.highlight(code, { language }).value
-            },
-            pedantic: false,
-            gfm: true,
-            breaks: false,
-            smartLists: true
-          }
-        }
-      })
-      this.noteEdit = this.theNote
-      this.theEasyMde.value(this.noteEdit)
-    }
-  },
-  unmounted () {
-    if (this.theEasyMde) {
-      this.theEasyMde.toTextArea()
-      this.theEasyMde = null
-    }
+    if (this.notesEditable) this.noteEdit = this.theNote
   }
 }
 </script>
 
 <style scoped>
-  @import '~easymde/dist/easymde.min.css';
 </style>
