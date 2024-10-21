@@ -120,6 +120,33 @@ export default {
         this.refreshTickle = !this.refreshTickle
       }
     },
+    // return more menu extra items array for current UI language
+    moreMenu () {
+      if (!this.serverConfig?.UiExtra || !Array.isArray(this.serverConfig.UiExtra?.MoreMenu)) return []
+
+      const ulc = this.uiLang || this.$q.lang.getLocale()
+      const mm = []
+      for (const m of this.serverConfig.UiExtra.MoreMenu) {
+        if (m.LangCode === ulc) {
+          mm.push(m)
+          continue
+        }
+        const m2p = Mdf.splitLangCode(m.LangCode)
+        const ui2p = Mdf.splitLangCode(ulc)
+        if (m2p.isEmpty || ui2p.isEmpty) {
+          continue
+        }
+        if (m2p.lower === ui2p.lower) {
+          mm.push(m)
+          continue
+        }
+        if (m2p.first === ui2p.first) {
+          mm.push(m)
+          continue
+        }
+      }
+      return mm
+    },
 
     doRefresh () {
       this.doConfigRefresh()

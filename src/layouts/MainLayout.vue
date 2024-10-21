@@ -189,6 +189,24 @@
               <q-item-section>{{ $t('OpenM++ website') }}</q-item-section>
             </q-item>
 
+            <template v-if="moreMenu()?.length">
+              <q-separator />
+              <q-item
+                v-for="m in moreMenu()"
+                :key="m.Link"
+                clickable
+                tag="a"
+                target="_blank"
+                :href="m.Link"
+                >
+                <q-item-section avatar>
+                  <q-icon name="link" />
+                </q-item-section>
+                <q-item-section>{{ m.Label }}</q-item-section>
+              </q-item>
+
+            </template>
+
           </q-list>
         </q-menu>
       </q-btn>

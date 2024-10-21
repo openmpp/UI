@@ -21,6 +21,7 @@ export const emptyConfig = () => {
       AllLimit: 0
     },
     Env: {},
+    UiExtra: {},
     ModelCatalog: {
       ModelDir: '',
       ModelLogDir: '',
@@ -42,9 +43,8 @@ export const isConfig = (c) => {
   if (!c.hasOwnProperty('OmsName') || !c.hasOwnProperty('AllowUserHome') ||
     !c.hasOwnProperty('AllowDownload') || !c.hasOwnProperty('AllowUpload') ||
     !c.hasOwnProperty('AllowFiles') || !c.hasOwnProperty('AllowMicrodata') ||
-    !c.hasOwnProperty('IsJobControl') || !c.hasOwnProperty('IsModelDoc') ||
-    !c.hasOwnProperty('IsDiskUse') || !c.hasOwnProperty('DiskUse') ||
-    !c.hasOwnProperty('Env') || !c.hasOwnProperty('ModelCatalog') || !c.hasOwnProperty('RunCatalog')) {
+    !c.hasOwnProperty('DiskUse') || !c.hasOwnProperty('Env') ||
+    !c.hasOwnProperty('UiExtra') || !c.hasOwnProperty('ModelCatalog') || !c.hasOwnProperty('RunCatalog')) {
     return false
   }
   if (!c.ModelCatalog.hasOwnProperty('ModelDir') || !c.ModelCatalog.hasOwnProperty('ModelLogDir') || !c.ModelCatalog.hasOwnProperty('IsLogDirEnabled')) return false
@@ -52,6 +52,10 @@ export const isConfig = (c) => {
     !c.RunCatalog.hasOwnProperty('MpiTemplates') || !c.RunCatalog.hasOwnProperty('Presets')) {
     return false
   }
+  if (!c.hasOwnProperty('IsJobControl') || typeof c.IsJobControl !== typeof true) return false
+  if (!c.hasOwnProperty('IsModelDoc') || typeof c.IsModelDoc !== typeof true) return false
+  if (!c.hasOwnProperty('IsDiskUse') || typeof c.IsDiskUse !== typeof true) return false
+  if (!c.hasOwnProperty('IsDiskCleanup') || typeof c.IsDiskCleanup !== typeof true) return false
   if (!c.DiskUse.hasOwnProperty('DiskScanMs') || typeof c.DiskUse.DiskScanMs !== typeof 1) return false
   if (!c.DiskUse.hasOwnProperty('Limit') || typeof c.DiskUse.Limit !== typeof 1) return false
   if (!c.DiskUse.hasOwnProperty('AllLimit') || typeof c.DiskUse.AllLimit !== typeof 1) return false
@@ -327,6 +331,7 @@ export const isServiceState = (st) => {
   if (!st.hasOwnProperty('LocalQueueRes') || !st.LocalQueueRes.hasOwnProperty('Cpu') || typeof st.LocalQueueRes.Cpu !== typeof 1) return false
 
   if (!st.hasOwnProperty('IsDiskUse') || typeof st.IsDiskUse !== typeof true) return false
+  if (!st.hasOwnProperty('IsDiskCleanup') || typeof st.IsDiskCleanup !== typeof true) return false
   if (!st.hasOwnProperty('IsDiskOver') || typeof st.IsDiskOver !== typeof true) return false
   if (!st.hasOwnProperty('DiskScanMs') || typeof st.DiskScanMs !== typeof 1) return false
 

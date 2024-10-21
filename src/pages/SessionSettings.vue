@@ -88,7 +88,7 @@
               />
           </td>
           <td class="settings-cell q-pa-sm om-text-secondary">{{ $t('Language') }}:</td>
-          <td class="settings-cell q-pa-sm">{{ uiLangTitle }}</td>
+          <td class="settings-cell q-pa-sm">{{ uiLangTitle }} <span class="om-text-secondary">[{{ this.$q.lang.getLocale() }}]</span></td>
         </tr>
 
         <tr>

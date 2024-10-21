@@ -14,7 +14,17 @@ export const useServerStateStore = defineStore('server-state', {
 
   actions: {
     dispatchServerConfig (cfg) {
-      if (Mdf.isConfig(cfg)) this.config = cfg
+      if (Mdf.isConfig(cfg)) {
+        cfg.Env ??= {}
+        let uiex = {}
+        try {
+          uiex = JSON.parse((cfg?.UiExtra || '{}'))
+        } catch {
+          uiex = {}
+        }
+        this.config = cfg
+        this.config.UiExtra = uiex
+      }
     },
 
     dispatchDiskUse (du) {
