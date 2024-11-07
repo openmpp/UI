@@ -267,8 +267,6 @@ Expected array of tree items as:
 </style>
 
 <script>
-import * as Mdf from 'src/model-common'
-
 export default {
   name: 'OmTableTree',
 
@@ -311,12 +309,7 @@ export default {
       isTreeExpanded: this.isAllExpand,
       treeFilter: '',
       treeWalk: {
-        firstKey: '', // first node key of the tree
-        size: 0,
-        count: 0,
         isAnyFound: false,
-        isNewFilter: false,
-        prevFilter: '',
         keysFound: {} // if node match filter then map keysFound[node.key] = true
       }
     }
@@ -330,7 +323,8 @@ export default {
     refreshTickle () {
       this.isTreeExpanded = this.isAllExpand
       this.doRefresh()
-    }
+    },
+    treeFilter () { this.updateTreeWalk() }
   },
 
   emits: [
@@ -353,32 +347,8 @@ export default {
     // update view on tree data change
     doRefresh () {
       this.treeFilter = ''
-
-      // initialize tree walk state
-      this.treeWalk.firstKey = ''
-      this.treeWalk.size = 0
-      this.treeWalk.count = 0
       this.treeWalk.isAnyFound = false
-      this.treeWalk.isNewFilter = false
-      this.treeWalk.prevFilter = ''
       this.treeWalk.keysFound = {}
-
-      if (!Mdf.isLength(this.treeData)) return
-      // else
-      // if tree data not empty then find first node key and count nodes
-      this.treeWalk.firstKey = this.treeData[0].key
-
-      const td = []
-      for (const g of this.treeData) {
-        td.push(g)
-      }
-      while (td.length > 0) {
-        const t = td.pop()
-        this.treeWalk.size++
-        for (const c of t.children) {
-          td.push(c)
-        }
-      }
     },
 
     // expand or collapse all tree nodes
@@ -393,53 +363,50 @@ export default {
 
     // filter tree nodes by name (label) or description
     doTreeFilter (node, filter) {
-      const flt = filter.toLowerCase()
-      let isFound = (node.label && node.label.toLowerCase().indexOf(flt) > -1) ||
-        ((node.descr || '') !== '' && node.descr.toLowerCase().indexOf(flt) > -1)
+      return this.treeWalk.isAnyFound && !!this.treeWalk.keysFound[node.key]
+    },
+    // update filtered nodes key list, include all children if group match the filter
+    updateTreeWalk () {
+      this.treeWalk.isAnyFound = false
+      this.treeWalk.keysFound = {}
 
-      isFound = this.updateTreeWalk(isFound, node, filter, this.treeWalk)
+      if (!this.treeFilter) return // filter is empty
 
-      if (!this.isTreeExpanded && this.treeWalk.isAnyFound && this.treeWalk.isNewFilter) {
+      const flt = this.treeFilter.toLowerCase()
+
+      // walk the tree and check every node by filter match
+      const td = []
+      for (const g of this.treeData) {
+        td.push(g)
+      }
+      while (td.length > 0) {
+        const t = td.pop()
+
+        let isFound = (t.label && t.label.toLowerCase().indexOf(flt) > -1) ||
+          ((t.descr || '') !== '' && t.descr.toLowerCase().indexOf(flt) > -1)
+
+        if (!isFound) isFound = this.treeWalk.keysFound[t.key] === true
+        if (isFound && !this.treeWalk.keysFound[t.key]) this.treeWalk.keysFound[t.key] = true
+
+        // if current node match filter then add all children to matched keys list
+        for (const c of t.children) {
+          td.push(c)
+          if (isFound) this.treeWalk.keysFound[c.key] = true
+        }
+        if (!this.treeWalk.isAnyFound) this.treeWalk.isAnyFound = isFound
+      }
+
+      // if any node match the filter then exapnd the tree
+      if (this.treeWalk.isAnyFound && !this.isTreeExpanded) {
         this.$nextTick(() => { this.doToogleExpandTree() })
       }
-      return isFound
     },
     // clear tree filter value
     resetFilter () {
       this.treeFilter = ''
-      this.$refs.filterInput.focus()
+      this.treeWalk.isAnyFound = false
       this.treeWalk.keysFound = {}
-    },
-    // filter tree nodes by if parent group matched filter
-    updateTreeWalk (isFound, node, filter) {
-      // if this is first node then reset matched node key list
-      if (node.key === this.treeWalk.firstKey) {
-        this.treeWalk.keysFound = {}
-        this.treeWalk.count = 0
-        this.treeWalk.isAnyFound = false
-        this.treeWalk.isNewFilter = false
-      }
-      this.treeWalk.count++
-
-      // change node status to highlight found nodes
-      if (!isFound) isFound = this.treeWalk.keysFound[node.key] === true
-      if (isFound && !this.treeWalk.keysFound[node.key]) this.treeWalk.keysFound[node.key] = true
-
-      // if current node match filter then add all children to matched keys list
-      if (isFound) {
-        for (const cn of node.children) {
-          this.treeWalk.keysFound[cn.key] = true
-        }
-      }
-
-      // if this is last node then clean matched key list and detect new filter condition
-      if (this.treeWalk.count === this.treeWalk.size) {
-        this.treeWalk.isNewFilter = filter !== this.treeWalk.prevFilter
-        this.treeWalk.prevFilter = filter
-      }
-
-      if (isFound) this.treeWalk.isAnyFound = true
-      return isFound
+      this.$refs.filterInput.focus()
     }
   },
 

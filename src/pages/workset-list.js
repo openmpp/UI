@@ -231,6 +231,7 @@ export default {
     },
     // filter workset tree nodes by name (label), update date-time or description
     doWsTreeFilter (node, filter) {
+      if (node.key === 'wsl-top-node') return true // always show top node: it is tree controls
       const flt = filter.toLowerCase()
       return (node.label && node.label.toLowerCase().indexOf(flt) > -1) ||
         ((node.lastTime || '') !== '' && node.lastTime.indexOf(flt) > -1) ||

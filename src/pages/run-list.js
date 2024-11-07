@@ -238,6 +238,7 @@ export default {
     },
     // filter run tree nodes by name (label), update date-time or description
     doRunTreeFilter (node, filter) {
+      if (node.key === 'rtl-top-node') return true // always show top node: it is tree controls
       const flt = filter.toLowerCase()
       return (node.label && node.label.toLowerCase().indexOf(flt) > -1) ||
         ((node.lastTime || '') !== '' && node.lastTime.indexOf(flt) > -1) ||

@@ -385,7 +385,7 @@
         <template v-slot:default-header="prop">
 
           <div
-            v-if="prop.node.children && prop.node.children.length"
+            v-if="prop.node.key === 'rtl-top-node'"
             class="row no-wrap items-center full-width"
             >
             <div class="col-auto">
