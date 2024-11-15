@@ -333,6 +333,7 @@ export default {
   'Local CPU Cores': "Cœurs de processeur de l'hôte local",
   'Log file not found or empty': 'Fichier journal introuvable ou vide',
   'Login': "S'identifier",
+  'Login session expired or authorization error.': "La session de connexion a expiré ou erreur d'autorisation.",
   'Logout': 'Se déconnecter',
   'Maximum': 'Maximum',
   'Maximum number of modelling threads': 'Nombre maximum de threads de modélisation',

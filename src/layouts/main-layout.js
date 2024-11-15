@@ -112,7 +112,11 @@ export default {
           (error) => {
             if (error.response) {
               if (error.response.status === 401 || error.response.status === 403) { // open login URL
-                window.location.assign(this.loginUrl)
+                console.warn('Authentication session expired, status:', error.response.status)
+                this.$q.notify({ type: 'negative', message: this.$t('Login session expired or authorization error.') })
+                setTimeout(
+                  () => window.location.assign(this.loginUrl),
+                  5000)
               }
             }
             return Promise.reject(error)
