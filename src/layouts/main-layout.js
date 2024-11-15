@@ -20,6 +20,9 @@ export default {
       loadConfigDone: false,
       loadDiskUseDone: false,
       nDiskUseErr: 0, // disk use error count
+      loginUrl: '',
+      logoutUrl: '',
+      isLoginCatch: false,
       isBeta: true,
       modelInfoTickle: false,
       toUpDownSection: 'down',
@@ -44,8 +47,6 @@ export default {
     },
     runTextCount () { return Mdf.runTextCount(this.runTextList) },
     worksetTextCount () { return Mdf.worksetTextCount(this.worksetTextList) },
-    loginUrl () { return Mdf.configEnvValue(this.serverConfig, 'OM_CFG_LOGIN_URL') },
-    logoutUrl () { return Mdf.configEnvValue(this.serverConfig, 'OM_CFG_LOGOUT_URL') },
     loadWait () {
       return !this.loadConfigDone
     },
@@ -97,8 +98,28 @@ export default {
         console.warn('Error at loading language:', lc, err)
       })
     },
+
     isDiskUse () { this.restartDiskUseRefresh() },
-    diskUseMs () { this.restartDiskUseRefresh() }
+    diskUseMs () { this.restartDiskUseRefresh() },
+
+    // set 401 and 403 interceptor: open login page
+    loginUrl () {
+      if (this.isLoginCatch || !this.loginUrl || typeof this.loginUrl !== typeof 'string') return // use only first non-empty login url
+
+      this.$nextTick(() => {
+        this.$axios.interceptors.response.use(
+          (response) => response,
+          (error) => {
+            if (error.response) {
+              if (error.response.status === 401 || error.response.status === 403) { // open login URL
+                window.location.assign(this.loginUrl)
+              }
+            }
+            return Promise.reject(error)
+          })
+      })
+      this.isLoginCatch = true
+    }
   },
 
   methods: {
@@ -208,6 +229,8 @@ export default {
         this.$q.notify({ type: 'negative', message: this.$t('Server offline or configuration retrieve failed.') })
       }
       this.loadConfigDone = true
+      this.loginUrl = Mdf.configEnvValue(this.serverConfig, 'OM_CFG_LOGIN_URL')
+      this.logoutUrl = Mdf.configEnvValue(this.serverConfig, 'OM_CFG_LOGOUT_URL')
 
       // update disk space usage if necessary
       this.isDiskUse = !!this?.serverConfig?.IsDiskUse
