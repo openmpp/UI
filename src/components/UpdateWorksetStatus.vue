@@ -38,7 +38,7 @@ export default {
   methods: {
     ...mapActions(useModelStore, ['dispatchWorksetStatus']),
 
-    // refersh workset list
+    // update workset read-only status
     async doUpdate () {
       if (!this.modelDigest || !this.worksetName) {
         console.warn('Unable to update input scenario: model digest or name is empty')

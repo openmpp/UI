@@ -467,11 +467,11 @@
             >
             <div class="col-auto">
               <q-btn
-                :disable="!wsTreeTicked.length || isEdit() || isReadOnlyTicked()"
+                :disable="!wsTreeTicked.length || isEdit() || isUnsavedTicked()"
                 @click.stop="onWsMultipleDelete"
                 :round="!wsTreeTicked.length"
-                :outline="!wsTreeTicked.length || isEdit() || isReadOnlyTicked()"
-                :rounded="!!wsTreeTicked.length || isEdit() || isReadOnlyTicked()"
+                :outline="!wsTreeTicked.length || isEdit() || isUnsavedTicked()"
+                :rounded="!!wsTreeTicked.length || isEdit() || isUnsavedTicked()"
                 no-caps
                 color="primary"
                 class="col-auto"

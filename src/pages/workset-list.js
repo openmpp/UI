@@ -120,6 +120,7 @@ export default {
     ...mapState(useUiStateStore, [
       'runDigestSelected',
       'worksetNameSelected',
+      'paramViewWorksetUpdatedCount',
       'uiLang'
     ])
   },
@@ -284,8 +285,8 @@ export default {
     onWorksetReadonlyToggle () {
       this.$emit('set-update-readonly', this.digest, this.worksetNameSelected, !this.worksetCurrent.IsReadonly)
     },
-    // return true if any ticked workset is read only
-    isReadOnlyTicked () {
+    // return true if any ticked workset is has unsaved parameter
+    isUnsavedTicked () {
       if (!this.wsTreeTicked?.length) return false // no selection, nothing is ticked
 
       const wsTop = this.wsTreeData[0]
@@ -293,7 +294,11 @@ export default {
         if (!ws.label || ws.children.length > 0) continue // it is not a workset
 
         if (this.wsTreeTicked.findIndex((wsKey) => { return wsKey === ws.key }) >= 0) { // workset is ticked
-          if (ws.isReadonly) return true
+          if (ws.isReadonly) continue // workset is readonly
+
+          // if there are any edited and unsaved parameters for this workset
+          const n = this.paramViewWorksetUpdatedCount({ digest: this.digest, worksetName: ws.label })
+          if (n > 0) return true // unable to delete because workset have unsaved parameter(s)
         }
       }
       return false // all ticked worksets are unlocked for delete
@@ -412,7 +417,7 @@ export default {
       }
     },
 
-    // delete multiple worksets worksets
+    // delete multiple worksets
     async doWsDeleteMultiple (nameLst) {
       if (!nameLst || !Array.isArray(nameLst) || !nameLst?.length) {
         console.warn('Unable to delete: invalid (or empty) list of names, length:', nameLst?.length)
@@ -422,7 +427,44 @@ export default {
       this.$q.notify({ type: 'info', message: this.$t('Deleting multiple input scenarios') + ': [ ' + nLen.toString() + ' ]' })
       this.loadWsMultipletDelete = true
 
-      let isOk = false
+      // if any workset is readonly then make it read-write
+      let isOk = true
+      let nUpd = 0
+
+      for (const name of nameLst) {
+        if (this.worksetTextList.findIndex(wt => wt.Name === name && wt.IsReadonly) < 0) continue
+
+        // workset is readonly: make it read-write
+        isOk = false
+
+        const u = this.omsUrl +
+          '/api/model/' + encodeURIComponent(this.digest) +
+          '/workset/' + encodeURIComponent(name) +
+          '/readonly/false'
+        try {
+          await this.$axios.post(u) // ignore response on success
+          isOk = true
+          nUpd++
+        } catch (e) {
+          let em = ''
+          try {
+            if (e.response) em = e.response.data || ''
+          } finally {}
+          console.warn('Server offline or input scenario not found.', em)
+          this.$q.notify({ type: 'negative', message: this.$t('Server offline or input scenario not found: ') + name })
+        }
+        if (!isOk) break
+      }
+      // exit on error and refersh workset list if required
+      if (!isOk) {
+        this.loadWsMultipletDelete = false
+        if (nUpd > 0) this.$emit('set-list-refresh')
+        return
+      }
+
+      // delete multiple worksets
+      isOk = false
+
       const u = this.omsUrl + '/api/model/' + encodeURIComponent(this.digest) + '/delete-worksets'
       try {
         await this.$axios.post(u, nameLst) // ignore response on success
