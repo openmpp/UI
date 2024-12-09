@@ -251,9 +251,11 @@
             :is-remove-entity="true"
             @entity-attr-remove="onAttrRemove"
             @entity-remove="onEntityRemove"
-            @entity-attr-info-show="doShowEntityAttrNote"
-            @entity-info-show="doShowEntityNote"
+            @entity-group-remove="onEntityGroupRemove"
             @entity-clear-in-list="onClearEntityAttrs"
+            @entity-info-show="doShowEntityNote"
+            @entity-attr-info-show="doShowEntityAttrNote"
+            @entity-group-info-show="doShowEntityGroupNote"
             >
           </entity-list>
         </template>
@@ -269,8 +271,10 @@
           :is-add-entity="true"
           @entity-attr-add="onAttrAdd"
           @entity-add="onEntityAdd"
-          @entity-attr-info-show="doShowEntityAttrNote"
+          @entity-group-add="onEntityGroupAdd"
           @entity-info-show="doShowEntityNote"
+          @entity-attr-info-show="doShowEntityAttrNote"
+          @entity-group-info-show="doShowEntityGroupNote"
           >
         </entity-list>
       </q-card-section>
@@ -779,6 +783,7 @@
   <group-info-dialog :show-tickle="groupInfoTickle" :group-name="groupInfoName"></group-info-dialog>
   <entity-info-dialog :show-tickle="entityInfoTickle" :entity-name="entityInfoName"></entity-info-dialog>
   <entity-attr-info-dialog :show-tickle="attrInfoTickle" :entity-name="entityInfoName" :attr-name="attrInfoName"></entity-attr-info-dialog>
+  <entity-group-info-dialog :show-tickle="entityGroupInfoTickle"  :entity-name="entityInfoName" :group-name="entityGroupInfoName"></entity-group-info-dialog>
 
   <q-inner-loading :showing="loadWait || loadConfig || loadDiskUse || loadIni || loadCsv || loadProfile">
     <q-spinner-gears size="md" color="primary" />

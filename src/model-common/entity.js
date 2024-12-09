@@ -133,6 +133,60 @@ export const entityAttrTextById = (md, eId, aId) => {
   return emptyEntityAttrTxt() // not found
 }
 
+// finder to return entity name and attribute by entity id and attribute id
+// finder.byId return { ok: true, name: entityName, a: EntityAttrTxt }
+export const entityAttrFinder = (md) => {
+  // if entity list is empty then retrun empty finder
+  const emptyFinder = {
+    byId: (eId, aId) => { return { ok: false, name: '', a: {} } }
+  }
+  if (!isEntityTextList(md)) return emptyFinder
+
+  // map entity id to the map of attributes id to attribute
+  let n = 0
+  const eaById = {}
+
+  for (const et of md.EntityTxt) {
+    if (!isNotEmptyEntityText(et)) continue
+
+    const aLst = {}
+    eaById[et.Entity.EntityId] = {
+      name: et.Entity.Name,
+      attrs: aLst
+    }
+
+    for (const eat of et.EntityAttrTxt) {
+      if (isNotEmptyEntityAttr(eat)) {
+        aLst[eat.Attr.AttrId] = eat
+        n++
+      }
+    }
+  }
+  if (n <= 0) return emptyFinder // retrun empty finder if there are no attributes
+
+  // finder of attributes by entity id and attribute id
+  return {
+    byId: (eId, aId) => {
+      if (eId < 0 || aId < 0) {
+        return { ok: false, name: '', a: {} } // not found: invalid id's
+      }
+      const e = eaById[eId]
+      if (!e) {
+        return { ok: false, name: '', a: {} } // entity id not found
+      }
+      const ea = e.attrs[aId]
+      if (!ea) {
+        return { ok: false, name: e.name, a: {} } // attribute id not found
+      }
+      return {
+        ok: true,
+        name: e.name,
+        a: ea
+      }
+    }
+  }
+}
+
 // find entity attribute EntityAttrTxt by entity name and attribute name
 export const entityAttrTextByName = (md, entName, attrName) => {
   if (!Mdl.isModel(md) || (entName || '') === '' || (attrName || '') === '') { // empty model or entity name or attribute: return empty result

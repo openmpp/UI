@@ -19,7 +19,8 @@ Expected array of tree items as:
   isGroup:       false,                   // if true then item is a folder even there are no children
   isAbout:       false,                   // if true then show about button to item
   isAboutEmpty:  false,                   // if true then disable about button
-  isFilterHide:  false                    // if true then hide item as result of filter
+  isClick:       false,                   // if true then node is click-able
+  isDownload:    false                    // if true then node is download-able
 }
 -->
 <template>
@@ -143,7 +144,7 @@ Expected array of tree items as:
             :title="$t('Remove') + ' ' + prop.node.label"
             />
           <q-btn
-            v-if="isDownloadGroup"
+            v-if="isDownloadGroup || !!prop.node?.isDownload"
             @click.stop="$emit('om-table-tree-group-download', prop.node.label, prop.node.parts)"
             :disable="isDownloadDisabled"
             flat
@@ -156,8 +157,9 @@ Expected array of tree items as:
             :title="$t('Download') + ' ' + prop.node.label"
             />
           <div
-            v-if="!isGroupClick"
-            class="col q-ml-xs q-pl-xs"
+            v-if="isGroupClick || !!prop.node?.isClick"
+            @click.stop="$emit('om-table-tree-group-select', prop.node.label, prop.node.parts)"
+            class="label-click col q-ml-xs q-pl-xs"
             >
             <template v-if="labelKind === 'name-only'">{{ prop.node.label }}</template>
             <template v-if="labelKind === 'descr-only'">{{ prop.node.descr }}</template>
@@ -168,8 +170,7 @@ Expected array of tree items as:
           </div>
           <div
             v-else
-            @click.stop="$emit('om-table-tree-group-select', prop.node.label, prop.node.parts)"
-            class="label-click col q-ml-xs q-pl-xs"
+            class="col q-ml-xs q-pl-xs"
             >
             <template v-if="labelKind === 'name-only'">{{ prop.node.label }}</template>
             <template v-if="labelKind === 'descr-only'">{{ prop.node.descr }}</template>
@@ -224,7 +225,7 @@ Expected array of tree items as:
             :title="$t('Remove') + ' ' + prop.node.label"
             />
           <q-btn
-            v-if="isDownload"
+            v-if="(isDownload || !!prop.node?.isDownload)"
             @click.stop="$emit('om-table-tree-leaf-download', prop.node.label, prop.node.parts)"
             :disable="isDownloadDisabled"
             flat
@@ -238,7 +239,7 @@ Expected array of tree items as:
             />
           <div
             @click="$emit('om-table-tree-leaf-select', prop.node.label, prop.node.parts)"
-            :class="{'label-click': isLeafClick}"
+            :class="{'label-click': (isLeafClick || !!prop.node?.isClick)}"
             class="col q-ml-xs q-pl-xs"
             >
             <template v-if="labelKind === 'name-only'">{{ prop.node.label }}</template>

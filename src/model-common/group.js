@@ -127,9 +127,9 @@ export const groupLeafs = (md, isParam) => {
       if (pc.ChildLeafId >= 0) gUse[gId].leafs.push(pc.ChildLeafId)
     }
   }
-  if (nGrp <= 0) return gm // no groups
+  if (nGrp <= 0) return {} // no groups
 
-  if ((isParam && !Prm.paramCount(md)) || (!isParam && !Tbl.tableCount(md))) return gm // no leafs
+  if ((isParam && !Prm.paramCount(md)) || (!isParam && !Tbl.tableCount(md))) return {} // no leafs
 
   // expand each group by replacing child groups by leafs
   for (const gId in gUse) {

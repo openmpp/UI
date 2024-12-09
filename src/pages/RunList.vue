@@ -287,6 +287,7 @@
         @entity-select="onEntityClick"
         @entity-info-show="doShowEntityRunNote"
         @entity-attr-info-show="doShowEntityAttrNote"
+        @entity-group-info-show="doShowEntityGroupNote"
         @entity-tree-updated="onEntityTreeUpdated"
         >
       </entity-list>
@@ -508,6 +509,7 @@
   <group-info-dialog :show-tickle="groupInfoTickle" :group-name="groupInfoName"></group-info-dialog>
   <entity-info-dialog :show-tickle="entityInfoTickle"  :entity-name="entityInfoName" :run-digest="runDigestSelected"></entity-info-dialog>
   <entity-attr-info-dialog :show-tickle="attrInfoTickle" :entity-name="entityInfoName" :attr-name="attrInfoName"></entity-attr-info-dialog>
+  <entity-group-info-dialog :show-tickle="entityGroupInfoTickle"  :entity-name="entityInfoName" :group-name="entityGroupInfoName"></entity-group-info-dialog>
 
   <refresh-run v-if="(digest || '') !== ''"
     :model-digest="digest"

@@ -14,6 +14,7 @@ import TableInfoDialog from 'components/TableInfoDialog.vue'
 import GroupInfoDialog from 'components/GroupInfoDialog.vue'
 import EntityInfoDialog from 'components/EntityInfoDialog.vue'
 import EntityAttrInfoDialog from 'components/EntityAttrInfoDialog.vue'
+import EntityGroupInfoDialog from 'components/EntityGroupInfoDialog.vue'
 import MarkdownEditor from 'components/MarkdownEditor.vue'
 import { openURL } from 'quasar'
 
@@ -35,6 +36,7 @@ export default {
     GroupInfoDialog,
     EntityInfoDialog,
     EntityAttrInfoDialog,
+    EntityGroupInfoDialog,
     MarkdownEditor
   },
 
@@ -97,10 +99,12 @@ export default {
       entityAttrCount: 0, // total number of attributes of all entities
       entityAttrsUse: [], // entity.attribute names included selected for model run
       refreshEntityTreeTickle: false,
-      entityInfoName: '',
       attrInfoName: '',
-      entityInfoTickle: false,
+      entityInfoName: '',
+      entityGroupInfoName: '',
       attrInfoTickle: false,
+      entityInfoTickle: false,
+      entityGroupInfoTickle: false,
       newRunNotes: {
         type: Object,
         default: () => ({})
@@ -152,6 +156,7 @@ export default {
       'theModel',
       'modelLanguage',
       'groupTableLeafs',
+      'groupEntityLeafs',
       'langList'
     ]),
     ...mapState(useServerStateStore, {
@@ -650,6 +655,12 @@ export default {
       this.entityInfoName = entName
       this.entityInfoTickle = !this.entityInfoTickle
     },
+    // show entity attributes group notes dialog
+    doShowEntityGroupNote (groupName, entName) {
+      this.entityInfoName = entName
+      this.entityGroupInfoName = groupName
+      this.entityGroupInfoTickle = !this.entityGroupInfoTickle
+    },
 
     // click on clear filter: retain all output tables and groups
     onRetainAllTables () {
@@ -766,7 +777,9 @@ export default {
         isAdded = true
       }
 
-      if (isAdded) {
+      if (!isAdded) {
+        this.$q.notify({ type: 'info', message: this.$t('Nothing new to add') })
+      } else {
         this.$q.notify({
           type: 'info',
           message: this.entityAttrsUse.length < this.entityAttrCount ? this.$t('Add to microdata: ') + name : this.$t('All entity attributes included into microdata')
@@ -776,7 +789,7 @@ export default {
     },
 
     // add all entity attributes into the microdata list
-    onEntityAdd (entName, parts, isAllowHidden) {
+    onEntityAdd (entName, isAllowHidden) {
       if (this.entityAttrsUse.length >= this.entityAttrCount) return // all attributes already in microdata list
       if (!entName) {
         console.warn('Unable to add microdata, entity name is empty:', entName)
@@ -799,10 +812,57 @@ export default {
         }
       }
 
-      if (isAdded) {
+      if (!isAdded) {
+        this.$q.notify({ type: 'info', message: this.$t('Nothing new to add') })
+      } else {
         this.$q.notify({
           type: 'info',
           message: (this.entityAttrsUse.length < this.entityAttrCount) ? this.$t('Add to microdata: ') + entName : this.$t('All entity attributes included into microdata')
+        })
+        this.refreshEntityTreeTickle = !this.refreshEntityTreeTickle
+      }
+    },
+    // add group of attributes into the microdata list
+    onEntityGroupAdd (groupName, isAllowHidden, parts) {
+      if (this.entityAttrsUse.length >= this.entityAttrCount) return // all attributes already in microdata list
+
+      // find the group and check if it is not hidden
+      if (!groupName || !parts || !parts?.entityName) {
+        console.warn('Unable to add microdata, group name or event parts is empty:', groupName, parts)
+        return
+      }
+      const gId = parts.selfId
+      const gt = Mdf.entityGroupTextById(this.theModel, parts.entityId, gId)
+      if (!Mdf.isEntityGroupText(gt) || (!isAllowHidden && gt.Group.IsHidden)) {
+        this.$q.notify({ type: 'error', message: this.$t('Unable to find group of attributes: ') + groupName })
+        console.warn('Unable to find group of attributes:', groupName, parts.entityId, gId, gt)
+        return
+      }
+      const leafs = this.groupEntityLeafs?.[parts.entityId]?.[groupName]?.leafs // group leafs: {attrName: true,....}
+
+      // add each attribute of the entity into microdata if not already in the list
+      const ent = Mdf.entityTextByName(this.theModel, parts.entityName)
+      let isAdded = false
+
+      if (Mdf.isNotEmptyEntityText(ent)) {
+        for (const ea of ent.EntityAttrTxt) {
+          if (!isAllowHidden && ea.Attr.IsInternal) continue // internal attributes disabled
+          if (!leafs?.[ea.Attr.Name]) continue // skip: attribute is not a member of the group
+
+          const name = parts.entityName + '.' + ea.Attr.Name
+          if (this.entityAttrsUse.indexOf(name) < 0) {
+            this.entityAttrsUse.push(name)
+            isAdded = true
+          }
+        }
+      }
+
+      if (!isAdded) {
+        this.$q.notify({ type: 'info', message: this.$t('Nothing new to add') })
+      } else {
+        this.$q.notify({
+          type: 'info',
+          message: (this.entityAttrsUse.length < this.entityAttrCount) ? this.$t('Add to microdata: ') + groupName : this.$t('All entity attributes included into microdata')
         })
         this.refreshEntityTreeTickle = !this.refreshEntityTreeTickle
       }
@@ -821,7 +881,6 @@ export default {
       this.entityAttrsUse = this.entityAttrsUse.filter(ean => ean !== name)
       this.refreshEntityTreeTickle = !this.refreshEntityTreeTickle
     },
-
     // remove all attributes of the entity from microdata list
     onEntityRemove (entName) {
       if (this.entityAttrsUse.length <= 0) return // microdata list already empty
@@ -838,6 +897,33 @@ export default {
           const name = entName + '.' + ea.Attr.Name
           this.entityAttrsUse = this.entityAttrsUse.filter(ean => ean !== name)
         }
+      }
+      this.refreshEntityTreeTickle = !this.refreshEntityTreeTickle
+    },
+    // remove group of attributes from microdata list
+    onEntityGroupRemove (groupName, parts) {
+      if (this.entityAttrsUse.length <= 0) return // microdata list already empty
+
+      // find the group
+      if (!groupName || !parts || !parts?.entityName) {
+        console.warn('Unable to add microdata, group name or event parts is empty:', groupName, parts)
+        return
+      }
+      const gId = parts.selfId
+      const gt = Mdf.entityGroupTextById(this.theModel, parts.entityId, gId)
+      if (!Mdf.isEntityGroupText(gt)) {
+        this.$q.notify({ type: 'error', message: this.$t('Unable to find group of attributes: ') + groupName })
+        console.warn('Unable to find group of attributes:', groupName, parts.entityId, gId, gt)
+        return
+      }
+      this.$q.notify({ type: 'info', message: this.$t('Exclude from microdata: ') + groupName })
+
+      // remove each entity.attribute from microdata list
+      const leafs = this.groupEntityLeafs?.[parts.entityId]?.[groupName]?.leafs // group leafs: {attrName: true,....}
+
+      for (const ln in leafs) {
+        const name = parts.entityName + '.' + ln
+        this.entityAttrsUse = this.entityAttrsUse.filter(ean => ean !== name)
       }
       this.refreshEntityTreeTickle = !this.refreshEntityTreeTickle
     },

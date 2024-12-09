@@ -14,6 +14,7 @@ import TableInfoDialog from 'components/TableInfoDialog.vue'
 import GroupInfoDialog from 'components/GroupInfoDialog.vue'
 import EntityInfoDialog from 'components/EntityInfoDialog.vue'
 import EntityAttrInfoDialog from 'components/EntityAttrInfoDialog.vue'
+import EntityGroupInfoDialog from 'components/EntityGroupInfoDialog.vue'
 import DeleteConfirmDialog from 'components/DeleteConfirmDialog.vue'
 import NewWorkset from 'components/NewWorkset.vue'
 import CreateWorkset from 'components/CreateWorkset.vue'
@@ -33,6 +34,7 @@ export default {
     GroupInfoDialog,
     EntityInfoDialog,
     EntityAttrInfoDialog,
+    EntityGroupInfoDialog,
     DeleteConfirmDialog,
     NewWorkset,
     CreateWorkset,
@@ -93,8 +95,10 @@ export default {
       tableInfoName: '',
       attrInfoName: '',
       entityInfoName: '',
+      entityGroupInfoName: '',
       attrInfoTickle: false,
       entityInfoTickle: false,
+      entityGroupInfoTickle: false,
       runNameToDelete: '',
       runDigestToDelete: '',
       runStatusToDelete: '',
@@ -672,6 +676,12 @@ export default {
       this.attrInfoName = attrName
       this.entityInfoName = entName
       this.attrInfoTickle = !this.attrInfoTickle
+    },
+    // show entity attributes group notes dialog
+    doShowEntityGroupNote (groupName, entName) {
+      this.entityInfoName = entName
+      this.entityGroupInfoName = groupName
+      this.entityGroupInfoTickle = !this.entityGroupInfoTickle
     },
 
     // return tree of model runs

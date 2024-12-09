@@ -14,6 +14,7 @@ const commitModel = (state, model) => {
     if (digest !== storeDigest) {
       state.groupParameterLeafs = Object.freeze(Mdf.groupLeafs(model, true))
       state.groupTableLeafs = Object.freeze(Mdf.groupLeafs(model, false))
+      state.groupEntityLeafs = Object.freeze(Mdf.entityGroupLeafs(model))
     }
     state.theModelUpdated++
   }
@@ -28,6 +29,7 @@ export const useModelStore = defineStore('model', {
     theModelUpdated: 0,
     groupParameterLeafs: {},
     groupTableLeafs: {},
+    groupEntityLeafs: {},
     runTextList: [],
     runTextListUpdated: 0,
     worksetTextList: [],
