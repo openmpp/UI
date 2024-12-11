@@ -157,6 +157,7 @@ export default {
       'modelLanguage',
       'groupTableLeafs',
       'groupEntityLeafs',
+      'topEntityAttrs',
       'langList'
     ]),
     ...mapState(useServerStateStore, {
@@ -394,12 +395,12 @@ export default {
         this.$q.notify({ type: 'warning', message: this.$t('Input scenario should include all parameters otherwise model run may fail') })
       }
     },
-    // if retrurn is true then display warning to the user about too many microdata attributes selected
+    // if return is true then display warning to the user about too many microdata attributes selected
     isTooManyEntityAttrs () {
       if (!this.entityAttrsUse || this.entityAttrsUse.length <= 0) return false
       if (this.entityAttrsUse.length > ENTITY_ATTR_WARNING_LIMIT) return true
 
-      // check if for any entity number of selected dimension attributes exceeds thw warning limit
+      // check if for any entity number of selected dimension attributes exceeds the warning limit
       const eaLst = Array.from(this.entityAttrsUse)
       eaLst.sort()
       let prevEnt = ''
@@ -795,20 +796,43 @@ export default {
         console.warn('Unable to add microdata, entity name is empty:', entName)
         return
       }
+      const ent = Mdf.entityTextByName(this.theModel, entName)
+      if (!Mdf.isNotEmptyEntityText(ent)) {
+        this.$q.notify({ type: 'error', message: this.$t('Entity microdata not found or empty: ') + entName })
+        console.warn('Entity microdata not found or empty:', entName)
+        return
+      }
+
+      // current list of added entity.attribute names
+      const nameUse = {}
+      for (const nm of this.entityAttrsUse) {
+        nameUse[nm] = true
+      }
 
       // add each attribute of the entity into microdata if not already in the list
-      const ent = Mdf.entityTextByName(this.theModel, entName)
+      const allLeafs = Mdf.entityGroupLeafs(this.theModel, !isAllowHidden)
+      const eLfs = allLeafs?.[ent.Entity.EntityId]
+      const tops = this.topEntityAttrs?.[ent.Entity.EntityId] // all top attributes, including hidden
       let isAdded = false
 
-      if (Mdf.isNotEmptyEntityText(ent)) {
-        for (const ea of ent.EntityAttrTxt) {
-          if (!isAllowHidden && ea.Attr.IsInternal) continue // internal attributes disabled
+      for (const ea of ent.EntityAttrTxt) {
+        if (!isAllowHidden && ea.Attr.IsInternal) continue // internal attributes disabled
 
-          const name = entName + '.' + ea.Attr.Name
-          if (this.entityAttrsUse.indexOf(name) < 0) {
-            this.entityAttrsUse.push(name)
-            isAdded = true
+        let isAdd = !!tops?.attrId?.[ea.Attr.AttrId] // is it entity top attribute
+
+        if (!isAdd && !!eLfs) { // check if this attribute is visible in any of entity groups
+          for (const gn in eLfs) {
+            isAdd = !!eLfs[gn].leafs?.[ea.Attr.Name]
+            if (isAdd) break
           }
+        }
+        if (!isAdd) continue // skip: attribute is not a member of the group and not a top entity attribute
+
+        const name = entName + '.' + ea.Attr.Name
+        if (!nameUse?.[name]) {
+          this.entityAttrsUse.push(name)
+          nameUse[name] = true
+          isAdded = true
         }
       }
 
@@ -831,6 +855,12 @@ export default {
         console.warn('Unable to add microdata, group name or event parts is empty:', groupName, parts)
         return
       }
+      const ent = Mdf.entityTextByName(this.theModel, parts.entityName)
+      if (!Mdf.isNotEmptyEntityText(ent)) {
+        this.$q.notify({ type: 'error', message: this.$t('Entity microdata not found or empty: ') + parts.entityName })
+        console.warn('Entity microdata not found or empty:', parts.entityName, parts)
+        return
+      }
       const gId = parts.selfId
       const gt = Mdf.entityGroupTextById(this.theModel, parts.entityId, gId)
       if (!Mdf.isEntityGroupText(gt) || (!isAllowHidden && gt.Group.IsHidden)) {
@@ -838,22 +868,27 @@ export default {
         console.warn('Unable to find group of attributes:', groupName, parts.entityId, gId, gt)
         return
       }
-      const leafs = this.groupEntityLeafs?.[parts.entityId]?.[groupName]?.leafs // group leafs: {attrName: true,....}
+      const eLfs = Mdf.entityGroupLeafs(this.theModel, !isAllowHidden)
+      const leafs = eLfs?.[parts.entityId]?.[groupName]?.leafs // group leafs: {attrName: true,....}
+
+      // current list of added entity.attribute names
+      const nameUse = {}
+      for (const nm of this.entityAttrsUse) {
+        nameUse[nm] = true
+      }
 
       // add each attribute of the entity into microdata if not already in the list
-      const ent = Mdf.entityTextByName(this.theModel, parts.entityName)
       let isAdded = false
 
-      if (Mdf.isNotEmptyEntityText(ent)) {
-        for (const ea of ent.EntityAttrTxt) {
-          if (!isAllowHidden && ea.Attr.IsInternal) continue // internal attributes disabled
-          if (!leafs?.[ea.Attr.Name]) continue // skip: attribute is not a member of the group
+      for (const ea of ent.EntityAttrTxt) {
+        if (!isAllowHidden && ea.Attr.IsInternal) continue // internal attributes disabled
+        if (!leafs?.[ea.Attr.Name]) continue // skip: attribute is not a member of the group
 
-          const name = parts.entityName + '.' + ea.Attr.Name
-          if (this.entityAttrsUse.indexOf(name) < 0) {
-            this.entityAttrsUse.push(name)
-            isAdded = true
-          }
+        const name = parts.entityName + '.' + ea.Attr.Name
+        if (!nameUse?.[name]) {
+          this.entityAttrsUse.push(name)
+          nameUse[name] = true
+          isAdded = true
         }
       }
 

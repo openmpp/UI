@@ -91,6 +91,7 @@ export default {
       isAnyFiltered: false,
       runCurrent: Mdf.emptyRunText(), // currently selected run
       entityTreeData: [],
+      groupLeafs: {}, // group leafs for all entities
       nextId: 100
     }
   },
@@ -105,7 +106,8 @@ export default {
       'theModel',
       'theModelUpdated',
       'runTextListUpdated',
-      'groupEntityLeafs'
+      'groupEntityLeafs',
+      'topEntityAttrs'
     ]),
     ...mapState(useServerStateStore, {
       omsUrl: 'omsUrl',
@@ -145,6 +147,7 @@ export default {
       if (this.runDigest) {
         this.runCurrent = this.runTextByDigest({ ModelDigest: Mdf.modelDigest(this.theModel), RunDigest: this.runDigest })
       }
+      this.groupLeafs = Mdf.entityGroupLeafs(this.theModel, !this.isShowHidden)
       const td = this.makeEntityTreeData()
       this.entityTreeData = td.tree
       this.refreshTreeTickle = !this.refreshTreeTickle
@@ -201,7 +204,7 @@ export default {
     // click on add entity or group of attributes: add all entity attributes into microdata list
     onGroupAddClick (name, parts) {
       if (!parts) return
-      if (!this.checkAllAttrSize(name, parts.isEntity, parts.entityName, parts.entityId)) {
+      if (!this.checkAllAttrSize(name, parts.isEntity, parts.entityName)) {
         return // there is an attribute where size exceeds the limit: block event
       }
       if (parts?.isEntity) {
@@ -212,7 +215,7 @@ export default {
     },
 
     // check all attributes of entity group of attributes: attribute size should not exceed max size limit
-    checkAllAttrSize (name, isEntity, entName, entId) {
+    checkAllAttrSize (name, isEntity, entName = '') {
       const eName = isEntity ? name : entName
 
       const ent = Mdf.entityTextByName(this.theModel, eName)
@@ -220,11 +223,26 @@ export default {
         this.$q.notify({ type: 'negative', message: this.$t('Model entity not found: ') + (eName || '') })
         return
       }
-      const leafs = !isEntity ? this.groupEntityLeafs?.[entId]?.[name]?.leafs : {} // group leafs: {attrName: true,....}
+      const eId = ent.Entity.EntityId
+      const tops = this.topEntityAttrs?.[eId] // all top attributes, including hidden
+      const eLfs = this.groupLeafs?.[eId]
 
       for (const ea of ent.EntityAttrTxt) {
         if (!this.isShowHidden && ea.Attr.IsHidden) continue // skip: ignore hidden attribute
-        if (!isEntity && !leafs?.[ea.Attr.Name]) continue // skip: attribute is not a member of the group
+
+        let isCheck = isEntity && !!tops?.attrId?.[ea.Attr.AttrId] // is it entity top attribute
+
+        if (!isCheck) {
+          if (!isEntity) { // check if this attribute is visible in the group
+            isCheck = !!eLfs[name].leafs?.[ea.Attr.Name]
+          } else { // check if this attribute is visible in any of entity groups
+            for (const gn in eLfs) {
+              isCheck = !!eLfs[gn].leafs?.[ea.Attr.Name]
+              if (isCheck) break
+            }
+          }
+        }
+        if (!isCheck) continue // skip: attribute is not a member of the group and not a top entity attribute
 
         const ne = Mdf.typeEnumSizeById(this.theModel, ea.Attr.TypeId)
 
@@ -313,6 +331,11 @@ export default {
       }
 
       // if filter names not empty then display only attributes from that name list
+      const fltUse = {}
+      for (const name of this.nameFilter) {
+        fltUse[name] = true
+      }
+
       // add entities as a top level groups into groups tree, use attributes as leafs
       const gTree = []
       const egIdx = {} // map entity id to the index of entity top group in the top level of the tree
@@ -353,8 +376,7 @@ export default {
 
           // if in-list filter enabled then use only entity.attribute from the list
           if (this.isInListEnable) {
-            const n = this.nameFilter.indexOf(name)
-            if (n < 0) {
+            if (!fltUse?.[name]) {
               this.isAnyFiltered = true
               continue // skip filtered out entity attribute
             }
@@ -455,8 +477,6 @@ export default {
       }
 
       // build groups tree
-      const leafUse = {}
-
       while (gProc.length > 0) {
         const gpNow = gProc.pop()
         const gTxt = gUse[gpNow.key].group
@@ -512,34 +532,36 @@ export default {
               isAbout: true,
               isAboutEmpty: false
             })
-            leafUse[eName + '.' + ea.Attr.Name] = true
           }
         }
       }
 
       // add attributes which are not included in any group (not a leaf nodes)
+      const ta = this.topEntityAttrs
       let nLeaf = 0
 
       for (const ent of this.theModel.EntityTxt) {
+        const eId = ent.Entity.EntityId
+
         for (const ea of ent.EntityAttrTxt) {
           const name = ent.Entity.Name + '.' + ea.Attr.Name
 
-          if (!aUse[name]) {
+          if (!aUse[name]) continue // skip: this entity.attribute not in use
+          if (!ta?.[eId]?.attrId?.[ea.Attr.AttrId]) {
             nLeaf++
-            continue // skip: this entity.attribute not in use
+            continue // attribute included into the group
           }
-          if (leafUse[name]) continue // attribute included into the group
 
-          const i = egIdx?.[ea.Attr.EntityId]
-          if (i) {
+          const i = egIdx?.[eId]
+          if (i >= 0) {
             gTree[i].children.push({
-              key: 'al-' + ea.Attr.EntityId + '-' + ea.Attr.AttrId,
+              key: 'al-' + eId + '-' + ea.Attr.AttrId,
               label: ea.Attr.Name,
               descr: Mdf.descrOfDescrNote(ea),
               children: [],
               parts: {
                 isEntity: false,
-                entityId: ea.Attr.EntityId,
+                entityId: eId,
                 entityName: ent.Entity.Name,
                 selfId: ea.Attr.AttrId
               },

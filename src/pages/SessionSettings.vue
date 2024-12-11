@@ -336,7 +336,7 @@ export default {
         this.dispatchNoMicrodataDownload(!this.isMicroDownload)
       }
     },
-    isMicroDownload (isMicro) {
+    isMicroDownload () {
       this.dispatchNoMicrodataDownload(!this.isMicroDownload)
     },
     labelKind (val) {

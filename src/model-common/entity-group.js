@@ -94,14 +94,14 @@ export const isEntityGroupName = (md, eId, gName) => {
 //      },
 //    nextGroupName: {....} // next group name: GeoAttributes
 //  }
-export const entityGroupLeafs = (md) => {
+export const entityGroupLeafs = (md, isHide = false) => {
   if (!Mdl.isModel(md) || !Array.isArray(md.EntityGroupTxt)) { // model is empty: return empty result
     return {}
   }
   if (!Ent.entityCount(md)) return {} // no entities: return empty result
 
   // initial list of groups: no groups
-  const egm = {}
+  const eaf = Ent.entityAttrFinder(md)
   const egUse = {}
   const egLst = md.EntityGroupTxt
   let nGrp = 0
@@ -111,33 +111,43 @@ export const entityGroupLeafs = (md) => {
     const eId = egLst[k].Group.EntityId
     if (eId < 0) continue // invalid (empty) entity id
 
-    if (!egm[eId]) {
-      egm[eId] = {} // initial list of the entity groups is empty
+    if (!egUse[eId]) {
       egUse[eId] = {}
     }
-    // initial list of leafs: no leafs in the group
+    if (isHide && egLst[k].Group.IsHidden) continue // skip hidden group
+
     const gId = egLst[k].Group.GroupId
-    egm[eId][egLst[k].Group.Name] = {
-      groupId: gId,
-      isHidden: egLst[k].Group.IsHidden,
-      size: 0,
-      leafs: {}
-    }
     egUse[eId][gId] = {
       idx: k,
       out: [gId],
       in: [],
-      leafs: []
+      leafs: [],
+      leafUse: {} // map {leafId: true}
     }
     nGrp++
-
-    // add first leafs and child groups
-    for (const pc of egLst[k].Group.GroupPc) {
-      if (pc.ChildGroupId >= 0) egUse[eId][gId].in.push(pc.ChildGroupId)
-      if (pc.AttrId >= 0) egUse[eId][gId].leafs.push(pc.AttrId)
-    }
   }
   if (nGrp <= 0) return {} // no groups
+
+  // add first leafs and child groups
+  // if required then skip hidden groups and internal attributes
+  for (let k = 0; k < egLst.length; k++) {
+    const eId = egLst[k].Group.EntityId
+
+    for (const pc of egLst[k].Group.GroupPc) {
+      const gId = egLst[k].Group.GroupId
+
+      if (pc.ChildGroupId >= 0 && egUse[eId][pc.ChildGroupId]) {
+        egUse[eId][gId].in.push(pc.ChildGroupId)
+      }
+      if (pc.AttrId >= 0) {
+        const af = eaf.byId(eId, pc.AttrId)
+        if (af && af?.ok && (!isHide || !af.a.Attr.IsInternal)) {
+          egUse[eId][gId].leafs.push(pc.AttrId)
+          egUse[eId][gId].leafUse[pc.AttrId] = true
+        }
+      }
+    }
+  }
 
   // expand each group by replacing child groups by leafs
   for (const eId in egUse) {
@@ -155,29 +165,110 @@ export const entityGroupLeafs = (md) => {
         if (!gChild) continue // skip: group does not exist
 
         // add all children leafs and all children groups into current group
-        for (const pc of egLst[gChild.idx].Group.GroupPc) {
-          if (pc.ChildGroupId >= 0) g.in.push(pc.ChildGroupId)
-          if (pc.AttrId >= 0) g.leafs.push(pc.AttrId)
+        for (const cgId of gChild.in) {
+          g.in.push(cgId)
+        }
+        for (const caId of gChild.leafs) {
+          if (!g.leafUse?.[caId]) {
+            g.leafs.push(caId)
+            g.leafUse[caId] = true
+          }
         }
       }
     }
   }
 
-  // for each leaf find leaf name (parameter name or table name) and include into group map
-  const eaf = Ent.entityAttrFinder(md)
+  // for each leaf find leaf name (attribute name) and include into group map
+  const egm = {}
 
-  for (const eId in egm) {
-    const e = egm[eId]
-    for (const gName in e) {
-      const g = e[gName]
-      for (const leafId of egUse[eId][g.groupId].leafs) {
+  for (const eId in egUse) {
+    const e = egUse[eId]
+    egm[eId] = {}
+
+    for (const gId in e) {
+      const gu = e[gId]
+      const g = {
+        groupId: gId,
+        isHidden: egLst[gu.idx].Group.IsHidden,
+        size: 0,
+        leafs: {} // initial list of leafs: no leafs in the group
+      }
+
+      for (const leafId of gu.leafs) {
         const af = eaf.byId(eId, leafId)
         if (!af || !af?.ok) continue // attribute not found
         g.leafs[af.a.Attr.Name] = true
         g.size++
       }
+      if (g.size > 0) egm[eId][egLst[gu.idx].Group.Name] = g
     }
   }
 
   return egm
+}
+
+// for each entity
+// find attributies directly connected to entity: attributes which are not a member of any group
+// {
+//   123: // entity id = 123
+//   {
+//     name:   Person,
+//     attr:   {Age: true, Income: true},
+//     attrId: {11: true,  22:     true}
+//   },
+//   456: .... // next entity id = 456
+// }
+export const entityTopAttrs = (md, isHide = false) => {
+  if (!Mdl.isModel(md) || !Array.isArray(md.EntityTxt) || !md.EntityTxt.length) { // model is empty or no microdata entities
+    return {}
+  }
+
+  // entity attributes included in the groups:
+  // {
+  //   entityId: {attrId: true,....}, nextEntityId:....
+  // }
+  const aLst = {}
+
+  for (const eg of md.EntityGroupTxt) {
+    if (!isEntityGroup(eg?.Group)) continue
+
+    const eId = eg.Group.EntityId
+    if (eId < 0) continue // invalid (empty) entity id
+
+    if (!aLst?.[eId]) {
+      aLst[eId] = {}
+    }
+    const ats = aLst[eId]
+
+    for (const pc of eg.Group.GroupPc) {
+      if (pc.AttrId >= 0) ats[pc.AttrId] = true
+    }
+  }
+
+  // find attributies directly connected to entity: attributes which are not a member of any group
+  const eam = {}
+
+  for (const et of md.EntityTxt) {
+    if (!Ent.isNotEmptyEntityText(et)) continue
+
+    // add entity if not exists
+    const eId = et.Entity.EntityId
+    if (!eam?.[eId]) {
+      eam[eId] = {
+        name: et.Entity.Name,
+        attr: {},
+        attrId: {}
+      }
+    }
+    const em = eam[eId]
+
+    for (const a of et.EntityAttrTxt) {
+      if (isHide && a.Attr.IsInternal) continue // skip hidden attribute
+      if (aLst?.[eId]?.[a.Attr.AttrId]) continue // skip attributes included in any group
+
+      em.attr[a.Attr.Name] = true
+      em.attrId[a.Attr.AttrId] = true
+    }
+  }
+  return eam
 }
