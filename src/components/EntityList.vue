@@ -113,7 +113,10 @@ export default {
       omsUrl: 'omsUrl',
       serverConfig: 'config'
     }),
-    ...mapState(useUiStateStore, ['treeLabelKind'])
+    ...mapState(useUiStateStore, [
+      'treeLabelKind',
+      'IdCSVDownload'
+    ])
   },
 
   watch: {

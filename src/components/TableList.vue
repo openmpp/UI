@@ -223,7 +223,6 @@ export default {
         '/run/' + encodeURIComponent(this.runDigest) +
         '/table/' + encodeURIComponent(name) +
         '/expr' +
-        // ((this.$q.platform.is.win) ? '/csv-bom' : '/csv')
         ((this.$q.platform.is.win) ? (this.IdCSVDownload ? '/csv-id-bom' : '/csv-bom') : (this.IdCSVDownload ? '/csv-id' : '/csv'))
 
       openURL(u)

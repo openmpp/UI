@@ -340,13 +340,11 @@ export default {
         this.dispatchNoMicrodataDownload(!this.isMicroDownload)
       }
     },
-    isMicroDownload (isMicro) {
+    isMicroDownload () {
       this.dispatchNoMicrodataDownload(!this.isMicroDownload)
     },
     isIdCSVDownload (isIdCSV) {
-      // console.log(isIdCSV)
       this.dispatchIdCSVDownload(isIdCSV)
-      // console.log(this.IdCSVDownload)
     },
     labelKind (val) {
       this.dispatchTreeLabelKind((val === 'name-only' || val === 'descr-only') ? val : '')

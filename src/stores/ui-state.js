@@ -118,7 +118,7 @@ export const useUiStateStore = defineStore('ui-state', {
     // set fast or full download: use microdata or not
     dispatchNoMicrodataDownload (noMd) { this.noMicrodataDownload = !!noMd },
 
-    // to-do:
+    // set download with id csv flag, by default download dimension items with enum codes
     dispatchIdCSVDownload (IdCSV) { this.IdCSVDownload = IdCSV },
 
     // set tree label kind (parameter and table tree): name only, description only or both by default
