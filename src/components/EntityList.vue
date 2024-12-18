@@ -290,7 +290,7 @@ export default {
         '/api/model/' + encodeURIComponent(Mdf.modelDigest(this.theModel)) +
         '/run/' + encodeURIComponent(this.runDigest) +
         '/microdata/' + encodeURIComponent(name) +
-        ((this.$q.platform.is.win) ? '/csv-bom' : '/csv')
+        ((this.$q.platform.is.win) ? (this.IdCSVDownload ? '/csv-id-bom' : '/csv-bom') : (this.IdCSVDownload ? '/csv-id' : '/csv'))
 
       openURL(u)
     },

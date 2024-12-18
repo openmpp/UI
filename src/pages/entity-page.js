@@ -159,7 +159,10 @@ export default {
     ...mapState(useServerStateStore, {
       omsUrl: 'omsUrl'
     }),
-    ...mapState(useUiStateStore, ['uiLang'])
+    ...mapState(useUiStateStore, [
+      'uiLang',
+      'IdCSVDownload'
+    ])
   },
 
   watch: {
@@ -1455,8 +1458,8 @@ export default {
           pn = 'compare'
         }
       }
-      u += ((this.$q.platform.is.win) ? '/csv-bom' : '/csv') + '?' + pn + '=' + encodeURIComponent(cp)
-
+      // u += ((this.$q.platform.is.win) ? '/csv-bom' : '/csv') + '?' + pn + '=' + encodeURIComponent(cp)
+      u += ((this.$q.platform.is.win) ? (this.IdCSVDownload ? '/csv-id-bom' : '/csv-bom') : (this.IdCSVDownload ? '/csv-id' : '/csv')) + '?' + pn + '=' + encodeURIComponent(cp)
       openURL(u)
     },
 

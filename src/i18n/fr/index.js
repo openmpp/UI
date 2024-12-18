@@ -180,6 +180,7 @@ export default {
   'Do not use sparse output tables: store all values': 'Ne pas utiliser de tableaux de résultats éparses : stocker toutes les valeurs',
   'Do not write model version into run log': "N'écrivez pas la version du modèle dans le journal d'exécution",
   'Download': 'Télécharger',
+  'Download as ID CSV': 'Télécharger comme ID CSV',
   'Download completed': 'Téléchargement terminé',
   'Download error': 'Erreur de téléchargement',
   'Download Log': 'Télécharger le journal',

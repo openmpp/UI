@@ -93,7 +93,10 @@ export default {
       omsUrl: 'omsUrl',
       serverConfig: 'config'
     }),
-    ...mapState(useUiStateStore, ['treeLabelKind'])
+    ...mapState(useUiStateStore, [
+      'treeLabelKind',
+      'IdCSVDownload'
+    ])
   },
 
   watch: {
@@ -190,7 +193,8 @@ export default {
           '/api/model/' + Mdf.modelDigest(this.theModel) +
           '/workset/' + encodeURIComponent(this.worksetName) +
           '/parameter/' + encodeURIComponent(name) +
-          ((this.$q.platform.is.win) ? '/csv-bom' : '/csv')
+          // ((this.$q.platform.is.win) ? '/csv-bom' : '/csv')
+          ((this.$q.platform.is.win) ? (this.IdCSVDownload ? '/csv-id-bom' : '/csv-bom') : (this.IdCSVDownload ? '/csv-id' : '/csv'))
 
       openURL(u)
     },
