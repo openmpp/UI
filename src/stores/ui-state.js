@@ -11,7 +11,7 @@ export const useUiStateStore = defineStore('ui-state', {
     taskNameSelected: '',
     noAccDownload: true,
     noMicrodataDownload: true,
-    IdCSVDownload: false,
+    idCsvDownload: false,
     treeLabelKind: '',
     modelTreeExpandedKeys: [],
     paramViews: {},
@@ -119,7 +119,7 @@ export const useUiStateStore = defineStore('ui-state', {
     dispatchNoMicrodataDownload (noMd) { this.noMicrodataDownload = !!noMd },
 
     // set download with id csv flag, by default download dimension items with enum codes
-    dispatchIdCSVDownload (IdCSV) { this.IdCSVDownload = IdCSV },
+    dispatchIdCsvDownload (isIdCsv) { this.idCsvDownload = isIdCsv },
 
     // set tree label kind (parameter and table tree): name only, description only or both by default
     dispatchTreeLabelKind (labelKind) {
