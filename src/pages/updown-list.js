@@ -80,6 +80,7 @@ export default {
       fastDownload: 'yes',
       isNoDigestCheck: false,
       isMicroDownload: false,
+      isIdCSVDownload: false,
       wsUploadFile: null,
       runUploadFile: null,
       filesTreeData: [],
@@ -125,7 +126,8 @@ export default {
     }),
     ...mapState(useUiStateStore, [
       'noAccDownload',
-      'noMicrodataDownload'
+      'noMicrodataDownload',
+      'IdCSVDownload'
     ])
   },
 
@@ -141,6 +143,9 @@ export default {
     },
     isMicroDownload (isMicro) {
       this.dispatchNoMicrodataDownload(!this.isMicroDownload)
+    },
+    isIdCSVDownload (isIdCSV) {
+      this.dispatchIdCSVDownload(isIdCSV)
     }
   },
 
@@ -156,7 +161,8 @@ export default {
     ]),
     ...mapActions(useUiStateStore, [
       'dispatchNoAccDownload',
-      'dispatchNoMicrodataDownload'
+      'dispatchNoMicrodataDownload',
+      'dispatchIdCSVDownload'
     ]),
 
     isReady (status) { return status === 'ready' },
@@ -416,6 +422,7 @@ export default {
       this.folderTreeFilter = ''
       this.fastDownload = this.noAccDownload ? 'yes' : 'no'
       this.isMicroDownload = !this.noAccDownload && !this.noMicrodataDownload && !!this.serverConfig.AllowMicrodata
+      this.isIdCSVDownload = this.serverConfig.AllowDownload && this.IdCSVDownload
       this.filesTreeData = []
       this.filesTreeFilter = ''
       this.filesTreeExpanded = []

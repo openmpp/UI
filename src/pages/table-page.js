@@ -158,7 +158,8 @@ export default {
     }),
     ...mapState(useUiStateStore, [
       'uiLang',
-      'tableView'
+      'tableView',
+      'IdCSVDownload'
     ])
   },
 
@@ -1702,7 +1703,7 @@ export default {
           this.$q.notify({ type: 'negative', message: this.$t('Unable to download output table: ') + this.tableName })
           return
       }
-      u += (this.$q.platform.is.win) ? '/csv-bom' : '/csv'
+      u += (this.$q.platform.is.win) ? (this.IdCSVDownload ? '/csv-id-bom' : '/csv-bom') : (this.IdCSVDownload ? '/csv-id' : '/csv')
 
       openURL(u)
     },

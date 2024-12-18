@@ -11,6 +11,7 @@ export const useUiStateStore = defineStore('ui-state', {
     taskNameSelected: '',
     noAccDownload: true,
     noMicrodataDownload: true,
+    IdCSVDownload: false,
     treeLabelKind: '',
     modelTreeExpandedKeys: [],
     paramViews: {},
@@ -116,6 +117,9 @@ export const useUiStateStore = defineStore('ui-state', {
 
     // set fast or full download: use microdata or not
     dispatchNoMicrodataDownload (noMd) { this.noMicrodataDownload = !!noMd },
+
+    // to-do:
+    dispatchIdCSVDownload (IdCSV) { this.IdCSVDownload = IdCSV },
 
     // set tree label kind (parameter and table tree): name only, description only or both by default
     dispatchTreeLabelKind (labelKind) {
