@@ -24,11 +24,12 @@ export default {
       diskUseRefreshInt: '',
       upDownToDelete: '',
       showAllDeleteDialogTickle: false,
-      nameVerCloseDb: '',
-      digestCloseDb: '',
+      nameVerModelDb: '',
+      digestModelDb: '',
       showCloseDbDialogTickle: false,
       pathCleanupDb: '',
       showCleanupDbDialogTickle: false,
+      showDeleteModelDialogTickle: false,
       titleCleanupLog: '',
       nameCleanupLog: '',
       dtCleanupLog: '',
@@ -97,15 +98,15 @@ export default {
       this.doAllDeleteUpDown(upDown)
     },
 
-    // close model database
+    // click close model database
     onCloseDb (dbu) {
       if (!dbu.digest) {
         console.warn('Invalid (empty) model digest:', dbu)
         this.$q.notify({ type: 'negative', message: this.$t('Invalid (empty) model digest') })
         return
       }
-      this.digestCloseDb = dbu.digest
-      this.nameVerCloseDb = dbu.nameVer || dbu.digest
+      this.digestModelDb = dbu.digest
+      this.nameVerModelDb = dbu.nameVer || dbu.digest
       this.showCloseDbDialogTickle = !this.showCloseDbDialogTickle
     },
     // user answer Yes to close model database
@@ -129,6 +130,21 @@ export default {
     // user answer Yes to cleanup database file
     onYesCleanupDb (path, itemId, kind) {
       this.doCleanupDb(path)
+    },
+    // click delete all model files
+    onDeleteModel (dbu) {
+      if (!dbu.digest) {
+        console.warn('Invalid (empty) model digest:', dbu)
+        this.$q.notify({ type: 'negative', message: this.$t('Invalid (empty) model digest') })
+        return
+      }
+      this.digestModelDb = dbu.digest
+      this.nameVerModelDb = dbu.nameVer || dbu.digest
+      this.showDeleteModelDialogTickle = !this.showDeleteModelDialogTickle
+    },
+    // user answer Yes to delete all model files
+    onYesDeleteModel (nameVer, digest, kind) {
+      this.doDeleteModel(digest, nameVer)
     },
 
     // set db usage array: sort by model directory and digest or name
@@ -218,6 +234,59 @@ export default {
       if (!isOk) {
         this.loadWait = false
         this.$q.notify({ type: 'negative', message: this.$t('Error at model database close: ') + nameVer + ' ' + digest })
+        return
+      }
+
+      // refresh model list
+      isOk = false
+      u = this.omsUrl + '/api/model-list/text' + (this.uiLang !== '' ? '/lang/' + encodeURIComponent(this.uiLang) : '')
+      try {
+        const response = await this.$axios.get(u)
+        if (Mdf.isModelList(response.data)) {
+          this.dispatchModelList(response.data) // update model list in store
+          isOk = true
+        }
+      } catch (e) {
+        let msg = ''
+        try {
+          if (e.response) msg = e.response.data || ''
+        } finally {}
+        console.warn('Server offline or no models published', msg)
+      }
+      this.loadWait = false
+      if (!isOk) {
+        this.$q.notify({ type: 'negative', message: this.$t('Server offline or no models published') })
+      }
+
+      // refresh disk usage from the server
+      setTimeout(() => this.$emit('disk-use-refresh'), 1051)
+    },
+
+    // delete all model files
+    async doDeleteModel (digest, nameVer) {
+      if (!digest) {
+        console.warn('Invalid (empty) model digest:', digest, ': nameVer:', nameVer)
+        this.$q.notify({ type: 'negative', message: this.$t('Invalid (empty) model digest') })
+        return
+      }
+
+      this.loadWait = true
+      let isOk = false
+
+      let u = this.omsUrl + '/api/admin/model/' + encodeURIComponent(digest) + '/delete'
+      try {
+        await this.$axios.post(u) // ignore response on success
+        isOk = true
+      } catch (e) {
+        let msg = ''
+        try {
+          if (e.response) msg = e.response.data || ''
+        } finally {}
+        console.warn('Error at model delete', msg)
+      }
+      if (!isOk) {
+        this.loadWait = false
+        this.$q.notify({ type: 'negative', message: this.$t('Error at model delete: ') + nameVer + ' ' + digest })
         return
       }
 

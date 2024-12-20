@@ -85,6 +85,7 @@
             <th class="om-p-head-center">{{ $t('Status') }}</th>
             <th class="om-p-head-center">{{ $t('Open / Close') }}</th>
             <th v-if="isCleanupEnabled" class="om-p-head-center">{{ $t('Cleanup') }}</th>
+            <th v-if="isCleanupEnabled" class="om-p-head-center">{{ $t('Delete') }}</th>
             <th class="om-p-head-center text-weight-medium">{{ $t('Size') }}</th>
             <th class="om-p-head-center text-weight-medium">{{ $t('Updated') }}</th>
             <th class="om-p-head-center text-weight-medium">{{ $t('Model Database') }}</th>
@@ -110,7 +111,7 @@
               <q-btn
                 v-if="dbu.isOff"
                 @click="onOpenDb(dbu)"
-                unelevated
+                outline
                 round
                 color="primary"
                 icon="mdi-lock-open-variant"
@@ -125,8 +126,20 @@
                 unelevated
                 round
                 color="primary"
-                icon="mdi-delete-clock"
+                icon="mdi-vacuum"
                 :title="$t('Cleanup model database')"
+                />
+            </td>
+            <td v-if="isCleanupEnabled" class="om-p-cell-center">
+              <q-btn
+                v-if="dbu.isOn"
+                :disable="dbu.isOff || !isCleanupEnabled"
+                @click="onDeleteModel(dbu)"
+                unelevated
+                round
+                color="primary"
+                icon="mdi-delete-forever"
+                :title="$t('Delete the model')"
                 />
             </td>
             <td class="om-p-cell-right mono">{{ fileSizeStr(dbu.size) }}</td>
@@ -188,8 +201,8 @@
   <confirm-dialog
     @confirm-yes="onYesCloseDb"
     :show-tickle="showCloseDbDialogTickle"
-    :item-id="digestCloseDb"
-    :item-name="nameVerCloseDb"
+    :item-id="digestModelDb"
+    :item-name="nameVerModelDb"
     :dialog-title="$t('Close model database' + '?')"
     :body-text="$t('Close')"
     :body-note="$t('You would not be able to use the model if database is closed.')"
@@ -203,7 +216,18 @@
     :dialog-title="$t('Cleanup model database' + '?')"
     :body-text="$t('Cleanup')"
     :body-note="$t('Cleanup may take very long time. It is recommended to delete old model runs and old input scenarios before cleanup.')"
-    :icon-name="'mdi-lock'"
+    :icon-name="'mdi-vacuum'"
+    >
+  </confirm-dialog>
+  <confirm-dialog
+    @confirm-yes="onYesDeleteModel"
+    :show-tickle="showDeleteModelDialogTickle"
+    :item-id="digestModelDb"
+    :item-name="nameVerModelDb"
+    :dialog-title="$t('Delete the model' + '?')"
+    :body-text="$t('Delete')"
+    :body-note="$t('All model data will be deleted permanently')"
+    :icon-name="'mdi-delete-forever'"
     >
   </confirm-dialog>
 
