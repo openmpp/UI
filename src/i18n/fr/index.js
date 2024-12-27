@@ -43,6 +43,7 @@ export default {
   'Cancel': 'Annuler',
   'Cancel Editing': 'Annuler la modification',
   'Cancel upload': 'Annuler le chargement',
+  'canceled': 'annulé',
   'characters': 'caractères',
   'Cleanup': 'Nettoyer',
   'Cleanup downloads or uploads of all models': 'Nettoyage des téléchargements ou des chargements de tous les modèles',
