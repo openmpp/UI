@@ -263,6 +263,7 @@ export default {
   'Hide pivot controls': 'Masquer les contrôles de pivot',
   'Hide rows and columns bars': 'Masquer les barres de lignes et de colonnes',
   'Hide state of computational servers': "Masquer l'état des serveurs de calcul",
+  'Home': 'Maison',
   'If checked then use Base Run to get input parameters': "Si coché, utilisez l'Exécution de Base pour obtenir les paramètres d'entrée",
   'Ignore input scenario model digest (model version)': "Ignorer le empreinte du modèle de scénario d'entrée (version du modèle)",
   'Import Digest': 'Importer le Empreinte',
