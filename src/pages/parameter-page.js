@@ -141,7 +141,7 @@ export default {
       serverConfig: 'config'
     }),
     ...mapState(useUiStateStore, [
-      'IdCSVDownload',
+      'idCsvDownload',
       'uiLang'
     ])
   },
@@ -277,9 +277,7 @@ export default {
           '/api/model/' + udgst + '/run/' + encodeURIComponent(this.runDigest) + '/parameter/' + uname
         : this.omsUrl +
           '/api/model/' + udgst + '/workset/' + encodeURIComponent(this.worksetName) + '/parameter/' + uname
-      // u += (this.$q.platform.is.win) ? '/csv-id-bom' : '/csv-id'
-      // console.log('Value is: ' + this.IdCSVDownload)
-      u += (this.$q.platform.is.win) ? (this.IdCSVDownload ? '/csv-id-bom' : '/csv-bom') : (this.IdCSVDownload ? '/csv-id' : '/csv')
+      u += (this.$q.platform.is.win) ? (this.idCsvDownload ? '/csv-id-bom' : '/csv-bom') : (this.idCsvDownload ? '/csv-id' : '/csv')
 
       openURL(u)
     },

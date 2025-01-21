@@ -100,6 +100,7 @@ export default {
       }
       this.isActiveShow = true
       this.isQueueShow = true
+      this.isPauseQueue = !this.srvState.IsQueuePaused
       this.isDoneHistoryShow = false
       this.isOtherHistoryShow = true
       this.activeJobs = {}
@@ -365,6 +366,21 @@ export default {
 
       // notify user on success, even run may not exist
       this.$q.notify({ type: 'info', message: this.$t('Moving model run: ') + title })
+    },
+
+    // move job queue to specified postion
+    async doQueuePauseResume (isPause) {
+      const u = this.omsUrl + '/api/admin/jobs-pause/' + (isPause ? 'true' : 'false')
+      try {
+        await this.$axios.post(u) // ignore response on success
+      } catch (e) {
+        console.warn('Unable to pause or resume model run queue', isPause, e)
+        this.$q.notify({ type: 'negative', message: this.$t(isPause ? 'Unable to pause model run queue' : 'Unable to resume model run queue') })
+        return // exit on error
+      }
+
+      // notify user on success, actual service state update dealyed
+      this.$q.notify({ type: 'info', message: this.$t(isPause ? 'Pausing model run queue...' : 'Resuming model run queue...') })
     },
 
     // delete all jobs history: ask user confirmation

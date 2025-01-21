@@ -161,7 +161,7 @@ export default {
     }),
     ...mapState(useUiStateStore, [
       'uiLang',
-      'IdCSVDownload'
+      'idCsvDownload'
     ])
   },
 
@@ -1458,8 +1458,7 @@ export default {
           pn = 'compare'
         }
       }
-      // u += ((this.$q.platform.is.win) ? '/csv-bom' : '/csv') + '?' + pn + '=' + encodeURIComponent(cp)
-      u += ((this.$q.platform.is.win) ? (this.IdCSVDownload ? '/csv-id-bom' : '/csv-bom') : (this.IdCSVDownload ? '/csv-id' : '/csv')) + '?' + pn + '=' + encodeURIComponent(cp)
+      u += ((this.$q.platform.is.win) ? (this.idCsvDownload ? '/csv-id-bom' : '/csv-bom') : (this.idCsvDownload ? '/csv-id' : '/csv')) + '?' + pn + '=' + encodeURIComponent(cp)
       openURL(u)
     },
 

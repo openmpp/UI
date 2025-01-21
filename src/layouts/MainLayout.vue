@@ -84,9 +84,9 @@
         flat
         round
         dense
-        :title="$t('Login')"
-        :aria-label="$t('Login')"
-        icon="mdi-account-key"
+        :title="$t('Home')"
+        :aria-label="$t('Home')"
+        icon="mdi-home-account"
         />
       <q-btn
         v-if="logoutUrl"
@@ -97,7 +97,7 @@
         dense
         :title="$t('Logout')"
         :aria-label="$t('Logout')"
-        icon="mdi-account-lock"
+        icon="mdi-logout"
         />
       <q-btn
         @click="doRefresh"

@@ -169,13 +169,25 @@
     >
       <template v-slot:header>
         <q-item-section>
-          <q-item-label>
-            <span>{{ $t('Model Run Queue') }}</span><span v-if="srvState.IsQueuePaused" class="q-pl-sm">({{ $t('paused') }})</span>: <span>{{ srvState.Queue.length || $t('None') }}</span>
-            <span v-if="srvState.QueueTotalRes.Cpu > 0" class="q-mx-md">&#124;</span>
-            <span v-if="srvState.QueueTotalRes.Cpu">{{ $t('MPI CPU Cores') }}: {{ srvState.QueueTotalRes.Cpu }}</span>
-            <span v-if="srvState.LocalQueueRes.Cpu > 0" class="q-mx-md">&#124;</span>
-            <span v-if="srvState.LocalQueueRes.Cpu" class="q-pr-sm">{{ $t('Local CPU Cores') }}: {{ srvState.LocalQueueRes.Cpu }}</span>
-          </q-item-label>
+          <div class="row no-wrap items-center full-width">
+            <div class="col-auto">
+              <q-btn
+                @click.stop="doQueuePauseResume(!srvState.IsQueuePaused)"
+                round
+                no-caps
+                :icon="!srvState.IsQueuePaused ? 'mdi-pause' : 'mdi-play'"
+                :title="!srvState.IsQueuePaused ? $t('Pause the queue') : $t('Resume the queue')"
+                class="col-auto bg-white text-primary"
+                />
+            </div>
+            <div class="col-grow q-pl-sm">
+              <span>{{ $t('Model Run Queue') }}</span><span v-if="srvState.IsQueuePaused" class="q-pl-sm">({{ $t('paused') }})</span>: <span>{{ srvState.Queue.length || $t('None') }}</span>
+              <span v-if="srvState.QueueTotalRes.Cpu > 0" class="q-mx-md">&#124;</span>
+              <span v-if="srvState.QueueTotalRes.Cpu">{{ $t('MPI CPU Cores') }}: {{ srvState.QueueTotalRes.Cpu }}</span>
+              <span v-if="srvState.LocalQueueRes.Cpu > 0" class="q-mx-md">&#124;</span>
+              <span v-if="srvState.LocalQueueRes.Cpu" class="q-pr-sm">{{ $t('Local CPU Cores') }}: {{ srvState.LocalQueueRes.Cpu }}</span>
+            </div>
+          </div>
         </q-item-section>
       </template>
     <q-list bordered>

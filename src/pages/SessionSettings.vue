@@ -102,7 +102,7 @@
               <q-checkbox v-model="isMicroDownload" :disable="!serverConfig.AllowDownload || fastDownload === 'yes'" :label="$t('Do full downloads, including microdata')" />
             </template>
             <br />
-            <q-checkbox v-model="isIdCSVDownload" :disable="!serverConfig.AllowDownload" :label="$t('Download as ID CSV')" />
+            <q-checkbox v-model="isIdCsvDownload" :disable="!serverConfig.AllowDownload" :label="$t('Download as ID CSV')" />
           </td>
         </tr>
         <tr>
@@ -298,7 +298,7 @@ export default {
       uploadUserViewsDone: false,
       fastDownload: 'yes',
       isMicroDownload: false,
-      isIdCSVDownload: false,
+      isIdCsvDownload: false,
       labelKind: 'default'
     }
   },
@@ -328,7 +328,7 @@ export default {
       'treeLabelKind',
       'noAccDownload',
       'noMicrodataDownload',
-      'IdCSVDownload'
+      'idCsvDownload'
     ])
   },
 
@@ -340,13 +340,11 @@ export default {
         this.dispatchNoMicrodataDownload(!this.isMicroDownload)
       }
     },
-    isMicroDownload (isMicro) {
+    isMicroDownload () {
       this.dispatchNoMicrodataDownload(!this.isMicroDownload)
     },
-    isIdCSVDownload (isIdCSV) {
-      // console.log(isIdCSV)
-      this.dispatchIdCSVDownload(isIdCSV)
-      // console.log(this.IdCSVDownload)
+    isIdCsvDownload (isIdCsv) {
+      this.dispatchIdCsvDownload(isIdCsv)
     },
     labelKind (val) {
       this.dispatchTreeLabelKind((val === 'name-only' || val === 'descr-only') ? val : '')
@@ -364,7 +362,7 @@ export default {
       'dispatchUiLang',
       'dispatchNoAccDownload',
       'dispatchNoMicrodataDownload',
-      'dispatchIdCSVDownload',
+      'dispatchIdCsvDownload',
       'dispatchTreeLabelKind',
       'dispatchViewDeleteByModel'
     ]),
@@ -373,7 +371,7 @@ export default {
       this.clearState()
       this.fastDownload = this.noAccDownload ? 'yes' : 'no'
       this.isMicroDownload = !this.noAccDownload && !this.noMicrodataDownload && !!this.serverConfig.AllowMicrodata
-      this.isIdCSVDownload = this.serverConfig.AllowDownload && this.IdCSVDownload
+      this.isIdCsvDownload = this.serverConfig.AllowDownload && this.idCsvDownload
       this.labelKind = (this.treeLabelKind === 'name-only' || this.treeLabelKind === 'descr-only') ? this.treeLabelKind : 'default'
 
       if (this.modelName) this.doReadViews()

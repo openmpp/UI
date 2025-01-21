@@ -246,6 +246,7 @@ export const statusText = (status) => {
     case 'waiting': return 'waiting'
     case 'failed': return 'failed'
     case 'error': return 'failed'
+    case 'kill': return 'canceled'
     case 'exit': return 'exit (not completed)'
     case 'exit (not completed)': return 'exit (not completed)'
     case 'deleted': return 'deleted'

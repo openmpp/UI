@@ -113,7 +113,10 @@ export default {
       omsUrl: 'omsUrl',
       serverConfig: 'config'
     }),
-    ...mapState(useUiStateStore, ['treeLabelKind'])
+    ...mapState(useUiStateStore, [
+      'treeLabelKind',
+      'idCsvDownload'
+    ])
   },
 
   watch: {
@@ -290,7 +293,7 @@ export default {
         '/api/model/' + encodeURIComponent(Mdf.modelDigest(this.theModel)) +
         '/run/' + encodeURIComponent(this.runDigest) +
         '/microdata/' + encodeURIComponent(name) +
-        ((this.$q.platform.is.win) ? (this.IdCSVDownload ? '/csv-id-bom' : '/csv-bom') : (this.IdCSVDownload ? '/csv-id' : '/csv'))
+        ((this.$q.platform.is.win) ? (this.idCsvDownload ? '/csv-id-bom' : '/csv-bom') : (this.idCsvDownload ? '/csv-id' : '/csv'))
 
       openURL(u)
     },
