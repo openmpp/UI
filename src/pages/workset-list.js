@@ -767,7 +767,8 @@ export default {
       let msg = ''
 
       const opts = {
-        Utf8BomIntoCsv: this.$q.platform.is.win
+        Utf8BomIntoCsv: this.$q.platform.is.win,
+        IdCsv: true
       }
       const u = this.omsUrl +
         '/api/download/model/' + encodeURIComponent(this.digest) +
