@@ -185,6 +185,7 @@ export default {
       'modelTreeExpandedKeys',
       'noAccDownload',
       'noMicrodataDownload',
+      'idCsvDownload',
       'uiLang'
     ])
   },
@@ -419,7 +420,7 @@ export default {
         NoAccumulatorsCsv: this.noAccDownload,
         NoMicrodata: this.noMicrodataDownload,
         Utf8BomIntoCsv: this.$q.platform.is.win,
-        IdCsv: true
+        IdCsv: !!this.idCsvDownload
       }
       const u = this.omsUrl + '/api/download/model/' + encodeURIComponent((dgst || ''))
       try {

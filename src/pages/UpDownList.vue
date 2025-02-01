@@ -63,7 +63,7 @@
               <br />
               <q-checkbox v-model="isMicroDownload" :disable="fastDownload === 'yes' || !serverConfig.AllowMicrodata" :label="$t('Do full downloads, including microdata')" />
               <br />
-              <q-checkbox v-model="isIdCsvDownload" :disable="!serverConfig.AllowDownload" :label="$t('Download as ID CSV')" />
+              <q-checkbox v-model="isIdCsvDownload" :disable="!serverConfig.AllowDownload" :label="$t('Download with dimension items ID instead of code')" />
             </td>
           </tr>
 

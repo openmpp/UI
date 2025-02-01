@@ -134,7 +134,8 @@ export default {
       'uiLang',
       'runDigestSelected',
       'noAccDownload',
-      'noMicrodataDownload'
+      'noMicrodataDownload',
+      'idCsvDownload'
     ])
   },
 
@@ -811,7 +812,7 @@ export default {
         NoAccumulatorsCsv: this.noAccDownload,
         NoMicrodata: this.noMicrodataDownload,
         Utf8BomIntoCsv: this.$q.platform.is.win,
-        IdCsv: true
+        IdCsv: !!this.idCsvDownload
       }
       const u = this.omsUrl +
         '/api/download/model/' + encodeURIComponent(this.digest) +

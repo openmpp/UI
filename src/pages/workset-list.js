@@ -121,6 +121,7 @@ export default {
       'runDigestSelected',
       'worksetNameSelected',
       'paramViewWorksetUpdatedCount',
+      'idCsvDownload',
       'uiLang'
     ])
   },
@@ -768,7 +769,7 @@ export default {
 
       const opts = {
         Utf8BomIntoCsv: this.$q.platform.is.win,
-        IdCsv: true
+        IdCsv: !!this.idCsvDownload
       }
       const u = this.omsUrl +
         '/api/download/model/' + encodeURIComponent(this.digest) +
