@@ -664,6 +664,7 @@
                 round
                 dense
                 color="primary"
+                padding="xs"
                 class="col-auto"
                 icon="mdi-folder-plus-outline"
                 :title="$t('Create new folder')"
@@ -674,6 +675,7 @@
                 round
                 dense
                 color="primary"
+                padding="xs"
                 class="col-auto"
                 icon="mdi-upload"
                 :title="$t('Upload file')"
@@ -686,6 +688,7 @@
                 round
                 dense
                 :color="isFilesDeleteEnabled(prop.node.Path) ? 'primary' : 'secondary'"
+                padding="xs"
                 class="col-auto"
                 icon="mdi-delete-outline"
                 :title="($t('Delete: ') + ' ' + prop.node.label)"
@@ -720,6 +723,7 @@
                 round
                 dense
                 :color="isFilesDeleteEnabled(prop.node.Path) ? 'primary' : 'secondary'"
+                padding="xs"
                 class="col-auto"
                 icon="mdi-delete-outline"
                 :title="$t('Delete: ') + ' ' + prop.node.label"
@@ -729,6 +733,7 @@
                 round
                 dense
                 color="primary"
+                padding="xs"
                 class="col-auto"
                 icon="mdi-download-circle-outline"
                 :title="$t('Download') + ' ' + prop.node.label"

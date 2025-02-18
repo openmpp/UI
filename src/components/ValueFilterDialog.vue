@@ -33,7 +33,7 @@
                   unelevated
                   round
                   dense
-                  class="text-primary round"
+                  class="text-primary"
                   icon="mdi-delete"
                   :title="$t('Delete')"
                   :aria-label="$t('Delete')" />
@@ -109,7 +109,7 @@
                 unelevated
                 round
                 dense
-                class="text-primary round"
+                class="text-primary"
                 icon="mdi-plus-thick"
                 :title="$t('Append')"
                 :aria-label="$t('Append')" />
@@ -124,7 +124,7 @@
                   unelevated
                   round
                   dense
-                  class="text-primary round"
+                  class="text-primary"
                   icon="mdi-delete"
                   :title="$t('Delete')"
                   :aria-label="$t('Delete')" />

@@ -449,6 +449,7 @@
               round
               dense
               :color="!!prop.node.stamp ? 'primary' : 'secondary'"
+              padding="xs"
               class="col-auto"
               icon="mdi-text-long"
               :title="$t('Run Log: ') + prop.node.label"
@@ -472,6 +473,7 @@
               round
               dense
               :color="prop.node.digest ? 'primary' : 'secondary'"
+              padding="xs"
               class="col-auto"
               icon="mdi-delete-outline"
               :title="$t('Delete: ') + prop.node.label"
