@@ -50,7 +50,7 @@ export const dimField = (field, readDim, isOnRow = false, isOnCol = false) => {
 // compartor to sort row (or column) keys
 // each row (or column) consist of multiple dimensions
 // row (column) key is array of dimension items
-//  keyLen is number of row dimensions (or column diamnsions)
+//  keyLen is number of row dimensions (or column dimensions)
 //  cmp is compartor function to return negtive, zero or positive as result of items comaprison
 export const compareKeys = (keyLen, cmp) => {
   return (leftKey, rightKey) => {
@@ -143,8 +143,9 @@ export const itemKeys = (rowFields, colFields, otherFields, rows, cols) => {
 }
 
 // return dimension item key (enum id) by row or column
-export const dimItemKeys = (dimName) => {
+export const dimItemKeys = (dName) => {
   return {
-    itemKeys: (rowFields, colFields, otherFields, rows, cols) => itemKeys(rowFields, colFields, otherFields, rows, cols).dimKey(dimName)
+    dimName: dName,
+    itemKeys: (rowFields, colFields, otherFields, rows, cols) => itemKeys(rowFields, colFields, otherFields, rows, cols).dimKey(dName)
   }
 }

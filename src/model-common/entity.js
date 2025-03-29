@@ -136,7 +136,7 @@ export const entityAttrTextById = (md, eId, aId) => {
 // finder to return entity name and attribute by entity id and attribute id
 // finder.byId return { ok: true, name: entityName, a: EntityAttrTxt }
 export const entityAttrFinder = (md) => {
-  // if entity list is empty then retrun empty finder
+  // if entity list is empty then return empty finder
   const emptyFinder = {
     byId: (eId, aId) => { return { ok: false, name: '', a: {} } }
   }
@@ -162,7 +162,7 @@ export const entityAttrFinder = (md) => {
       }
     }
   }
-  if (n <= 0) return emptyFinder // retrun empty finder if there are no attributes
+  if (n <= 0) return emptyFinder // return empty finder if there are no attributes
 
   // finder of attributes by entity id and attribute id
   return {

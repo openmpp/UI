@@ -122,8 +122,14 @@
         <th v-if="(pvControl.rowColMode === 2 || pvControl.rowColMode === 3) && !rowFields.length && !!colFields.length" class="pv-rc-pad"></th>
 
         <!-- table body value cells -->
-        <td v-for="(col, nCol) in pvt.cols" :key="pvt.cellKeys[nRow * pvt.colCount + nCol]"
+         <template v-if="isRange">
+          <td v-for="(col, nCol) in pvt.cols" :key="pvt.cellKeys[nRow * pvt.colCount + nCol]"
+          :class="this.pvControl.cellClass + ' ' + getExtraCellClass(nRow, nCol)">{{getCellValueFmt(nRow, nCol)}}</td>
+        </template>
+        <template v-else>
+          <td v-for="(col, nCol) in pvt.cols" :key="pvt.cellKeys[nRow * pvt.colCount + nCol]"
           :class="pvControl.cellClass">{{getCellValueFmt(nRow, nCol)}}</td>
+        </template>
 
       </tr>
 

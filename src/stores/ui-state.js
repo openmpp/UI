@@ -346,6 +346,12 @@ export const useUiStateStore = defineStore('ui-state', {
       if (Array.isArray(tv?.valueFilter)) {
         this.tableViews[tv.key].view.valueFilter = Mdf.dashCloneDeep(tv.valueFilter)
       }
+      if (typeof tv?.scaleId === typeof 1) {
+        this.tableViews[tv.key].view.scaleId = tv.scaleId
+      }
+      if (typeof tv?.scaleCalc === typeof 1) {
+        this.tableViews[tv.key].view.scaleCalc = tv.scaleCalc
+      }
     },
 
     // delete table view by route key, if exist (key must be a string)

@@ -95,11 +95,11 @@
                         clickable
                         >
                         <template v-if="cmpCalc === c.code">
-                          <q-item-section class="text-primary"><span><span class="mono check-calc">&check;</span>{{ $t(c.label) }}</span></q-item-section>
+                          <q-item-section class="text-primary"><span><span class="mono check-menu">&check;</span>{{ $t(c.label) }}</span></q-item-section>
                           <q-item-section class="mono text-primary" side>{{ c.code }}</q-item-section>
                         </template>
                         <template v-else>
-                          <q-item-section><span><span class="mono check-calc">&nbsp;</span>{{ $t(c.label) }}</span></q-item-section>
+                          <q-item-section><span><span class="mono check-menu">&nbsp;</span>{{ $t(c.label) }}</span></q-item-section>
                           <q-item-section class="mono" side>{{ c.code }}</q-item-section>
                         </template>
                       </q-item>
@@ -119,11 +119,11 @@
                         clickable
                         >
                         <template v-if="aggrCalc === c.code">
-                          <q-item-section class="text-primary"><span><span class="mono check-calc">&check;</span>{{ $t(c.label) }}</span></q-item-section>
+                          <q-item-section class="text-primary"><span><span class="mono check-menu">&check;</span>{{ $t(c.label) }}</span></q-item-section>
                           <q-item-section class="mono text-primary" side>{{ c.code }}</q-item-section>
                         </template>
                         <template v-else>
-                          <q-item-section><span><span class="mono check-calc">&nbsp;</span>{{ $t(c.label) }}</span></q-item-section>
+                          <q-item-section><span><span class="mono check-menu">&nbsp;</span>{{ $t(c.label) }}</span></q-item-section>
                           <q-item-section class="mono" side>{{ c.code }}</q-item-section>
                         </template>
                       </q-item>
@@ -143,12 +143,12 @@
                             clickable
                             >
                             <template v-if="isGroupBy(d.name)">
-                              <q-item-section v-if="!pvc.isShowNames" class="text-primary"><span><span class="mono check-calc">&check;</span>{{ d.label }}</span></q-item-section>
-                              <q-item-section v-if="pvc.isShowNames" class="text-primary mono"><span><span class="mono check-calc">&check;</span>{{ d.name }}</span></q-item-section>
+                              <q-item-section v-if="!pvc.isShowNames" class="text-primary"><span><span class="mono check-menu">&check;</span>{{ d.label }}</span></q-item-section>
+                              <q-item-section v-if="pvc.isShowNames" class="text-primary mono"><span><span class="mono check-menu">&check;</span>{{ d.name }}</span></q-item-section>
                             </template>
                             <template v-else>
-                              <q-item-section v-if="!pvc.isShowNames"><span><span class="mono check-calc">&nbsp;</span>{{ d.label }}</span></q-item-section>
-                              <q-item-section v-if="pvc.isShowNames" class="mono"><span><span class="mono check-calc">&nbsp;</span>{{ d.name }}</span></q-item-section>
+                              <q-item-section v-if="!pvc.isShowNames"><span><span class="mono check-menu">&nbsp;</span>{{ d.label }}</span></q-item-section>
+                              <q-item-section v-if="pvc.isShowNames" class="mono"><span><span class="mono check-menu">&nbsp;</span>{{ d.name }}</span></q-item-section>
                             </template>
                           </q-item>
                         </template>
@@ -169,12 +169,12 @@
                             clickable
                             >
                             <template v-if="isAttrCalc(a.name)">
-                              <q-item-section v-if="!pvc.isShowNames" class="text-primary"><span><span class="mono check-calc">&check;</span>{{ a.label }}</span></q-item-section>
-                              <q-item-section v-if="pvc.isShowNames" class="text-primary mono"><span><span class="mono check-calc">&check;</span>{{ a.name }}</span></q-item-section>
+                              <q-item-section v-if="!pvc.isShowNames" class="text-primary"><span><span class="mono check-menu">&check;</span>{{ a.label }}</span></q-item-section>
+                              <q-item-section v-if="pvc.isShowNames" class="text-primary mono"><span><span class="mono check-menu">&check;</span>{{ a.name }}</span></q-item-section>
                             </template>
                             <template v-else>
-                              <q-item-section v-if="!pvc.isShowNames"><span><span class="mono check-calc">&nbsp;</span>{{ a.label }}</span></q-item-section>
-                              <q-item-section v-if="pvc.isShowNames" class="mono"><span><span class="mono check-calc">&nbsp;</span>{{ a.name }}</span></q-item-section>
+                              <q-item-section v-if="!pvc.isShowNames"><span><span class="mono check-menu">&nbsp;</span>{{ a.label }}</span></q-item-section>
+                              <q-item-section v-if="pvc.isShowNames" class="mono"><span><span class="mono check-menu">&nbsp;</span>{{ a.name }}</span></q-item-section>
                             </template>
                           </q-item>
                         </template>
@@ -501,11 +501,11 @@
                   clickable
                   >
                   <template v-if="cmpCalc === c.code">
-                    <q-item-section class="text-primary"><span><span class="mono check-calc">&check;</span>{{ $t(c.label) }}</span></q-item-section>
+                    <q-item-section class="text-primary"><span><span class="mono check-menu">&check;</span>{{ $t(c.label) }}</span></q-item-section>
                     <q-item-section class="mono text-primary" side>{{ c.code }}</q-item-section>
                   </template>
                   <template v-else>
-                    <q-item-section><span><span class="mono check-calc">&nbsp;</span>{{ $t(c.label) }}</span></q-item-section>
+                    <q-item-section><span><span class="mono check-menu">&nbsp;</span>{{ $t(c.label) }}</span></q-item-section>
                     <q-item-section class="mono" side>{{ c.code }}</q-item-section>
                   </template>
                 </q-item>
@@ -525,11 +525,11 @@
                   clickable
                   >
                   <template v-if="aggrCalc === c.code">
-                    <q-item-section class="text-primary"><span><span class="mono check-calc">&check;</span>{{ $t(c.label) }}</span></q-item-section>
+                    <q-item-section class="text-primary"><span><span class="mono check-menu">&check;</span>{{ $t(c.label) }}</span></q-item-section>
                     <q-item-section class="mono text-primary" side>{{ c.code }}</q-item-section>
                   </template>
                   <template v-else>
-                    <q-item-section><span><span class="mono check-calc">&nbsp;</span>{{ $t(c.label) }}</span></q-item-section>
+                    <q-item-section><span><span class="mono check-menu">&nbsp;</span>{{ $t(c.label) }}</span></q-item-section>
                     <q-item-section class="mono" side>{{ c.code }}</q-item-section>
                   </template>
                 </q-item>
@@ -549,12 +549,12 @@
                       clickable
                       >
                       <template v-if="isGroupBy(d.name)">
-                        <q-item-section v-if="!pvc.isShowNames" class="text-primary"><span><span class="mono check-calc">&check;</span>{{ d.label }}</span></q-item-section>
-                        <q-item-section v-if="pvc.isShowNames" class="text-primary mono"><span><span class="mono check-calc">&check;</span>{{ d.name }}</span></q-item-section>
+                        <q-item-section v-if="!pvc.isShowNames" class="text-primary"><span><span class="mono check-menu">&check;</span>{{ d.label }}</span></q-item-section>
+                        <q-item-section v-if="pvc.isShowNames" class="text-primary mono"><span><span class="mono check-menu">&check;</span>{{ d.name }}</span></q-item-section>
                       </template>
                       <template v-else>
-                        <q-item-section v-if="!pvc.isShowNames"><span><span class="mono check-calc">&nbsp;</span>{{ d.label }}</span></q-item-section>
-                        <q-item-section v-if="pvc.isShowNames" class="mono"><span><span class="mono check-calc">&nbsp;</span>{{ d.name }}</span></q-item-section>
+                        <q-item-section v-if="!pvc.isShowNames"><span><span class="mono check-menu">&nbsp;</span>{{ d.label }}</span></q-item-section>
+                        <q-item-section v-if="pvc.isShowNames" class="mono"><span><span class="mono check-menu">&nbsp;</span>{{ d.name }}</span></q-item-section>
                       </template>
                     </q-item>
                   </template>
@@ -575,12 +575,12 @@
                       clickable
                       >
                       <template v-if="isAttrCalc(a.name)">
-                        <q-item-section v-if="!pvc.isShowNames" class="text-primary"><span><span class="mono check-calc">&check;</span>{{ a.label }}</span></q-item-section>
-                        <q-item-section v-if="pvc.isShowNames" class="text-primary mono"><span><span class="mono check-calc">&check;</span>{{ a.name }}</span></q-item-section>
+                        <q-item-section v-if="!pvc.isShowNames" class="text-primary"><span><span class="mono check-menu">&check;</span>{{ a.label }}</span></q-item-section>
+                        <q-item-section v-if="pvc.isShowNames" class="text-primary mono"><span><span class="mono check-menu">&check;</span>{{ a.name }}</span></q-item-section>
                       </template>
                       <template v-else>
-                        <q-item-section v-if="!pvc.isShowNames"><span><span class="mono check-calc">&nbsp;</span>{{ a.label }}</span></q-item-section>
-                        <q-item-section v-if="pvc.isShowNames" class="mono"><span><span class="mono check-calc">&nbsp;</span>{{ a.name }}</span></q-item-section>
+                        <q-item-section v-if="!pvc.isShowNames"><span><span class="mono check-menu">&nbsp;</span>{{ a.label }}</span></q-item-section>
+                        <q-item-section v-if="pvc.isShowNames" class="mono"><span><span class="mono check-menu">&nbsp;</span>{{ a.name }}</span></q-item-section>
                       </template>
                     </q-item>
                   </template>
@@ -1175,7 +1175,7 @@
     }
   }
 
-  .check-calc {
+  .check-menu {
     min-width: 1.125rem;
     display: inline-block;
   }

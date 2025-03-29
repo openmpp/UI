@@ -735,7 +735,7 @@
                 color="primary"
                 padding="xs"
                 class="col-auto"
-                icon="mdi-download-circle-outline"
+                icon="mdi-download"
                 :title="$t('Download') + ' ' + prop.node.label"
                 />
               <div class="col">

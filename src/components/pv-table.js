@@ -30,33 +30,37 @@ pvControl: {
 
   isShowNames:  if true then show item names (enums[k].name) instead of labels (enums[k].label) by default
 
-  reader: (src) => { // row reader: methods to read next row, read() dimension items and readValue()
-    readRow: () => {
-      return next row or undefined if end of rorws
+  reader: {
+    isScale: false by default, if true then reader can do value scaling: find value range
+
+    rowReader (src) => { // row reader: methods to read next row, read() dimension items and readValue()
+      readRow: () => {
+        return next row or undefined if end of rorws
+      },
+      readDim[dimension name]: (r) => {
+        return dimension item id by diemnsion name from row (r), for example: (r) => (r.DimIds.length > 0 ? r.DimIds[0] : void 0),
+      },
+      readValue: (r) => {
+        read table cell value from row (r), for example: (r) => (!r.IsNull ? r.Value : void 0)
+      }
     },
-    readDim[dimension name]: (r) => {
-      return dimension item id by diemnsion name from row (r), for example: (r) => (r.DimIds.length > 0 ? r.DimIds[0] : void 0),
-    },
-    readValue: (r) => {
-      read table cell value from row (r), for example: (r) => (!r.IsNull ? r.Value : void 0)
+
+    scaleReader: {
+      isRange: () => { retrun true if range is defined }
+      rangeDef: () => { retrun range scale id, calculation and interval count }
+      setRange: (eId, calc, n) => { calculate values range bounds for measure scale id }
+      findRange: (val) => { find range index of the measuare value }
+      getScale: () => { return scale for all measure expresions }
     }
   },
 
-  processValue: functions are used to aggregate cell value(s)
-
-  formatter: {
-    options():  function to return formatter options
-    format():   function (if defined) to convert cell value to string
-    parse():    function (if defined) to convert cell string to value, ex: parseFloat(), used by editor only
-    isValid():  function to validate cell value, used by editor only
-    enumIdByLabel(): function to return enum id by enum label, used by editor only
-  }
-
-  processValue: { // object with two methods:
-    doNext() applied to each input row readValue() return, for example:
+  processValue: functions are used to aggregate cell value(s), object with two methods:
+  processValue: {
+    init()      // call once for each table cell, it return initial cell state
+    doNext()    // call for each input row after readValue()
+    // example of processValue "sum":
     {
-      // sum
-      init: () => ({ result: void 0 }),
+      init: () => ({ result: void 0 }), // returm initial state for each cell
       doNext: (val, state) => {
         let v = parseFloat(val)
         if (!isNaN(v)) state.result = (state.result || 0) + v
@@ -66,9 +70,17 @@ pvControl: {
     default processValue{} return value as is, (no conversion or aggregation)
   }
 
+  formatter: {
+    options():  function to return formatter options
+    format():   function (if defined) to convert cell value to string
+    parse():    function (if defined) to convert cell string to value, ex: parseFloat(), used by editor only
+    isValid():  function to validate cell value, used by editor only
+    enumIdByLabel(): function to return enum id by enum label, used by editor only
+  }
+
   dimItemKeys: {  // optional, undefined by default
                   // interface to find dimension item key (enum id) by row or column number
-                  // used to find value cell format by measure dimension enum id
+                  // defined for measure dimension and used to find value format by measure dimension enum id
   }
 
   cellClass: 'pv-cell-right'  // cell value style: by default right justified number
@@ -83,6 +95,8 @@ refreshDimsTickle: watch true/false, on change dimension properties updated
   it is recommended to set
     refreshDimsTickle = !refreshDimsTickle
   after dimension arrays initialized (after init of: rowFields[], colFields[], otherFields[])
+
+refreshRangeTickle: watch true/false to update cell class on change of measure value scale range
 
 if you are using pivot table editor then pvEdit is editor options and state shared with parent
 pvEdit: {
@@ -128,6 +142,9 @@ export default {
     refreshDimsTickle: {
       type: Boolean, required: true // on refreshDimsTickle change items labels updated
     },
+    refreshRangeTickle: {
+      type: Boolean, default: false // on refreshDimsTickle change items labels updated
+    },
     pvEdit: { // editor options and state shared with parent
       type: Object,
       default: Pcvt.emptyEdit
@@ -153,6 +170,9 @@ export default {
       renderKeys: {},     // for each cellKey string of: 'cellKey-keyRenderCount'
       keyPos: [],         // position of each dimension item in cell key
       valueLen: 0,        // value input text size
+      isRange: false,                 // if true then measure diemnsion has scale ranges defined
+      rangeDef: Pcvt.emptyRangeDef(), // current range definition
+      heatStyles: Pcvt.HeatMixStyle,  // heat map color styles
       itemKeyByRowCol: (nRow, nCol) => (void 0) // return dimension item key (enum id) by row or column number
     }
   },
@@ -161,6 +181,10 @@ export default {
   watch: {
     refreshViewTickle () { this.setData(this.pvData) },
     refreshDimsTickle () { this.setDimItemLabels() },
+    refreshRangeTickle () {
+      this.isRange = !!this.pvControl.reader && this.pvControl.reader?.isScale && this.pvControl.reader?.scaleReader?.isRange()
+      if (this.isRange) this.setRangeInfo()
+    },
 
     // on edit started event: set focus on top left cell
     isPvEditNow () {
@@ -202,6 +226,29 @@ export default {
         return this.pvControl.formatter.format(v, this.itemKeyByRowCol(nRow, nCol))
       }
       return this.pvControl.formatter.format(v)
+    },
+    // set or clear range definition and heat map stlyes
+    setRangeInfo () {
+      this.rangeDef = Pcvt.emptyRangeDef()
+      this.heatStyles = Pcvt.HeatMixStyle
+
+      if (this.isRange) {
+        this.rangeDef = this.pvControl.reader.scaleReader.rangeDef()
+        if (this.rangeDef.color === Pcvt.HOT_RANGE) this.heatStyles = Pcvt.HeatHotStyle
+        if (this.rangeDef.color === Pcvt.COLD_RANGE) this.heatStyles = Pcvt.HeatColdStyle
+      }
+    },
+    // return additional cell class style
+    getExtraCellClass (nRow, nCol) {
+      if (!this.isRange) return ''
+
+      const eId = this.itemKeyByRowCol(nRow, nCol)
+      if (eId !== this.rangeDef.scaleId) return '' // this is not scale expression: use default style
+
+      const v = this.pvt.cells[this.pvt.cellKeys[nRow * this.pvt.colCount + nCol]]
+      const rIdx = this.pvControl.reader.scaleReader.findRange(v)
+
+      return (rIdx >= 0 && rIdx < this.heatStyles.length) ? this.heatStyles[rIdx] : ''
     },
 
     // start of editor methods
@@ -654,6 +701,9 @@ export default {
       this.renderKeys = {}
       this.keyPos = []
       this.itemKeyByRowCol = (nRow, nCol) => (void 0)
+      this.isRange = false
+      this.rangeDef = Pcvt.emptyRangeDef()
+      this.heatStyles = Pcvt.HeatMixStyle
 
       // if response is empty or invalid: clean table and exit
       if (!data || (data?.length || 0) <= 0) return
@@ -663,7 +713,7 @@ export default {
         return
       }
 
-      const rdr = this.pvControl.reader(data)
+      const rdr = this.pvControl.reader.rowReader(data)
       if (!rdr) {
         console.warn('Unexpected empty row reader, data length:', data?.length)
         return // data is empty: unexpected
@@ -757,6 +807,10 @@ export default {
           vcells[bkey] = this.pvControl.processValue.doNext(v, vstate[bkey])
         }
       }
+
+      // if value scale enabled and measure value range defined
+      this.isRange = this.pvControl.reader?.isScale && this.pvControl.reader?.scaleReader?.isRange()
+      if (this.isRange) this.setRangeInfo()
 
       // sort row keys and column keys in the order of dimension items
       vrows.sort(Pcvt.compareKeys(rowKeyLen, rCmp))

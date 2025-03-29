@@ -82,7 +82,8 @@ export default {
         reader: void 0,                         // return row reader: if defined then methods to read next row, read() dimension items and readValue()
         processValue: Pcvt.asIsPval,            // default value processing: return as is
         formatter: Pcvt.formatDefault,          // disable format(), parse() and validation by default
-        cellClass: 'pv-cell-right'              // default cell value style: right justified number
+        cellClass: 'pv-cell-right',             // default cell value style: right justified number
+        dimItemKeys: void 0                     // interface to find dimension item key (enum id) by row or column number
       },
       attrFormatter: {},          // microdata attributes formatter: by key formatters for each attribute
       readerMicro: void 0,        // microdata row reader
@@ -441,78 +442,83 @@ export default {
       // array of attributes:
       //   dimensions are enum-based attributes or boolean
       //   meausre dimension values are values of built-in types attributes
-      this.readerMicro = (src) => {
-        // no data to read: if source rows are empty or invalid return undefined reader
-        if (!src || (src?.length || 0) <= 0) return void 0
+      this.readerMicro = {
+        isScale: false, // value scaling is not defined for microdata
 
-        // entity key dimension is at [0] position
-        // attribute id's: [1, rank - 1] enum based dimensions
-        let dimPos = []
-        if (this.rank > 1) {
-          dimPos = Array(this.rank - 1)
+        rowReader: (src) => {
+          // no data to read: if source rows are empty or invalid return undefined reader
+          if (!src || (src?.length || 0) <= 0) return void 0
 
-          for (let k = 1; k < this.rank; k++) {
-            dimPos[k - 1] = this.dimProp[k].attrPos
-          }
-        }
+          // entity key dimension is at [0] position
+          // attribute id's: [1, rank - 1] enum based dimensions
+          let dimPos = []
+          if (this.rank > 1) {
+            dimPos = Array(this.rank - 1)
 
-        // measure dimension at [rank] position: attribute id's are enum values of measure dimension
-        const mIds = Array(this.attrCount)
-        const attrPos = Array(this.attrCount)
-
-        if (this.attrCount > 0) {
-          let n = 0
-          for (const e of this.dimProp[this.rank].enums) {
-            mIds[n] = e.value
-            attrPos[n++] = e.attrPos
-          }
-        }
-
-        const srcLen = src.length
-        let nSrc = 0
-        let nAttr = -1 // after first read row must be nAttr = 0
-
-        const rd = { // reader to return
-          readRow: () => {
-            nAttr++
-            if (nAttr >= this.attrCount) {
-              nAttr = 0
-              nSrc++
+            for (let k = 1; k < this.rank; k++) {
+              dimPos[k - 1] = this.dimProp[k].attrPos
             }
-            return (nSrc < srcLen) ? (src[nSrc] || void 0) : void 0 // microdata row: key and array of enum-based attributes as dimensions and buit-in types attributes as values
-          },
-          readDim: {},
-          readValue: (r) => {
-            const a = r?.Attr || void 0
-            const v = (a && !a[attrPos[nAttr]].IsNull) ? a[attrPos[nAttr]].Value : void 0 // measure value: built-in type attribute value
-            return v
           }
-        }
 
-        // read entity key dimension
-        rd.readDim[KEY_DIM_NAME] = (r) => r?.Key
+          // measure dimension at [rank] position: attribute id's are enum values of measure dimension
+          const mIds = Array(this.attrCount)
+          const attrPos = Array(this.attrCount)
 
-        // read dimension item value: enum id for enum-based attributes
-        for (let n = 1; n < this.rank; n++) {
-          if (!this.dimProp[n].isBool) { // enum-based dimension
-            rd.readDim[this.dimProp[n].name] = (r) => {
+          if (this.attrCount > 0) {
+            let n = 0
+            for (const e of this.dimProp[this.rank].enums) {
+              mIds[n] = e.value
+              attrPos[n++] = e.attrPos
+            }
+          }
+
+          const srcLen = src.length
+          let nSrc = 0
+          let nAttr = -1 // after first read row must be nAttr = 0
+
+          const rd = { // reader to return
+
+            readRow: () => {
+              nAttr++
+              if (nAttr >= this.attrCount) {
+                nAttr = 0
+                nSrc++
+              }
+              return (nSrc < srcLen) ? (src[nSrc] || void 0) : void 0 // microdata row: key and array of enum-based attributes as dimensions and buit-in types attributes as values
+            },
+            readDim: {},
+            readValue: (r) => {
               const a = r?.Attr || void 0
-              const cv = (a && dimPos[n - 1] < a.length) ? a[dimPos[n - 1]] : void 0
-              return (cv && !cv.IsNull) ? cv.Value : void 0
-            }
-          } else { // boolean dimension: enum id's: 0 = false, 1 = true
-            rd.readDim[this.dimProp[n].name] = (r) => {
-              const a = r?.Attr || void 0
-              const cv = (a && dimPos[n - 1] < a.length) ? a[dimPos[n - 1]] : void 0
-              return (cv && !cv.IsNull) ? (cv.Value ? 1 : 0) : void 0
+              const v = (a && !a[attrPos[nAttr]].IsNull) ? a[attrPos[nAttr]].Value : void 0 // measure value: built-in type attribute value
+              return v
             }
           }
+
+          // read entity key dimension
+          rd.readDim[KEY_DIM_NAME] = (r) => r?.Key
+
+          // read dimension item value: enum id for enum-based attributes
+          for (let n = 1; n < this.rank; n++) {
+            if (!this.dimProp[n].isBool) { // enum-based dimension
+              rd.readDim[this.dimProp[n].name] = (r) => {
+                const a = r?.Attr || void 0
+                const cv = (a && dimPos[n - 1] < a.length) ? a[dimPos[n - 1]] : void 0
+                return (cv && !cv.IsNull) ? cv.Value : void 0
+              }
+            } else { // boolean dimension: enum id's: 0 = false, 1 = true
+              rd.readDim[this.dimProp[n].name] = (r) => {
+                const a = r?.Attr || void 0
+                const cv = (a && dimPos[n - 1] < a.length) ? a[dimPos[n - 1]] : void 0
+                return (cv && !cv.IsNull) ? (cv.Value ? 1 : 0) : void 0
+              }
+            }
+          }
+
+          // read measure dimension: attribute id
+          rd.readDim[ATTR_DIM_NAME] = (r) => (nAttr < mIds.length ? mIds[nAttr] : void 0)
+
+          return rd
         }
-
-        // read measure dimension: attribute id
-        rd.readDim[ATTR_DIM_NAME] = (r) => (nAttr < mIds.length ? mIds[nAttr] : void 0)
-
-        return rd
       }
     },
 
@@ -1250,59 +1256,63 @@ export default {
       // array of attributes:
       //   group by dimensions are enum-based attributes or boolean
       //   last position is meausre dimension values of float or integer type
-      return (src) => {
-        // no data to read: if source rows are empty or invalid return undefined reader
-        if (!src || (src?.length || 0) <= 0) return void 0
+      return {
+        isScale: false, // value scaling is not defined for microdata
 
-        const srcLen = src.length
-        let nSrc = 0
+        rowReader: (src) => {
+          // no data to read: if source rows are empty or invalid return undefined reader
+          if (!src || (src?.length || 0) <= 0) return void 0
 
-        const dimPos = []
-        let rPos = 0
-        for (const d of this.dimProp) {
-          if (this.groupBy.indexOf(d.name) >= 0) dimPos.push(rPos++)
-        }
-        const nVal = this.groupBy.length // calculated attribute value at last position
+          const srcLen = src.length
+          let nSrc = 0
 
-        const rd = { // reader to return
-          readRow: () => {
-            return (nSrc < srcLen) ? src[nSrc++] : void 0 // calculated row: one row for each calculation
-          },
-          readDim: {},
-          readValue: (r) => {
-            const a = r?.Attr || void 0
-            const cv = (a && nVal < a.length) ? a[nVal] : void 0 // calculated attribute value at last position
-            return (cv && !cv.IsNull) ? cv.Value : void 0
+          const dimPos = []
+          let rPos = 0
+          for (const d of this.dimProp) {
+            if (this.groupBy.indexOf(d.name) >= 0) dimPos.push(rPos++)
           }
-        }
+          const nVal = this.groupBy.length // calculated attribute value at last position
 
-        // read dimension item value: enum id for enum-based attributes
-        let nPos = 0
-        for (const d of this.dimProp) {
-          if (this.groupBy.indexOf(d.name) < 0) continue // skip: this is not a group by diemnsion
-
-          const n = dimPos[nPos++]
-          if (!d.isBool) { // enum-based dimension
-            rd.readDim[d.name] = (r) => {
+          const rd = { // reader to return
+            readRow: () => {
+              return (nSrc < srcLen) ? src[nSrc++] : void 0 // calculated row: one row for each calculation
+            },
+            readDim: {},
+            readValue: (r) => {
               const a = r?.Attr || void 0
-              const cv = (a && n < a.length) ? a[n] : void 0
+              const cv = (a && nVal < a.length) ? a[nVal] : void 0 // calculated attribute value at last position
               return (cv && !cv.IsNull) ? cv.Value : void 0
             }
-          } else { // boolean dimension: enum id's: 0 = false, 1 = true
-            rd.readDim[d.name] = (r) => {
-              const a = r?.Attr || void 0
-              const cv = (a && n < a.length) ? a[n] : void 0
-              return (cv && !cv.IsNull) ? (cv.Value ? 1 : 0) : void 0
+          }
+
+          // read dimension item value: enum id for enum-based attributes
+          let nPos = 0
+          for (const d of this.dimProp) {
+            if (this.groupBy.indexOf(d.name) < 0) continue // skip: this is not a group by diemnsion
+
+            const n = dimPos[nPos++]
+            if (!d.isBool) { // enum-based dimension
+              rd.readDim[d.name] = (r) => {
+                const a = r?.Attr || void 0
+                const cv = (a && n < a.length) ? a[n] : void 0
+                return (cv && !cv.IsNull) ? cv.Value : void 0
+              }
+            } else { // boolean dimension: enum id's: 0 = false, 1 = true
+              rd.readDim[d.name] = (r) => {
+                const a = r?.Attr || void 0
+                const cv = (a && n < a.length) ? a[n] : void 0
+                return (cv && !cv.IsNull) ? (cv.Value ? 1 : 0) : void 0
+              }
             }
           }
+
+          // read calculation dimension: calculation id
+          // read run dimension: run id
+          rd.readDim[CALC_DIM_NAME] = (r) => (r.CalcId)
+          rd.readDim[RUN_DIM_NAME] = (r) => (r.RunId)
+
+          return rd
         }
-
-        // read calculation dimension: calculation id
-        // read run dimension: run id
-        rd.readDim[CALC_DIM_NAME] = (r) => (r.CalcId)
-        rd.readDim[RUN_DIM_NAME] = (r) => (r.RunId)
-
-        return rd
       }
     },
     // replace measure dimension in rows, columns or othres list by new dimension
@@ -1393,6 +1403,7 @@ export default {
         this.pageStart = 0
         this.pageSize = 0
       }
+      this.dispatchMicrodataView({ key: this.routeKey, pageSize: size })
       this.doRefreshDataPage()
     },
     onFirstPage () {

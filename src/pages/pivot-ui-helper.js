@@ -20,6 +20,7 @@ export const ekind = {
   CALC: 1,  // aggregated (calculated) entity measure attributes
   CMP: 2    // entity run comparison
 }
+
 /* eslint-enable no-multi-spaces */
 
 // make filter state: selection in other dimensions

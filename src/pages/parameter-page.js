@@ -87,7 +87,8 @@ export default {
         reader: void 0,                       // return row reader: if defined then methods to read next row, read() dimension items and readValue()
         processValue: Pcvt.asIsPval,          // default value processing: return as is
         formatter: Pcvt.formatDefault,        // disable format(), parse() and validation by default
-        cellClass: 'pv-cell-right'            // default cell value style: right justified number
+        cellClass: 'pv-cell-right',           // default cell value style: right justified number
+        dimItemKeys: void 0                   // interface to find dimension item key (enum id) by row or column number
       },
       pvKeyPos: [],           // position of each dimension item in cell key
       edt: Pcvt.emptyEdit(),  // editor options and state shared with child
@@ -289,6 +290,7 @@ export default {
         this.pageStart = 0
         this.pageSize = 0
       }
+      this.dispatchParamView({ key: this.routeKey, pageSize: size })
       this.doRefreshDataPage()
     },
     onFirstPage () {
@@ -840,28 +842,32 @@ export default {
       }
 
       // read parameter rows: one row for each parameter value
-      this.pvc.reader = (src) => {
-        // no data to read: if source rows are empty or invalid return undefined reader
-        if (!src || (src?.length || 0) <= 0) return void 0
+      this.pvc.reader = {
+        isScale: false, // value scaling is not defined for parameters
 
-        const srcLen = src.length
-        let nSrc = 0
+        rowReader: (src) => {
+          // no data to read: if source rows are empty or invalid return undefined reader
+          if (!src || (src?.length || 0) <= 0) return void 0
 
-        const rd = { // reader to return
-          readRow: () => {
-            return (nSrc < srcLen) ? src[nSrc++] : void 0 // parameter row: one row for each parameter value
-          },
-          readDim: {},
-          readValue: (r) => (!r.IsNull ? r.Value : void 0) // parameter value
+          const srcLen = src.length
+          let nSrc = 0
+
+          const rd = { // reader to return
+            readRow: () => {
+              return (nSrc < srcLen) ? src[nSrc++] : void 0 // parameter row: one row for each parameter value
+            },
+            readDim: {},
+            readValue: (r) => (!r.IsNull ? r.Value : void 0) // parameter value
+          }
+
+          // read dimension item value: enum id, sub-value id, parameter id
+          for (let n = 0; n < this.rank; n++) {
+            rd.readDim[this.dimProp[n].name] = (r) => (r.DimIds.length > n ? r.DimIds[n] : void 0)
+          }
+          rd.readDim[Puih.SUB_ID_DIM] = (r) => (r.SubId) // read parameter sub-value id
+
+          return rd
         }
-
-        // read dimension item value: enum id, sub-value id, parameter id
-        for (let n = 0; n < this.rank; n++) {
-          rd.readDim[this.dimProp[n].name] = (r) => (r.DimIds.length > n ? r.DimIds[n] : void 0)
-        }
-        rd.readDim[Puih.SUB_ID_DIM] = (r) => (r.SubId) // read parameter sub-value id
-
-        return rd
       }
 
       // setup process value and format value handlers:

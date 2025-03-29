@@ -308,7 +308,7 @@ export default {
       if (!this.serverConfig.AllowFiles || !this.serverConfig.AllowUpload) return false
       return !!path && typeof path === typeof 'string' && path !== '' && path !== '.' && path !== '..' && path !== '/'
     },
-    // retrun true if it is a special path: download or upload folder
+    // return true if it is a special path: download or upload folder
     isUpDownPath (path) {
       return path === 'download' || path === 'upload'
     },

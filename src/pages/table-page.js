@@ -19,7 +19,7 @@ import { openURL } from 'quasar'
 const EXPR_DIM_NAME = 'EXPRESSIONS_DIM'         // expressions measure dimension name
 const ACC_DIM_NAME = 'ACCUMULATORS_DIM'         // accuimulators measure dimension name
 const ALL_ACC_DIM_NAME = 'ALL_ACCUMULATORS_DIM' // all accuimulators measure dimension name
-const CALC_DIM_NAME = 'CALCULATED_DIM'          // calculated expressions measure dimension name
+const CALC_DIM_NAME = 'CALCULATED_DIM'          // calculated measure dimension name
 const RUN_DIM_NAME = 'RUN_DIM'                  // model run compare dimension name
 const SMALL_PAGE_SIZE = 1000                    // small page size: do not show page controls
 const LAST_PAGE_OFFSET = 2 * 1024 * 1024 * 1024 // large page offset to get the last page
@@ -48,10 +48,13 @@ export default {
       runText: Mdf.emptyRunText(),
       subCount: 0,
       dimProp: [],
-      calcEnums: [],          // calculation dimension enums for aggregated measure calculation
-      compareEnums: [],       // calculation dimension enums for run comparison calculation
-      valueFilter: [],        // measure value filters
-      valueFilterMeasure: [], // list of value filter measures: name and label of attribute enums or calculted enums
+      calcEnums: [],              // calculation dimension enums for aggregated measure calculation
+      compareEnums: [],           // calculation dimension enums for run comparison calculation
+      valueFilter: [],            // measure value filters
+      valueFilterMeasure: [],     // list of value filter measures: name and label of enums
+      scaleItems: [],             // scale items: measure enums visible in scale menu
+      scaleId: -1,                // selected scale enum id
+      scaleCalc: Pcvt.NONE_SCALE, // scale calculation, ex: (value - min) / (max - min)
       colFields: [],
       rowFields: [],
       otherFields: [],
@@ -62,6 +65,7 @@ export default {
         isRowColModeToggle: true,
         isPvTickle: false,      // used to update view of pivot table (on data selection change)
         isPvDimsTickle: false,  // used to update dimensions in pivot table (on label change)
+        isPvRangeTickle: false, // used to update pivot table cells on measure scale change
         // formatOpts: void 0,     // hide format controls by default
         kind: Puih.tkind.EXPR,  // table view content: expressions, accumulators, all-accumulators
         //
@@ -76,12 +80,13 @@ export default {
         reader: void 0,                       // return row reader: if defined then methods to read next row, read() dimension items and readValue()
         processValue: Pcvt.asIsPval,          // default value processing: return as is
         formatter: Pcvt.formatDefault,        // disable format(), parse() and validation by default
-        cellClass: 'pv-cell-right'            // default cell value style: right justified number
+        cellClass: 'pv-cell-right',           // default cell value style: right justified number
+        dimItemKeys: void 0                   // interface to find dimension item key (enum id) by row or column number
       },
       readerExpr: void 0,     // expression row reader
       readerAcc: void 0,      // accumulators row reader: one row for each accumulator
       readerAllAcc: void 0,   // all accumulators row reader: all acumulators in single row
-      readerCalc: void 0,     // calculated expressions row reader
+      readerCalc: void 0,     // calculated measure row reader
       readerCmp: void 0,      // run compare row reader
       pvKeyPos: [],           // position of each dimension item in cell key
       srcCalc: '',            // calculation source name, ex.: AVG
@@ -136,6 +141,19 @@ export default {
       }, {
         code: 'PERCENT',
         label: '100 * (Variant - Base) / Base'
+      }],
+      scaleCalcList: [{
+        value: Pcvt.ZERO_SCALE,
+        code: 'VALUE',
+        label: 'Range of (Value)'
+      }, {
+        value: Pcvt.AVG_SCALE,
+        code: 'AVG',
+        label: 'Range of (Value - Average)'
+      }, {
+        value: Pcvt.MIDDLE_SCALE,
+        code: 'MIDDLE',
+        label: 'Range of (Value - Middle)'
       }]
     }
   },
@@ -220,7 +238,7 @@ export default {
       //  [rank + 1]:   accumulators measure dimension: accumulators as enums
       //  [rank + 2]:   all accumulators measure dimension: all accumulators, including derived as enums
       //  [rank + 3]:   sub-value dimension: items name and label are same as item id
-      //  [rank + 4]:   calculated expressions dimension: "normal" and calculated expressions as enums
+      //  [rank + 4]:   calculated measure dimension: "normal" and calculated expressions as enums
       //  [rank + 5]:   run compare dimension: run names and run descriptions as labels
       this.dimProp = Array(this.rank + 5)
 
@@ -275,7 +293,7 @@ export default {
       }
 
       // at [rank]:     expressions measure dimension: expressions as enums
-      // at [rank + 4]: calculated expressions dimension: "normal" and calculated expressions as enums
+      // at [rank + 4]: calculated measure dimension: "normal" and calculated expressions as enums
       const exprFmt = {}
       let maxDec = -1
 
@@ -481,142 +499,11 @@ export default {
       this.dimProp[this.rank + 5] = fr // run compare dimension at [rank + 5] position
 
       // readers for each table view
-      //
-      // read expression rows: one row for each expression
-      this.readerExpr = (src) => {
-        // no data to read: if source rows are empty or invalid return undefined reader
-        if (!src || (src?.length || 0) <= 0) return void 0
-
-        const srcLen = src.length
-        let nSrc = 0
-
-        const rd = { // reader to return
-          readRow: () => {
-            return (nSrc < srcLen) ? src[nSrc++] : void 0 // expression row: one row for each expression
-          },
-          readDim: {},
-          readValue: (r) => (!r.IsNull ? r.Value : void 0) // expression value
-        }
-
-        // read dimension item value: enum id, expression id
-        for (let n = 0; n < this.rank; n++) {
-          rd.readDim[this.dimProp[n].name] = (r) => (r.DimIds.length > n ? r.DimIds[n] : void 0)
-        }
-
-        // read measure dimension: expression id
-        rd.readDim[EXPR_DIM_NAME] = (r) => (r.ExprId)
-
-        return rd
-      }
-
-      // read calculated expressions rows: one row for each calculation
-      this.readerCalc = (src) => {
-        // no data to read: if source rows are empty or invalid return undefined reader
-        if (!src || (src?.length || 0) <= 0) return void 0
-
-        const srcLen = src.length
-        let nSrc = 0
-
-        const rd = { // reader to return
-          readRow: () => {
-            return (nSrc < srcLen) ? src[nSrc++] : void 0 // expression row: one row for each calculation
-          },
-          readDim: {},
-          readValue: (r) => (!r.IsNull ? r.Value : void 0) // calculated value
-        }
-
-        // read dimension item value: enum id, expression id
-        for (let n = 0; n < this.rank; n++) {
-          rd.readDim[this.dimProp[n].name] = (r) => (r.DimIds.length > n ? r.DimIds[n] : void 0)
-        }
-
-        // read calculation dimension: calculation id
-        rd.readDim[CALC_DIM_NAME] = (r) => (r.CalcId)
-
-        return rd
-      }
-
-      // read run compare rows: one row for each comparison calculation
-      // row is the same as calculated row and we need to process RunId
-      this.readerCmp = (src) => {
-        const rd = this.readerCalc(src)
-
-        // read run dimension: run id
-        rd.readDim[RUN_DIM_NAME] = (r) => (r.RunId)
-
-        return rd
-      }
-
-      // read native accumulators rows: one row for each accumilator
-      this.readerAcc = (src) => {
-        // no data to read: if source rows are empty or invalid return undefined reader
-        if (!src || (src?.length || 0) <= 0) return void 0
-
-        const srcLen = src.length
-        let nSrc = 0
-
-        const rd = { // reader to return
-          readRow: () => {
-            return (nSrc < srcLen) ? src[nSrc++] : void 0 // accumilator row: one row for each accumilator
-          },
-          readDim: {},
-          readValue: (r) => (!r.IsNull ? r.Value : void 0) // accumilator value
-        }
-
-        // read dimension item value: enum id, sub-value id, accumulator id
-        for (let n = 0; n < this.rank; n++) {
-          rd.readDim[this.dimProp[n].name] = (r) => (r.DimIds.length > n ? r.DimIds[n] : void 0)
-        }
-
-        // read measure dimensions: accumulator id and sub-value id
-        rd.readDim[ACC_DIM_NAME] = (r) => (r.AccId)
-        rd.readDim[Puih.SUB_ID_DIM] = (r) => (r.SubId)
-
-        return rd
-      }
-
-      // read all accumulators rows: all accumulators are in one row, including derived accumulators
-      this.readerAllAcc = (src) => {
-        // no data to read: if source rows are empty or invalid return undefined reader
-        if (!src || (src?.length || 0) <= 0) return void 0
-
-        // accumulator id's: measure dimension items, all accumulators dimension is at [rank + 2]
-        const accIds = []
-        for (const e of this.dimProp[this.rank + 2].enums) {
-          accIds.push(e.value)
-        }
-
-        const srcLen = src.length
-        let nSrc = 0
-        let nAcc = -1 // after first read row must be nAcc = 0
-
-        const rd = { // reader to return
-          readRow: () => {
-            nAcc++
-            if (nAcc >= allAccCount) {
-              nAcc = 0
-              nSrc++
-            }
-            return (nSrc < srcLen) ? src[nSrc] : void 0 // accumilator row: all accumulators in one row
-          },
-          readDim: {},
-          readValue: (r) => {
-            const v = !r.IsNull[nAcc] ? r.Value[nAcc] : void 0 // accumilator value
-            return v
-          }
-        }
-
-        // read dimension item value: enum id, sub-value id, accumulator id
-        for (let n = 0; n < this.rank; n++) {
-          rd.readDim[this.dimProp[n].name] = (r) => (r.DimIds.length > n ? r.DimIds[n] : void 0)
-        }
-
-        // read measure dimensions: accumulator id and sub-value id
-        rd.readDim[ALL_ACC_DIM_NAME] = (r) => (accIds[nAcc])
-        rd.readDim[Puih.SUB_ID_DIM] = (r) => (r.SubId)
-
-        return rd
-      }
+      this.readerExpr = Pcvt.exprOutReader(EXPR_DIM_NAME, this.rank, this.dimProp)
+      this.readerCalc = Pcvt.calcOutReader(CALC_DIM_NAME, this.rank, this.dimProp)
+      this.readerCmp = Pcvt.cmpOutReader(RUN_DIM_NAME, CALC_DIM_NAME, this.rank, this.dimProp)
+      this.readerAcc = Pcvt.accOutReader(ACC_DIM_NAME, Puih.SUB_ID_DIM, this.rank, this.dimProp)
+      this.readerAllAcc = Pcvt.allAccOutReader(ALL_ACC_DIM_NAME, Puih.SUB_ID_DIM, allAccCount, this.rank, this.dimProp)
 
       // setup process value and format value handlers: output table values are always float and nullable
       // output table values type is always float and nullable
@@ -760,7 +647,7 @@ export default {
       // restore formatter and controls view state
       this.pvc.formatter.byKey(this.ctrl.kind === Puih.tkind.EXPR || this.ctrl.kind === Puih.tkind.CALC || this.ctrl.kind === Puih.tkind.CMP)
 
-      // restore calculated expressions dimension: update name and label for calculated items
+      // restore calculated measure dimension: update name and label for calculated items
       if (this.ctrl.kind === Puih.tkind.CALC || this.ctrl.kind === Puih.tkind.CMP) {
         this.setCalcEnumsNameLabel(this.srcCalc, this.dimProp[this.rank + 4].enums) // update name and label for calculated items
         this.setCalcDecimals(this.srcCalc) // decimals format: zero decimals if calculation is count else max decimals
@@ -778,6 +665,13 @@ export default {
         this.pageSize = 0
       }
       this.isShowPageControls = this.pageSize > 0
+
+      // restore scale view
+      this.scaleId = (typeof tv?.scaleId === typeof 1) ? (tv?.scaleId || 0) : -1
+      this.scaleCalc = (typeof tv?.scaleCalc === typeof 1) ? (tv?.scaleCalc || Pcvt.NONE_SCALE) : Pcvt.NONE_SCALE
+
+      this.setScaleItems()
+      this.setScaleView()
 
       // refresh pivot view: both dimensions labels and table body
       this.ctrl.isPvDimsTickle = !this.ctrl.isPvDimsTickle
@@ -875,6 +769,14 @@ export default {
 
       this.pvc.reader = this.readerExpr // use expression reader
 
+      // clear scale view
+      this.scaleId = -1
+      this.scaleCalc = Pcvt.NONE_SCALE
+      if (this.isScaleEnabled()) this.pvc.reader.scaleReader.clearRange()
+
+      this.setScaleItems()
+      this.setScaleView()
+
       // default row-column mode: no row-column headers for scalar output table without sub-values and measure dimension
       // as it is today output table cannot be scalar, always has measure dimension
       this.pvc.rowColMode = !this.isScalar ? Pcvt.SPANS_AND_DIMS_PVT : Pcvt.NO_SPANS_NO_DIMS_PVT
@@ -886,6 +788,8 @@ export default {
       vs.pageStart = 0
       vs.pageSize = this.isPages ? ((typeof this.pageSize === typeof 1 && this.pageSize >= 0) ? this.pageSize : SMALL_PAGE_SIZE) : 0
       vs.valueFilter = Array.isArray(this.valueFilter) ? this.valueFilter : []
+      vs.scaleId = this.scaleId
+      vs.scaleCalc = this.scaleCalc
 
       this.dispatchTableView({
         key: this.routeKey,
@@ -979,9 +883,11 @@ export default {
       this.pvc.dimItemKeys = Pcvt.dimItemKeys(EXPR_DIM_NAME)
       this.srcCalc = ''
 
-      // set new view kind and  store pivot view
+      // set new view kind, scale items and store pivot view
       this.ctrl.kind = Puih.tkind.EXPR
       this.pvc.formatter.byKey(true)
+      this.setScaleItems()
+      this.setScaleView()
       this.storeViewAndRefreshData()
     },
     // show output table accumulators
@@ -1039,8 +945,10 @@ export default {
       this.pvc.reader = isToAll ? this.readerAllAcc : this.readerAcc
       this.srcCalc = ''
 
-      // set new view kind and reload data
+      // set new view kind, scale items and reload data
       this.ctrl.kind = isToAll ? Puih.tkind.ALL : Puih.tkind.ACC
+      this.setScaleItems()
+      this.setScaleView()
       this.pvc.formatter.byKey(false)
       this.storeViewAndRefreshData()
     },
@@ -1116,8 +1024,8 @@ export default {
         if (!isFound) isFound = this.removeDimField(this.otherFields, Puih.SUB_ID_DIM)
       } else {
         // if this is switch between calculated measure and run comparison then
-        // if calculated dimension on rows or columns then select all items
-        // if calculated dimension on others then select first item
+        //   if calculated dimension on rows or columns then select all items
+        //   if calculated dimension on others then select first item
         if ((isCmp && this.ctrl.kind === Puih.tkind.CALC) || (!isCmp && this.ctrl.kind !== Puih.tkind.CALC)) {
           if (this.otherFields.findIndex(f => f.name === CALC_DIM_NAME) >= 0) {
             this.dimProp[mNewIdx].selection = [this.dimProp[mNewIdx].enums[0]]
@@ -1170,9 +1078,11 @@ export default {
       this.pvc.reader = !isCmp ? this.readerCalc : this.readerCmp
       this.pvc.dimItemKeys = Pcvt.dimItemKeys(CALC_DIM_NAME)
 
-      // set new view kind and  store pivot view
+      // set new view kind, scale items and store pivot view
       this.ctrl.kind = !isCmp ? Puih.tkind.CALC : Puih.tkind.CMP
       this.pvc.formatter.byKey(true)
+      this.setScaleItems()
+      this.setScaleView()
       this.storeViewAndRefreshData()
     },
     // set calculation items decimals: zero decimals if calculation is count else max decimals
@@ -1213,6 +1123,159 @@ export default {
           ec.label = src + ' ' + ecLst[ec.exIdx].label
         }
       }
+    },
+
+    // if true then it is scale reader view
+    isScaleEnabled () { return this.pvc?.reader?.isScale },
+
+    // set scale items by measure items visible in scale menu
+    setScaleItems () {
+      // set measures from dimension enums: expressions or calculated or compare enums
+      let src = []
+      let dName = ''
+      this.scaleItems = []
+
+      switch (this.ctrl.kind) {
+        case Puih.tkind.EXPR:
+          dName = EXPR_DIM_NAME
+          src = this.dimProp[this.rank].enums // [rank]: expressions measure dimension: expressions as enums
+          break
+        case Puih.tkind.CALC:
+          dName = CALC_DIM_NAME
+          src = this.calcEnums
+          break
+        case Puih.tkind.CMP:
+          dName = CALC_DIM_NAME
+          src = this.compareEnums
+          break
+        default:
+          return // for accumulators view clean measure scale items: disable scaling
+      }
+      if (!Array.isArray(src) || src.length <= 0) {
+        console.warn('Unable to set scale measures, t.kind:', this.ctrl.kind)
+        this.$q.notify({ type: 'negative', message: this.$t('Unable to set scale measures: ') + ' ' + this.ctrl.kind.toString() + ' ' + this.tableName })
+        return
+      }
+
+      // if measure dimension is on other bar then use only single selection item
+      const nOther = this.otherFields.findIndex(d => d.name === dName)
+
+      if (nOther >= 0) {
+        if (this.otherFields[nOther].singleSelection) {
+          this.scaleItems.push({
+            value: this.otherFields[nOther].singleSelection.value,
+            name: this.otherFields[nOther].singleSelection.name,
+            label: this.otherFields[nOther].singleSelection.label
+          })
+        }
+      } else { // use all measure items
+        for (const e of src) {
+          this.scaleItems.push({
+            value: e.value,
+            name: e.name,
+            label: e.label
+          })
+        }
+      }
+    },
+
+    // set scale items and calculation by measure items visible in scale menu
+    setScaleView () {
+      let nowScaleId = -1
+      let nowScaleName = ''
+      let i = this.scaleItems.findIndex(e => e.value === this.scaleId)
+      if (i >= 0) {
+        nowScaleId = this.scaleId
+        nowScaleName = this.scaleItems[i].name
+      }
+      let nowCalc = Pcvt.NONE_SCALE
+      let nowCalcName = ''
+      i = this.scaleCalcList.findIndex(e => e.value === this.scaleCalc)
+      if (i >= 0) {
+        nowCalc = this.scaleCalc
+        nowCalcName = this.scaleCalcList[i].name
+      }
+      this.scaleId = -1
+      this.scaleCalc = Pcvt.NONE_SCALE
+
+      // check if the same selected scale item and exist in items list
+      if (this.scaleItems.findIndex(e => e.value === nowScaleId && e.name === nowScaleName) >= 0) this.scaleId = nowScaleId
+      if (this.scaleCalcList.findIndex(e => e.value === nowCalc && e.name === nowCalcName) >= 0) this.scaleCalc = nowCalc
+
+      if (this.scaleId !== nowScaleId || this.scaleCalc !== nowCalc) {
+        this.doClearScale() // scale item changed: clear scale view
+      }
+      // else: do refresh data and set range after refresh is completed
+    },
+    // clear scale item selection and scale calculation
+    doClearScale () {
+      this.scaleId = -1
+      this.scaleCalc = Pcvt.NONE_SCALE
+      if (this.isScaleEnabled()) {
+        this.pvc.reader.scaleReader.clearRange()
+        this.ctrl.isPvRangeTickle = !this.ctrl.isPvRangeTickle
+      }
+      this.dispatchTableView({ key: this.routeKey, scaleId: this.scaleId, scaleCalc: this.scaleCalc })
+    },
+    // scale item selected
+    onScaleItem (eId, code) {
+      this.scaleId = -1
+      const n = this.scaleItems.findIndex(e => e.value === eId && !!code && e.name === code)
+      if (n < 0) {
+        this.$q.notify({ type: 'negative', message: this.$t('Invalid (or empty) scale item selected') + ' : ' + (code || '') })
+        return
+      }
+      this.scaleId = eId
+
+      if (this.scaleId >= 0 && this.scaleCalc !== Pcvt.NONE_SCALE) this.doScaleView() // do scale heat map
+      this.dispatchTableView({
+        key: this.routeKey, scaleId: this.scaleId
+      })
+    },
+    // scale calculation selected
+    onScaleCalc (eId, code) {
+      this.scaleCalc = Pcvt.NONE_SCALE
+      const n = this.scaleCalcList.findIndex(e => e.value === eId && !!code && e.code === code)
+      if (n < 0) {
+        this.$q.notify({ type: 'negative', message: this.$t('Invalid (or empty) scale calculation selected') + ' : ' + (code || '') })
+        return
+      }
+      this.scaleCalc = eId
+
+      if (this.scaleId >= 0 && this.scaleCalc !== Pcvt.NONE_SCALE) this.doScaleView() // do scale heat map
+      this.dispatchTableView({
+        key: this.routeKey, scaleCalc: this.scaleCalc
+      })
+    },
+    // do scale heat map
+    doScaleView () {
+      if (!this.isScaleEnabled()) {
+        console.warn('Scale view disabled: attempt to scale is not allowed')
+        return
+      }
+
+      const ni = this.scaleItems.findIndex(e => e.value === this.scaleId)
+      if (ni < 0 || this.scaleId < 0) {
+        this.$q.notify({ type: 'negative', message: this.$t('Invalid (or empty) scale item selected') })
+        return
+      }
+      const nc = this.scaleCalcList.findIndex(e => e.value === this.scaleCalc)
+      if (nc < 0 || this.scaleCalc === Pcvt.NONE_SCALE) {
+        this.$q.notify({ type: 'negative', message: this.$t('Invalid (or empty) scale calculation selected') })
+        return
+      }
+
+      // range count: if calculation zero point is zero then check if measure values are all positive or all negative
+      let nR = Pcvt.N_MIX_RANGE
+
+      if (this.scaleCalc === Pcvt.ZERO_SCALE) {
+        const scAll = this.pvc.reader.scaleReader.getScale()
+        if (scAll?.[this.scaleId]?.color === Pcvt.HOT_RANGE) nR = Pcvt.N_HOT_RANGE
+        if (scAll?.[this.scaleId]?.color === Pcvt.COLD_RANGE) nR = Pcvt.N_COLD_RANGE
+      }
+      this.pvc.reader.scaleReader.setRange(this.scaleId, this.scaleCalc, nR)
+
+      this.ctrl.isPvRangeTickle = !this.ctrl.isPvRangeTickle // refresh table body view
     },
 
     // open value filter dialog
@@ -1304,13 +1367,15 @@ export default {
 
     // store pivot view, reload data and refresh pivot view
     storeViewAndRefreshData () {
-      // set new view kind and  store pivot view
+      // set new view kind and store pivot view
       const vs = Pcvt.pivotStateFromFields(this.rowFields, this.colFields, this.otherFields, this.ctrl.isRowColControls, this.pvc.rowColMode)
       vs.kind = this.ctrl.kind
       vs.calc = this.srcCalc || ''
       vs.pageStart = this.isPages ? this.pageStart : 0
       vs.pageSize = this.isPages ? this.pageSize : 0
       vs.valueFilter = Array.isArray(this.valueFilter) ? this.valueFilter : []
+      vs.scaleId = this.scaleId
+      vs.scaleCalc = this.scaleCalc
 
       this.dispatchTableView({
         key: this.routeKey,
@@ -1401,7 +1466,9 @@ export default {
         kind: this.ctrl.kind || Puih.tkind.EXPR,
         calc: (this.ctrl.kind === Puih.tkind.CALC || this.ctrl.kind === Puih.tkind.CMP) ? (this.srcCalc || '') : '',
         pageStart: this.isPages ? this.pageStart : 0,
-        pageSize: this.isPages ? this.pageSize : 0
+        pageSize: this.isPages ? this.pageSize : 0,
+        scaleId: this.isScaleEnabled() ? this.scaleId : -1,
+        scaleCalc: this.isScaleEnabled() ? this.scaleCalc : Pcvt.NONE_SCALE
       }
 
       // save into indexed db
@@ -1531,6 +1598,13 @@ export default {
       }
       this.isShowPageControls = this.pageSize > 0
 
+      // restore scale view
+      this.scaleId = (typeof dv?.scaleId === typeof 1) ? (dv?.scaleId || 0) : -1
+      this.scaleCalc = (typeof dv?.scaleCalc === typeof 1) ? (dv?.scaleCalc || Pcvt.NONE_SCALE) : Pcvt.NONE_SCALE
+
+      this.setScaleItems()
+      this.setScaleView()
+
       // if is not empty any of selection rows, columns, other dimensions
       // then store pivot view: do insert or replace of the view
       if (Mdf.isLength(rows) || Mdf.isLength(cols) || Mdf.isLength(others)) {
@@ -1540,6 +1614,8 @@ export default {
         vs.pageStart = this.isPages ? this.pageStart : 0
         vs.pageSize = this.isPages ? this.pageSize : 0
         vs.valueFilter = Array.isArray(this.valueFilter) ? this.valueFilter : []
+        vs.scaleId = this.scaleId
+        vs.scaleCalc = this.scaleCalc
 
         this.dispatchTableView({
           key: this.routeKey,
@@ -1614,6 +1690,7 @@ export default {
         this.pageStart = 0
         this.pageSize = 0
       }
+      this.dispatchTableView({ key: this.routeKey, pageSize: size })
       this.doRefreshDataPage()
     },
     onFirstPage () {
@@ -1721,6 +1798,9 @@ export default {
       // drag completed: drop
       this.isDragging = false
 
+      let dName = e?.item?.id || ''
+      if (typeof dName === typeof 'string' && dName.startsWith('item-draggable-')) dName = dName.substring('item-draggable-'.length)
+
       // make sure at least one item selected in each dimension
       // other dimensions: use single-select dropdown
       let isAllAcc = false
@@ -1749,6 +1829,12 @@ export default {
       }
       for (const f of this.dimProp) {
         if (this.isDimKindValid(this.ctrl.kind, f.name)) f.singleSelection = f.selection[0]
+      }
+
+      // if this is measure dimension then set scale items and calculation
+      if (dName === EXPR_DIM_NAME || dName === CALC_DIM_NAME) {
+        this.setScaleItems()
+        this.setScaleView()
       }
 
       // update pivot view:
@@ -1836,6 +1922,12 @@ export default {
       f.selection.sort(
         (left, right) => (left.value === right.value) ? 0 : ((left.value < right.value) ? -1 : 1)
       )
+
+      // if it is measure dimension on other bar then update scale items
+      if (isOther && (this.selectDimName === EXPR_DIM_NAME || this.selectDimName === CALC_DIM_NAME)) {
+        this.setScaleItems()
+        this.setScaleView()
+      }
 
       // update pivot view:
       //   if other dimesions filters same as before then update pivot table view now
@@ -2081,7 +2173,7 @@ export default {
         if (cArr.length <= 0) {
           console.warn('Invalid (empty) list of calculations:', this.srcCalc)
           this.$q.notify({ type: 'negative', message: this.$t('Invalid (empty) list of calculations') + ' ' + (this.srcCalc || '') })
-          return
+          return // exit on error
         }
         layout.Calculation = cArr
       }
@@ -2139,7 +2231,7 @@ export default {
         if (cArr.length <= 0) {
           console.warn('Invalid (empty) list of calculations:', this.srcCalc)
           this.$q.notify({ type: 'negative', message: this.$t('Invalid (empty) list of calculations') + ' ' + (this.srcCalc || '') })
-          return
+          return // exit on error
         }
         layout.Calculation = cArr
 
@@ -2222,6 +2314,11 @@ export default {
 
       this.loadWait = false
       if (isOk) {
+        if (this.scaleId >= 0 && this.scaleCalc !== Pcvt.NONE_SCALE) {
+          this.$nextTick(() => {
+            this.doScaleView() // do scale heat map
+          })
+        }
         this.dispatchTableView({
           key: this.routeKey,
           pageStart: this.isPages ? this.pageStart : 0,

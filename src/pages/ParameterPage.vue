@@ -287,7 +287,7 @@
             <q-item-section avatar>
               <q-icon color="primary" name="mdi-content-save-cog" />
             </q-item-section>
-            <q-item-section>{{ $t('Save table view as default view of') + ' ' + parameterName }}</q-item-section>
+            <q-item-section>{{ $t('Save parameter view as default view of') + ' ' + parameterName }}</q-item-section>
           </q-item>
           <q-item
             @click="onReloadDefaultView"
@@ -297,7 +297,7 @@
             <q-item-section avatar>
               <q-icon color="primary" name="mdi-cog-refresh-outline" />
             </q-item-section>
-            <q-item-section>{{ $t('Reset table view to default and reload') + ' ' + parameterName }}</q-item-section>
+            <q-item-section>{{ $t('Reset parameter view to default and reload') + ' ' + parameterName }}</q-item-section>
           </q-item>
 
         </q-list>

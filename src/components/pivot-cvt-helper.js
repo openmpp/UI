@@ -16,6 +16,38 @@ export const EDIT_ENUM = 3    // select drop-down for enum [id, label] list
 
 export const PV_KEY_ITEM_SEP = String.fromCharCode(1) + '-'
 export const PV_KEY_SCALAR = 'SCALAR_KEY'
+
+// mixed colors cell heat map style, if zero point is in the middle
+export const HeatMixStyle = [
+  'bg-blue-3',
+  'bg-blue-2',
+  'bg-blue-1',
+  '',
+  'bg-red-1',
+  'bg-red-2',
+  'bg-red-3'
+]
+// hot colors cell heat map styles, if all values are positive
+export const HeatHotStyle = [
+  '',
+  'bg-red-1',
+  'bg-red-2',
+  'bg-red-3',
+  'bg-red-4'
+]
+// cold colors cell heat map styles, if all values are negative
+export const HeatColdStyle = [
+  '',
+  'bg-blue-1',
+  'bg-blue-2',
+  'bg-blue-3',
+  'bg-blue-4'
+]
+
+export const N_MIX_RANGE = HeatMixStyle.length
+export const N_HOT_RANGE = HeatHotStyle.length
+export const N_COLD_RANGE = HeatColdStyle.length
+
 /* eslint-enable no-multi-spaces */
 
 // make row, column or body value key as join of row or column dimension items

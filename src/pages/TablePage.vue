@@ -127,6 +127,64 @@
             </q-item-section>
             <q-item-section>{{ $t('Filter by values') + (!!valueFilter.length ? ' [ ' + valueFilter.length.toLocaleString() + ' ]' : '\u2026') }}</q-item-section>
           </q-item>
+          <!-- calculated scale menu -->
+          <q-item
+            :disable="!isScaleEnabled() || isScalar"
+            :clickable="isScaleEnabled() && !isScalar"
+            >
+            <q-item-section avatar>
+              <q-icon color="primary" name="mdi-sun-thermometer" />
+            </q-item-section>
+            <q-item-section>{{ $t('Heat map') }}</q-item-section>
+            <q-item-section side>
+              <q-icon name="mdi-menu-right" />
+            </q-item-section>
+            <q-menu
+              v-if="isScaleEnabled() && !isScalar"
+              anchor="top end"
+              self="top start"
+              >
+              <q-list dense>
+                <q-item
+                  @click="doClearScale()"
+                  :disable="scaleId < 0 && !scaleCalc"
+                  v-close-popup
+                  clickable
+                  >
+                  <q-item-section><span><span class="mono check-menu">&nbsp;</span>{{ $t('Clear') }}</span></q-item-section>
+                </q-item>
+                <q-separator />
+                <q-item
+                  v-for="c in scaleItems"
+                  :key="c.value"
+                  @click="onScaleItem(c.value, c.name)"
+                  clickable
+                  >
+                  <template v-if="scaleId === c.value">
+                    <q-item-section class="text-primary"><span><span class="mono check-menu">&check;</span>{{ $t(c.label) }}</span></q-item-section>
+                  </template>
+                  <template v-else>
+                    <q-item-section><span><span class="mono check-menu">&nbsp;</span>{{ $t(c.label) }}</span></q-item-section>
+                  </template>
+                </q-item>
+                <q-separator />
+                <q-item
+                  v-for="c in scaleCalcList"
+                  :key="c.code"
+                  @click="onScaleCalc(c.value, c.code)"
+                  clickable
+                  >
+                  <template v-if="scaleCalc === c.value">
+                    <q-item-section class="text-primary"><span class="mono"><span class="mono check-menu">&check;</span>{{ $t(c.label) }}</span></q-item-section>
+                  </template>
+                  <template v-else>
+                    <q-item-section><span class="mono"><span class="mono check-menu">&nbsp;</span>{{ $t(c.label) }}</span></q-item-section>
+                  </template>
+                </q-item>
+              </q-list>
+            </q-menu>
+          </q-item>
+          <!-- end of calculated scale menu -->
 
           <q-separator />
 
@@ -436,12 +494,70 @@
       unelevated
       dense
       color="primary"
-      class="col-auto rounded-borders"
+      class="col-auto rounded-borders q-mr-xs"
       :icon="!!valueFilter.length ? 'mdi-filter-outline' : 'mdi-filter'"
       :label="!!valueFilter.length ? '[ ' + valueFilter.length.toLocaleString() + ' ]' : ''"
       :title="$t('Filter by values') + (!!valueFilter.length ? ' [ ' + valueFilter.length.toLocaleString() + ' ]' : '\u2026')"
       :aria-label="$t('Filter by values')"
       />
+    <!-- calculated scale menu -->
+    <q-btn
+      :disable="!isScaleEnabled() || isScalar"
+      unelevated
+      dense
+      color="primary"
+      class="col-auto rounded-borders"
+      icon="mdi-sun-thermometer"
+      :title="$t('Heat map')"
+      :aria-label="$t('Heat map')"
+      >
+      <q-menu>
+        <div class=" q-px-sm q-mt-sm q-mb-none">
+          <q-btn
+          @click="doClearScale()"
+          :disable="scaleId < 0 && !scaleCalc"
+          v-close-popup
+          unelevated
+          :label="$t('Clear')"
+          no-caps
+          color="primary"
+          class="rounded-borders full-width"
+          />
+        </div>
+        <q-list dense>
+          <q-item
+            v-for="c in scaleItems"
+            :key="c.value"
+            @click="onScaleItem(c.value, c.name)"
+            :class="{ 'text-primary' : scaleId === c.value }"
+            clickable
+            >
+            <template v-if="scaleId === c.value">
+              <q-item-section class="text-primary"><span><span class="mono check-menu">&check;</span>{{ $t(c.label) }}</span></q-item-section>
+            </template>
+            <template v-else>
+              <q-item-section><span><span class="mono check-menu">&nbsp;</span>{{ $t(c.label) }}</span></q-item-section>
+            </template>
+          </q-item>
+          <q-separator />
+          <q-item
+            v-for="c in scaleCalcList"
+            :key="c.code"
+            @click="onScaleCalc(c.value, c.code)"
+            :class="{ 'text-primary' : scaleCalc === c.value }"
+            clickable
+            >
+            <template v-if="scaleCalc === c.value">
+              <q-item-section class="text-primary"><span class="mono"><span class="mono check-menu">&check;</span>{{ $t(c.label) }}</span></q-item-section>
+            </template>
+            <template v-else>
+              <q-item-section><span class="mono"><span class="mono check-menu">&nbsp;</span>{{ $t(c.label) }}</span></q-item-section>
+            </template>
+          </q-item>
+        </q-list>
+      </q-menu>
+    </q-btn>
+    <!-- end of calculated scale menu -->
 
     <q-separator vertical inset spaced="sm" color="secondary" />
 
@@ -806,6 +922,7 @@
         :pv-control="pvc"
         :refreshViewTickle="ctrl.isPvTickle"
         :refreshDimsTickle="ctrl.isPvDimsTickle"
+        :refreshRangeTickle="ctrl.isPvRangeTickle"
         @pv-key-pos="onPvKeyPos"
         >
       </pv-table>
@@ -947,6 +1064,10 @@
   }
   .bar-button-off {
     color: $primary;
+  }
+  .check-menu {
+    min-width: 1.125rem;
+    display: inline-block;
   }
 
   .upload-right {
