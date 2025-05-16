@@ -24,7 +24,7 @@ export const dimField = (field, readDim, isOnRow = false, isOnCol = false) => {
     isCol: isOnCol,   // if true then this is column dimension field
     name: field.name, // dimension field name
     //
-    read: readDim,                                      // read field item function to return dimension item from source record
+    read: readDim,                                      // read field item is a function to return dimension item from source record
     filter: (v) => selectedIdsIndex.hasOwnProperty(v),  // return true if field item is selected by dimension filters
     //
     keyPos: 0,                                  // position of field item in body cell key

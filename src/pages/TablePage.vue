@@ -186,6 +186,62 @@
           </q-item>
           <!-- end of calculated scale menu -->
 
+          <q-item
+            @click="onChartToggle()"
+            :disable="isScalar"
+            clickable
+            v-close-popup
+            >
+            <q-item-section avatar>
+              <q-icon color="primary" name="mdi-chart-bar" />
+            </q-item-section>
+            <q-item-section>{{ isShowChart ? $t('Hide chart') : $t('Show chart') }}</q-item-section>
+          </q-item>
+          <q-item
+          :disable="isScalar"
+            @click="showChart('col')"
+            :class="{ 'text-primary' : (isShowChart && chartType === 'col') }"
+            :clickable="!isShowChart && chartType !== 'col'"
+            v-close-popup
+            >
+            <q-item-section avatar><q-icon name="bar_chart" /></q-item-section>
+            <q-item-section>{{ $t('Column chart') }}</q-item-section>
+          </q-item>
+          <q-item
+          :disable="isScalar"
+            @click="showChart('row')"
+            :class="{ 'text-primary' : (isShowChart && chartType === 'row') }"
+            :clickable="!isShowChart && chartType !== 'row'"
+            v-close-popup
+            >
+            <q-item-section avatar><q-icon name="sort" /></q-item-section>
+            <q-item-section>{{ $t('Row chart') }}</q-item-section>
+          </q-item>
+          <q-item
+          :disable="isScalar"
+            @click="showChart('line')"
+            :class="{ 'text-primary' : (isShowChart && chartType === 'line') }"
+            :clickable="!isShowChart && chartType !== 'line'"
+            v-close-popup
+            >
+            <q-item-section avatar><q-icon name="mdi-chart-line" /></q-item-section>
+            <q-item-section>{{ $t('Line chart') }}</q-item-section>
+          </q-item>
+          <q-item
+          :disable="isScalar || !isShowChart"
+            @click="onChartLabelToggle()"
+            clickable
+            >
+            <template v-if="isChartLabels">
+              <q-item-section avatar><q-icon name="mdi-numeric-off" /></q-item-section>
+              <q-item-section class="text-primary">{{ $t('Hide chart values') }}</q-item-section>
+            </template>
+            <template v-else>
+              <q-item-section avatar><q-icon name="mdi-numeric" /></q-item-section>
+              <q-item-section>{{ $t('Show chart values') }}</q-item-section>
+            </template>
+          </q-item>
+
           <q-separator />
 
           <q-item
@@ -506,7 +562,7 @@
       unelevated
       dense
       color="primary"
-      class="col-auto rounded-borders"
+      class="col-auto rounded-borders q-mr-xs"
       icon="mdi-sun-thermometer"
       :title="$t('Heat map')"
       :aria-label="$t('Heat map')"
@@ -558,6 +614,81 @@
       </q-menu>
     </q-btn>
     <!-- end of calculated scale menu -->
+
+    <!-- chart menu -->
+    <q-btn
+      :disable="isScalar"
+      unelevated
+      dense
+      color="primary"
+      class="col-auto rounded-borders"
+      icon="mdi-chart-bar"
+      :title="$t('Chart')"
+      :aria-label="$t('Chart')"
+      >
+      <q-menu>
+
+        <div class=" q-px-sm q-mt-sm q-mb-none">
+          <q-btn
+          :disable="isScalar"
+          @click="onChartToggle()"
+          v-close-popup
+          unelevated
+          :label="isShowChart ? $t('Hide chart') : $t('Show chart')"
+          no-caps
+          color="primary"
+          class="rounded-borders full-width"
+          />
+        </div>
+        <q-list dense>
+          <q-item
+            :disable="isScalar"
+            @click="showChart('col')"
+            :class="{ 'text-primary' : (isShowChart && chartType === 'col') }"
+            :clickable="!isShowChart || chartType !== 'col'"
+            v-close-popup
+            >
+            <q-item-section avatar><q-icon name="bar_chart" /></q-item-section>
+            <q-item-section>{{ $t('Column chart') }}</q-item-section>
+          </q-item>
+          <q-item
+          :disable="isScalar"
+          @click="showChart('row')"
+            :class="{ 'text-primary' : (isShowChart && chartType === 'row') }"
+            :clickable="!isShowChart || chartType !== 'row'"
+            v-close-popup
+            >
+            <q-item-section avatar><q-icon name="sort" /></q-item-section>
+            <q-item-section>{{ $t('Row chart') }}</q-item-section>
+          </q-item>
+          <q-item
+          :disable="isScalar"
+          @click="showChart('line')"
+            :class="{ 'text-primary' : (isShowChart && chartType === 'line') }"
+            :clickable="!isShowChart || chartType !== 'line'"
+            v-close-popup
+            >
+            <q-item-section avatar><q-icon name="mdi-chart-line" /></q-item-section>
+            <q-item-section>{{ $t('Line chart') }}</q-item-section>
+          </q-item>
+          <q-item
+          :disable="isScalar || !isShowChart"
+            @click="onChartLabelToggle()"
+            clickable
+            >
+            <template v-if="isChartLabels">
+              <q-item-section avatar><q-icon name="mdi-numeric-off" /></q-item-section>
+              <q-item-section class="text-primary">{{ $t('Hide chart values') }}</q-item-section>
+            </template>
+            <template v-else>
+              <q-item-section avatar><q-icon name="mdi-numeric" /></q-item-section>
+              <q-item-section>{{ $t('Show chart values') }}</q-item-section>
+            </template>
+          </q-item>
+        </q-list>
+      </q-menu>
+    </q-btn>
+    <!-- end of chart menu -->
 
     <q-separator vertical inset spaced="sm" color="secondary" />
 
@@ -701,6 +832,31 @@
 
   </div>
   <!-- end of output table header -->
+
+  <q-card
+    v-if="isShowChart && chartType === 'col'"
+    class="q-mx-sm q-mb-sm"
+    >
+    <apexchart width="50%" :options="chartOpts" :series="chartSeries"></apexchart>
+  </q-card>
+  <q-card
+    v-if="isShowChart && chartType === 'row'"
+    class="q-mx-sm q-mb-sm"
+    >
+    <apexchart width="50%" :options="chartOpts" :series="chartSeries"></apexchart>
+  </q-card>
+  <q-card
+    v-if="isShowChart && chartType === 'line'"
+    class="q-mx-sm q-mb-sm"
+    >
+    <apexchart width="50%" :options="chartOpts" :series="chartSeries"></apexchart>
+  </q-card>
+  <q-card
+    v-if="isShowChart && (chartType !== 'row' && chartType !== 'col' && chartType !== 'line')"
+    class="q-ma-lg q-pa-lg"
+    >
+    {{ $t('No chart data') }}
+  </q-card>
 
   <!-- pivot table controls and view -->
   <div class="q-mx-sm">

@@ -12,6 +12,7 @@ import ValueFilterDialog from 'components/ValueFilterDialog.vue'
 import { VueDraggableNext } from 'vue-draggable-next'
 import * as Pcvt from 'components/pivot-cvt'
 import * as Puih from './pivot-ui-helper'
+import * as Pchrt from './pivot-ui-chart'
 import PvTable from 'components/PvTable'
 import { openURL } from 'quasar'
 
@@ -21,6 +22,7 @@ const ACC_DIM_NAME = 'ACCUMULATORS_DIM'         // accuimulators measure dimensi
 const ALL_ACC_DIM_NAME = 'ALL_ACCUMULATORS_DIM' // all accuimulators measure dimension name
 const CALC_DIM_NAME = 'CALCULATED_DIM'          // calculated measure dimension name
 const RUN_DIM_NAME = 'RUN_DIM'                  // model run compare dimension name
+
 const SMALL_PAGE_SIZE = 1000                    // small page size: do not show page controls
 const LAST_PAGE_OFFSET = 2 * 1024 * 1024 * 1024 // large page offset to get the last page
 /* eslint-enable no-multi-spaces */
@@ -104,6 +106,13 @@ export default {
       runInfoTickle: false,
       tableInfoTickle: false,
       valueFilterTickle: false,
+
+      isShowChart: false,   // if true then show chart
+      chartType: 'col',     // show column bar chart by default
+      isChartLabels: false, // if true then show chart value labels
+      chartSeries: [],
+      chartOpts: Pchrt.defaultChartOpts(this.chartLocales, this.$t('No chart data')),
+
       aggrCalcList: [{  // aggregation calculations: additional measures as aggregation over accumulators
         code: 'AVG',
         label: 'Average'
@@ -204,6 +213,7 @@ export default {
       await this.setPageView()
       this.doRefreshDataPage()
     },
+
     // initialize current page view on mounted or tab switch
     initView () {
       // check if model run exists and output table is included in model run results
@@ -523,7 +533,7 @@ export default {
         locale: lc,
         nDecimal: maxDec,
         maxDecimal: maxDec,
-        isByKey: (this.ctrl.kind === Puih.tkind.EXPR || this.ctrl.kind === Puih.tkind.CALC),
+        isByKey: (this.ctrl.kind === Puih.tkind.EXPR || this.ctrl.kind === Puih.tkind.CALC || this.ctrl.kind === Puih.tkind.CMP),
         itemsFormat: exprFmt
       })
       this.pvc.dimItemKeys = Pcvt.dimItemKeys(EXPR_DIM_NAME)
@@ -673,6 +683,13 @@ export default {
       this.setScaleItems()
       this.setScaleView()
 
+      // restore chart view
+      this.isShowChart = tv?.isChart === true
+      this.chartType = typeof tv?.chartType === typeof 'string' ? (tv?.chartType || '') : ''
+      this.isChartLabels = tv?.isChartLabels === true
+
+      this.setChartView()
+
       // refresh pivot view: both dimensions labels and table body
       this.ctrl.isPvDimsTickle = !this.ctrl.isPvDimsTickle
       this.ctrl.isPvTickle = !this.ctrl.isPvTickle
@@ -790,6 +807,9 @@ export default {
       vs.valueFilter = Array.isArray(this.valueFilter) ? this.valueFilter : []
       vs.scaleId = this.scaleId
       vs.scaleCalc = this.scaleCalc
+      vs.isChart = false
+      vs.chartType = ''
+      vs.isChartLabels = false
 
       this.dispatchTableView({
         key: this.routeKey,
@@ -801,7 +821,7 @@ export default {
       })
 
       // refresh pivot view: both dimensions labels and table body
-      this.pvc.formatter.byKey(this.ctrl.kind === Puih.tkind.EXPR || this.ctrl.kind === Puih.tkind.CALC)
+      this.pvc.formatter.byKey(this.ctrl.kind === Puih.tkind.EXPR || this.ctrl.kind === Puih.tkind.CALC || this.ctrl.kind === Puih.tkind.CMP)
       this.pvc.dimItemKeys = Pcvt.dimItemKeys(EXPR_DIM_NAME)
 
       this.ctrl.isPvDimsTickle = !this.ctrl.isPvDimsTickle
@@ -1100,20 +1120,6 @@ export default {
           }
         }
       }
-      /*
-      for (const cId in this.ctrl.formatOpts.itemsFormat) {
-        if (cId >= Mdf.CALCULATED_ID_OFFSET && this.ctrl.formatOpts.itemsFormat[cId] !== void 0) {
-          if (src === 'COUNT') {
-            this.ctrl.formatOpts.itemsFormat[cId].nDecimal = 0
-            this.ctrl.formatOpts.itemsFormat[cId].maxDecimal = 0
-          }
-          if (src === 'PERCENT') {
-            this.ctrl.formatOpts.itemsFormat[cId].nDecimal = 2
-            this.ctrl.formatOpts.itemsFormat[cId].maxDecimal = 2
-          }
-        }
-      }
-      */
     },
     // update name and label for calculated items
     setCalcEnumsNameLabel (src, ecLst) {
@@ -1278,6 +1284,184 @@ export default {
       this.ctrl.isPvRangeTickle = !this.ctrl.isPvRangeTickle // refresh table body view
     },
 
+    // show or hide chart
+    onChartToggle () {
+      this.isShowChart = !this.isShowChart
+      if (this.isShowChart) this.setChartView()
+      this.dispatchTableView({ key: this.routeKey, isChart: this.isShowChart })
+    },
+    // show chart
+    showChart (ctype) {
+      this.isShowChart = true
+      this.chartOpts = this.initChartOpts(ctype)
+      this.setChartData()
+    },
+    // set current chart view
+    setChartView () {
+      if (!this.isShowChart) return // chart is hidden
+
+      this.chartOpts = this.initChartOpts()
+      this.setChartData() // update chart data
+    },
+
+    // show or hide chart values label
+    onChartLabelToggle () {
+      if (!this.isShowChart) return // chart is hidden
+
+      this.isChartLabels = !this.isChartLabels
+      this.setChartView()
+      this.dispatchTableView({ key: this.routeKey, isChartLabels: this.isChartLabels })
+    },
+
+    // initial chart view
+    initChartOpts (ctype) {
+      if (ctype) this.chartType = ctype
+      let opts = {}
+
+      switch (this.chartType) {
+        case 'row':
+          opts = Pchrt.rowBarChartOpts(this.chartLocales, this.$t('No chart data'))
+          break
+        case 'line':
+          opts = Pchrt.lineChartOpts(this.chartLocales, this.$t('No chart data'))
+          break
+        case 'col':
+        default:
+          this.chartType = 'col'
+          opts = Pchrt.colBarChartOpts(this.chartLocales, this.$t('No chart data'))
+      }
+      opts.chart.defaultLocale = (this.uiLang === 'fr') ? 'fr' : 'en'
+      opts.dataLabels.enabled = this.isChartLabels
+
+      this.dispatchTableView({
+        key: this.routeKey,
+        isChart: this.isShowChart,
+        chartType: this.chartType,
+        isChartLabels: this.isChartLabels
+      })
+      return opts
+    },
+
+    // update chart data
+    setChartData () {
+      if (!this.isShowChart) return // chart is hidden
+
+      this.chartSeries = []
+
+      if (!Array.isArray(this.colFields) || !Array.isArray(this.rowFields)) return // no data
+
+      const rowKeyLen = this.rowFields.length
+      const colKeyLen = this.colFields.length
+
+      if (rowKeyLen <= 0 || colKeyLen <= 0) return // no data
+
+      // set chart categories: join all columns enums (labels or codes)
+      // set series: join all rows enums (labels or codes)
+      const [clb, cIdx] = Pchrt.makePoints(this.colFields, this.pvc.isShowNames)
+      const [rlb, rIdx] = Pchrt.makePoints(this.rowFields, this.pvc.isShowNames)
+      const nCol = clb.length
+
+      const dat = []
+      for (const lb of rlb) {
+        dat.push({ name: lb, data: Array(nCol).fill(null) })
+      }
+
+      // use format by key for measure value if it is expression, calculation or compare
+      let mName = ''
+
+      if (this.pvc.formatter.options()?.isByKey) {
+        mName = (this.ctrl.kind === Puih.tkind.EXPR)
+          ? EXPR_DIM_NAME
+          : (
+              (this.ctrl.kind === Puih.tkind.CALC || this.ctrl.kind === Puih.tkind.CMP)
+                ? CALC_DIM_NAME
+                : '')
+      }
+      const isFmtKey = mName !== ''
+      const rcFmt = {} // map key created from [row, column] to format key
+
+      const doFormat = (val, co) => {
+        if (val === null || isNaN(val)) return '???'
+        if (!isFmtKey) return this.pvc.formatter.format(val)
+
+        // format by key
+        const rowIdx = co?.seriesIndex
+        const colIdx = co?.dataPointIndex
+        if (typeof rowIdx !== typeof 1 || typeof colIdx !== typeof 1) return this.pvc.formatter.format(val)
+
+        const fmtKey = rcFmt?.[Pcvt.itemsToKey([rowIdx, colIdx])]
+        if (typeof fmtKey === typeof 1) {
+          return this.pvc.formatter.format(val, fmtKey) // format by key
+        }
+        return this.pvc.formatter.format(val)
+      }
+
+      // read input data and set chart values: column => category index, row => series index
+      if (!Array.isArray(this.inpData) || this.inpData.length <= 0) {
+        return // data is empty
+      }
+      const rdr = this.pvc.reader.rowReader(this.inpData)
+      if (!rdr) {
+        console.warn('Unexpected empty row reader, data length:', this.inpData?.length)
+        return // data is empty: unexpected
+      }
+
+      while (true) {
+        const rRow = rdr.readRow()
+        if (!rRow) {
+          break // end of data
+        }
+
+        // read row and column key enum id's
+        const r = Array(rowKeyLen)
+        for (let j = 0; j < rowKeyLen; j++) {
+          const eId = rdr?.readDim?.[this.rowFields[j].name]?.(rRow)
+          r[j] = (typeof eId === typeof 1) ? eId : (void 0)
+        }
+
+        const rk = Pcvt.itemsToKey(r)
+        const ir = (typeof rIdx?.[rk] === typeof 1) ? rIdx?.[rk] : -1
+        if (ir < 0) {
+          continue // row key not found (item enum id not selected)
+        }
+
+        const c = Array(colKeyLen)
+        for (let j = 0; j < colKeyLen; j++) {
+          const eId = rdr?.readDim?.[this.colFields[j].name]?.(rRow)
+          c[j] = (typeof eId === typeof 1) ? eId : (void 0)
+        }
+
+        const ck = Pcvt.itemsToKey(c)
+        const ic = (typeof cIdx?.[ck] === typeof 1) ? cIdx?.[ck] : -1
+        if (ic < 0) {
+          continue // column key not found (item enum id not selected)
+        }
+
+        // read measure dimension enum id
+        // it is safe to read demiension multiple times for expression or calcultion measure
+        if (isFmtKey) {
+          const fmtKey = rdr?.readDim?.[mName]?.(rRow)
+          if (typeof fmtKey === typeof 1) rcFmt[Pcvt.itemsToKey([ir, ic])] = fmtKey // store format key for this [row, column]
+        }
+
+        // extract value(s) from record: must be numeric, use null for chart if not a number
+        let v = rdr.readValue(rRow)
+        if (v === void 0 || isNaN(v)) v = null
+
+        dat[ir].data[ic] = v
+      }
+
+      // update chart properties
+      const opts = this.initChartOpts()
+      opts.dataLabels.formatter = doFormat
+      if (this.chartType === 'col' || this.chartType === 'line') opts.yaxis.labels.formatter = doFormat
+      if (this.chartType === 'row') opts.xaxis.labels.formatter = doFormat
+
+      opts.xaxis.categories = clb
+      this.chartOpts = opts
+      this.chartSeries = dat
+    },
+
     // open value filter dialog
     onValueFilter () {
       // set filter measures from dimension enums: expressions, accumulators, all accumulators or calculated or compare enums
@@ -1376,6 +1560,9 @@ export default {
       vs.valueFilter = Array.isArray(this.valueFilter) ? this.valueFilter : []
       vs.scaleId = this.scaleId
       vs.scaleCalc = this.scaleCalc
+      vs.isChart = this.isShowChart
+      vs.chartType = this.chartType
+      vs.isChartLabels = this.isChartLabels
 
       this.dispatchTableView({
         key: this.routeKey,
@@ -1468,7 +1655,10 @@ export default {
         pageStart: this.isPages ? this.pageStart : 0,
         pageSize: this.isPages ? this.pageSize : 0,
         scaleId: this.isScaleEnabled() ? this.scaleId : -1,
-        scaleCalc: this.isScaleEnabled() ? this.scaleCalc : Pcvt.NONE_SCALE
+        scaleCalc: this.isScaleEnabled() ? this.scaleCalc : Pcvt.NONE_SCALE,
+        isChart: this.isShowChart,
+        chartType: this.chartType,
+        isChartLabels: this.isChartLabels
       }
 
       // save into indexed db
@@ -1605,6 +1795,13 @@ export default {
       this.setScaleItems()
       this.setScaleView()
 
+      // restore chart view
+      this.isShowChart = dv?.isChart === true
+      this.chartType = typeof dv?.chartType === typeof 'string' ? (dv?.chartType || '') : ''
+      this.isChartLabels = dv?.isChartLabels === true
+
+      this.setChartView()
+
       // if is not empty any of selection rows, columns, other dimensions
       // then store pivot view: do insert or replace of the view
       if (Mdf.isLength(rows) || Mdf.isLength(cols) || Mdf.isLength(others)) {
@@ -1616,6 +1813,9 @@ export default {
         vs.valueFilter = Array.isArray(this.valueFilter) ? this.valueFilter : []
         vs.scaleId = this.scaleId
         vs.scaleCalc = this.scaleCalc
+        vs.isChart = this.isShowChart
+        vs.chartType = this.chartType
+        vs.isChartLabels = this.isChartLabels
 
         this.dispatchTableView({
           key: this.routeKey,
@@ -1650,6 +1850,7 @@ export default {
     onShowItemNames () {
       this.pvc.isShowNames = !this.pvc.isShowNames
       this.ctrl.isPvDimsTickle = !this.ctrl.isPvDimsTickle
+      this.setChartData()
     },
     // show more decimals (or more details) in table body
     onShowMoreFormat () {
@@ -1659,6 +1860,7 @@ export default {
       this.ctrl.isLessView = this.pvc.formatter.options().isDoLess
       this.ctrl.isRawView = this.pvc.formatter.options().isRawValue
       this.ctrl.isPvTickle = !this.ctrl.isPvTickle
+      this.setChartData()
     },
     // show less decimals (or less details) in table body
     onShowLessFormat () {
@@ -1668,6 +1870,7 @@ export default {
       this.ctrl.isLessView = this.pvc.formatter.options().isDoLess
       this.ctrl.isRawView = this.pvc.formatter.options().isRawValue
       this.ctrl.isPvTickle = !this.ctrl.isPvTickle
+      this.setChartData()
     },
     // toogle to formatted value or to raw value in table body
     onToggleRawValue () {
@@ -1677,6 +1880,7 @@ export default {
       this.ctrl.isLessView = this.pvc.formatter.options().isDoLess
       this.ctrl.isRawView = this.pvc.formatter.options().isRawValue
       this.ctrl.isPvTickle = !this.ctrl.isPvTickle
+      this.setChartData()
     },
     // copy tab separated values to clipboard: forward actions to pivot table component
     onCopyToClipboard () {
@@ -1846,6 +2050,7 @@ export default {
         if (isAllAcc) {
           this.filterState = Puih.makeFilterState(this.otherFields)
         }
+        this.setChartData()
       } else {
         this.doRefreshDataPage()
       }
@@ -1887,6 +2092,7 @@ export default {
         if (name === ALL_ACC_DIM_NAME) {
           this.filterState = Puih.makeFilterState(this.otherFields)
         }
+        this.setChartData()
       } else {
         this.doRefreshDataPage()
       }
@@ -1937,6 +2143,7 @@ export default {
         if (f.name === ALL_ACC_DIM_NAME) {
           this.filterState = Puih.makeFilterState(this.otherFields)
         }
+        this.setChartData()
       } else {
         this.doRefreshDataPage()
       }
@@ -2003,6 +2210,7 @@ export default {
     // update pivot view after "select all" or "clear all"
     updateSelectOrClearView (name) {
       this.ctrl.isPvTickle = !this.ctrl.isPvTickle
+      this.setChartData()
 
       // update pivot view rows, columns, other dimensions
       this.dispatchTableView({
@@ -2319,6 +2527,8 @@ export default {
             this.doScaleView() // do scale heat map
           })
         }
+        this.setChartData() // update chart
+
         this.dispatchTableView({
           key: this.routeKey,
           pageStart: this.isPages ? this.pageStart : 0,

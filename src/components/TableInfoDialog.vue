@@ -22,7 +22,7 @@
             <td class="om-p-head-left">{{ $t('Size') }}</td>
             <td class="om-p-cell-left mono">{{ tableSize.dimSize }}</td>
           </tr>
-          <tr v-if="tableSize.rank <= 1">
+          <tr v-if="tableSize.rank < 1">
             <td class="om-p-head-left">{{ $t('Rank') }}</td>
             <td class="om-p-cell-left mono">{{ tableSize.rank }}</td>
           </tr>

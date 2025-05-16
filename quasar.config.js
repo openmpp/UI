@@ -27,7 +27,8 @@ module.exports = configure(function (ctx) {
     // https://v2.quasar.dev/quasar-cli-webpack/boot-files
     boot: [
       'i18n',
-      'axios'
+      'axios',
+      'apexcharts'
     ],
 
     // https://v2.quasar.dev/quasar-cli-webpack/quasar-config-js#Property%3A-css
@@ -39,13 +40,10 @@ module.exports = configure(function (ctx) {
     extras: [
       // 'ionicons-v4',
       // 'mdi-v5',
-      // 'fontawesome-v6',
       // 'eva-icons',
       // 'themify',
-      // 'line-awesome',
       // 'roboto-font-latin-ext', // this or either 'roboto-font', NEVER both!
       'mdi-v7',
-      'fontawesome-v6', // for easyMDE only
 
       'roboto-font', // optional, you are not bound to it
       'material-icons' // optional, you are not bound to it

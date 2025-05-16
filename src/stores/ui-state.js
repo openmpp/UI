@@ -352,6 +352,15 @@ export const useUiStateStore = defineStore('ui-state', {
       if (typeof tv?.scaleCalc === typeof 1) {
         this.tableViews[tv.key].view.scaleCalc = tv.scaleCalc
       }
+      if (typeof tv?.isChart === typeof true) {
+        this.tableViews[tv.key].view.isChart = tv.isChart
+      }
+      if (typeof tv?.chartType === typeof 'string') {
+        this.tableViews[tv.key].view.chartType = tv.chartType
+      }
+      if (typeof tv?.isChartLabels === typeof true) {
+        this.tableViews[tv.key].view.isChartLabels = tv.isChartLabels
+      }
     },
 
     // delete table view by route key, if exist (key must be a string)
