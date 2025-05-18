@@ -117,6 +117,7 @@
             </q-menu>
           </q-item>
           <!-- end of calculated measures menu -->
+
           <q-item
             @click="onValueFilter"
             v-close-popup
@@ -127,6 +128,7 @@
             </q-item-section>
             <q-item-section>{{ $t('Filter by values') + (!!valueFilter.length ? ' [ ' + valueFilter.length.toLocaleString() + ' ]' : '\u2026') }}</q-item-section>
           </q-item>
+
           <!-- calculated scale menu -->
           <q-item
             :disable="!isScaleEnabled() || isScalar"
@@ -186,6 +188,9 @@
           </q-item>
           <!-- end of calculated scale menu -->
 
+          <q-separator />
+
+          <!-- chart menu -->
           <q-item
             @click="onChartToggle()"
             :disable="isScalar"
@@ -201,7 +206,7 @@
           :disable="isScalar"
             @click="showChart('col')"
             :class="{ 'text-primary' : (isShowChart && chartType === 'col') }"
-            :clickable="!isShowChart && chartType !== 'col'"
+            :clickable="!isShowChart || chartType !== 'col'"
             v-close-popup
             >
             <q-item-section avatar><q-icon name="bar_chart" /></q-item-section>
@@ -211,7 +216,7 @@
           :disable="isScalar"
             @click="showChart('row')"
             :class="{ 'text-primary' : (isShowChart && chartType === 'row') }"
-            :clickable="!isShowChart && chartType !== 'row'"
+            :clickable="!isShowChart || chartType !== 'row'"
             v-close-popup
             >
             <q-item-section avatar><q-icon name="sort" /></q-item-section>
@@ -221,7 +226,7 @@
           :disable="isScalar"
             @click="showChart('line')"
             :class="{ 'text-primary' : (isShowChart && chartType === 'line') }"
-            :clickable="!isShowChart && chartType !== 'line'"
+            :clickable="!isShowChart || chartType !== 'line'"
             v-close-popup
             >
             <q-item-section avatar><q-icon name="mdi-chart-line" /></q-item-section>
@@ -241,6 +246,24 @@
               <q-item-section>{{ $t('Show chart values') }}</q-item-section>
             </template>
           </q-item>
+          <q-item
+            :disable="isScalar || !isShowChart"
+            >
+            <q-item-section avatar><q-icon name="mdi-resize" /></q-item-section>
+            <q-item-section class="q-pb-lg q-pr-xs q-ma-xs">
+              <q-slider
+                v-model="prctChartSize"
+                :step="10"
+                snap
+                :min="20"
+                :max="100"
+                :label-value="prctChartSize + '%'"
+                label-always
+                switch-label-side
+              />
+            </q-item-section>
+          </q-item>
+          <!-- end of chart menu -->
 
           <q-separator />
 
@@ -685,6 +708,23 @@
               <q-item-section>{{ $t('Show chart values') }}</q-item-section>
             </template>
           </q-item>
+          <q-item
+            :disable="isScalar || !isShowChart"
+            >
+            <q-item-section avatar><q-icon name="mdi-resize" /></q-item-section>
+            <q-item-section class="q-pb-lg q-pr-xs q-ma-xs">
+              <q-slider
+                v-model="prctChartSize"
+                :step="10"
+                snap
+                :min="20"
+                :max="100"
+                :label-value="prctChartSize + '%'"
+                label-always
+                switch-label-side
+              />
+            </q-item-section>
+          </q-item>
         </q-list>
       </q-menu>
     </q-btn>
@@ -837,19 +877,19 @@
     v-if="isShowChart && chartType === 'col'"
     class="q-mx-sm q-mb-sm"
     >
-    <apexchart width="50%" :options="chartOpts" :series="chartSeries"></apexchart>
+    <apexchart :width="chartWidth" :options="chartOpts" :series="chartSeries"></apexchart>
   </q-card>
   <q-card
     v-if="isShowChart && chartType === 'row'"
     class="q-mx-sm q-mb-sm"
     >
-    <apexchart width="50%" :options="chartOpts" :series="chartSeries"></apexchart>
+    <apexchart :width="chartWidth" :options="chartOpts" :series="chartSeries"></apexchart>
   </q-card>
   <q-card
     v-if="isShowChart && chartType === 'line'"
     class="q-mx-sm q-mb-sm"
     >
-    <apexchart width="50%" :options="chartOpts" :series="chartSeries"></apexchart>
+    <apexchart :width="chartWidth" :options="chartOpts" :series="chartSeries"></apexchart>
   </q-card>
   <q-card
     v-if="isShowChart && (chartType !== 'row' && chartType !== 'col' && chartType !== 'line')"

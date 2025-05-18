@@ -25,6 +25,9 @@ const RUN_DIM_NAME = 'RUN_DIM'                  // model run compare dimension n
 
 const SMALL_PAGE_SIZE = 1000                    // small page size: do not show page controls
 const LAST_PAGE_OFFSET = 2 * 1024 * 1024 * 1024 // large page offset to get the last page
+
+const DEFAULT_CHART_WIDTH = 50                  // chart size percentage: 50 means 50% of page width
+
 /* eslint-enable no-multi-spaces */
 
 export default {
@@ -108,8 +111,9 @@ export default {
       valueFilterTickle: false,
 
       isShowChart: false,   // if true then show chart
-      chartType: 'col',     // show column bar chart by default
-      isChartLabels: false, // if true then show chart value labels
+      chartType: 'col',                   // show column bar chart by default
+      isChartLabels: false,               // if true then show chart value labels
+      prctChartSize: DEFAULT_CHART_WIDTH, // chart size percentage: 50 means 50% of page width
       chartSeries: [],
       chartOpts: Pchrt.defaultChartOpts(this.chartLocales, this.$t('No chart data')),
 
@@ -175,6 +179,9 @@ export default {
       const mv = this?.modelViewSelected(this.digest)
       return !!mv && Array.isArray(mv?.digestCompareList) && mv.digestCompareList.length > 0
     },
+    chartWidth () { // chart width, us automatic height
+      return (!this.prctChartSize || this.prctChartSize <= 0) ? '50%' : this.prctChartSize.toString() + '%'
+    },
 
     ...mapState(useModelStore, [
       'theModel',
@@ -192,7 +199,8 @@ export default {
 
   watch: {
     routeKey () { this.doRefresh() },
-    refreshTickle () { this.doRefresh() }
+    refreshTickle () { this.doRefresh() },
+    prctChartSize () { this.dispatchTableView({ key: this.routeKey, prctChartSize: this.prctChartSize }) }
   },
 
   emits: ['table-view-saved', 'tab-mounted'],
@@ -686,6 +694,7 @@ export default {
       // restore chart view
       this.isShowChart = tv?.isChart === true
       this.chartType = typeof tv?.chartType === typeof 'string' ? (tv?.chartType || '') : ''
+      this.prctChartSize = (typeof tv?.prctChartSize === typeof 1 && tv?.prctChartSize > 0) ? tv.prctChartSize : DEFAULT_CHART_WIDTH
       this.isChartLabels = tv?.isChartLabels === true
 
       this.setChartView()
@@ -809,6 +818,7 @@ export default {
       vs.scaleCalc = this.scaleCalc
       vs.isChart = false
       vs.chartType = ''
+      vs.prctChartSize = this.prctChartSize
       vs.isChartLabels = false
 
       this.dispatchTableView({
@@ -1337,6 +1347,7 @@ export default {
         key: this.routeKey,
         isChart: this.isShowChart,
         chartType: this.chartType,
+        prctChartSize: this.prctChartSize,
         isChartLabels: this.isChartLabels
       })
       return opts
@@ -1562,6 +1573,7 @@ export default {
       vs.scaleCalc = this.scaleCalc
       vs.isChart = this.isShowChart
       vs.chartType = this.chartType
+      vs.prctChartSize = this.prctChartSize
       vs.isChartLabels = this.isChartLabels
 
       this.dispatchTableView({
@@ -1658,6 +1670,7 @@ export default {
         scaleCalc: this.isScaleEnabled() ? this.scaleCalc : Pcvt.NONE_SCALE,
         isChart: this.isShowChart,
         chartType: this.chartType,
+        prctChartSize: this.prctChartSize,
         isChartLabels: this.isChartLabels
       }
 
@@ -1798,6 +1811,7 @@ export default {
       // restore chart view
       this.isShowChart = dv?.isChart === true
       this.chartType = typeof dv?.chartType === typeof 'string' ? (dv?.chartType || '') : ''
+      this.prctChartSize = (typeof dv?.prctChartSize === typeof 1 && dv?.prctChartSize > 0) ? dv.prctChartSize : DEFAULT_CHART_WIDTH
       this.isChartLabels = dv?.isChartLabels === true
 
       this.setChartView()
@@ -1815,6 +1829,7 @@ export default {
         vs.scaleCalc = this.scaleCalc
         vs.isChart = this.isShowChart
         vs.chartType = this.chartType
+        vs.prctChartSize = this.prctChartSize
         vs.isChartLabels = this.isChartLabels
 
         this.dispatchTableView({

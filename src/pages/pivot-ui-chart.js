@@ -6,6 +6,7 @@ import * as Pcvt from 'components/pivot-cvt'
 export const defaultChartOpts = (chartLocales, noDataTxt) => { return colBarChartOpts(chartLocales, noDataTxt) }
 
 const defaultFormatter = (val) => { return (val === null || isNaN(val)) ? '???' : val }
+
 // columns chart options
 export const colBarChartOpts = (chartLocales, noDataTxt) => {
   const cOpts = {

@@ -358,6 +358,9 @@ export const useUiStateStore = defineStore('ui-state', {
       if (typeof tv?.chartType === typeof 'string') {
         this.tableViews[tv.key].view.chartType = tv.chartType
       }
+      if (typeof tv?.prctChartSize === typeof 1) {
+        this.tableViews[tv.key].view.prctChartSize = tv.prctChartSize
+      }
       if (typeof tv?.isChartLabels === typeof true) {
         this.tableViews[tv.key].view.isChartLabels = tv.isChartLabels
       }
