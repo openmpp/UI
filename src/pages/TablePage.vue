@@ -203,7 +203,7 @@
             <q-item-section>{{ isShowChart ? $t('Hide chart') : $t('Show chart') }}</q-item-section>
           </q-item>
           <q-item
-          :disable="isScalar"
+            :disable="isScalar"
             @click="showChart('col')"
             :class="{ 'text-primary' : (isShowChart && chartType === 'col') }"
             :clickable="!isShowChart || chartType !== 'col'"
@@ -213,14 +213,54 @@
             <q-item-section>{{ $t('Column chart') }}</q-item-section>
           </q-item>
           <q-item
+            :disable="isScalar"
+            @click="showChart('col-stack')"
+            :class="{ 'text-primary' : (isShowChart && chartType === 'col-stack') }"
+            :clickable="!isShowChart || chartType !== 'col-stack'"
+            v-close-popup
+            >
+            <q-item-section avatar><q-icon name="stacked_bar_chart" /></q-item-section>
+            <q-item-section>{{ $t('Column stacked') }}</q-item-section>
+          </q-item>
+          <q-item
+            :disable="isScalar"
+            @click="showChart('col-100')"
+            :class="{ 'text-primary' : (isShowChart && chartType === 'col-100') }"
+            :clickable="!isShowChart || chartType !== 'col-100'"
+            v-close-popup
+            >
+            <q-item-section avatar><q-icon name="stacked_bar_chart" /></q-item-section>
+            <q-item-section>{{ $t('Column stacked 100%') }}</q-item-section>
+          </q-item>
+          <q-item
           :disable="isScalar"
-            @click="showChart('row')"
+          @click="showChart('row')"
             :class="{ 'text-primary' : (isShowChart && chartType === 'row') }"
             :clickable="!isShowChart || chartType !== 'row'"
             v-close-popup
             >
-            <q-item-section avatar><q-icon name="sort" /></q-item-section>
+            <q-item-section avatar><q-icon name="bar_chart" style="rotate: 90deg;" /></q-item-section>
             <q-item-section>{{ $t('Row chart') }}</q-item-section>
+          </q-item>
+          <q-item
+          :disable="isScalar"
+          @click="showChart('row-stack')"
+            :class="{ 'text-primary' : (isShowChart && chartType === 'row-stack') }"
+            :clickable="!isShowChart || chartType !== 'row-stack'"
+            v-close-popup
+            >
+            <q-item-section avatar><q-icon name="stacked_bar_chart" style="rotate: 90deg;" /></q-item-section>
+            <q-item-section>{{ $t('Row stacked') }}</q-item-section>
+          </q-item>
+          <q-item
+          :disable="isScalar"
+          @click="showChart('row-100')"
+            :class="{ 'text-primary' : (isShowChart && chartType === 'row-100') }"
+            :clickable="!isShowChart || chartType !== 'row-100'"
+            v-close-popup
+            >
+            <q-item-section avatar><q-icon name="stacked_bar_chart" style="rotate: 90deg;" /></q-item-section>
+            <q-item-section>{{ $t('Row stacked 100%') }}</q-item-section>
           </q-item>
           <q-item
           :disable="isScalar"
@@ -231,6 +271,26 @@
             >
             <q-item-section avatar><q-icon name="mdi-chart-line" /></q-item-section>
             <q-item-section>{{ $t('Line chart') }}</q-item-section>
+          </q-item>
+          <q-item
+          :disable="isScalar"
+          @click="showChart('spline')"
+            :class="{ 'text-primary' : (isShowChart && chartType === 'spline') }"
+            :clickable="!isShowChart || chartType !== 'spline'"
+            v-close-popup
+            >
+            <q-item-section avatar><q-icon name="mdi-chart-bell-curve" /></q-item-section>
+            <q-item-section>{{ $t('Spline chart') }}</q-item-section>
+          </q-item>
+          <q-item
+          :disable="isScalar"
+          @click="showChart('cubic')"
+            :class="{ 'text-primary' : (isShowChart && chartType === 'cubic') }"
+            :clickable="!isShowChart || chartType !== 'cubic'"
+            v-close-popup
+            >
+            <q-item-section avatar><q-icon name="wifi_channel" /></q-item-section>
+            <q-item-section>{{ $t('Cubic spline') }}</q-item-section>
           </q-item>
           <q-item
           :disable="isScalar || !isShowChart"
@@ -675,14 +735,54 @@
             <q-item-section>{{ $t('Column chart') }}</q-item-section>
           </q-item>
           <q-item
+            :disable="isScalar"
+            @click="showChart('col-stack')"
+            :class="{ 'text-primary' : (isShowChart && chartType === 'col-stack') }"
+            :clickable="!isShowChart || chartType !== 'col-stack'"
+            v-close-popup
+            >
+            <q-item-section avatar><q-icon name="stacked_bar_chart" /></q-item-section>
+            <q-item-section>{{ $t('Column stacked') }}</q-item-section>
+          </q-item>
+          <q-item
+            :disable="isScalar"
+            @click="showChart('col-100')"
+            :class="{ 'text-primary' : (isShowChart && chartType === 'col-100') }"
+            :clickable="!isShowChart || chartType !== 'col-100'"
+            v-close-popup
+            >
+            <q-item-section avatar><q-icon name="stacked_bar_chart" /></q-item-section>
+            <q-item-section>{{ $t('Column stacked 100%') }}</q-item-section>
+          </q-item>
+          <q-item
           :disable="isScalar"
           @click="showChart('row')"
             :class="{ 'text-primary' : (isShowChart && chartType === 'row') }"
             :clickable="!isShowChart || chartType !== 'row'"
             v-close-popup
             >
-            <q-item-section avatar><q-icon name="sort" /></q-item-section>
+            <q-item-section avatar><q-icon name="bar_chart" style="rotate: 90deg;" /></q-item-section>
             <q-item-section>{{ $t('Row chart') }}</q-item-section>
+          </q-item>
+          <q-item
+          :disable="isScalar"
+          @click="showChart('row-stack')"
+            :class="{ 'text-primary' : (isShowChart && chartType === 'row-stack') }"
+            :clickable="!isShowChart || chartType !== 'row-stack'"
+            v-close-popup
+            >
+            <q-item-section avatar><q-icon name="stacked_bar_chart" style="rotate: 90deg;" /></q-item-section>
+            <q-item-section>{{ $t('Row stacked') }}</q-item-section>
+          </q-item>
+          <q-item
+          :disable="isScalar"
+          @click="showChart('row-100')"
+            :class="{ 'text-primary' : (isShowChart && chartType === 'row-100') }"
+            :clickable="!isShowChart || chartType !== 'row-100'"
+            v-close-popup
+            >
+            <q-item-section avatar><q-icon name="stacked_bar_chart" style="rotate: 90deg;" /></q-item-section>
+            <q-item-section>{{ $t('Row stacked 100%') }}</q-item-section>
           </q-item>
           <q-item
           :disable="isScalar"
@@ -693,6 +793,26 @@
             >
             <q-item-section avatar><q-icon name="mdi-chart-line" /></q-item-section>
             <q-item-section>{{ $t('Line chart') }}</q-item-section>
+          </q-item>
+          <q-item
+          :disable="isScalar"
+          @click="showChart('spline')"
+            :class="{ 'text-primary' : (isShowChart && chartType === 'spline') }"
+            :clickable="!isShowChart || chartType !== 'spline'"
+            v-close-popup
+            >
+            <q-item-section avatar><q-icon name="mdi-chart-bell-curve" /></q-item-section>
+            <q-item-section>{{ $t('Spline chart') }}</q-item-section>
+          </q-item>
+          <q-item
+          :disable="isScalar"
+          @click="showChart('cubic')"
+            :class="{ 'text-primary' : (isShowChart && chartType === 'cubic') }"
+            :clickable="!isShowChart || chartType !== 'cubic'"
+            v-close-popup
+            >
+            <q-item-section avatar><q-icon name="wifi_channel" /></q-item-section>
+            <q-item-section>{{ $t('Cubic spline') }}</q-item-section>
           </q-item>
           <q-item
           :disable="isScalar || !isShowChart"
@@ -873,26 +993,35 @@
   </div>
   <!-- end of output table header -->
 
-  <q-card
-    v-if="isShowChart && chartType === 'col'"
-    class="q-mx-sm q-mb-sm"
-    >
+  <q-card v-if="isShowChart && chartType === 'col'" class="q-mx-sm q-mb-sm">
+    <apexchart :width="chartWidth" :options="chartOpts" :series="chartSeries"></apexchart>
+  </q-card>
+  <q-card v-if="isShowChart && chartType === 'col-stack'" class="q-mx-sm q-mb-sm">
+    <apexchart :width="chartWidth" :options="chartOpts" :series="chartSeries"></apexchart>
+  </q-card>
+  <q-card v-if="isShowChart && chartType === 'col-100'" class="q-mx-sm q-mb-sm">
+    <apexchart :width="chartWidth" :options="chartOpts" :series="chartSeries"></apexchart>
+  </q-card>
+  <q-card v-if="isShowChart && chartType === 'row'" class="q-mx-sm q-mb-sm">
+    <apexchart :width="chartWidth" :options="chartOpts" :series="chartSeries"></apexchart>
+  </q-card>
+  <q-card v-if="isShowChart && chartType === 'row-stack'" class="q-mx-sm q-mb-sm">
+    <apexchart :width="chartWidth" :options="chartOpts" :series="chartSeries"></apexchart>
+  </q-card>
+  <q-card v-if="isShowChart && chartType === 'row-100'" class="q-mx-sm q-mb-sm">
+    <apexchart :width="chartWidth" :options="chartOpts" :series="chartSeries"></apexchart>
+  </q-card>
+  <q-card v-if="isShowChart && chartType === 'line'" class="q-mx-sm q-mb-sm">
+    <apexchart :width="chartWidth" :options="chartOpts" :series="chartSeries"></apexchart>
+  </q-card>
+  <q-card v-if="isShowChart && chartType === 'spline'" class="q-mx-sm q-mb-sm">
+    <apexchart :width="chartWidth" :options="chartOpts" :series="chartSeries"></apexchart>
+  </q-card>
+  <q-card v-if="isShowChart && chartType === 'cubic'" class="q-mx-sm q-mb-sm">
     <apexchart :width="chartWidth" :options="chartOpts" :series="chartSeries"></apexchart>
   </q-card>
   <q-card
-    v-if="isShowChart && chartType === 'row'"
-    class="q-mx-sm q-mb-sm"
-    >
-    <apexchart :width="chartWidth" :options="chartOpts" :series="chartSeries"></apexchart>
-  </q-card>
-  <q-card
-    v-if="isShowChart && chartType === 'line'"
-    class="q-mx-sm q-mb-sm"
-    >
-    <apexchart :width="chartWidth" :options="chartOpts" :series="chartSeries"></apexchart>
-  </q-card>
-  <q-card
-    v-if="isShowChart && (chartType !== 'row' && chartType !== 'col' && chartType !== 'line')"
+    v-if="isShowChart && (['row', 'row-stack', 'row-100', 'col', 'col-stack', 'col-100', 'line', 'spline', 'cubic'].indexOf(chartType) < 0)"
     class="q-ma-lg q-pa-lg"
     >
     {{ $t('No chart data') }}

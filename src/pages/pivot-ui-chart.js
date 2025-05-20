@@ -8,11 +8,13 @@ export const defaultChartOpts = (chartLocales, noDataTxt) => { return colBarChar
 const defaultFormatter = (val) => { return (val === null || isNaN(val)) ? '???' : val }
 
 // columns chart options
-export const colBarChartOpts = (chartLocales, noDataTxt) => {
+export const colBarChartOpts = (kind, chartLocales, noDataTxt) => {
   const cOpts = {
     chart: {
       id: 'om-table-col-chart',
       type: 'bar',
+      stacked: false,
+      stackType: 'normal',
       defaultLocale: 'en',
       fontFamily: 'Roboto, -apple-system, Helvetica Neue, Helvetica, Arial, sans-serif'
     },
@@ -43,15 +45,27 @@ export const colBarChartOpts = (chartLocales, noDataTxt) => {
   }
   if (chartLocales) cOpts.chart.locales = chartLocales
 
+  if (kind === 'stack') {
+    cOpts.chart.stacked = true
+    cOpts.chart.id = 'om-table-col-stacked-chart'
+  }
+  if (kind === '100') {
+    cOpts.chart.stacked = true
+    cOpts.chart.stackType = '100%'
+    cOpts.chart.id = 'om-table-col-stacked-100-chart'
+  }
+
   return cOpts
 }
 
 // rows chart options
-export const rowBarChartOpts = (chartLocales, noDataTxt) => {
+export const rowBarChartOpts = (kind, chartLocales, noDataTxt) => {
   const cOpts = {
     chart: {
       id: 'om-table-row-chart',
       type: 'bar',
+      stacked: false,
+      stackType: 'normal',
       defaultLocale: 'en',
       fontFamily: 'Roboto, -apple-system, Helvetica Neue, Helvetica, Arial, sans-serif'
     },
@@ -69,6 +83,8 @@ export const rowBarChartOpts = (chartLocales, noDataTxt) => {
       offsetX: 16,
       formatter: defaultFormatter
     },
+    noData: { text: noDataTxt || 'No chart data' },
+
     yaxis: {
       labels: { show: true }
     },
@@ -78,14 +94,23 @@ export const rowBarChartOpts = (chartLocales, noDataTxt) => {
       labels: { formatter: defaultFormatter }
     }
   }
-
   if (chartLocales) cOpts.chart.locales = chartLocales
+
+  if (kind === 'stack') {
+    cOpts.chart.stacked = true
+    cOpts.chart.id = 'om-table-row-stacked-chart'
+  }
+  if (kind === '100') {
+    cOpts.chart.stacked = true
+    cOpts.chart.stackType = '100%'
+    cOpts.chart.id = 'om-table-row-stacked-100-chart'
+  }
 
   return cOpts
 }
 
 // line chart options
-export const lineChartOpts = (chartLocales, noDataTxt) => {
+export const lineChartOpts = (kind, chartLocales, noDataTxt) => {
   const cOpts = {
     chart: {
       id: 'om-table-line-chart',
@@ -93,6 +118,9 @@ export const lineChartOpts = (chartLocales, noDataTxt) => {
       defaultLocale: 'en',
       fontFamily: 'Roboto, -apple-system, Helvetica Neue, Helvetica, Arial, sans-serif'
     },
+
+    stroke: { curve: 'straight' },
+
     dataLabels: {
       enabled: false,
       formatter: defaultFormatter
@@ -107,8 +135,16 @@ export const lineChartOpts = (chartLocales, noDataTxt) => {
 
     yaxis: { labels: { formatter: defaultFormatter } }
   }
-
   if (chartLocales) cOpts.chart.locales = chartLocales
+
+  if (kind === 'spline') {
+    cOpts.stroke.curve = 'smooth'
+    cOpts.chart.id = 'om-table-spline-chart'
+  }
+  if (kind === 'cubic') {
+    cOpts.stroke.curve = 'monotoneCubic'
+    cOpts.chart.id = 'om-table-cubic-chart'
+  }
 
   return cOpts
 }

@@ -1330,15 +1330,35 @@ export default {
 
       switch (this.chartType) {
         case 'row':
-          opts = Pchrt.rowBarChartOpts(this.chartLocales, this.$t('No chart data'))
+          opts = Pchrt.rowBarChartOpts('', this.chartLocales, this.$t('No chart data'))
+          break
+        case 'row-stack':
+          opts = Pchrt.rowBarChartOpts('stack', this.chartLocales, this.$t('No chart data'))
+          break
+        case 'row-100':
+          opts = Pchrt.rowBarChartOpts('100', this.chartLocales, this.$t('No chart data'))
           break
         case 'line':
-          opts = Pchrt.lineChartOpts(this.chartLocales, this.$t('No chart data'))
+          opts = Pchrt.lineChartOpts('', this.chartLocales, this.$t('No chart data'))
+          break
+        case 'spline':
+          opts = Pchrt.lineChartOpts('spline', this.chartLocales, this.$t('No chart data'))
+          break
+        case 'cubic':
+          opts = Pchrt.lineChartOpts('cubic', this.chartLocales, this.$t('No chart data'))
           break
         case 'col':
+          opts = Pchrt.colBarChartOpts('', this.chartLocales, this.$t('No chart data'))
+          break
+        case 'col-stack':
+          opts = Pchrt.colBarChartOpts('stack', this.chartLocales, this.$t('No chart data'))
+          break
+        case 'col-100':
+          opts = Pchrt.colBarChartOpts('100', this.chartLocales, this.$t('No chart data'))
+          break
         default:
           this.chartType = 'col'
-          opts = Pchrt.colBarChartOpts(this.chartLocales, this.$t('No chart data'))
+          opts = Pchrt.colBarChartOpts('', this.chartLocales, this.$t('No chart data'))
       }
       opts.chart.defaultLocale = (this.uiLang === 'fr') ? 'fr' : 'en'
       opts.dataLabels.enabled = this.isChartLabels
@@ -1464,9 +1484,10 @@ export default {
 
       // update chart properties
       const opts = this.initChartOpts()
+
       opts.dataLabels.formatter = doFormat
-      if (this.chartType === 'col' || this.chartType === 'line') opts.yaxis.labels.formatter = doFormat
-      if (this.chartType === 'row') opts.xaxis.labels.formatter = doFormat
+      if (['col', 'col-stack', 'col-100', 'line', 'spline', 'cubic'].indexOf(this.chartType) >= 0) opts.yaxis.labels.formatter = doFormat
+      if (['row', 'row-stack', 'row-100'].indexOf(this.chartType) >= 0) opts.xaxis.labels.formatter = doFormat
 
       opts.xaxis.categories = clb
       this.chartOpts = opts
