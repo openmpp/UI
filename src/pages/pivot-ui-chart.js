@@ -6,6 +6,7 @@ import * as Pcvt from 'components/pivot-cvt'
 export const defaultChartOpts = (chartLocales, noDataTxt) => { return colBarChartOpts(chartLocales, noDataTxt) }
 
 const defaultFormatter = (val) => { return (val === null || isNaN(val)) ? '???' : val }
+export const percentFormatter = (val) => { return (val === null || isNaN(val)) ? '???' : (val.toFixed(0) + '%') }
 
 // columns chart options
 export const colBarChartOpts = (kind, chartLocales, noDataTxt) => {
@@ -144,6 +145,36 @@ export const lineChartOpts = (kind, chartLocales, noDataTxt) => {
   if (kind === 'cubic') {
     cOpts.stroke.curve = 'monotoneCubic'
     cOpts.chart.id = 'om-table-cubic-chart'
+  }
+
+  return cOpts
+}
+
+// pie or donut chart options
+export const pieBarChartOpts = (kind, chartLocales, noDataTxt) => {
+  const cOpts = {
+    chart: {
+      id: 'om-table-pie-chart',
+      type: 'pie',
+      defaultLocale: 'en',
+      fontFamily: 'Roboto, -apple-system, Helvetica Neue, Helvetica, Arial, sans-serif'
+    },
+    dataLabels: {
+      enabled: false,
+      style: { colors: ['black'] },
+      formatter: percentFormatter
+    },
+    noData: { text: noDataTxt || 'No chart data' },
+
+    yaxis: { labels: { formatter: defaultFormatter } },
+
+    labels: [] // labels of pie slices
+  }
+  if (chartLocales) cOpts.chart.locales = chartLocales
+
+  if (kind === 'donut') {
+    cOpts.chart.type = 'donut'
+    cOpts.chart.id = 'om-table-donut-chart'
   }
 
   return cOpts

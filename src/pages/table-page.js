@@ -1356,6 +1356,12 @@ export default {
         case 'col-100':
           opts = Pchrt.colBarChartOpts('100', this.chartLocales, this.$t('No chart data'))
           break
+        case 'pie':
+          opts = Pchrt.pieBarChartOpts('', this.chartLocales, this.$t('No chart data'))
+          break
+        case 'donut':
+          opts = Pchrt.pieBarChartOpts('donut', this.chartLocales, this.$t('No chart data'))
+          break
         default:
           this.chartType = 'col'
           opts = Pchrt.colBarChartOpts('', this.chartLocales, this.$t('No chart data'))
@@ -1475,23 +1481,48 @@ export default {
           if (typeof fmtKey === typeof 1) rcFmt[Pcvt.itemsToKey([ir, ic])] = fmtKey // store format key for this [row, column]
         }
 
-        // extract value(s) from record: must be numeric, use null for chart if not a number
+        // extract value(s) from record: must be numeric, use null for chart if not a number, use '' for pie chart
         let v = rdr.readValue(rRow)
-        if (v === void 0 || isNaN(v)) v = null
-
+        if (v === void 0 || isNaN(v)) v = (this.chartType !== 'pie' && this.chartType !== 'donut') ? null : ''
         dat[ir].data[ic] = v
       }
 
-      // update chart properties
+      // update chart properties, set labels and chart data
       const opts = this.initChartOpts()
 
-      opts.dataLabels.formatter = doFormat
-      if (['col', 'col-stack', 'col-100', 'line', 'spline', 'cubic'].indexOf(this.chartType) >= 0) opts.yaxis.labels.formatter = doFormat
-      if (['row', 'row-stack', 'row-100'].indexOf(this.chartType) >= 0) opts.xaxis.labels.formatter = doFormat
+      if (this.chartType !== 'pie' && this.chartType !== 'donut') {
+        //
+        //  chart labels: xaxis.categories[column]
+        //  chart data:   series [row] { name: 'series name', data: double[column] }
+        //
 
-      opts.xaxis.categories = clb
-      this.chartOpts = opts
+        if (this.chartType === 'col-100') {
+          opts.yaxis.labels.formatter = doFormat
+          opts.dataLabels.formatter = Pchrt.percentFormatter
+        }
+        if (this.chartType === 'row-100') {
+          opts.xaxis.labels.formatter = doFormat
+          opts.dataLabels.formatter = Pchrt.percentFormatter
+        }
+        if (['col', 'col-stack', 'line', 'spline', 'cubic'].indexOf(this.chartType) >= 0) {
+          opts.yaxis.labels.formatter = doFormat
+          opts.dataLabels.formatter = doFormat
+        }
+        if (['row', 'row-stack'].indexOf(this.chartType) >= 0) {
+          opts.xaxis.labels.formatter = doFormat
+          opts.dataLabels.formatter = doFormat
+        }
+        opts.xaxis.categories = clb
+        //
+      } else {
+        //
+        // pie and donut chart: labels[column]  series: double[column]
+        //
+        opts.yaxis.labels.formatter = doFormat
+        opts.labels = clb
+      }
       this.chartSeries = dat
+      this.chartOpts = opts
     },
 
     // open value filter dialog

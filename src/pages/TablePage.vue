@@ -293,6 +293,26 @@
             <q-item-section>{{ $t('Cubic spline') }}</q-item-section>
           </q-item>
           <q-item
+          :disable="isScalar"
+          @click="showChart('pie')"
+            :class="{ 'text-primary' : (isShowChart && chartType === 'pie') }"
+            :clickable="!isShowChart || chartType !== 'pie'"
+            v-close-popup
+            >
+            <q-item-section avatar><q-icon name="pie_chart" /></q-item-section>
+            <q-item-section>{{ $t('Pie chart') }}</q-item-section>
+          </q-item>
+          <q-item
+          :disable="isScalar"
+          @click="showChart('donut')"
+            :class="{ 'text-primary' : (isShowChart && chartType === 'donut') }"
+            :clickable="!isShowChart || chartType !== 'donut'"
+            v-close-popup
+            >
+            <q-item-section avatar><q-icon name="mdi-chart-donut" /></q-item-section>
+            <q-item-section>{{ $t('Donut chart') }}</q-item-section>
+          </q-item>
+          <q-item
           :disable="isScalar || !isShowChart"
             @click="onChartLabelToggle()"
             clickable
@@ -815,6 +835,26 @@
             <q-item-section>{{ $t('Cubic spline') }}</q-item-section>
           </q-item>
           <q-item
+          :disable="isScalar"
+          @click="showChart('pie')"
+            :class="{ 'text-primary' : (isShowChart && chartType === 'pie') }"
+            :clickable="!isShowChart || chartType !== 'pie'"
+            v-close-popup
+            >
+            <q-item-section avatar><q-icon name="pie_chart" /></q-item-section>
+            <q-item-section>{{ $t('Pie chart') }}</q-item-section>
+          </q-item>
+          <q-item
+          :disable="isScalar"
+          @click="showChart('donut')"
+            :class="{ 'text-primary' : (isShowChart && chartType === 'donut') }"
+            :clickable="!isShowChart || chartType !== 'donut'"
+            v-close-popup
+            >
+            <q-item-section avatar><q-icon name="mdi-chart-donut" /></q-item-section>
+            <q-item-section>{{ $t('Donut chart') }}</q-item-section>
+          </q-item>
+          <q-item
           :disable="isScalar || !isShowChart"
             @click="onChartLabelToggle()"
             clickable
@@ -1020,8 +1060,29 @@
   <q-card v-if="isShowChart && chartType === 'cubic'" class="q-mx-sm q-mb-sm">
     <apexchart :width="chartWidth" :options="chartOpts" :series="chartSeries"></apexchart>
   </q-card>
+
+  <template v-if="isShowChart && chartType === 'pie'">
+    <q-card v-for="(d, k) of chartSeries" :key="(d.name || '') + '-pie-n-' + k.toString()" class="q-mx-sm q-mb-sm">
+      <apexchart
+        :width="chartWidth"
+        :series="d.data"
+        :options="{...chartOpts, ...{ title: { text: d.name } } }">
+      </apexchart>
+    </q-card>
+  </template>
+
+  <template v-if="isShowChart &&  chartType === 'donut'">
+    <q-card v-for="(d, k) of chartSeries" :key="(d.name || '') + '-don-n-' + k.toString()" class="q-mx-sm q-mb-sm">
+      <apexchart
+        :width="chartWidth"
+        :series="d.data"
+        :options="{...chartOpts, ...{ title: { text: d.name } } }">
+      </apexchart>
+    </q-card>
+  </template>
+
   <q-card
-    v-if="isShowChart && (['row', 'row-stack', 'row-100', 'col', 'col-stack', 'col-100', 'line', 'spline', 'cubic'].indexOf(chartType) < 0)"
+    v-if="isShowChart && (['row', 'row-stack', 'row-100', 'col', 'col-stack', 'col-100', 'line', 'spline', 'cubic', 'pie', 'donut'].indexOf(chartType) < 0)"
     class="q-ma-lg q-pa-lg"
     >
     {{ $t('No chart data') }}
