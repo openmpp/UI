@@ -105,7 +105,7 @@
                 unelevated
                 round
                 color="primary"
-                icon="mdi-lock"
+                icon="mdi-lock-open-variant"
                 :title="$t('Close model database') + ' ' + dbu.nameVer"
                 />
               <q-btn
@@ -114,7 +114,7 @@
                 outline
                 round
                 color="primary"
-                icon="mdi-lock-open-variant"
+                icon="mdi-lock"
                 :title="$t('Open model database')"
                 />
             </td>
