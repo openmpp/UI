@@ -155,7 +155,8 @@ export default {
     },
 
     ...mapState(useModelStore, [
-      'theModel'
+      'theModel',
+      'theModelUpdated'
     ]),
     ...mapState(useServerStateStore, {
       omsUrl: 'omsUrl'
@@ -168,7 +169,8 @@ export default {
 
   watch: {
     routeKey () { this.doRefresh() },
-    refreshTickle () { this.doRefresh() }
+    refreshTickle () { this.doRefresh() },
+    theModelUpdated () { this.doRefresh() }
   },
 
   emits: ['entity-view-saved', 'tab-mounted'],

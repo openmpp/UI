@@ -135,6 +135,7 @@ export default {
 
     ...mapState(useModelStore, [
       'theModel',
+      'theModelUpdated',
       'worksetTextListUpdated'
     ]),
     ...mapState(useServerStateStore, {
@@ -150,6 +151,7 @@ export default {
   watch: {
     routeKey () { this.doRefresh() },
     refreshTickle () { this.doRefresh() },
+    theModelUpdated () { this.doRefresh() },
     isEditUpdated () { this.$emit('edit-updated', this.edt.isUpdated, this.routeKey) },
     worksetTextListUpdated () { this.onWorksetUpdated() }
   },
@@ -792,7 +794,7 @@ export default {
       // make dimensions:
       //  [rank] of enum-based dimensions
       //  sub-value id dimension, if parameter has sub-values
-      this.dimProp.splice(0, this.dimProp.length)
+      this.dimProp = []
 
       for (let n = 0; n < this.paramText.ParamDimsTxt.length; n++) {
         const dt = this.paramText.ParamDimsTxt[n]
@@ -806,7 +808,6 @@ export default {
           singleSelection: {},
           filter: (val, update, abort) => {}
         }
-
         const eLst = Array(Mdf.typeEnumSize(t))
         for (let j = 0; j < eLst.length; j++) {
           eLst[j] = Mdf.enumItemByIdx(t, j)

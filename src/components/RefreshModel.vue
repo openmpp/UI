@@ -82,9 +82,11 @@ export default {
         this.$q.notify({ type: 'negative', message: this.$t('Server offline or model not found: ') + this.digest })
       }
 
-      // notify user
-      this.$emit('done', isOk, dgst)
+      // on error notify user and exit
       if (!isOk) {
+        this.$emit('done', isOk, dgst)
+        this.loadWait = false
+
         console.warn('Unable to refresh model by digest:', this.digest, ':', dgst, ':')
         this.$q.notify({ type: 'negative', message: this.$t('Unable to refresh model by digest: ', this.digest) })
         return
@@ -104,8 +106,6 @@ export default {
         this.$q.notify({ type: 'negative', message: this.$t('Server offline or model words refresh failed') })
       }
 
-      this.loadWait = false
-
       // refresh list of model languages
       const ul = this.omsUrl + '/api/model/' + udgst + '/lang-list'
       try {
@@ -119,7 +119,7 @@ export default {
         console.warn('Server offline or languages list refresh failed', em)
         this.$q.notify({ type: 'negative', message: this.$t('Server offline or languages list refresh failed') })
       }
-
+      this.$emit('done', isOk, dgst) // notify user on success
       this.loadWait = false
     }
   },

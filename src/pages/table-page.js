@@ -200,6 +200,8 @@ export default {
   watch: {
     routeKey () { this.doRefresh() },
     refreshTickle () { this.doRefresh() },
+    // uiLang () { this.doRefresh() },
+    wordList () { this.doRefresh() },
     prctChartSize () { this.dispatchTableView({ key: this.routeKey, prctChartSize: this.prctChartSize }) }
   },
 
