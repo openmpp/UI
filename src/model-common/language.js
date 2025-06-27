@@ -11,7 +11,8 @@ export const emptyWordList = () => {
     LangCode: '',
     LangWords: [],
     ModelLangCode: '',
-    ModelWords: []
+    ModelWords: [],
+    Msg: []
   }
 }
 
@@ -19,13 +20,19 @@ export const emptyWordList = () => {
 export const wordByCode = (mw, code) => {
   if (!code) return ''
   if (!mw) return code
+  // search in translated strings
+  if (mw.Msg && (mw.Msg.length || 0) > 0) {
+    for (let k = 0; k < mw.Msg.length; k++) {
+      if (mw.Msg[k].Code === code) return mw.Msg[k].Label
+    }
+  }
   // search in model-specific list of words
   if (mw.ModelWords && (mw.ModelWords.length || 0) > 0) {
     for (let k = 0; k < mw.ModelWords.length; k++) {
       if (mw.ModelWords[k].Code === code) return mw.ModelWords[k].Label
     }
   }
-  // seacrh in common language-specific list of words
+  // search in common language-specific list of words
   if (mw.LangWords && (mw.LangWords.length || 0) > 0) {
     for (let k = 0; k < mw.LangWords.length; k++) {
       if (mw.LangWords[k].Code === code) return mw.LangWords[k].Label

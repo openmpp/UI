@@ -122,6 +122,9 @@ export const useModelStore = defineStore('model', {
       if (mw.hasOwnProperty('ModelWords')) {
         if (mw.ModelWords && (mw.ModelWords.length || 0) > 0) this.wordList.ModelWords = mw.ModelWords
       }
+      if (mw.hasOwnProperty('Msg')) {
+        if (mw.Msg && (mw.Msg.length || 0) > 0) this.wordList.Msg = mw.Msg
+      }
     },
 
     // assign new value to list of model languages
