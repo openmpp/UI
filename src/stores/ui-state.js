@@ -14,6 +14,7 @@ export const useUiStateStore = defineStore('ui-state', {
     idCsvDownload: false,
     treeLabelKind: '',
     modelTreeExpandedKeys: [],
+    isDescModelTree: false,
     paramViews: {},
     tableViews: {},
     mdViews: {},
@@ -124,6 +125,11 @@ export const useUiStateStore = defineStore('ui-state', {
     // set tree label kind (parameter and table tree): name only, description only or both by default
     dispatchTreeLabelKind (labelKind) {
       this.treeLabelKind = (labelKind === 'name-only' || labelKind === 'descr-only') ? labelKind : ''
+    },
+
+    // save model list tree descending or ascending sort order
+    dispatchIsDescModelTree (isDesc) {
+      this.isDescModelTree = !!isDesc
     },
 
     // save expanded state of model list tree

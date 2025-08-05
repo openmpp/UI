@@ -131,7 +131,10 @@ export default {
       'dispatchServerConfig',
       'dispatchDiskUse'
     ]),
-    ...mapActions(useUiStateStore, ['dispatchUiLang']),
+    ...mapActions(useUiStateStore, [
+      'dispatchUiLang',
+      'dispatchIsDescModelTree'
+    ]),
 
     // show model notes dialog
     doShowModelNote () {
@@ -239,6 +242,10 @@ export default {
       // update disk space usage if necessary
       this.isDiskUse = !!this?.serverConfig?.IsDiskUse
       this.diskUseMs = this.getDiskUseRefreshMs(this?.serverConfig?.DiskScanMs)
+
+      // update UI poperties
+      const isDesc = !!this.serverConfig.UiExtra?.ModelTreeDescending
+      this.dispatchIsDescModelTree(isDesc)
     },
     // get interval of disk use configuration refresh
     getDiskUseRefreshMs (ms) {

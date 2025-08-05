@@ -12,6 +12,15 @@
       :title="!isAllExpanded ? $t('Expand all') : $t('Collapse all')"
       @click="doToogleExpandTree"
       />
+    <q-btn
+      v-if="!!treeData && treeData?.length > 0"
+      flat
+      dense
+      class="col-auto bg-primary text-white rounded-borders q-mr-xs om-tree-control-button"
+      :icon="isDescModelTree ? 'mdi-sort-alphabetical-descending' :'mdi-sort-alphabetical-ascending'"
+      :title="isDescModelTree ? $t('Sort Descending') : $t('Sort Ascending')"
+      @click="doToogleTreeSort"
+      />
     <span class="col-grow">
       <q-input
         ref="filterInput"
@@ -45,7 +54,7 @@
       >
       <template v-slot:default-header="prop">
         <div
-          v-if="prop.node.children && prop.node.children.length"
+          v-if="!prop.node.digest"
           class="row no-wrap items-center"
           :class="{'om-tree-found-node': treeWalk.keysFound[prop.node.key]}"
           >
@@ -182,6 +191,7 @@ export default {
       serverConfig: 'config'
     }),
     ...mapState(useUiStateStore, [
+      'isDescModelTree',
       'modelTreeExpandedKeys',
       'noAccDownload',
       'noMicrodataDownload',
@@ -192,7 +202,8 @@ export default {
 
   watch: {
     refreshTickle () { this.doRefresh() },
-    treeFilter () { this.updateTreeWalk() }
+    treeFilter () { this.updateTreeWalk() },
+    isDescModelTree () { this.sortTree(this.treeData) }
   },
 
   emits: ['download-select'],
@@ -202,6 +213,7 @@ export default {
       'dispatchModelList'
     ]),
     ...mapActions(useUiStateStore, [
+      'dispatchIsDescModelTree',
       'dispatchModelTreeExpandedKeys'
     ]),
 
@@ -216,6 +228,10 @@ export default {
 
       // remove duplicates if expand is result of search
       this.expandedKeys = this.expandedKeys.filter((key, idx, arr) => arr.indexOf(key) === idx)
+    },
+    // toggle model tree sort order
+    doToogleTreeSort () {
+      this.dispatchIsDescModelTree(!this.isDescModelTree)
     },
     // filter by model name (label) or model description
     doTreeFilter (node, filter) {
@@ -252,7 +268,7 @@ export default {
         if (!this.treeWalk.isAnyFound) this.treeWalk.isAnyFound = isFound
       }
 
-      // if any node match the filter then exapnd the tree
+      // if any node match the filter then expand the tree
       if (this.treeWalk.isAnyFound && !this.isAllExpanded) {
         this.$nextTick(() => { this.doToogleExpandTree() })
       }
@@ -381,7 +397,43 @@ export default {
           })
         }
       }
+
+      this.sortTree(td)
       return td
+    },
+
+    // sort each tree level nodes in labels ascending or descending order, keep folders before models
+    sortTree (tData) {
+      // sort tree in alphabetical or in reverse order
+      // folders always before models
+      const cmpNode = (left, right) => {
+        // folder name always before model name
+        if (!left.digest && !!right.digest) return -1
+        if (!!left.digest && !right.digest) return 1
+
+        // sort by name in ascending or descending order
+        if (left.label === right.label) return 0
+        if (left.label < right.label) return !this.isDescModelTree ? -1 : 1
+        return !this.isDescModelTree ? 1 : -1
+      }
+
+      tData.sort(cmpNode) // sort tree top level
+
+      // walk the tree and sort node children
+      const tnc = []
+      for (const g of tData) {
+        tnc.push(g)
+      }
+      while (tnc.length > 0) {
+        const t = tnc.pop()
+        if (Array.isArray(t?.children)) {
+          t.children.sort(cmpNode) // sort that node children
+          // add all children nodes to the walk list
+          for (const c of t.children) {
+            tnc.push(c)
+          }
+        }
+      }
     },
 
     // refersh model list

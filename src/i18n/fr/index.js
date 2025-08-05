@@ -638,6 +638,8 @@ export default {
   'Skip filter: ': 'Passer le filtre : ',
   'Slicer': 'Trancheur',
   'Slicer dimensions': 'Dimensions de la trancheuse',
+  'Sort Descending': 'Trier par ordre décroissant',
+  'Sort Ascending': 'Trier par ordre croissant',
   'Source scenario not selected': 'Scénario source non sélectionné',
   'Sparse Output Tables': 'Tableaux de résultats épars',
   'Spline chart': 'Graphique spline',
