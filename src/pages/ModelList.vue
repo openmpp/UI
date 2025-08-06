@@ -402,19 +402,37 @@ export default {
       return td
     },
 
-    // sort each tree level nodes in labels ascending or descending order, keep folders before models
+    // sort each tree level by labels custom ascending or descending order, keep folders before models
     sortTree (tData) {
       // sort tree in alphabetical or in reverse order
       // folders always before models
+      // use case-neutral sort,
+      // if case-neutral strings are equal then do addtional locale case sensintive comparison
+      // example:
+      //   Model moDel model model2 one other path RISK Risk riSk RiskA RiskP RiskP two
+
+      let ln = this.uiLang
+      if (!ln) ln = 'en-CA'
+
       const cmpNode = (left, right) => {
         // folder name always before model name
         if (!left.digest && !!right.digest) return -1
         if (!!left.digest && !right.digest) return 1
 
-        // sort by name in ascending or descending order
+        // sort by name in custom ascending or descending order
         if (left.label === right.label) return 0
-        if (left.label < right.label) return !this.isDescModelTree ? -1 : 1
-        return !this.isDescModelTree ? 1 : -1
+
+        const lLc = left.label.toLocaleLowerCase(ln)
+        const rLc = right.label.toLocaleLowerCase(ln)
+
+        if (lLc < rLc) return !this.isDescModelTree ? -1 : 1
+        if (lLc > rLc) return !this.isDescModelTree ? 1 : -1
+
+        const i = left.label.localeCompare(right.label, ln)
+
+        if (i < 0) return !this.isDescModelTree ? 1 : -1
+        if (i > 0) return !this.isDescModelTree ? -1 : 1
+        return 0
       }
 
       tData.sort(cmpNode) // sort tree top level
