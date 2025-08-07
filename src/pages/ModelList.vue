@@ -413,9 +413,8 @@ export default {
       // if case-neutral strings are equal then do addtional locale case sensintive comparison
       // example:
       //   Model moDel model model2 one other path RISK Risk riSk RiskA RiskP RiskP two
-
       let ln = this.uiLang
-      if (!ln) ln = 'en-CA'
+      if (!ln) ln = this.$q.lang.getLocale()
 
       const cmpNode = (left, right) => {
         // folder name always before model name
