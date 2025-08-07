@@ -13,7 +13,7 @@
       @click="doToogleExpandTree"
       />
     <q-btn
-      v-if="!!treeData && treeData?.length > 0"
+      v-if="!!isSortModelTree && !!treeData && treeData?.length > 0"
       flat
       dense
       class="col-auto bg-primary text-white rounded-borders q-mr-xs om-tree-control-button"
@@ -191,6 +191,7 @@ export default {
       serverConfig: 'config'
     }),
     ...mapState(useUiStateStore, [
+      'isSortModelTree',
       'isDescModelTree',
       'modelTreeExpandedKeys',
       'noAccDownload',
@@ -213,7 +214,7 @@ export default {
       'dispatchModelList'
     ]),
     ...mapActions(useUiStateStore, [
-      'dispatchIsDescModelTree',
+      'dispatchSortModelTree',
       'dispatchModelTreeExpandedKeys'
     ]),
 
@@ -231,7 +232,7 @@ export default {
     },
     // toggle model tree sort order
     doToogleTreeSort () {
-      this.dispatchIsDescModelTree(!this.isDescModelTree)
+      this.dispatchSortModelTree({ isSort: true, isDesc: !this.isDescModelTree })
     },
     // filter by model name (label) or model description
     doTreeFilter (node, filter) {
@@ -404,6 +405,8 @@ export default {
 
     // sort each tree level by labels custom ascending or descending order, keep folders before models
     sortTree (tData) {
+      if (!this.isSortModelTree) return
+
       // sort tree in alphabetical or in reverse order
       // folders always before models
       // use case-neutral sort,

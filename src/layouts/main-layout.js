@@ -133,7 +133,7 @@ export default {
     ]),
     ...mapActions(useUiStateStore, [
       'dispatchUiLang',
-      'dispatchIsDescModelTree'
+      'dispatchSortModelTree'
     ]),
 
     // show model notes dialog
@@ -244,8 +244,9 @@ export default {
       this.diskUseMs = this.getDiskUseRefreshMs(this?.serverConfig?.DiskScanMs)
 
       // update UI poperties
-      const isDesc = !!this.serverConfig.UiExtra?.ModelTreeDescending
-      this.dispatchIsDescModelTree(isDesc)
+      const isTsort = (typeof this.serverConfig.UiExtra?.ModelTreeDescending === typeof true)
+      const isTdesc = isTsort && !!this.serverConfig.UiExtra?.ModelTreeDescending
+      this.dispatchSortModelTree({ isSort: isTsort, isDesc: isTdesc })
     },
     // get interval of disk use configuration refresh
     getDiskUseRefreshMs (ms) {

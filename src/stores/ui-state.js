@@ -14,6 +14,7 @@ export const useUiStateStore = defineStore('ui-state', {
     idCsvDownload: false,
     treeLabelKind: '',
     modelTreeExpandedKeys: [],
+    isSortModelTree: false,
     isDescModelTree: false,
     paramViews: {},
     tableViews: {},
@@ -128,8 +129,14 @@ export const useUiStateStore = defineStore('ui-state', {
     },
 
     // save model list tree descending or ascending sort order
-    dispatchIsDescModelTree (isDesc) {
-      this.isDescModelTree = !!isDesc
+    dispatchSortModelTree (sort) {
+      if (!sort || !sort?.isSort) {
+        this.isSortModelTree = false
+        this.isDescModelTree = false
+      } else {
+        this.isSortModelTree = !!sort?.isSort
+        this.isDescModelTree = !!sort?.isDesc
+      }
     },
 
     // save expanded state of model list tree
