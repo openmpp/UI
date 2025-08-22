@@ -384,9 +384,9 @@ export default {
       let isOk = false
       let logName = ''
 
-      // POST /api/admin/db-cleanup/AllCancers-123*OncoSimX-allcancers.sqlite
+      // POST /api/admin/db-cleanup/AllCancers-123*OncoSimX-allcancers.sqlite/lang/fr-CA
       const p = path.replaceAll('/', '*')
-      const u = this.omsUrl + '/api/admin/db-cleanup/' + encodeURIComponent(p)
+      const u = this.omsUrl + '/api/admin/db-cleanup/' + encodeURIComponent(p) + (this.uiLang !== '' ? '/lang/' + encodeURIComponent(this.uiLang) : '')
       try {
         const response = await this.$axios.post(u)
         // expected response:
