@@ -505,6 +505,38 @@ export default {
       this.startWorksetDownload(name) // start workset download and show download page on success
     },
 
+    // start workset download
+    async startWorksetDownload (name) {
+      let isOk = false
+      let msg = ''
+
+      const opts = {
+        Utf8BomIntoCsv: this.$q.platform.is.win,
+        IdCsv: !!this.idCsvDownload
+      }
+      const u = this.omsUrl +
+        '/api/download/model/' + encodeURIComponent(this.digest) +
+        '/workset/' + encodeURIComponent((name || '')) +
+        (this.uiLang !== '' ? '/lang/' + encodeURIComponent(this.uiLang) : '')
+      try {
+        // send download request to the server, response expected to be empty on success
+        await this.$axios.post(u, opts)
+        isOk = true
+      } catch (e) {
+        try {
+          if (e.response) msg = e.response.data || ''
+        } finally {}
+        console.warn('Unable to download model workset', msg)
+      }
+      if (!isOk) {
+        this.$q.notify({ type: 'negative', message: this.$t('Unable to download input scenario') + (msg ? ('. ' + msg) : '') })
+        return
+      }
+
+      this.$emit('download-select', this.digest) // download started: show download list page
+      this.$q.notify({ type: 'info', message: this.$t('Input scenario download started') })
+    },
+
     // show input scenario upload panel
     doShowFileSelect () {
       this.uploadFileSelect = true
@@ -540,7 +572,9 @@ export default {
       fd.append('workset-upload-options', JSON.stringify(opts))
       fd.append('workset.zip', this.uploadFile, fName) // name and file name are ignored by server
 
-      const u = this.omsUrl + '/api/upload/model/' + encodeURIComponent(this.digest) + '/workset'
+      const u = this.omsUrl + '/api/upload/model/' + encodeURIComponent(this.digest) +
+        '/workset' +
+        (this.uiLang !== '' ? '/lang/' + encodeURIComponent(this.uiLang) : '')
       try {
         // update workset zip, drop response on success
         await this.$axios.post(u, fd)
@@ -562,6 +596,44 @@ export default {
       // upload started: show upload list page
       this.$emit('upload-select', this.digest)
       this.$emit('set-list-refresh') // refresh workset list if upload completed fast
+    },
+
+    // delete parameter from current workset
+    async doDeleteFromWorkset (wsName, paramName) {
+      let isOk = false
+      let msg = ''
+
+      // validate current current workset is not read-only
+      if (!wsName || !Mdf.isNotEmptyWorksetText(this.worksetCurrent) || this.worksetCurrent.IsReadonly) {
+        this.$q.notify({ type: 'negative', message: this.$t('Unable to delete from input scenario, it is read-only (or undefined)') })
+        return
+      }
+      this.$q.notify({ type: 'info', message: this.$t('Deleting: ') + paramName })
+      this.loadWait = true
+
+      const u = this.omsUrl +
+        '/api/model/' + encodeURIComponent(this.digest) +
+        '/workset/' + encodeURIComponent(wsName) +
+        '/parameter/' + encodeURIComponent(paramName)
+      try {
+        // delete workset parameter, response is empty on success
+        await this.$axios.delete(u)
+        isOk = true
+      } catch (e) {
+        try {
+          if (e.response) msg = e.response.data || ''
+        } finally {}
+        console.warn('Unable to delete parameter from input scenario', msg)
+      }
+      this.loadWait = false
+      if (!isOk) {
+        this.$q.notify({ type: 'negative', message: this.$t('Unable to delete parameter from input scenario') + (msg ? ('. ' + msg) : '') })
+        return
+      }
+
+      this.$emit('set-parameter-delete', this.digest, wsName, paramName) // parameter deleted from workset
+      this.$q.notify({ type: 'info', message: this.$t('Deleted: ') + paramName })
+      this.refreshWsTickle = !this.refreshWsTickle
     },
 
     // open description and notes editor for current workset
@@ -760,75 +832,6 @@ export default {
         })
       }
       return td
-    },
-
-    // start workset download
-    async startWorksetDownload (name) {
-      let isOk = false
-      let msg = ''
-
-      const opts = {
-        Utf8BomIntoCsv: this.$q.platform.is.win,
-        IdCsv: !!this.idCsvDownload
-      }
-      const u = this.omsUrl +
-        '/api/download/model/' + encodeURIComponent(this.digest) +
-        '/workset/' + encodeURIComponent((name || ''))
-      try {
-        // send download request to the server, response expected to be empty on success
-        await this.$axios.post(u, opts)
-        isOk = true
-      } catch (e) {
-        try {
-          if (e.response) msg = e.response.data || ''
-        } finally {}
-        console.warn('Unable to download model workset', msg)
-      }
-      if (!isOk) {
-        this.$q.notify({ type: 'negative', message: this.$t('Unable to download input scenario') + (msg ? ('. ' + msg) : '') })
-        return
-      }
-
-      this.$emit('download-select', this.digest) // download started: show download list page
-      this.$q.notify({ type: 'info', message: this.$t('Input scenario download started') })
-    },
-
-    // delete parameter from current workset
-    async doDeleteFromWorkset (wsName, paramName) {
-      let isOk = false
-      let msg = ''
-
-      // validate current current workset is not read-only
-      if (!wsName || !Mdf.isNotEmptyWorksetText(this.worksetCurrent) || this.worksetCurrent.IsReadonly) {
-        this.$q.notify({ type: 'negative', message: this.$t('Unable to delete from input scenario, it is read-only (or undefined)') })
-        return
-      }
-      this.$q.notify({ type: 'info', message: this.$t('Deleting: ') + paramName })
-      this.loadWait = true
-
-      const u = this.omsUrl +
-        '/api/model/' + encodeURIComponent(this.digest) +
-        '/workset/' + encodeURIComponent(wsName) +
-        '/parameter/' + encodeURIComponent(paramName)
-      try {
-        // delete workset parameter, response is empty on success
-        await this.$axios.delete(u)
-        isOk = true
-      } catch (e) {
-        try {
-          if (e.response) msg = e.response.data || ''
-        } finally {}
-        console.warn('Unable to delete parameter from input scenario', msg)
-      }
-      this.loadWait = false
-      if (!isOk) {
-        this.$q.notify({ type: 'negative', message: this.$t('Unable to delete parameter from input scenario') + (msg ? ('. ' + msg) : '') })
-        return
-      }
-
-      this.$emit('set-parameter-delete', this.digest, wsName, paramName) // parameter deleted from workset
-      this.$q.notify({ type: 'info', message: this.$t('Deleted: ') + paramName })
-      this.refreshWsTickle = !this.refreshWsTickle
     },
 
     // delete parameters group form workset

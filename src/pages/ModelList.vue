@@ -494,7 +494,9 @@ export default {
         Utf8BomIntoCsv: this.$q.platform.is.win,
         IdCsv: !!this.idCsvDownload
       }
-      const u = this.omsUrl + '/api/download/model/' + encodeURIComponent((dgst || ''))
+      const u = this.omsUrl +
+      '/api/download/model/' + encodeURIComponent((dgst || '')) +
+      (this.uiLang !== '' ? '/lang/' + encodeURIComponent(this.uiLang) : '')
       try {
         // send download request to the server, response expected to be empty on success
         await this.$axios.post(u, opts)

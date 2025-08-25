@@ -816,7 +816,8 @@ export default {
       }
       const u = this.omsUrl +
         '/api/download/model/' + encodeURIComponent(this.digest) +
-        '/run/' + encodeURIComponent((dgst || ''))
+        '/run/' + encodeURIComponent((dgst || '')) +
+        (this.uiLang !== '' ? '/lang/' + encodeURIComponent(this.uiLang) : '')
       try {
         // send download request to the server, response expected to be empty on success
         await this.$axios.post(u, opts)
@@ -867,7 +868,10 @@ export default {
       const fd = new FormData()
       fd.append('run.zip', this.uploadFile, fName) // name and file name are ignored by server
 
-      const u = this.omsUrl + '/api/upload/model/' + encodeURIComponent(this.digest) + '/run'
+      const u = this.omsUrl +
+      '/api/upload/model/' +
+      encodeURIComponent(this.digest) + '/run' +
+      (this.uiLang !== '' ? '/lang/' + encodeURIComponent(this.uiLang) : '')
       try {
         // update run zip, drop response on success
         await this.$axios.post(u, fd)
