@@ -22,8 +22,9 @@ export default {
       nDiskUseErr: 0, // disk use error count
       loginUrl: '',
       logoutUrl: '',
+      orgTitle: 'OpenM++',
+      orgLink: 'https://openmpp.org',
       isLoginCatch: false,
-      isBeta: true,
       modelInfoTickle: false,
       toUpDownSection: 'down',
       isDiskUse: false,
@@ -37,7 +38,7 @@ export default {
   computed: {
     mainTitle () {
       const t = (this.theModelDir ? this.theModelDir + '/' : '') + Mdf.modelTitle(this.theModel)
-      return (t !== '') ? t : 'OpenM++'
+      return (t !== '') ? t : this.orgTitle
     },
     isModel () { return Mdf.isModel(this.theModel) },
     modelDigest () { return Mdf.modelDigest(this.theModel) },
@@ -84,6 +85,7 @@ export default {
         this.langCode = lc
         this.$i18n.locale = lc
       }
+      this.doOrgTitle()
     },
     // switch app language: Quasar and vue i18n language
     langCode (lc) {
@@ -146,6 +148,35 @@ export default {
       if (lc) { // use selected language for model text metadata
         this.dispatchUiLang(lc)
         this.refreshTickle = !this.refreshTickle
+      }
+    },
+    // update org title and link on language switch
+    doOrgTitle () {
+      if (!this.serverConfig?.UiExtra || !Array.isArray(this.serverConfig.UiExtra?.DefaultTitle)) return
+
+      const ulc = this.uiLang || this.$q.lang.getLocale()
+
+      for (const m of this.serverConfig.UiExtra.DefaultTitle) {
+        if (m.LangCode === ulc) {
+          this.orgTitle = m?.Label || 'OpenM++'
+          this.orgLink = m?.Link || 'https://openmpp.org'
+          return
+        }
+        const m2p = Mdf.splitLangCode(m.LangCode)
+        const ui2p = Mdf.splitLangCode(ulc)
+        if (m2p.isEmpty || ui2p.isEmpty) {
+          continue
+        }
+        if (m2p.lower === ui2p.lower) {
+          this.orgTitle = m?.Label || 'OpenM++'
+          this.orgLink = m?.Link || 'https://openmpp.org'
+          return
+        }
+        if (m2p.first === ui2p.first) {
+          this.orgTitle = m?.Label || 'OpenM++'
+          this.orgLink = m?.Link || 'https://openmpp.org'
+          return
+        }
       }
     },
     // return more menu extra items array for current UI language
@@ -247,6 +278,8 @@ export default {
       const isTsort = (typeof this.serverConfig.UiExtra?.ModelTreeDescending === typeof true)
       const isTdesc = isTsort && !!this.serverConfig.UiExtra?.ModelTreeDescending
       this.dispatchSortModelTree({ isSort: isTsort, isDesc: isTdesc })
+
+      this.doOrgTitle()
     },
     // get interval of disk use configuration refresh
     getDiskUseRefreshMs (ms) {

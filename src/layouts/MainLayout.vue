@@ -57,25 +57,23 @@
         </router-link>
         <a v-else
           class="title-link"
-          href="//github.com/openmpp/UI/discussions" target="_blank"
-          :title="$t('Feedback on beta UI version')"
+          :href="orgLink" target="_blank"
+          :title="orgTitle"
           >
-          <span class="full-width ellipsis text-white">
-            {{ mainTitle }}<template v-if="isBeta">:<span class="q-mx-sm">{{ $t('Please provide feedback on beta UI version') }}</span><q-icon name="feedback" /></template>
-          </span>
+          <span class="full-width ellipsis text-white q">{{ orgTitle }}<q-icon name="3p" right/></span>
         </a>
       </q-toolbar-title>
 
       <q-btn
-        v-if="isBeta && isModel"
+        v-if="isModel"
         type="a"
-        href="//github.com/openmpp/UI/discussions" target="_blank"
+        :href="orgLink" target="_blank"
         flat
         round
         dense
-        :title="$t('Feedback on beta UI version')"
-        :aria-label="$t('Feedback on beta UI version')"
-        icon="feedback"
+        :title="orgTitle"
+        :aria-label="orgTitle"
+        icon="3p"
         />
       <q-btn
         v-if="loginUrl"
