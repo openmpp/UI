@@ -45,10 +45,10 @@
       :nodes="treeData"
       node-key="key"
       default-expand-all
-      no-transition
       v-model:expanded="expandedKeys"
       :filter="treeFilter"
       :filter-method="doTreeFilter"
+      no-transition
       :no-results-label="$t('No models found')"
       :no-nodes-label="$t('Server offline or no models published')"
       >
@@ -486,8 +486,10 @@ export default {
       }
 
       // expand after refresh
-      this.isAllExpanded = false
-      this.$nextTick(() => { this.doToogleExpandTree() })
+      this.$nextTick(() => {
+        this.isAllExpanded = false // toogle to default-expand-all
+        this.doToogleExpandTree()
+      })
 
       this.loadWait = false
     },
