@@ -59,8 +59,12 @@
           :class="{'om-tree-found-node': treeWalk.keysFound[prop.node.key]}"
           >
           <div class="col">
-            <span>{{ prop.node.label }}<br />
-            <span class="om-text-descr">{{ prop.node.descr }}</span></span>
+            <template v-if="treeLabelKind == 'name-only'"><span>{{ prop.node.label }}</span></template>
+            <template v-if="treeLabelKind == 'descr-only'"><span>{{ prop.node.descr || prop.node.label }}</span></template>
+            <template v-if="treeLabelKind !== 'name-only' && treeLabelKind !== 'descr-only'">
+              <span>{{ prop.node.label }}<br />
+              <span class="om-text-descr">{{ prop.node.descr }}</span></span>
+            </template>
           </div>
         </div>
         <div v-else
@@ -107,10 +111,14 @@
             :to="'/model/' + prop.node.digest"
             :title="prop.node.label"
             class="col om-tree-leaf-link q-ml-xs"
-            :class="{ 'text-primary' : prop.node.digest === theModelDigest }"
+            :class="{ 'text-bold text-primary' : prop.node.digest === theModelDigest }"
             >
-            <span><span :class="{ 'text-bold': prop.node.digest === theModelDigest }">{{ prop.node.label }}</span><br />
-            <span :class="prop.node.digest === theModelDigest ? 'om-text-descr-selected' : 'om-text-descr'">{{ prop.node.descr }}</span></span>
+            <template v-if="treeLabelKind == 'name-only'"><span>{{ prop.node.label }}</span></template>
+            <template v-if="treeLabelKind == 'descr-only'"><span>{{ prop.node.descr || prop.node.label }}</span></template>
+            <template v-if="treeLabelKind !== 'name-only' && treeLabelKind !== 'descr-only'">
+              <span>{{ prop.node.label }}<br />
+              <span class="om-text-descr">{{ prop.node.descr }}</span></span>
+            </template>
           </router-link>
         </div>
       </template>
@@ -197,6 +205,7 @@ export default {
       'noAccDownload',
       'noMicrodataDownload',
       'idCsvDownload',
+      'treeLabelKind',
       'uiLang'
     ])
   },
