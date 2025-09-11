@@ -34,8 +34,8 @@ Expected array of tree items as:
       flat
       dense
       class="col-auto bg-primary text-white rounded-borders q-mr-xs om-tree-control-button"
-      :icon="isTreeExpanded ? 'keyboard_arrow_up' : 'keyboard_arrow_down'"
-      :title="isTreeExpanded ? $t('Collapse all') : $t('Expand all')"
+      :icon="isTreeExpand ? 'keyboard_arrow_up' : 'keyboard_arrow_down'"
+      :title="isTreeExpand ? $t('Collapse all') : $t('Expand all')"
       @click="doToogleExpandTree"
       />
     <q-btn
@@ -91,9 +91,10 @@ Expected array of tree items as:
       ref="tableTree"
       :nodes="treeData"
       node-key="key"
-      no-transition
+      v-model:expanded="expandedKeys"
       :filter="treeFilter"
       :filter-method="doTreeFilter"
+      no-transition
       :no-results-label="noResultsLabel"
       :no-nodes-label="noNodesLabel"
       >
@@ -276,7 +277,7 @@ export default {
     refreshTreeTickle: { type: Boolean, default: false },
     treeData: { type: Array, default: () => [] },
     labelKind: { type: String, default: '' },
-    isAllExpand: { type: Boolean, default: false },
+    isExpand: { type: Boolean, default: false },
     isAnyGroup: { type: Boolean, default: false },
     isAnyHidden: { type: Boolean, default: false },
     isShowHidden: { type: Boolean, default: false },
@@ -302,13 +303,21 @@ export default {
     inListIcon: { type: String, default: '' },
     isInListClear: { type: Boolean, default: false },
     inListClearLabel: { type: String, default: '' },
-    inListClearIcon: { type: String, default: '' }
+    inListClearIcon: { type: String, default: '' },
+    treeStore: {
+      type: Object,
+      default: () => ({
+        expandPush: void 0, // store action to dispatch tree expanded keys
+        expandPull: void 0 // store getter for tree expanded keys
+      })
+    }
   },
 
   data () {
     return {
-      isTreeExpanded: this.isAllExpand,
       treeFilter: '',
+      isTreeExpand: this.isExpand,
+      expandedKeys: [],
       treeWalk: {
         isAnyFound: false,
         keysFound: {} // if node match filter then map keysFound[node.key] = true
@@ -318,11 +327,11 @@ export default {
 
   watch: {
     refreshTreeTickle () {
-      this.isTreeExpanded = this.isAllExpand
+      this.isTreeExpand = this.isExpand
       this.doRefresh()
     },
     refreshTickle () {
-      this.isTreeExpanded = this.isAllExpand
+      this.isTreeExpand = this.isExpand
       this.doRefresh()
     },
     treeFilter () { this.updateTreeWalk() }
@@ -350,16 +359,22 @@ export default {
       this.treeFilter = ''
       this.treeWalk.isAnyFound = false
       this.treeWalk.keysFound = {}
+
+      // restore expanded state
+      if (this?.treeStore?.expandPull) {
+        this.expandedKeys = this.treeStore.expandPull()
+        this.isTreeExpand = this.expandedKeys.length > 0
+      }
     },
 
     // expand or collapse all tree nodes
     doToogleExpandTree () {
-      if (this.isTreeExpanded) {
+      if (this.isTreeExpand) {
         this.$refs.tableTree.collapseAll()
       } else {
         this.$refs.tableTree.expandAll()
       }
-      this.isTreeExpanded = !this.isTreeExpanded
+      this.isTreeExpand = !this.isTreeExpand
     },
 
     // filter tree nodes by name (label) or description
@@ -398,7 +413,7 @@ export default {
       }
 
       // if any node match the filter then exapnd the tree
-      if (this.treeWalk.isAnyFound && !this.isTreeExpanded) {
+      if (this.treeWalk.isAnyFound && !this.isTreeExpand) {
         this.$nextTick(() => { this.doToogleExpandTree() })
       }
     },
@@ -413,6 +428,14 @@ export default {
 
   mounted () {
     this.doRefresh()
+  },
+
+  // save tree expanded state
+  beforeUnmount () {
+    if (this?.treeStore?.expandPush) {
+      const expKeys = Array.isArray(this.expandedKeys) ? this.expandedKeys : []
+      this.treeStore.expandPush(expKeys)
+    }
   }
 }
 </script>

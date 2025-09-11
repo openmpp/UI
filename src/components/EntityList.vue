@@ -5,7 +5,8 @@
     :refresh-tree-tickle="refreshTreeTickle"
     :tree-data="entityTreeData"
     :label-kind="treeLabelKind"
-    :is-all-expand="isAllExpand"
+    :is-expand="isTreeExpand"
+    :tree-store="entityTreeStore"
     :is-any-group="isAnyEntity"
     :is-any-hidden="isAnyHidden"
     :is-show-hidden="isShowHidden"
@@ -61,7 +62,7 @@ export default {
     runDigest: { type: String, default: '' },
     refreshTickle: { type: Boolean, default: false },
     refreshEntityTreeTickle: { type: Boolean, default: false },
-    isAllExpand: { type: Boolean, default: false },
+    isTreeExpand: { type: Boolean, default: false },
     isEntityClick: { type: Boolean, default: false },
     isAttrClick: { type: Boolean, default: false },
     isAddEntityAttr: { type: Boolean, default: false },
@@ -91,6 +92,10 @@ export default {
       isAnyFiltered: false,
       runCurrent: Mdf.emptyRunText(), // currently selected run
       entityTreeData: [],
+      entityTreeStore: {
+        expandPush: void 0, // store action to dispatch tree expanded keys
+        expandPull: void 0 // store getter for tree expanded keys
+      },
       groupLeafs: {}, // group leafs for all entities
       nextId: 100
     }
@@ -115,6 +120,7 @@ export default {
     }),
     ...mapState(useUiStateStore, [
       'treeLabelKind',
+      'treeExpandedKeys',
       'idCsvDownload'
     ])
   },
@@ -144,6 +150,7 @@ export default {
 
   methods: {
     ...mapActions(useModelStore, ['runTextByDigest']),
+    ...mapActions(useUiStateStore, ['dispatchTreeExpandedKeys']),
 
     // update entity attributes tree data and refresh tree view
     doRefresh () {
@@ -582,6 +589,16 @@ export default {
   },
 
   mounted () {
+    this.entityTreeStore = {
+      // push tree expanded keys into store for that model name and tree kind
+      expandPush: (expKeys) => {
+        this.dispatchTreeExpandedKeys(Mdf.modelName(this.theModel), 'entity-list', expKeys)
+      },
+      // push tree expanded keys into store for that model name and tree kind
+      expandPull: () => {
+        return this.treeExpandedKeys(Mdf.modelName(this.theModel), 'entity-list')
+      }
+    }
     this.doRefresh()
   }
 }

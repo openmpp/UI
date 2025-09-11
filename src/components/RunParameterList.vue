@@ -5,7 +5,8 @@
     :refresh-tree-tickle="refreshTreeTickle"
     :tree-data="paramTreeData"
     :label-kind="treeLabelKind"
-    :is-all-expand="false"
+    :is-expand="false"
+    :tree-store="paramTreeStore"
     :is-any-group="isAnyGroup"
     :is-any-hidden="isAnyHidden"
     :is-show-hidden="isShowHidden"
@@ -47,7 +48,7 @@
 </template>
 
 <script>
-import { mapState } from 'pinia'
+import { mapState, mapActions } from 'pinia'
 import { useModelStore } from '../stores/model'
 import { useServerStateStore } from '../stores/server-state'
 import { useUiStateStore } from '../stores/ui-state'
@@ -94,6 +95,10 @@ export default {
       isAnyFiltered: false,
       isShowFiltered: false,
       paramTreeData: [],
+      paramTreeStore: {
+        expandPush: void 0, // store action to dispatch tree expanded keys
+        expandPull: void 0 // store getter for tree expanded keys
+      },
       nextId: 100
     }
   },
@@ -114,6 +119,7 @@ export default {
     }),
     ...mapState(useUiStateStore, [
       'treeLabelKind',
+      'treeExpandedKeys',
       'idCsvDownload'
     ])
   },
@@ -138,6 +144,8 @@ export default {
   ],
 
   methods: {
+    ...mapActions(useUiStateStore, ['dispatchTreeExpandedKeys']),
+
     // update parameters tree data and refresh tree view
     doRefresh () {
       const td = this.makeParamTreeData()
@@ -431,6 +439,16 @@ export default {
   },
 
   mounted () {
+    this.paramTreeStore = {
+      // push tree expanded keys into store for that model name and tree kind
+      expandPush: (expKeys) => {
+        this.dispatchTreeExpandedKeys(Mdf.modelName(this.theModel), 'run-parameter-list', expKeys)
+      },
+      // push tree expanded keys into store for that model name and tree kind
+      expandPull: () => {
+        return this.treeExpandedKeys(Mdf.modelName(this.theModel), 'run-parameter-list')
+      }
+    }
     this.doRefresh()
   }
 }

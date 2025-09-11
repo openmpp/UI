@@ -5,7 +5,8 @@
     :refresh-tree-tickle="refreshTreeTickle"
     :tree-data="paramTreeData"
     :label-kind="treeLabelKind"
-    :is-all-expand="false"
+    :is-expand="false"
+    :tree-store="paramTreeStore"
     :is-any-group="isAnyGroup"
     :is-any-hidden="isAnyHidden"
     :is-show-hidden="isShowHidden"
@@ -74,6 +75,10 @@ export default {
       isAnyHidden: false,
       isShowHidden: false,
       paramTreeData: [],
+      paramTreeStore: {
+        expandPush: void 0, // store action to dispatch tree expanded keys
+        expandPull: void 0 // store getter for tree expanded keys
+      },
       nextId: 100
     }
   },
@@ -95,6 +100,7 @@ export default {
     }),
     ...mapState(useUiStateStore, [
       'treeLabelKind',
+      'treeExpandedKeys',
       'idCsvDownload'
     ])
   },
@@ -119,6 +125,7 @@ export default {
 
   methods: {
     ...mapActions(useModelStore, ['worksetTextByName']),
+    ...mapActions(useUiStateStore, ['dispatchTreeExpandedKeys']),
 
     // update parameters tree data and refresh tree view
     doRefresh () {
@@ -391,6 +398,16 @@ export default {
 
   mounted () {
     this.worksetCurrent = this.worksetTextByName({ ModelDigest: Mdf.modelDigest(this.theModel), Name: this.worksetName })
+    this.paramTreeStore = {
+      // push tree expanded keys into store for that model name and tree kind
+      expandPush: (expKeys) => {
+        this.dispatchTreeExpandedKeys(Mdf.modelName(this.theModel), 'ws-parameter-list', expKeys)
+      },
+      // push tree expanded keys into store for that model name and tree kind
+      expandPull: () => {
+        return this.treeExpandedKeys(Mdf.modelName(this.theModel), 'ws-parameter-list')
+      }
+    }
     this.doRefresh()
   }
 }

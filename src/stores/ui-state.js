@@ -13,7 +13,7 @@ export const useUiStateStore = defineStore('ui-state', {
     noMicrodataDownload: true,
     idCsvDownload: false,
     treeLabelKind: '',
-    modelTreeExpandedKeys: [],
+    uiTreeExpandedKeys: {},
     isSortModelTree: false,
     isDescModelTree: false,
     paramViews: {},
@@ -102,6 +102,18 @@ export const useUiStateStore = defineStore('ui-state', {
       return this.mdViews?.[key]?.view ? Mdf.dashCloneDeep(this.mdViews[key].view) : undefined
     },
 
+    // retrun tree expanded keys by model name and tree kind,  for example: table-tree
+    treeExpandedKeys (modelName, treeKind) {
+      if (!modelName && !treeKind) return []
+      if (typeof modelName !== typeof 'string' || typeof treeKind !== typeof 'string') return []
+
+      const expKeys = this?.uiTreeExpandedKeys?.[modelName + '*:*' + treeKind]
+      if (!!expKeys && Array.isArray(expKeys)) {
+        return Array.from(expKeys)
+      }
+      return []
+    },
+
     //
     // actions
     //
@@ -139,9 +151,13 @@ export const useUiStateStore = defineStore('ui-state', {
       }
     },
 
-    // save expanded state of model list tree
-    dispatchModelTreeExpandedKeys (expandedKeys) {
-      this.modelTreeExpandedKeys = (!!expandedKeys && Array.isArray(expandedKeys)) ? Array.from(expandedKeys) : []
+    // save expanded state of tree by model name and tree kind,  for example: table-tree
+    dispatchTreeExpandedKeys (modelName, treeKind, expandedKeys) {
+      if (!modelName && !treeKind) return
+      if (typeof modelName !== typeof 'string' || typeof treeKind !== typeof 'string') return
+
+      const expKeys = (!!expandedKeys && Array.isArray(expandedKeys)) ? Array.from(expandedKeys) : []
+      this.uiTreeExpandedKeys[modelName + '*:*' + treeKind] = expKeys
     },
 
     // update or clear selected run digest

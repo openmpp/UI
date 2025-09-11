@@ -8,8 +8,8 @@
       flat
       dense
       class="col-auto bg-primary text-white rounded-borders q-mr-xs om-tree-control-button"
-      :icon="!isAllExpanded ? 'keyboard_arrow_down' :'keyboard_arrow_up'"
-      :title="!isAllExpanded ? $t('Expand all') : $t('Collapse all')"
+      :icon="!isTreeExpanded ? 'keyboard_arrow_down' :'keyboard_arrow_up'"
+      :title="!isTreeExpanded ? $t('Expand all') : $t('Collapse all')"
       @click="doToogleExpandTree"
       />
     <q-btn
@@ -166,7 +166,7 @@ export default {
   data () {
     return {
       treeFilter: '',
-      isAllExpanded: false,
+      isTreeExpanded: false,
       isAnyModelGroup: false,
       nextId: 100,
       treeData: [],
@@ -201,7 +201,7 @@ export default {
     ...mapState(useUiStateStore, [
       'isSortModelTree',
       'isDescModelTree',
-      'modelTreeExpandedKeys',
+      'treeExpandedKeys',
       'noAccDownload',
       'noMicrodataDownload',
       'idCsvDownload',
@@ -224,17 +224,17 @@ export default {
     ]),
     ...mapActions(useUiStateStore, [
       'dispatchSortModelTree',
-      'dispatchModelTreeExpandedKeys'
+      'dispatchTreeExpandedKeys'
     ]),
 
     // expand or collapse all tree nodes
     doToogleExpandTree () {
-      if (this.isAllExpanded) {
+      if (this.isTreeExpanded) {
         this.$refs.theTree.collapseAll()
       } else {
         this.$refs.theTree.expandAll()
       }
-      this.isAllExpanded = !this.isAllExpanded
+      this.isTreeExpanded = !this.isTreeExpanded
 
       // remove duplicates if expand is result of search
       this.expandedKeys = this.expandedKeys.filter((key, idx, arr) => arr.indexOf(key) === idx)
@@ -279,7 +279,7 @@ export default {
       }
 
       // if any node match the filter then expand the tree
-      if (this.treeWalk.isAnyFound && !this.isAllExpanded) {
+      if (this.treeWalk.isAnyFound && !this.isTreeExpanded) {
         this.$nextTick(() => { this.doToogleExpandTree() })
       }
     },
@@ -487,7 +487,7 @@ export default {
 
       // expand after refresh
       this.$nextTick(() => {
-        this.isAllExpanded = false // toogle to default-expand-all
+        this.isTreeExpanded = false // toogle to default-expand-all
         this.doToogleExpandTree()
       })
 
@@ -530,7 +530,7 @@ export default {
 
   // route leave guard: on leaving save model tree expanded state
   beforeRouteLeave (to, from, next) {
-    this.dispatchModelTreeExpandedKeys(this.expandedKeys)
+    this.dispatchTreeExpandedKeys('all-models', 'model-list', this.expandedKeys)
     next()
   },
 
@@ -538,7 +538,8 @@ export default {
     // if model list already loaded then exit
     if (this.modelCount > 0) {
       this.loadDone = true
-      this.treeData = this.makeTreeData(this.modelList, this.modelTreeExpandedKeys) // update model list tree
+      const expKeys = this.treeExpandedKeys('all-models', 'model-list')
+      this.treeData = this.makeTreeData(this.modelList, expKeys) // update model list tree
       return
     }
     this.doRefresh() // load new model list
