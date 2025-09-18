@@ -11,8 +11,8 @@
 
     <q-btn
       class="q-mt-xl"
-      color="grey-3"
-      text-color="gery-8"
+        color="white"
+        text-color="blue"
       unelevated
       to="/"
       :label="$t('Go to Models List')"

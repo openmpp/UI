@@ -79,7 +79,7 @@ module.exports = configure(function (ctx) {
 
       // https://quasar.dev/quasar-cli/handling-process-env
       env: {
-        OMS_URL: ctx.dev ? 'http://localhost:4040' : '' // oms service url
+        OMS_URL: '' // ctx.dev ? 'http://localhost:4040' : '' // oms service url
       }
     },
 
@@ -89,6 +89,13 @@ module.exports = configure(function (ctx) {
         type: 'http'
       },
       port: 8080,
+      proxy: [
+        {
+          context: ['/api', '/download', '/upload', '/files', '/doc'],
+          target: 'http://localhost:4040',
+          changeOrigin: true
+        }
+      ],
       open: false // opens browser window automatically
     },
 
