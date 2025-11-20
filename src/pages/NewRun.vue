@@ -785,6 +785,73 @@
   <entity-attr-info-dialog :show-tickle="attrInfoTickle" :entity-name="entityInfoName" :attr-name="attrInfoName"></entity-attr-info-dialog>
   <entity-group-info-dialog :show-tickle="entityGroupInfoTickle"  :entity-name="entityInfoName" :group-name="entityGroupInfoName"></entity-group-info-dialog>
 
+  <q-dialog v-model="showOptChangeDialog">
+    <q-card class="text-body1">
+
+      <q-card-section class="text-h6 bg-primary text-white">
+        <q-avatar icon="error" color="warning" text-color="white" /><span class="q-ml-sm">{{ $t('Run Options may not be optimal') }}</span>
+      </q-card-section>
+
+      <q-card-section>
+        <table class="om-p-table">
+        <tbody>
+          <tr>
+            <td colspan="2" class="om-p-cell-left">{{ $t('Sub-Values (Sub-Samples)') }}:</td>
+            <td class="om-p-cell-right mono">{{ optChange.nSub }}</td>
+          </tr>
+          <tr>
+            <td rowspan="2" class="om-p-cell-left">{{ $t('Limits') }}</td>
+            <td class="om-p-cell-left">{{ $t('Modelling Threads') }}:</td>
+            <td class="om-p-cell-right mono">{{ optChange.maxThread }}</td>
+          </tr>
+          <tr>
+            <td class="om-p-cell-left">{{ $t('CPU Cores') }}:</td>
+            <td class="om-p-cell-right mono">{{ optChange.maxCpu }}</td>
+          </tr>
+          <tr>
+            <td colspan="3" class="om-p-head-center text-weight-bold">{{ $t('Recommended Run Options') }}</td>
+          </tr>
+          <tr>
+            <td colspan="2" class="om-p-head-left">{{ $t('Modelling Threads max') }}:</td>
+            <td class="om-p-cell-right mono">{{ optChange.nThread }}</td>
+          </tr>
+          <tr>
+            <td colspan="2" class="om-p-head-left">{{ $t('MPI Number of Processes') }}:</td>
+            <td class="om-p-cell-right mono">{{ optChange.nProc }}</td>
+          </tr>
+          <tr v-if="serverConfig.IsJobControl">
+            <td colspan="2" class="om-p-head-left">{{ $t('Use Jobs Service') }}:</td>
+            <td class="om-p-cell-right tc-max-width-10 row">
+              <q-toggle
+                v-model="optChange.isUseJob"
+                disable
+                :title="optChange.isUseJob ? $t('Use jobs service to run the model') : $t('Do not use jobs service to run the model')"
+                />
+            </td>
+          </tr>
+          <tr v-if="serverConfig.IsJobControl">
+            <td colspan="2" class="om-p-head-left">{{ $t('Use MPI Root for Modelling') }}:</td>
+            <td class="om-p-cell-right tc-max-width-10 row">
+              <q-toggle
+                v-model="optChange.isOnRoot"
+                disable
+                :title="optChange.isOnRoot ? $t('Use MPI root process to run the model') : $t('Do not use MPI root process to run the model')"
+                />
+            </td>
+          </tr>
+        </tbody>
+        </table>
+      </q-card-section>
+
+      <q-card-actions vertical>
+        <q-btn outline autofocus no-caps v-close-popup :label="$t('Use recommended options and run the model')" color="primary" @click="onYesOptsChange" />
+        <q-btn outline no-caps v-close-popup :label="$t('Ignore recommended options and run the model')" color="primary" @click="onNoOptsChange" />
+        <q-btn outline no-caps v-close-popup :label="$t('Let me change run options')" color="primary" />
+      </q-card-actions>
+
+    </q-card>
+  </q-dialog>
+
   <q-inner-loading :showing="loadWait || loadConfig || loadDiskUse || loadIni || loadCsv || loadProfile">
     <q-spinner-gears size="md" color="primary" />
   </q-inner-loading>
@@ -796,9 +863,7 @@
 
 <style lang="scss" scope="local">
   .panel-border {
-    border-width: 1px;
-    border-style: solid;
-    border-color: lightgrey;
+    border: 1px solid lightgrey;
   }
   .tc-right {
     text-align: right;

@@ -2,6 +2,10 @@
 .thumbs.db
 node_modules
 
+# our preference is to lock only selected sources using package.json
+# as it is today, 2025-09-22, there are no locked versions
+package-lock.json
+
 # Quasar core related directories
 .quasar
 /dist

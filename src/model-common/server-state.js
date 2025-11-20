@@ -12,6 +12,19 @@ export const emptyConfig = () => {
     AllowFiles: false,
     AllowMicrodata: false,
     IsJobControl: false,
+    MpiMaxThreads: 0,
+    MpiRes: {
+      Cpu: 0,
+      Mem: 0
+    },
+    MaxOwnMpiRes: {
+      Cpu: 0,
+      Mem: 0
+    },
+    LocalRes: {
+      Cpu: 0,
+      Mem: 0
+    },
     IsModelDoc: false,
     IsDiskUse: false,
     IsDiskCleanup: false,
@@ -47,6 +60,11 @@ export const isConfig = (c) => {
     !c.hasOwnProperty('UiExtra') || !c.hasOwnProperty('ModelCatalog') || !c.hasOwnProperty('RunCatalog')) {
     return false
   }
+  if (!c.hasOwnProperty('MpiMaxThreads') || typeof c.MpiMaxThreads !== typeof 1) return false
+  if (!c.hasOwnProperty('MpiRes') || !c.MpiRes.hasOwnProperty('Cpu') || typeof c.MpiRes.Cpu !== typeof 1) return false
+  if (!c.hasOwnProperty('MaxOwnMpiRes') || !c.MaxOwnMpiRes.hasOwnProperty('Cpu') || typeof c.MaxOwnMpiRes.Cpu !== typeof 1) return false
+  if (!c.hasOwnProperty('LocalRes') || !c.LocalRes.hasOwnProperty('Cpu') || typeof c.LocalRes.Cpu !== typeof 1) return false
+
   if (!c.ModelCatalog.hasOwnProperty('ModelDir') || !c.ModelCatalog.hasOwnProperty('ModelLogDir') || !c.ModelCatalog.hasOwnProperty('IsLogDirEnabled')) return false
   if (!c.RunCatalog.hasOwnProperty('RunTemplates') || !c.RunCatalog.hasOwnProperty('DefaultMpiTemplate') ||
     !c.RunCatalog.hasOwnProperty('MpiTemplates') || !c.RunCatalog.hasOwnProperty('Presets')) {
@@ -291,15 +309,15 @@ export const emptyServiceState = () => {
     IsJobControl: false,
     JobUpdateDateTime: '',
     IsQueuePaused: false,
-    ActiveTotalRes: { Cpu: 0 },
-    ActiveOwnRes: { Cpu: 0 },
-    QueueTotalRes: { Cpu: 0 },
-    QueueOwnRes: { Cpu: 0 },
-    MpiRes: { Cpu: 0 },
-    MpiErrorRes: { Cpu: 0 },
-    LocalRes: { Cpu: 0 },
-    LocalActiveRes: { Cpu: 0 },
-    LocalQueueRes: { Cpu: 0 },
+    ActiveTotalRes: { Cpu: 0, Mem: 0 },
+    ActiveOwnRes: { Cpu: 0, Mem: 0 },
+    QueueTotalRes: { Cpu: 0, Mem: 0 },
+    QueueOwnRes: { Cpu: 0, Mem: 0 },
+    MpiRes: { Cpu: 0, Mem: 0 },
+    MpiErrorRes: { Cpu: 0, Mem: 0 },
+    LocalRes: { Cpu: 0, Mem: 0 },
+    LocalActiveRes: { Cpu: 0, Mem: 0 },
+    LocalQueueRes: { Cpu: 0, Mem: 0 },
     Queue: [],
     Active: [],
     History: [],

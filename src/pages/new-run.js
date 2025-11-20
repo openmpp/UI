@@ -105,6 +105,16 @@ export default {
       attrInfoTickle: false,
       entityInfoTickle: false,
       entityGroupInfoTickle: false,
+      showOptChangeDialog: false, // run options change dialog
+      optChange: {
+        nSub: 1,
+        nProc: 0,
+        nThread: 1,
+        isUseJob: false,
+        isOnRoot: false,
+        maxThread: 1,
+        maxCpu: 1
+      },
       newRunNotes: {
         type: Object,
         default: () => ({})
@@ -1209,8 +1219,89 @@ export default {
           return
         }
       }
+
+      // validate MPI run options if job control enabled on the server
+      // and recommend to the user:
+      //  mpiUseJobs = true
+      //  mpiOnRoot = false
+      //  threadCount <= MpiMaxThreads
+      //  mpiNpCount = (subCount / threadCount) +1 if subCount % threadCount !== 0
+      //  (mpiNpCount * threadCount) <= MaxOwnMpiRes.Cpu and MpiRes.Cpu
+      //  mpiNpCount = +1 for root process
+      const iProc = Mdf.cleanIntNonNegativeInput(this.runOpts.mpiNpCount, 0)
+      let nSub = Mdf.cleanIntNonNegativeInput(this.runOpts.subCount, 1)
+      if (nSub <= 0) nSub = 1
+
+      if (nSub > 1 && this.serverConfig.IsJobControl && iProc > 0) {
+        const isUseJob = this.runOpts.mpiUseJobs || false
+        const isOnRoot = this.runOpts.mpiOnRoot || false
+
+        const iTh = Mdf.cleanIntNonNegativeInput(this.runOpts.threadCount, 1)
+        let nTh = (iTh > 0) ? iTh : 1
+        let nProc = (iProc > 1) ? iProc - 1 : iProc // do not use root process for modelling
+        const iCpu = nProc * nTh // number of MPI cores requested by user
+        let nCpu = iCpu
+
+        // do not use more threads than server max threads
+        let maxTh = this.serverConfig.MpiMaxThreads || 1
+        if (maxTh <= 0) maxTh = 1
+        if (nTh > maxTh) nTh = maxTh
+
+        // do not use more cores or threads than sub-values
+        if (nCpu > nSub) nCpu = nSub
+        if (nTh > nSub) nTh = nSub
+
+        // recalculate number of processes and MPI cores
+        nProc = Math.ceil(nCpu / nTh)
+        if (nProc < 1) nProc = 1
+        nCpu = nProc * nTh
+
+        // if number MPI cores > server max MPI cores allowed for user then recalculate number of processes and MPI cores
+        let maxCpu = this.serverConfig.MpiRes.Cpu || 0
+        const ownCpu = this.serverConfig.MaxOwnMpiRes.Cpu || 0
+        if (ownCpu > 0 && maxCpu > ownCpu) maxCpu = ownCpu
+        if (maxCpu <= 0) maxCpu = 1
+
+        if (nCpu > maxCpu) {
+          nProc = Math.ceil(maxCpu / nTh)
+          if (nProc < 1) nProc = 1
+          nCpu = nProc * nTh
+        }
+
+        nProc++ // +1 extra root process, do not use root process for modelling
+
+        // show recommended run options: use run jobs service, do not use root for modelling
+        if (!isUseJob || isOnRoot || iTh !== nTh || iProc !== nProc) {
+          this.showOptsChange(nSub, nProc, nTh, true, false, maxTh, maxCpu)
+          return
+        }
+      }
       // else do run the model
       this.doModelRun()
+    },
+    // show yes/no dialog to confirm MPI options changes
+    showOptsChange (nSub, nProc, nTh, isUseJob, isOnRoot, maxTh, maxCpu) {
+      this.optChange.nSub = nSub
+      this.optChange.nProc = nProc
+      this.optChange.nThread = nTh
+      this.optChange.isUseJob = isUseJob
+      this.optChange.isOnRoot = isOnRoot
+      this.optChange.maxThread = maxTh
+      this.optChange.maxCpu = maxCpu
+      this.showOptChangeDialog = true
+    },
+    // user answer yes and accepted MPI options changes:
+    // adjust number of processes, use job contorl, do not run modelling on root
+    onYesOptsChange () {
+      this.runOpts.mpiNpCount = this.optChange.nProc || 0
+      this.runOpts.threadCount = this.optChange.nThread || 1
+      this.runOpts.mpiUseJobs = this.serverConfig.IsJobControl && this.optChange.isUseJob
+      this.runOpts.mpiOnRoot = this.serverConfig.IsJobControl && !!this.optChange.isOnRoot
+      this.doModelRun() // do run the model
+    },
+
+    onNoOptsChange () {
+      this.doModelRun() // do run the model
     },
 
     // run the model
