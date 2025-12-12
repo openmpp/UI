@@ -1239,8 +1239,6 @@ export default {
         const iTh = Mdf.cleanIntNonNegativeInput(this.runOpts.threadCount, 1)
         let nTh = (iTh > 0) ? iTh : 1
         let nProc = (iProc > 1) ? iProc - 1 : iProc // do not use root process for modelling
-        const iCpu = nProc * nTh // number of MPI cores requested by user
-        let nCpu = iCpu
 
         // do not use more threads than server max threads
         let maxTh = this.serverConfig.MpiMaxThreads || 1
@@ -1248,27 +1246,45 @@ export default {
         if (nTh > maxTh) nTh = maxTh
 
         // do not use more cores or threads than sub-values
-        if (nCpu > nSub) nCpu = nSub
+        if (nProc > nSub) nProc = nSub
         if (nTh > nSub) nTh = nSub
 
-        // recalculate number of processes and MPI cores
-        nProc = Math.ceil(nCpu / nTh)
-        if (nProc < 1) nProc = 1
-        nCpu = nProc * nTh
+        let nCpu = nProc * nTh
+        if (nCpu !== nSub) nCpu = nSub // try to use one core for each sub-value
 
-        // if number MPI cores > server max MPI cores allowed for user then recalculate number of processes and MPI cores
+        // if number of cores > server max MPI cores allowed then find smallest number of cores which can fit into max MPI cores limit
         let maxCpu = this.serverConfig.MpiRes.Cpu || 0
         const ownCpu = this.serverConfig.MaxOwnMpiRes.Cpu || 0
         if (ownCpu > 0 && maxCpu > ownCpu) maxCpu = ownCpu
         if (maxCpu <= 0) maxCpu = 1
 
         if (nCpu > maxCpu) {
-          nProc = Math.ceil(maxCpu / nTh)
-          if (nProc < 1) nProc = 1
+          const n = Math.ceil(nCpu / maxCpu)
+          let nc = maxCpu
+          let md = nCpu - (n * nc)
+
+          while (nc > 1 && md > 0) {
+            md = nCpu - (n * (nc - 1))
+            if (md <= 0) break
+            nc--
+          }
+          nCpu = nc
+          if (nCpu <= 0) nCpu = 1
+        }
+
+        // recalculate number of processes and threads based on the nuber of cores avaliable
+        nProc = Math.ceil(nCpu / nTh)
+        if (nProc < 1) nProc = 1
+
+        if (nProc * nTh > nCpu) {
+          while (nTh > 1 && ((nTh - 1) * nProc) >= nCpu) {
+            nTh--
+          }
           nCpu = nProc * nTh
         }
 
-        nProc++ // +1 extra root process, do not use root process for modelling
+        // +1 extra root process, do not use root process for modelling
+        nProc++
 
         // show recommended run options: use run jobs service, do not use root for modelling
         if (!isUseJob || isOnRoot || iTh !== nTh || iProc !== nProc) {
