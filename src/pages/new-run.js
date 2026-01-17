@@ -1232,7 +1232,7 @@ export default {
       let nSub = Mdf.cleanIntNonNegativeInput(this.runOpts.subCount, 1)
       if (nSub <= 0) nSub = 1
 
-      if (nSub > 1 && this.serverConfig.IsJobControl && iProc > 0) {
+      if (nSub > 0 && this.serverConfig.IsJobControl && iProc > 0) {
         const isUseJob = this.runOpts.mpiUseJobs || false
         const isOnRoot = this.runOpts.mpiOnRoot || false
 
@@ -1309,6 +1309,7 @@ export default {
     // user answer yes and accepted MPI options changes:
     // adjust number of processes, use job contorl, do not run modelling on root
     onYesOptsChange () {
+      this.runOpts.subCount = this.optChange.nSub || 1
       this.runOpts.mpiNpCount = this.optChange.nProc || 0
       this.runOpts.threadCount = this.optChange.nThread || 1
       this.runOpts.mpiUseJobs = this.serverConfig.IsJobControl && this.optChange.isUseJob

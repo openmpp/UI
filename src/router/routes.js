@@ -70,6 +70,7 @@ const routes = [
       { path: 'service-state', component: () => import('pages/ServiceState.vue') },
       { path: 'settings', component: () => import('pages/SessionSettings.vue') },
       { path: 'disk-use', component: () => import('pages/DiskUse.vue') },
+      { path: 'admin-state', component: () => import('pages/AdminState.vue') },
       { path: 'license', component: () => import('pages/LicensePage.vue') },
       { path: 'none', component: NotFound404 }
     ]

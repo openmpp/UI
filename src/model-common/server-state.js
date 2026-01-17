@@ -12,6 +12,7 @@ export const emptyConfig = () => {
     AllowFiles: false,
     AllowMicrodata: false,
     IsJobControl: false,
+    IsAdminAll: false,
     MpiMaxThreads: 0,
     MpiRes: {
       Cpu: 0,
@@ -196,34 +197,45 @@ export const configRunOptsPresets = (c, modelName, uiLang, modelLc) => {
 // Job service state:
 {
   IsJobControl: true,
+  IsAdminAll: false,
   JobUpdateDateTime: "2022-06-30 23:35:59.456",
   IsQueuePaused: false,
+  IsAllQueuePaused: false,
   ActiveTotalRes: {
-    Cpu: 32
+    Cpu: 32,
+    Mem: 0
   },
   ActiveOwnRes: {
-    Cpu: 8
+    Cpu: 8,
+    Mem: 0
   },
   QueueTotalRes: {
-    Cpu: 128
+    Cpu: 128,
+    Mem: 0
   },
   QueueOwnRes: {
-    Cpu: 64
+    Cpu: 64,
+    Mem: 0
   },
   MpiRes: {
-    Cpu: 64
+    Cpu: 64,
+    Mem: 0
   },
   MpiErrorRes: {
-    Cpu: 8
+    Cpu: 8,
+    Mem: 0
   },
   LocalRes: {
-    Cpu: 2
+    Cpu: 2,
+    Mem: 0
   },
   LocalActiveRes {
-    Cpu: 1
+    Cpu: 1,
+    Mem: 0
   },
   LocalQueueRes {
-    Cpu: 8
+    Cpu: 8,
+    Mem: 0
   },
   Queue: [],
   Active: [
@@ -261,7 +273,8 @@ export const configRunOptsPresets = (c, modelName, uiLang, modelLc) => {
         }
       ],
       Res: {
-        Cpu: 3
+        Cpu: 3,
+        Mem: 0
       },
       IsOverLimit: false,
       LogFileName: "RiskPaths.2022_07_07_15_01_04_558.console.log"
@@ -307,8 +320,10 @@ export const configRunOptsPresets = (c, modelName, uiLang, modelLc) => {
 export const emptyServiceState = () => {
   return {
     IsJobControl: false,
+    IsAdminAll: false,
     JobUpdateDateTime: '',
     IsQueuePaused: false,
+    IsAllQueuePaused: false,
     ActiveTotalRes: { Cpu: 0, Mem: 0 },
     ActiveOwnRes: { Cpu: 0, Mem: 0 },
     QueueTotalRes: { Cpu: 0, Mem: 0 },
@@ -522,8 +537,303 @@ export const isUpDownLog = (d) => {
 export const isUpDownLogList = (dLst) => {
   if (!dLst) return false
   if (!Array.isArray(dLst)) return false
-  for (let k = 0; k < dLst.length; k++) {
-    if (!isUpDownLog(dLst[k])) return false
+  if (dLst.length > 0 && !isUpDownLog(dLst[0])) return false
+  return true
+}
+
+// Job service global admin state
+//
+/*
+{
+  "IsAdminAll": true,
+  "IsJobControl": true,
+  "IsDiskUse": true,
+  "IsQueuePaused": true,
+  "IsAllQueuePaused": true,
+  "JobUpdateDateTime": "2026-01-16 19:28:08.645",
+  "MpiRes": {
+    "Cpu": 7,
+    "Mem": 10
+  },
+  "MaxOwnMpiRes": {
+    "Cpu": 6,
+    "Mem": 0
+  },
+  "ActiveTotalRes": {
+    "Cpu": 0,
+    "Mem": 0
+  },
+  "ActiveOwnRes": {
+    "Cpu": 0,
+    "Mem": 0
+  },
+  "QueueTotalRes": {
+    "Cpu": 7,
+    "Mem": 0
+  },
+  "QueueOwnRes": {
+    "Cpu": 0,
+    "Mem": 0
+  },
+  "MpiErrorRes": {
+    "Cpu": 0,
+    "Mem": 0
+  },
+  "MpiMaxThreads": 4,
+  "LocalRes": {
+    "Cpu": 8,
+    "Mem": 8
+  },
+  "LocalActiveTotalRes": {
+    "Cpu": 0,
+    "Mem": 0
+  },
+  "LocalActiveRes": {
+    "Cpu": 0,
+    "Mem": 0
+  },
+  "LocalQueueTotalRes": {
+    "Cpu": 2,
+    "Mem": 0
+  },
+  "LocalQueueRes": {
+    "Cpu": 0,
+    "Mem": 0
+  },
+  "ComputeState": [{
+      "Name": "cpc-1",
+      "State": "ready",
+      "TotalRes": {
+        "Cpu": 2,
+        "Mem": 4
+      },
+      "UsedRes": {
+        "Cpu": 2,
+        "Mem": 0
+      },
+      "OwnRes": {
+        "Cpu": 2,
+        "Mem": 0
+      },
+      "ErrorCount": 0,
+      "LastUsedTs": 1766549206575
+    }, {
+      "Name": "cpc-3",
+      "State": "ready",
+      "TotalRes": {
+        "Cpu": 3,
+        "Mem": 2
+      },
+      "UsedRes": {
+        "Cpu": 2,
+        "Mem": 0
+      },
+      "OwnRes": {
+        "Cpu": 2,
+        "Mem": 0
+      },
+      "ErrorCount": 0,
+      "LastUsedTs": 1766549206575
+    }
+  ],
+  "OmsActive": [{
+      "Oms": "_4040",
+      "LastStamp": "2025_12_23_23_03_57_785",
+      "IsPaused": false,
+      "Cpu": 6,
+      "Mem": 0,
+      "LocalRes": {
+        "Cpu": 0,
+        "Mem": 0
+      },
+      "IsDiskOver": false,
+      "TotalSizeMb": 9158,
+      "LimitMb": 102400
+    }
+  ],
+  "ActiveRuns": [{
+      "Oms": "_4040",
+      "SubmitStamp": "2025_12_23_23_03_51_756",
+      "Cpu": 6,
+      "Mem": 0,
+      "IsMpi": true,
+      "ModelName": "RiskPaths",
+      "ModelDigest": "43976e100f44b6c4e2968fc74442a745",
+      "RunStamp": "2025_12_23_23_03_57_785"
+    }
+  ],
+  "RunCompUsage": [{
+      "Oms": "_4040",
+      "SubmitStamp": "2025_12_23_23_03_51_756",
+      "CompName": "cpc-1",
+      "Cpu": 2,
+      "Mem": 0
+    }, {
+      "Oms": "_4040",
+      "SubmitStamp": "2025_12_23_23_03_51_756",
+      "CompName": "cpc-3",
+      "Cpu": 2,
+      "Mem": 0
+    }
+  ],
+  "QueueRuns": [
+    {
+      "Oms": "bob_4044",
+      "SubmitStamp": "2026_01_14_19_12_20_967",
+      "ModelName": "RiskPaths",
+      "ModelDigest": "43976e100f44b6c4e2968fc74442a745",
+      "IsMpi": true,
+      "ProcessCount": 1,
+      "ThreadCount": 2,
+      "ProcessMemMb": 0,
+      "ThreadMemMb": 0,
+      "Position": 20220819
+    },
+    {
+      "Oms": "alice_4042",
+      "SubmitStamp": "2026_01_14_19_13_06_358",
+      "ModelName": "RiskPaths",
+      "ModelDigest": "43976e100f44b6c4e2968fc74442a745",
+      "IsMpi": true,
+      "ProcessCount": 1,
+      "ThreadCount": 3,
+      "ProcessMemMb": 0,
+      "ThreadMemMb": 0,
+      "Position": 20220821
+    }
+  ]
+}
+*/
+
+// return empty global admin state
+export const emptyAdminState = () => {
+  return {
+    IsAdminAll: false,
+    IsJobControl: false,
+    IsDiskUse: false,
+    IsQueuePaused: false,
+    IsAllQueuePaused: false,
+    JobUpdateDateTime: '',
+    MpiMaxThreads: 0,
+    MpiRes: { Cpu: 0, Mem: 0 },
+    MaxOwnMpiRes: { Cpu: 0, Mem: 0 },
+    ActiveTotalRes: { Cpu: 0, Mem: 0 },
+    ActiveOwnRes: { Cpu: 0, Mem: 0 },
+    QueueTotalRes: { Cpu: 0, Mem: 0 },
+    QueueOwnRes: { Cpu: 0, Mem: 0 },
+    MpiErrorRes: { Cpu: 0, Mem: 0 },
+    LocalRes: { Cpu: 0, Mem: 0 },
+    LocalActiveTotalRes: { Cpu: 0, Mem: 0 },
+    LocalActiveRes: { Cpu: 0, Mem: 0 },
+    LocalQueueTotalRes: { Cpu: 0, Mem: 0 },
+    LocalQueueRes: { Cpu: 0, Mem: 0 },
+    ComputeState: [],
+    OmsActive: [],
+    ActiveRuns: [],
+    RunCompUsage: [],
+    QueueRuns: []
   }
+}
+
+// return true if this is global admin state (it can be empty)
+export const isAdminState = (st) => {
+  if (!st) return false
+  if (!st.hasOwnProperty('IsAdminAll') || typeof st.IsAdminAll !== typeof true) return false
+  if (!st.hasOwnProperty('IsJobControl') || typeof st.IsJobControl !== typeof true) return false
+  if (!st.hasOwnProperty('IsDiskUse') || typeof st.IsDiskUse !== typeof true) return false
+  if (!st.hasOwnProperty('JobUpdateDateTime') || typeof st.JobUpdateDateTime !== typeof 'string') return false
+  if (!st.hasOwnProperty('IsQueuePaused') || typeof st.IsQueuePaused !== typeof true) return false
+  if (!st.hasOwnProperty('IsAllQueuePaused') || typeof st.IsAllQueuePaused !== typeof true) return false
+  if (!st.hasOwnProperty('MpiMaxThreads') || typeof st.MpiMaxThreads !== typeof 1) return false
+
+  if (!st.hasOwnProperty('MpiRes') || !st.MpiRes.hasOwnProperty('Cpu') || typeof st.MpiRes.Cpu !== typeof 1) return false
+  if (!st.hasOwnProperty('MaxOwnMpiRes') || !st.MaxOwnMpiRes.hasOwnProperty('Cpu') || typeof st.MaxOwnMpiRes.Cpu !== typeof 1) return false
+  if (!st.hasOwnProperty('ActiveTotalRes') || !st.ActiveTotalRes.hasOwnProperty('Cpu') || typeof st.ActiveTotalRes.Cpu !== typeof 1) return false
+  if (!st.hasOwnProperty('ActiveOwnRes') || !st.ActiveOwnRes.hasOwnProperty('Cpu') || typeof st.ActiveOwnRes.Cpu !== typeof 1) return false
+  if (!st.hasOwnProperty('QueueTotalRes') || !st.QueueTotalRes.hasOwnProperty('Cpu') || typeof st.QueueTotalRes.Cpu !== typeof 1) return false
+  if (!st.hasOwnProperty('QueueOwnRes') || !st.QueueOwnRes.hasOwnProperty('Cpu') || typeof st.QueueOwnRes.Cpu !== typeof 1) return false
+  if (!st.hasOwnProperty('MpiErrorRes') || !st.MpiErrorRes.hasOwnProperty('Cpu') || typeof st.MpiErrorRes.Cpu !== typeof 1) return false
+  if (!st.hasOwnProperty('LocalRes') || !st.LocalRes.hasOwnProperty('Cpu') || typeof st.LocalRes.Cpu !== typeof 1) return false
+  if (!st.hasOwnProperty('LocalActiveTotalRes') || !st.LocalActiveTotalRes.hasOwnProperty('Cpu') || typeof st.LocalActiveTotalRes.Cpu !== typeof 1) return false
+  if (!st.hasOwnProperty('LocalActiveRes') || !st.LocalActiveRes.hasOwnProperty('Cpu') || typeof st.LocalActiveRes.Cpu !== typeof 1) return false
+  if (!st.hasOwnProperty('LocalQueueTotalRes') || !st.LocalQueueTotalRes.hasOwnProperty('Cpu') || typeof st.LocalQueueTotalRes.Cpu !== typeof 1) return false
+  if (!st.hasOwnProperty('LocalQueueRes') || !st.LocalQueueRes.hasOwnProperty('Cpu') || typeof st.LocalQueueRes.Cpu !== typeof 1) return false
+
+  if (!Array.isArray(st.ComputeState) || !Array.isArray(st.OmsActive) || !Array.isArray(st.ActiveRuns) || !Array.isArray(st.RunCompUsage) || !Array.isArray(st.QueueRuns)) {
+    return false
+  }
+
+  if (st.ComputeState.length > 0 && !isComputeStateItem(st.ComputeState[0])) return false
+  if (st.OmsActive.length > 0 && !isOmsActiveItem(st.OmsActive[0])) return false
+  if (st.ActiveRuns.length > 0 && !isActiveRunItem(st.ActiveRuns[0])) return false
+  if (st.RunCompUsage.length > 0 && !isRunCompUsageItem(st.RunCompUsage[0])) return false
+  if (st.QueueRuns.length > 0 && !isQueueRunItem(st.QueueRuns[0])) return false
+  return true
+}
+
+// return true if this is oms active: part of admin state info
+export const isOmsActiveItem = (e) => {
+  if (!e) return false
+  if (!e.hasOwnProperty('Oms') || typeof e.Oms !== typeof 'string') return false
+  if (!e.hasOwnProperty('LastStamp') || typeof e.LastStamp !== typeof 'string') return false
+  if (!e.hasOwnProperty('IsPaused') || typeof e.IsPaused !== typeof true) return false
+  if (!e.hasOwnProperty('Cpu') || typeof e.Cpu !== typeof 1) return false
+  if (!e.hasOwnProperty('Mem') || typeof e.Mem !== typeof 1) return false
+  if (!e.hasOwnProperty('LocalRes')) return false
+  if (!e.LocalRes.hasOwnProperty('Cpu') || typeof e.LocalRes.Cpu !== typeof 1) return false
+  if (!e.LocalRes.hasOwnProperty('Mem') || typeof e.LocalRes.Mem !== typeof 1) return false
+  if (!e.hasOwnProperty('IsDiskOver') || typeof e.IsDiskOver !== typeof true) return false
+  if (!e.hasOwnProperty('TotalSizeMb') || typeof e.TotalSizeMb !== typeof 1) return false
+  if (!e.hasOwnProperty('LimitMb') || typeof e.LimitMb !== typeof 1) return false
+  return true
+}
+// return true if this is active run: part of admin state info
+export const isActiveRunItem = (e) => {
+  if (!e) return false
+  if (!e.hasOwnProperty('Oms') || typeof e.Oms !== typeof 'string') return false
+  if (!e.hasOwnProperty('SubmitStamp') || typeof e.SubmitStamp !== typeof 'string') return false
+  if (!e.hasOwnProperty('Cpu') || typeof e.Cpu !== typeof 1) return false
+  if (!e.hasOwnProperty('Mem') || typeof e.Mem !== typeof 1) return false
+  if (!e.hasOwnProperty('IsMpi') || typeof e.IsMpi !== typeof true) return false
+  if (!e.hasOwnProperty('ModelName') || typeof e.ModelName !== typeof 'string') return false
+  if (!e.hasOwnProperty('ModelDigest') || typeof e.ModelDigest !== typeof 'string') return false
+  if (!e.hasOwnProperty('RunStamp') || typeof e.RunStamp !== typeof 'string') return false
+  return true
+}
+// return true if this is queue run: part of admin state info
+export const isQueueRunItem = (e) => {
+  if (!e) return false
+  if (!e.hasOwnProperty('Oms') || typeof e.Oms !== typeof 'string') return false
+  if (!e.hasOwnProperty('SubmitStamp') || typeof e.SubmitStamp !== typeof 'string') return false
+  if (!e.hasOwnProperty('ModelName') || typeof e.ModelName !== typeof 'string') return false
+  if (!e.hasOwnProperty('ModelDigest') || typeof e.ModelDigest !== typeof 'string') return false
+  if (!e.hasOwnProperty('IsMpi') || typeof e.IsMpi !== typeof true) return false
+  if (!e.hasOwnProperty('ProcessCount') || typeof e.ProcessCount !== typeof 1) return false
+  if (!e.hasOwnProperty('ThreadCount') || typeof e.ThreadCount !== typeof 1) return false
+  if (!e.hasOwnProperty('ProcessMemMb') || typeof e.ProcessMemMb !== typeof 1) return false
+  if (!e.hasOwnProperty('ThreadMemMb') || typeof e.ThreadMemMb !== typeof 1) return false
+  if (!e.hasOwnProperty('Position') || typeof e.Position !== typeof 1) return false
+  return true
+}
+// return true if this is server state info
+export const isComputeStateItem = (e) => {
+  if (!e) return false
+  if (!e.hasOwnProperty('Name') || typeof e.Name !== typeof 'string') return false
+  if (!e.hasOwnProperty('State') || typeof e.State !== typeof 'string') return false
+  if (!e.hasOwnProperty('TotalRes') || !e.TotalRes.hasOwnProperty('Cpu') || typeof e.TotalRes.Cpu !== typeof 1) return false
+  if (!e.hasOwnProperty('UsedRes') || !e.UsedRes.hasOwnProperty('Cpu') || typeof e.UsedRes.Cpu !== typeof 1) return false
+  if (!e.hasOwnProperty('OwnRes') || !e.OwnRes.hasOwnProperty('Cpu') || typeof e.OwnRes.Cpu !== typeof 1) return false
+  if (!e.hasOwnProperty('ErrorCount') || typeof e.ErrorCount !== typeof 1) return false
+  if (!e.hasOwnProperty('LastUsedTs') || typeof e.LastUsedTs !== typeof 1) return false
+  return true
+}
+// return true if this is active run computer usage: part of admin state info
+export const isRunCompUsageItem = (e) => {
+  if (!e) return false
+  if (!e.hasOwnProperty('Oms') || typeof e.Oms !== typeof 'string') return false
+  if (!e.hasOwnProperty('SubmitStamp') || typeof e.SubmitStamp !== typeof 'string') return false
+  if (!e.hasOwnProperty('CompName') || typeof e.CompName !== typeof 'string') return false
+  if (!e.hasOwnProperty('Cpu') || typeof e.Cpu !== typeof 1) return false
+  if (!e.hasOwnProperty('Mem') || typeof e.Mem !== typeof 1) return false
   return true
 }

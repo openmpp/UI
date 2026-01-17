@@ -11,9 +11,7 @@ export const runTextCount = (rtl) => {
 export const isRunTextList = (rtl) => {
   if (!rtl) return false
   if (!Array.isArray(rtl)) return false
-  for (let k = 0; k < rtl.length; k++) {
-    if (!isRunText(rtl[k])) return false
-  }
+  if (rtl.length > 0 && !isRunText(rtl[0])) return false
   return true
 }
 
@@ -346,9 +344,7 @@ export const toRunStateFromLog = (rlp) => {
 export const isRunStatusProgressList = (rpl) => {
   if (!rpl) return false
   if (!Array.isArray(rpl)) return false
-  for (let k = 0; k < rpl.length; k++) {
-    if (!isRunStatusProgress(rpl[k])) return false
-  }
+  if (rpl.length > 0 && !isRunStatusProgress(rpl[0])) return false
   return true
 }
 
@@ -460,11 +456,10 @@ export const isNotEmptyRunProgress = (rpi) => {
 }
 */
 
-// return empty job control item
-export const emptyJobItem = (stamp) => {
+// return empty run job control
+export const emptyRunJob = (stamp) => {
   return {
     SubmitStamp: (!!stamp && typeof stamp === typeof 'string' && stamp !== '') ? stamp : 'none',
-    JobStatus: '',
     ModelName: '',
     ModelDigest: '',
     RunStamp: '',
@@ -493,23 +488,35 @@ export const emptyJobItem = (stamp) => {
     },
     IsOverLimit: false,
     QueuePos: 0,
-    LogFileName: '',
-    RunStatus: [],
-    Lines: []
+    LogFileName: ''
   }
 }
 
-// return true if this is job control state
-export const isJobItem = (jc) => {
+// return empty job control item
+export const emptyJobItem = (stamp) => {
+  return Object.assign(
+    {},
+    emptyRunJob(stamp),
+    {
+      JobStatus: '',
+      RunStatus: [],
+      Lines: []
+    }
+  )
+}
+
+// return true if this is run job control state
+export const isRunJob = (jc) => {
   if (!jc) return false
   if (!jc.hasOwnProperty('SubmitStamp') || typeof jc.SubmitStamp !== typeof 'string') {
     return false
   }
   if (!isRunRequest(jc)) return false
-  if (!jc.hasOwnProperty('JobStatus')) return false
 
+  if (!jc.hasOwnProperty('Mpi')) return false
   if (!jc.Mpi.hasOwnProperty('IsNotByJob') || typeof jc.Mpi.IsNotByJob !== typeof true) return false
   if (!jc.hasOwnProperty('IsOverLimit') || typeof jc.IsOverLimit !== typeof true) return false
+
   if (!jc.hasOwnProperty('Res') ||
     !jc.Res.hasOwnProperty('Cpu') || typeof jc.Res.Cpu !== typeof 1 ||
     !jc.Res.hasOwnProperty('Mem') || typeof jc.Res.Mem !== typeof 1 ||
@@ -520,10 +527,20 @@ export const isJobItem = (jc) => {
     return false
   }
   if (!jc.hasOwnProperty('QueuePos') || typeof jc.QueuePos !== typeof 1) return false
+  if (!jc.hasOwnProperty('LogFileName')) return false
+  return true
+}
 
-  if (!jc.hasOwnProperty('LogFileName') || !jc.hasOwnProperty('RunStatus') || !jc.hasOwnProperty('Lines')) {
-    return false
-  }
+// return true if this is not empty job control state
+export const isNotEmptyRunJob = (jc) => {
+  return isRunJob(jc) && typeof jc.ModelDigest === typeof 'string' && jc.ModelDigest !== ''
+}
+
+// return true if this is job control state
+export const isJobItem = (jc) => {
+  if (!jc) return false
+  if (!isRunJob(jc)) return false
+  if (!jc.hasOwnProperty('JobStatus') || !jc.hasOwnProperty('Lines')) return false
   return Array.isArray(jc.RunStatus) && Array.isArray(jc.Lines)
 }
 

@@ -300,6 +300,20 @@
         </q-item-section>
       </q-item>
 
+      <q-item v-if="serverConfig.IsAdminAll"
+        clickable
+        :disable="!serverConfig.IsJobControl"
+        to="/admin-state"
+        >
+        <q-item-section avatar>
+          <q-icon name="mdi-server-security" />
+        </q-item-section>
+        <q-item-section>
+          <q-item-label>{{ $t('Admin Status') }}</q-item-label>
+          <q-item-label caption>{{ $t('Admin status and model(s) run') }}</q-item-label>
+        </q-item-section>
+      </q-item>
+
     </q-list>
   </q-drawer>
 

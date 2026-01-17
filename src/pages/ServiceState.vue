@@ -50,7 +50,7 @@
   </div>
 
   <div
-    v-if="serverConfig.IsJobControl && srvState.ComputeState.length"
+    v-if="serverConfig.IsJobControl && srvState.ComputeState.length > 0"
     v-show="isShowServers"
     class="q-py-sm q-px-xs">
 
@@ -154,7 +154,7 @@
         >
         </job-info-card>
 
-        </q-expansion-item>
+      </q-expansion-item>
 
     </q-list>
   </q-expansion-item>
@@ -182,8 +182,8 @@
             </div>
             <div class="col-grow q-pl-sm">
               <span>{{ $t('Model Run Queue') }}</span><span v-if="srvState.IsQueuePaused" class="q-pl-sm">({{ $t('paused') }})</span>: <span>{{ srvState.Queue.length || $t('None') }}</span>
-              <span v-if="srvState.QueueTotalRes.Cpu > 0" class="q-mx-md">&#124;</span>
-              <span v-if="srvState.QueueTotalRes.Cpu">{{ $t('MPI CPU Cores') }}: {{ srvState.QueueTotalRes.Cpu }}</span>
+              <span v-if="srvState.QueueOwnRes.Cpu > 0" class="q-mx-md">&#124;</span>
+              <span v-if="srvState.QueueOwnRes.Cpu">{{ $t('MPI CPU Cores') }}: {{ srvState.QueueOwnRes.Cpu }}</span>
               <span v-if="srvState.LocalQueueRes.Cpu > 0" class="q-mx-md">&#124;</span>
               <span v-if="srvState.LocalQueueRes.Cpu" class="q-pr-sm">{{ $t('Local CPU Cores') }}: {{ srvState.LocalQueueRes.Cpu }}</span>
             </div>

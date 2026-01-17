@@ -368,7 +368,7 @@ export default {
       this.$q.notify({ type: 'info', message: this.$t('Moving model run: ') + title })
     },
 
-    // move job queue to specified postion
+    // pause or resume model runs queue
     async doQueuePauseResume (isPause) {
       const u = this.omsUrl + '/api/admin/jobs-pause/' + (isPause ? 'true' : 'false')
       try {
