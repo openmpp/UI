@@ -240,15 +240,13 @@
                     />
                 </th>
                 <th rowspan="2" class="om-p-head-center text-weight-medium">{{ $t('User (oms)') }}</th>
-                <th rowspan="2" class="om-p-head-left text-weight-medium">
-                  {{ $t('Submit Stamp') }}<br/>
-                  <span class="om-text-descr">{{ $t('Run Stamp') }}</span>
-                </th>
+                <th rowspan="2" class="om-p-head-left text-weight-medium">{{ $t('Submit Stamp') }}</th>
                 <th colspan="2" class="om-p-head-center text-weight-medium">
                   {{ $t('Model') }}
                 </th>
                 <th colspan="2" class="om-p-head-center text-weight-medium">{{ $t('CPU Cores') }}</th>
                 <th rowspan="2" class="om-p-head-center text-weight-medium">{{ $t('Servers') }}</th>
+                <th rowspan="2" class="om-p-head-left text-weight-medium">{{ $t('Run Stamp') }}</th>
               </tr>
 
               <tr>
@@ -303,7 +301,7 @@
                     >
                   </q-select>
                 </th>
-                <th colspan="3" class="om-p-head text-weight-regular"></th>
+                <th colspan="4" class="om-p-head text-weight-regular"></th>
               </tr>
 
             </thead>
@@ -372,10 +370,7 @@
                     </td>
 
                     <td class="om-p-cell-left">{{ ar.Oms }}</td>
-                    <td class="om-p-cell-left">
-                      <span class="mono">{{ fromUnderscoreTs(ar.SubmitStamp) }}</span><br />
-                      <span class="mono om-text-descr">{{ fromUnderscoreTs(ar.RunStamp) }}</span>
-                    </td>
+                    <td class="om-p-cell-left mono">{{ fromUnderscoreTs(ar.SubmitStamp) }}</td>
                     <td class="om-p-cell-left">{{ ar.ModelName }}</td>
                     <td class="om-p-cell-left om-text-descr">{{ ar.ModelDigest }}</td>
                     <template v-if="ar.IsMpi">
@@ -389,16 +384,17 @@
                     <td class="om-p-cell-left mono">
                       <span v-for="rcu of runCompUse(ar.Oms, ar.SubmitStamp)" :key="rcu.Oms + '-' + rcu.SubmitStamp + '-' + rcu.CompName + '-' + rcu.Cpu"><span>{{ rcu.CompName }}: {{ rcu.Cpu }}</span><br /></span>
                     </td>
+                    <td class="om-p-cell-left mono">{{ fromUnderscoreTs(ar.RunStamp) }}</td>
                   </tr>
 
                   <tr v-if="isActiveRunState(ar.Oms, ar.SubmitStamp)">
-                    <td colspan="8" class="om-p-cell-left mono">
+                    <td colspan="9" class="om-p-cell-left mono">
                       <pre>{{ viewActiveRunState(ar.Oms, ar.SubmitStamp) }}</pre>
                     </td>
                   </tr>
 
                   <tr v-if="isActiveRunLog(ar.Oms, ar.SubmitStamp)">
-                    <td colspan="8" class="om-p-cell-left mono">
+                    <td colspan="9" class="om-p-cell-left mono">
                       <span v-if="activeRunLog.fileName" class="mono"><i>{{ activeRunLog.fileName }}:</i></span>
                       <div v-if="activeRunLog.lines.length <= 0">
                         <span class="mono">{{ $t('Log file not found or empty') }}</span>
