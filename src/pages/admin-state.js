@@ -837,7 +837,7 @@ export default {
       if (!isOk) {
         this.$q.notify({ type: 'negative', message: this.$t('Unable to retrieve model runs history') })
       } else {
-        // sort files list in reverse order of year-month, and normal ascending order of submit stamp and oms user names
+        // sort files list in reverse order of year-month and submit stamp, normal ascending order of oms user names
         pd.sort((left, right) => {
           // directory  and file names names in year-month reverse order
           switch (true) {
@@ -849,10 +849,10 @@ export default {
             case (left.IsDir && !right.IsDir): return -1
             case (!left.IsDir && right.IsDir): return 1
           }
-          // sort submit stamp in "normal" ascending order
+          // sort submit stamp in  reverse order
           switch (true) {
-            case (left.SubmitStamp < right.SubmitStamp): return -1
-            case (left.SubmitStamp > right.SubmitStamp): return 1
+            case (left.SubmitStamp < right.SubmitStamp): return 1
+            case (left.SubmitStamp > right.SubmitStamp): return -1
           }
           // sort oms in "normal" ascending order
           switch (true) {
