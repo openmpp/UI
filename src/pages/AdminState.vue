@@ -487,7 +487,6 @@
                   </q-select>
                 </th>
                 <th class="om-p-head text-weight-regular"></th>
-                <th class="om-p-head text-weight-regular"></th>
                 <th class="om-p-head-center text-weight-regular">
                   <q-select
                     v-model="nameQueueFilter"
@@ -512,7 +511,7 @@
                     >
                   </q-select>
                 </th>
-                <th colspan="3" class="om-p-head text-weight-regular"></th>
+                <th colspan="4" class="om-p-head text-weight-regular"></th>
               </tr>
 
             </thead>
