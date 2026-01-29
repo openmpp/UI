@@ -217,7 +217,7 @@
           <table class="om-p-table">
             <thead>
               <tr>
-                <th rowspan="2" class="om-p-head-center text-weight-medium btn-td">
+                <th :rowspan="isShowActiveFilter ? 3 : 2" class="om-p-head-center text-weight-medium btn-td">
                   <q-btn
                     @click="isShowActiveFilter = !isShowActiveFilter"
                     outline
@@ -228,23 +228,12 @@
                     color="primary"
                     />
                   <q-btn
-                    @click="applyActiveFilter"
-                    :disable="!isShowActiveFilter || !countActiveFilter()"
-                    outline
-                    no-caps
-                    padding="xs"
-                    :icon="countActiveFilter() > 0 ? 'mdi-filter' : 'mdi-filter-outline'"
-                    :title="$t('Apply filters')"
-                    color="primary"
-                    class="q-ml-xs"
-                    />
-                  <q-btn
                     @click="clearActiveFilter"
                     outline
-                    :disable="!countActiveFilter()"
+                    :disable="!isAnyActiveFilter || isShowActiveFilter"
                     no-caps
                     padding="xs"
-                    :icon="!!countActiveFilter() ? 'mdi-filter-off' : 'mdi-filter-off-outline'"
+                    :icon="isAnyActiveFilter ? 'mdi-filter-off' : 'mdi-filter-off-outline'"
                     :title="$t('Clear all filters')"
                     color="primary"
                     class="q-ml-xs"
@@ -275,11 +264,53 @@
 
                 <th class="om-p-head-center text-weight-medium">{{ $t('MPI') }}</th>
               </tr>
+
+              <tr v-if="isShowActiveFilter">
+                <th class="om-p-head-center text-weight-regular">
+                  <q-select
+                    v-model="omsActiveFilter"
+                    :options="omsActiveOpts"
+                    multiple
+                    outlined
+                    dense
+                    options-dense
+                    use-chips
+                    >
+                  </q-select>
+                </th>
+                <th class="om-p-head text-weight-regular"></th>
+                <th class="om-p-head-center text-weight-regular">
+                  <q-select
+                    v-model="nameActiveFilter"
+                    :options="nameActiveOpts"
+                    multiple
+                    outlined
+                    dense
+                    options-dense
+                    use-chips
+                    >
+                  </q-select>
+                </th>
+                <th class="om-p-head-center text-weight-regular">
+                  <q-select
+                    v-model="digestActiveFilter"
+                    :options="digestActiveOpts"
+                    multiple
+                    outlined
+                    dense
+                    options-dense
+                    use-chips
+                    >
+                  </q-select>
+                </th>
+                <th colspan="3" class="om-p-head text-weight-regular"></th>
+              </tr>
+
             </thead>
 
             <tbody>
               <template v-for="ar of adminState.ActiveRuns" :key="ar.Oms + '-a-' + ar.SubmitStamp">
-                <template v-if="isShowActiveFilter || (isOmsInActiveFilter(ar.Oms) && isNameInActiveFilter(ar.ModelName) && isDigestInActiveFilter(ar.ModelDigest))">
+                <template v-if="isInActiveFilter(ar)">
 
                   <tr>
                     <td class="om-p-cell-center">
@@ -288,7 +319,7 @@
                           @click="onActiveRunState(ar.Oms, ar.SubmitStamp)"
                           round
                           outline
-                          size="md"
+                          dense
                           padding="xs"
                           no-caps
                           :icon="isActiveRunState(ar.Oms, ar.SubmitStamp) ? 'mdi-information-outline' : 'mdi-information'"
@@ -301,7 +332,7 @@
                           :unelevated="isActiveRunState(ar.Oms, ar.SubmitStamp)"
                           :outline="!isActiveRunState(ar.Oms, ar.SubmitStamp)"
                           round
-                          size="md"
+                          dense
                           padding="xs"
                           no-caps
                           icon="mdi-content-copy"
@@ -316,7 +347,7 @@
                           :unelevated="!isActiveRunLog(ar.Oms, ar.SubmitStamp)"
                           :outline="isActiveRunLog(ar.Oms, ar.SubmitStamp)"
                           round
-                          size="md"
+                          dense
                           padding="xs"
                           no-caps
                           icon="mdi-text-long"
@@ -329,7 +360,7 @@
                           :unelevated="isActiveRunLog(ar.Oms, ar.SubmitStamp)"
                           :outline="!isActiveRunLog(ar.Oms, ar.SubmitStamp)"
                           round
-                          size="md"
+                          dense
                           padding="xs"
                           no-caps
                           icon="mdi-content-copy"
@@ -340,17 +371,13 @@
                       </div>
                     </td>
 
-                    <td class="om-p-cell-left"><q-checkbox v-if="isShowActiveFilter" v-model="omsActiveFilter" :val="ar.Oms" />{{ ar.Oms }}</td>
-
+                    <td class="om-p-cell-left">{{ ar.Oms }}</td>
                     <td class="om-p-cell-left">
                       <span class="mono">{{ fromUnderscoreTs(ar.SubmitStamp) }}</span><br />
                       <span class="mono om-text-descr">{{ fromUnderscoreTs(ar.RunStamp) }}</span>
                     </td>
-
-                    <td class="om-p-cell-left"><q-checkbox v-if="isShowActiveFilter" v-model="nameActiveFilter" :val="ar.ModelName" />{{ ar.ModelName }}</td>
-
-                    <td class="om-p-cell-left om-text-descr"><q-checkbox v-if="isShowActiveFilter" v-model="digestActiveFilter" :val="ar.ModelDigest" />{{ ar.ModelDigest }}</td>
-
+                    <td class="om-p-cell-left">{{ ar.ModelName }}</td>
+                    <td class="om-p-cell-left om-text-descr">{{ ar.ModelDigest }}</td>
                     <template v-if="ar.IsMpi">
                       <td class="om-p-cell-right mono"></td>
                       <td class="om-p-cell-right mono">{{ ar.Cpu }}</td>
@@ -359,7 +386,6 @@
                       <td class="om-p-cell-right mono"><span class="text-negative q-mr-xs">{{ ar.Cpu }}</span><span class="bg-negative text-white q-px-xs">!</span></td>
                       <td class="om-p-cell-right mono"></td>
                     </template>
-
                     <td class="om-p-cell-left mono">
                       <span v-for="rcu of runCompUse(ar.Oms, ar.SubmitStamp)" :key="rcu.Oms + '-' + rcu.SubmitStamp + '-' + rcu.CompName + '-' + rcu.Cpu"><span>{{ rcu.CompName }}: {{ rcu.Cpu }}</span><br /></span>
                     </td>
@@ -414,7 +440,7 @@
           <table class="om-p-table">
             <thead>
               <tr>
-                <th rowspan="2" class="om-p-head-center text-weight-medium btn-td">
+                <th :rowspan="isShowQueueFilter ? 3 : 2" class="om-p-head-center text-weight-medium btn-td">
                   <q-btn
                     @click="isShowQueueFilter = !isShowQueueFilter"
                     outline
@@ -425,23 +451,12 @@
                     color="primary"
                     />
                   <q-btn
-                    @click="applyQueueFilter"
-                    :disable="!isShowQueueFilter || !countQueueFilter()"
-                    outline
-                    no-caps
-                    padding="xs"
-                    :icon="countQueueFilter() > 0 ? 'mdi-filter' : 'mdi-filter-outline'"
-                    :title="$t('Apply filters')"
-                    color="primary"
-                    class="q-ml-xs"
-                    />
-                  <q-btn
                     @click="clearQueueFilter"
+                    :disable="!isAnyQueueFilter || isShowQueueFilter"
                     outline
-                    :disable="!countQueueFilter()"
                     no-caps
                     padding="xs"
-                    :icon="!!countQueueFilter() ? 'mdi-filter-off' : 'mdi-filter-off-outline'"
+                    :icon="isAnyQueueFilter ? 'mdi-filter-off' : 'mdi-filter-off-outline'"
                     :title="$t('Clear all filters')"
                     color="primary"
                     class="q-ml-xs"
@@ -461,11 +476,54 @@
                 <th class="om-p-head-center text-weight-medium">{{ $t('Processes') }}</th>
                 <th class="om-p-head-center text-weight-medium">{{ $t('Threads') }}</th>
               </tr>
+
+              <tr v-if="isShowQueueFilter">
+                <th class="om-p-head-center text-weight-regular">
+                  <q-select
+                    v-model="omsQueueFilter"
+                    :options="omsQueueOpts"
+                    multiple
+                    outlined
+                    dense
+                    options-dense
+                    use-chips
+                    >
+                  </q-select>
+                </th>
+                <th class="om-p-head text-weight-regular"></th>
+                <th class="om-p-head text-weight-regular"></th>
+                <th class="om-p-head-center text-weight-regular">
+                  <q-select
+                    v-model="nameQueueFilter"
+                    :options="nameQueueOpts"
+                    multiple
+                    outlined
+                    dense
+                    options-dense
+                    use-chips
+                    >
+                  </q-select>
+                </th>
+                <th class="om-p-head-center text-weight-regular">
+                  <q-select
+                    v-model="digestQueueFilter"
+                    :options="digestQueueOpts"
+                    multiple
+                    outlined
+                    dense
+                    options-dense
+                    use-chips
+                    >
+                  </q-select>
+                </th>
+                <th colspan="3" class="om-p-head text-weight-regular"></th>
+              </tr>
+
             </thead>
 
             <tbody>
               <template v-for="qr of adminState.QueueRuns" :key="qr.Oms + '-q-' + qr.SubmitStamp">
-                <template v-if="isShowQueueFilter || (isOmsInQueueFilter(qr.Oms) && isNameInQueueFilter(qr.ModelName) && isDigestInQueueFilter(qr.ModelDigest))">
+                <template v-if="isInQueueFilter(qr)">
 
                   <tr>
                     <td class="om-p-cell-center">
@@ -507,30 +565,277 @@
                         />
                     </td>
 
-                    <td class="om-p-cell-left"><q-checkbox v-if="isShowQueueFilter" v-model="omsQueueFilter" :val="qr.Oms" />{{ qr.Oms }}</td>
-
+                    <td class="om-p-cell-left">{{ qr.Oms }}</td>
                     <td class="om-p-cell-left">{{ fromUnderscoreTs(qr.SubmitStamp) }}</td>
-
-                    <td class="om-p-cell-left"><q-checkbox v-if="isShowQueueFilter" v-model="nameQueueFilter" :val="qr.ModelName" />{{ qr.ModelName }}</td>
-
-                    <td class="om-p-cell-left om-text-descr"><q-checkbox v-if="isShowQueueFilter" v-model="digestQueueFilter" :val="qr.ModelDigest" />{{ qr.ModelDigest }}</td>
-
+                    <td class="om-p-cell-left">{{ qr.ModelName }}</td>
+                    <td class="om-p-cell-left om-text-descr">{{ qr.ModelDigest }}</td>
                     <td class="om-p-cell-right mono">{{ qr.Position }}</td>
-
                     <td class="om-p-cell-center" :class="!qr.IsMpi ? 'bg-negative text-white q-px-xs' : ''">
                       <span v-if="qr.IsMpi">&#x2714;</span>
                       <span v-else>{{ $t('No') }}</span>
                     </td>
-
                     <td class="om-p-cell-right mono">{{ qr.ProcessCount }}</td>
-
                     <td class="om-p-cell-right mono">{{ qr.ThreadCount }}</td>
-
                   </tr>
 
                   <tr v-if="isQueueRunState(qr.Oms, qr.SubmitStamp)">
                     <td colspan="9" class="om-p-cell-left mono">
                       <pre>{{ viewQueueRunState(qr.Oms, qr.SubmitStamp) }}</pre>
+                    </td>
+                  </tr>
+
+                </template>
+              </template>
+            </tbody>
+          </table>
+        </q-card-section>
+      </q-card>
+
+    </q-expansion-item>
+
+    <q-expansion-item
+      v-if="adminState.IsJobPast"
+      v-model="isShowPastRuns"
+      switch-toggle-side
+      expand-separator
+      header-class="bg-primary text-white"
+      class="q-my-sm"
+      >
+      <template v-slot:header>
+        <q-item-section>
+          <div class="row no-wrap items-center full-width">
+            <q-btn
+              @click.stop="onRereshPast()"
+              flat
+              outline
+              dense
+              no-caps
+              :label="pastRuns.length ? pastRefreshTs : ''"
+              color="primary"
+              :icon="pastRuns.length ? 'mdi-refresh-circle' : 'mdi-play-circle-outline'"
+              class="col-auto bg-white rounded-borders q-py-none q-px-xs"
+              :title="$t('Refresh model runs history')"
+              />
+            <span
+              class="col-auto q-pl-md">{{ $t('Model Runs History') }} {{ pastRuns.length ? ': ' + pastFileCount.toLocaleString(locale) : '' }}</span>
+          </div>
+        </q-item-section>
+      </template>
+
+      <q-card>
+        <q-card-section>
+          <table class="om-p-table">
+            <thead>
+              <tr>
+                <th
+                  :rowspan="isShowPastFilter ? 2 : 1"
+                  class="om-p-head-center text-weight-medium btn-td"
+                  >
+                  <q-btn
+                    @click="isShowPastFilter = !isShowPastFilter"
+                    outline
+                    no-caps
+                    padding="xs"
+                    :icon="isShowPastFilter ? 'mdi-filter-check-outline' : 'mdi-filter-check'"
+                    :title="isShowPastFilter ? $t('Hide filters') : $t('Show filters')"
+                    color="primary"
+                    />
+                  <q-btn
+                    @click="clearPastFilter"
+                    outline
+                    :disable="!isAnyPastFilter || isShowPastFilter"
+                    no-caps
+                    padding="xs"
+                    :icon="isAnyPastFilter ? 'mdi-filter-off' : 'mdi-filter-off-outline'"
+                    :title="$t('Clear all filters')"
+                    color="primary"
+                    class="q-ml-xs"
+                    />
+                </th>
+                <th class="om-p-head-center text-weight-medium">{{ $t('Year Month') }}</th>
+                <th class="om-p-head-center text-weight-medium">{{ $t('Submit Stamp') }}</th>
+                <th class="om-p-head-center text-weight-medium">{{ $t('User (oms)') }}</th>
+                <th class="om-p-head-center text-weight-medium">{{ $t('Model Name') }}</th>
+                <th class="om-p-head-center text-weight-medium">{{ $t('Digest') }}</th>
+                <th class="om-p-head-center text-weight-medium">{{ $t('Status') }}</th>
+                <th class="om-p-head-center text-weight-medium">{{ $t('Time') }}</th>
+                <th class="om-p-head-center text-weight-medium">{{ $t('Cores') }}</th>
+                <th class="om-p-head-center text-weight-medium">{{ $t('MPI') }}</th>
+                <th class="om-p-head-center text-weight-medium">{{ $t('Run Stamp') }}</th>
+              </tr>
+              <tr v-if="isShowPastFilter">
+                <th class="om-p-head-center text-weight-regular">
+                  <q-select
+                    v-model="ymPastFilter"
+                    :options="ymPastOpts"
+                    multiple
+                    outlined
+                    dense
+                    options-dense
+                    use-chips
+                    >
+                  </q-select>
+                </th>
+                <th class="om-p-head"></th>
+                <th class="om-p-head-center text-weight-regular">
+                  <q-select
+                    v-model="omsPastFilter"
+                    :options="omsPastOpts"
+                    multiple
+                    outlined
+                    dense
+                    options-dense
+                    use-chips
+                    >
+                  </q-select>
+                </th>
+                <th class="om-p-head-center text-weight-regular">
+                  <q-select
+                    v-model="namePastFilter"
+                    :options="namePastOpts"
+                    multiple
+                    outlined
+                    dense
+                    options-dense
+                    use-chips
+                    >
+                  </q-select>
+                </th>
+                <th class="om-p-head-center text-weight-regular">
+                  <q-select
+                    v-model="digestPastFilter"
+                    :options="digestPastOpts"
+                    multiple
+                    outlined
+                    dense
+                    options-dense
+                    use-chips
+                    >
+                  </q-select>
+                </th>
+                <th class="om-p-head-center text-weight-regular">
+                  <q-select
+                    v-model="statusPastFilter"
+                    :options="statusPastOpts"
+                    multiple
+                    outlined
+                    dense
+                    options-dense
+                    use-chips
+                    >
+                  </q-select>
+                </th>
+                <th colspan="4" class="om-p-head"></th>
+              </tr>
+            </thead>
+
+            <tbody>
+              <template v-for="pr of pastRuns" :key="pr.YearMonth + '-p-' + pr.Oms + '-p-' + pr.SubmitStamp">
+                <template v-if="isInPastFilter(pr)">
+
+                  <tr>
+                    <td class="om-p-cell-center">
+                      <template v-if="!pr.IsDir">
+                      <div class="bar-td rounded-borders q-pa-xs">
+                        <q-btn
+                          @click="onPastRunState(pr.YearMonth, pr.Oms, pr.SubmitStamp)"
+                          round
+                          outline
+                          dense
+                          padding="xs"
+                          no-caps
+                          :icon="isPastRunState(pr.YearMonth, pr.Oms, pr.SubmitStamp) ? 'mdi-information-outline' : 'mdi-information'"
+                          :title="!isPastRunState(pr.YearMonth, pr.Oms, pr.SubmitStamp) ? $t('Show model run info') : $t('Hide model run info')"
+                          color="primary"
+                          />
+                        <q-btn
+                          @click="toClipboardPastRunState(pr.YearMonth, pr.Oms, pr.SubmitStamp)"
+                          :disable="!isPastRunState(pr.YearMonth, pr.Oms, pr.SubmitStamp)"
+                          :unelevated="isPastRunState(pr.YearMonth, pr.Oms, pr.SubmitStamp)"
+                          :outline="!isPastRunState(pr.YearMonth, pr.Oms, pr.SubmitStamp)"
+                          round
+                          dense
+                          padding="xs"
+                          no-caps
+                          icon="mdi-content-copy"
+                          :title="$t('Copy model run info to clipboard')"
+                          color="primary"
+                          class="q-ml-xs"
+                          />
+                      </div>
+                      <div class="bar-td rounded-borders q-pa-xs q-ml-xs">
+                        <q-btn
+                          @click="onPastRunLog(pr.YearMonth, pr.Oms, pr.SubmitStamp)"
+                          :unelevated="!isPastRunLog(pr.YearMonth, pr.Oms, pr.SubmitStamp)"
+                          :outline="isPastRunLog(pr.YearMonth, pr.Oms, pr.SubmitStamp)"
+                          round
+                          dense
+                          padding="xs"
+                          no-caps
+                          icon="mdi-text-long"
+                          :title="!isPastRunLog(pr.YearMonth, pr.Oms, pr.SubmitStamp) ? $t('Show model run log') : $t('Hide model run log')"
+                          color="primary"
+                          />
+                        <q-btn
+                          @click="toClipboardPastRunLog(pr.YearMonth, pr.Oms, pr.SubmitStamp)"
+                          :disable="!isPastRunLog(pr.YearMonth, pr.Oms, pr.SubmitStamp)"
+                          :unelevated="isPastRunLog(pr.YearMonth, pr.Oms, pr.SubmitStamp)"
+                          :outline="!isPastRunLog(pr.YearMonth, pr.Oms, pr.SubmitStamp)"
+                          round
+                          dense
+                          padding="xs"
+                          no-caps
+                          icon="mdi-content-copy"
+                          :title="$t('Copy model run log to clipboard')"
+                          color="primary"
+                          class="q-ml-xs"
+                          />
+                      </div>
+                      </template>
+                    </td>
+
+                    <template v-if="pr.IsDir">
+                      <td colspan="10" class="om-p-cell-left text-weight-bold dir-line mono">{{ pr.YearMonth }}</td>
+                    </template>
+                    <template v-else>
+                      <td class="om-p-cell-left mono">{{ pr.YearMonth }}</td>
+                      <td class="om-p-cell-left">{{ fromUnderscoreTs(pr.SubmitStamp) }}</td>
+                      <td class="om-p-cell-left">{{ pr.Oms }}</td>
+                      <td class="om-p-cell-left">{{ pr.ModelName }}</td>
+                      <td class="om-p-cell-left om-text-descr">{{ pr.ModelDigest }}</td>
+                      <td class="om-p-cell-left">{{ pr.Status }}</td>
+                      <td class="om-p-cell-right">{{ toHourMinSec(pr.TotalSec) }}</td>
+                      <template v-if="pr.Cpu > 0">
+                        <td class="om-p-cell-right mono">{{ pr.Cpu }}</td>
+                        <td class="om-p-cell-center" :class="pr.IsMpi ? '' : 'text-negative'">
+                          <span v-if="pr.IsMpi">&#x2714;</span>
+                          <span v-else>{{ $t('No') }}</span>
+                        </td>
+                      </template>
+                      <template v-else>
+                        <td class="om-p-cell-right mono"></td>
+                        <td class="om-p-cell-center"></td>
+                      </template>
+                      <td class="om-p-cell-left om-text-descr">{{ fromUnderscoreTs(pr.RunStamp) }}</td>
+                    </template>
+
+                  </tr>
+
+                  <tr v-if="isPastRunState(pr.YearMonth, pr.Oms, pr.SubmitStamp)">
+                    <td colspan="11" class="om-p-cell-left mono">
+                      <pre>{{ viewPastRunState(pr.YearMonth, pr.Oms, pr.SubmitStamp) }}</pre>
+                    </td>
+                  </tr>
+
+                  <tr v-if="isPastRunLog(pr.YearMonth, pr.Oms, pr.SubmitStamp)">
+                    <td colspan="11" class="om-p-cell-left mono">
+                      <span v-if="pastRunLog.fileName" class="mono"><i>{{ pastRunLog.fileName }}:</i></span>
+                      <div v-if="pastRunLog.lines.length <= 0">
+                        <span class="mono">{{ $t('Log file not found or empty') }}</span>
+                      </div>
+                      <div v-else>
+                        <pre>{{pastRunLog.lines.join('\n')}}</pre>
+                      </div>
                     </td>
                   </tr>
 
@@ -565,11 +870,17 @@
   .paused {
     background-color: lightgrey;
   }
+  .dir-line {
+    background-color: whitesmoke;
+  }
+  .empty-btn-td {
+    background-color: whitesmoke;
+  }
   .btn-td {
     min-width: 2rem;
   }
   .bar-td {
     border: 1px solid lightgray;
-    display:inline-block;
+    display: inline-block;
   }
 </style>

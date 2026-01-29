@@ -27,28 +27,57 @@ export default {
       isShowActiveRuns: true,
       isShowQueueRuns: false,
       locale: '',
-      activeRunState: { // active job control state: key is 'Oms-SubmitStamp', value is JobRun
+      activeRunState: { // active job control state: key is 'Oms-SubmitStamp', value is RunJob
       },
       isShowActiveFilter: false,
       omsActiveFilter: [],
       nameActiveFilter: [],
       digestActiveFilter: [],
-      activeRunLog: {
+      omsActiveOpts: [],
+      nameActiveOpts: [],
+      digestActiveOpts: [],
+      activeRunLog: { // active job log selected: key, file name and log file content
         user: '',
         submit: '',
         fileName: '',
         lines: []
       },
-      queueRunState: { // queue job control state: key is 'Oms-SubmitStamp', value is JobRun
+      queueRunState: { // queue job control state: key is 'Oms-SubmitStamp', value is RunJob
+      },
+      pastRunState: { // past job control state: key is 'Year_Month-Oms-SubmitStamp', value is PastRunJob
       },
       isShowQueueFilter: false,
       omsQueueFilter: [],
       nameQueueFilter: [],
       digestQueueFilter: [],
+      omsQueueOpts: [],
+      nameQueueOptsr: [],
+      digestQueueOpts: [],
+      pastRunLog: { // past job log selected: key, file name and log file content
+        yearMonth: '',
+        user: '',
+        submit: '',
+        fileName: '',
+        lines: []
+      },
       stopRunTitle: '',
       stopSubmitStamp: '',
       stopOmsName: '',
       showStopRunTickle: false,
+      isShowPastRuns: false,
+      pastRefreshTs: '',
+      pastRuns: [],
+      isShowPastFilter: false,
+      ymPastFilter: [],
+      omsPastFilter: [],
+      namePastFilter: [],
+      digestPastFilter: [],
+      statusPastFilter: [],
+      ymPastOpts: [],
+      omsPastOpts: [],
+      namePastOpts: [],
+      digestPastOpts: [],
+      statusPastOpts: Object.freeze(['success', 'kill', 'error']),
       isRefreshPaused: false,
       isRefreshDisabled: false,
       stateRefreshTickle: 0,
@@ -60,6 +89,33 @@ export default {
 
   computed: {
     isConfigAdminAll () { return !!this.serverConfig.IsAdminAll },
+
+    // return true if there are any active runs filters
+    isAnyActiveFilter () {
+      return this.omsActiveFilter.length + this.nameActiveFilter.length + this.digestActiveFilter.length > 0
+    },
+    // return true if there are any queue runs filters
+    isAnyQueueFilter () {
+      return this.omsQueueFilter.length + this.nameQueueFilter.length + this.digestQueueFilter.length > 0
+    },
+    // return true if there are any past runs filters
+    isAnyPastFilter () {
+      return this.ymPastFilter.length + this.omsPastFilter.length + this.namePastFilter.length + this.digestPastFilter.length + this.statusPastFilter.length > 0
+    },
+    pastFolderCount () {
+      let n = 0
+      if (Array.isArray(this.pastRuns)) {
+        this.pastRuns.forEach(p => { if (typeof p?.IsDir === typeof true && p?.IsDir) n++ })
+      }
+      return n
+    },
+    pastFileCount () {
+      let n = 0
+      if (Array.isArray(this.pastRuns)) {
+        this.pastRuns.forEach(p => { if (typeof p?.IsDir === typeof true && !p?.IsDir) n++ })
+      }
+      return n
+    },
 
     ...mapState(useServerStateStore, {
       omsUrl: 'omsUrl',
@@ -78,6 +134,7 @@ export default {
   methods: {
     isUnderscoreTs (ts) { return Mdf.isUnderscoreTimeStamp(ts) },
     fromUnderscoreTs (ts) { return Mdf.isUnderscoreTimeStamp(ts) ? Mdf.fromUnderscoreTimeStamp(ts) : ts },
+
     isSuccess (status) { return status === 'success' },
     isInProgress (status) { return status === 'progress' || status === 'init' || status === 'wait' },
     runStatusDescr (status) { return Mdf.statusText(status) },
@@ -87,6 +144,8 @@ export default {
     lastUsedDt (ts) {
       return (!!ts && ts > Date.UTC(2022, 7, 17, 23, 45, 59)) ? Mdf.dtToTimeStamp(new Date(ts)) : ''
     },
+
+    toHourMinSec (totalSec) { return ((totalSec || '') ? Mdf.toHourMinSec(totalSec) : '') }, // moel run thime as hours:mm:ss
 
     // return count of oms users where disk usage is over the limit
     omsDiskOverCount () {
@@ -111,11 +170,14 @@ export default {
     // update page view
     initView () {
       this.adminState = Mdf.emptyAdminState()
-      this.clearActiveRunLog()
       this.activeRunState = {}
+      this.clearActiveRunLog()
       this.clearActiveFilter()
       this.queueRunState = {}
       this.clearQueueFilter()
+      this.pastRunState = {}
+      this.clearPastRunLog()
+      this.clearPastFilter()
 
       // locale for number formatting
       let lc = this.uiLang || this.$q.lang.getLocale() || ''
@@ -181,16 +243,13 @@ export default {
       this.digestActiveFilter = []
     },
 
-    // return total number of values in active runs filters
-    countActiveFilter () {
-      return this.omsActiveFilter.length + this.nameActiveFilter.length + this.digestActiveFilter.length
+    // return true if active run is in the active filter
+    isInActiveFilter (ar) {
+      if (!ar || !this.isAnyActiveFilter) {
+        return true // ignore empty filter
+      }
+      return this.isOmsInActiveFilter(ar.Oms) && this.isNameInActiveFilter(ar.ModelName) && this.isDigestInActiveFilter(ar.ModelDigest)
     },
-
-    // apply active runs filters: actual apply is in template
-    applyActiveFilter () {
-      this.isShowActiveFilter = false // hide checkboxes
-    },
-
     // return true if oms of active run is in filter: show active runs for this oms
     isOmsInActiveFilter (oms) {
       if (!oms || !this.omsActiveFilter.length) { // ignore empty filter
@@ -198,7 +257,6 @@ export default {
       }
       return this.omsActiveFilter.findIndex(v => v === oms) >= 0
     },
-
     // return true if model name of active run is in filter: show active runs for this model name
     isNameInActiveFilter (name) {
       if (!name || !this.nameActiveFilter.length) { // ignore empty filter
@@ -206,7 +264,6 @@ export default {
       }
       return this.nameActiveFilter.findIndex(v => v === name) >= 0
     },
-
     // return true if this model digest of active run is in filter: show active runs for this model digest
     isDigestInActiveFilter (dgst) {
       if (!dgst || !this.digestActiveFilter.length) { // ignore empty filter
@@ -293,9 +350,9 @@ export default {
       if (!oms || !stamp) return
 
       // if this is an active run log
-      const isActive = ((this.activeRunLog.user || '') === oms && (this.activeRunLog.submit || '') === stamp)
+      const isLog = ((this.activeRunLog.user || '') === oms && (this.activeRunLog.submit || '') === stamp)
       this.clearActiveRunLog() // clear any selected run log
-      if (isActive) {
+      if (isLog) {
         return
       }
       // else there is no currently selected run log: select new
@@ -329,17 +386,13 @@ export default {
       this.nameQueueFilter = []
       this.digestQueueFilter = []
     },
-
-    // return total number of values in queue runs filters
-    countQueueFilter () {
-      return this.omsQueueFilter.length + this.nameQueueFilter.length + this.digestQueueFilter.length
+    // return true if active run is in the active filter
+    isInQueueFilter (qr) {
+      if (!qr || !this.isAnyQueueFilter) {
+        return true // ignore empty filter
+      }
+      return this.isOmsInQueueFilter(qr.Oms) && this.isNameInQueueFilter(qr.ModelName) && this.isDigestInQueueFilter(qr.ModelDigest)
     },
-
-    // apply queue runs filters: actual apply is in template
-    applyQueueFilter () {
-      this.isShowQueueFilter = false // hide checkboxes
-    },
-
     // return true if oms of queue run is in filter: show queue runs for this oms
     isOmsInQueueFilter (oms) {
       if (!oms || !this.omsQueueFilter.length) { // ignore empty filter
@@ -347,15 +400,13 @@ export default {
       }
       return this.omsQueueFilter.findIndex(v => v === oms) >= 0
     },
-
     // return true if model name of queue run is in filter: show queue runs for this model name
     isNameInQueueFilter (name) {
       if (!name || !this.nameQueueFilter.length) { // ignore empty filter
         return true
       }
-      return this.nameAQueueFilter.findIndex(v => v === name) >= 0
+      return this.nameQueueFilter.findIndex(v => v === name) >= 0
     },
-
     // return true if this model digest of queue run is in filter: show queue runs for this model digest
     isDigestInQueueFilter (dgst) {
       if (!dgst || !this.digestQueueFilter.length) { // ignore empty filter
@@ -444,7 +495,7 @@ export default {
       }
 
       const u = this.omsUrl +
-        'api/admin-all/run/stop/queue/' + encodeURIComponent(oms) +
+        '/api/admin-all/run/stop/queue/user/' + encodeURIComponent(oms) +
         /stamp/ + encodeURIComponent(stamp)
       try {
         await this.$axios.put(u) // ignore response on success
@@ -458,11 +509,129 @@ export default {
       this.$q.notify({ type: 'info', message: this.$t('Stopping model run: ') + title })
     },
 
-    // receive server configuration, including configuration of model catalog and run catalog
+    // clear all past runs filters
+    clearPastFilter () {
+      this.isShowPastFilter = false
+      this.ymPastFilter = []
+      this.omsPastFilter = []
+      this.namePastFilter = []
+      this.digestPastFilter = []
+      this.statusPastFilter = []
+    },
+
+    // return true if past run is in the filter
+    isInPastFilter (pr) {
+      if (!pr || !this.isAnyPastFilter) return true // ignore empty filter
+
+      if (pr.IsDir) return this.isYearMonthInPastFilter(pr.YearMonth)
+
+      return this.isYearMonthInPastFilter(pr.YearMonth) &&
+             this.isOmsInPastFilter(pr.Oms) &&
+             this.isNameInPastFilter(pr.ModelName) &&
+             this.isDigestInPastFilter(pr.ModelDigest) &&
+             this.isStatusInPastFilter(pr.Status)
+    },
+
+    // return true if year_month of past run is in filter: show past runs for this year_month
+    isYearMonthInPastFilter (ym) {
+      if (!ym || !this.ymPastFilter.length) { // ignore empty filter
+        return true
+      }
+      return this.ymPastFilter.findIndex(v => v === ym) >= 0
+    },
+    // return true if oms of past run is in filter: show past runs for this oms
+    isOmsInPastFilter (oms) {
+      if (!oms || !this.omsPastFilter.length) { // ignore empty filter
+        return true
+      }
+      return this.omsPastFilter.findIndex(v => v === oms) >= 0
+    },
+    // return true if model name of past run is in filter: show past runs for this model name
+    isNameInPastFilter (name) {
+      if (!name || !this.namePastFilter.length) { // ignore empty filter
+        return true
+      }
+      return this.namePastFilter.findIndex(v => v === name) >= 0
+    },
+    // return true if model digest of past run is in filter: show past runs for this model digest
+    isDigestInPastFilter (dgst) {
+      if (!dgst || !this.digestPastFilter.length) { // ignore empty filter
+        return true
+      }
+      return this.digestPastFilter.findIndex(v => v === dgst) >= 0
+    },
+    // return true if run status of past run is in filter: show past runs for this run status
+    isStatusInPastFilter (st) {
+      if (!st || !this.statusPastFilter.length) { // ignore empty filter
+        return true
+      }
+      return this.statusPastFilter.findIndex(v => v === st) >= 0
+    },
+
+    // do show or hide past job control state
+    onPastRunState (ym, oms, stamp) {
+      if (this.isPastRunState(ym, oms, stamp)) {
+        this.clearPastRunState(ym, oms, stamp)
+      } else {
+        this.getPastRunState(ym, oms, stamp)
+      }
+    },
+    // return true if past job control state is avalibale for that year_month, oms and submit stamp
+    isPastRunState (ym, oms, stamp) {
+      return !!this.findPastRunState(ym, oms, stamp)
+    },
+    // return true if past job control state is avalibale for that year_month, oms and submit stamp
+    findPastRunState (ym, oms, stamp) {
+      if (!ym || !oms || !stamp) return ''
+      const key = ym + '-' + oms + '-' + stamp
+      if (!this.pastRunState?.[key]) return ''
+      const rj = this.pastRunState?.[key]
+      return Mdf.isRunJob(rj) ? rj : ''
+    },
+    // delete job past control state: set value of ['year_month-oms-stamp'] to empty '' string
+    clearPastRunState (ym, oms, stamp) {
+      if (!ym || !oms || !stamp) return
+      const key = ym + '-' + oms + '-' + stamp
+      if (this.pastRunState?.[key]) this.pastRunState[key] = ''
+    },
+
+    // return past job control state as string
+    viewPastRunState (ym, oms, stamp) {
+      const rj = this.findPastRunState(ym, oms, stamp)
+      if (!rj) return ''
+
+      try {
+        return JSON.stringify(rj, null, 2)
+      } catch (e) {
+        console.warn('Unable to convert model run info:', ym, oms, stamp, e)
+        this.$q.notify({ type: 'negative', message: this.$t('Unable to convert model run info') })
+        this.clearPastRunState(oms, stamp) // clean past job control state
+      }
+      return '' // retrun empty on error
+    },
+
+    // copy job past control state as string to clipboard
+    async toClipboardPastRunState (ym, oms, stamp) {
+      const txt = this.viewPastRunState(ym, oms, stamp)
+      if (!txt) {
+        console.warn('empty job control state:', txt)
+        this.$q.notify({ type: 'warning', message: this.$t('Unable to copy model run info to clipboard') })
+        return
+      }
+      try {
+        await copyToClipboard(txt)
+        this.$q.notify({ type: 'info', message: this.$t('Copy model run info to clipboard:') + txt.length + ' ' + this.$t('characters') })
+      } catch (e) {
+        console.warn('Unable copy to job control state to clipboard:', e)
+        this.$q.notify({ type: 'warning', message: this.$t('Unable to copy model run info to clipboard') })
+      }
+    },
+
+    // receive global admin server state
     async doStateRefresh () {
       this.stateSendCount++
 
-      let u = this.omsUrl + 'api/admin-all/state'
+      let u = this.omsUrl + '/api/admin-all/state'
       try {
         // send request to the server
         const response = await this.$axios.get(u)
@@ -488,6 +657,34 @@ export default {
         this.$q.notify({ type: 'negative', message: this.$t('Server offline or state retrieval failed.') })
         return
       }
+
+      // update active filter options
+      let omsOpts = {}
+      let nameOpts = {}
+      let digestOpts = {}
+
+      for (const ar of this.adminState.ActiveRuns) {
+        omsOpts[ar.Oms] = true
+        nameOpts[ar.ModelName] = true
+        digestOpts[ar.ModelDigest] = true
+      }
+      this.omsActiveOpts = Object.freeze(Object.keys(omsOpts).sort())
+      this.nameActiveOpts = Object.freeze(Object.keys(nameOpts).sort())
+      this.digestActiveOpts = Object.freeze(Object.keys(digestOpts).sort())
+
+      // update queue filter options
+      omsOpts = {}
+      nameOpts = {}
+      digestOpts = {}
+
+      for (const qr of this.adminState.QueueRuns) {
+        omsOpts[qr.Oms] = true
+        nameOpts[qr.ModelName] = true
+        digestOpts[qr.ModelDigest] = true
+      }
+      this.omsQueueOpts = Object.freeze(Object.keys(omsOpts).sort())
+      this.nameQueueOpts = Object.freeze(Object.keys(nameOpts).sort())
+      this.digestQueueOpts = Object.freeze(Object.keys(digestOpts).sort())
 
       // clear active run state and queue run state
       const ak = Object.keys(this.activeRunState)
@@ -518,7 +715,7 @@ export default {
       const oms = this.activeRunLog.user || ''
       const stamp = this.activeRunLog.submit || ''
       u = this.omsUrl +
-        'api/admin-all/job/active/' + encodeURIComponent(oms) + /stamp/ + encodeURIComponent(stamp) + '/log'
+        '/api/admin-all/job/active/user/' + encodeURIComponent(oms) + /stamp/ + encodeURIComponent(stamp) + '/log'
       try {
         // send request to the server
         const response = await this.$axios.get(u)
@@ -543,6 +740,21 @@ export default {
       this.activeRunLog.lines = (ml.length > 1) ? ml.slice(1) : []
     },
 
+    // pause or resume all model runs queue
+    async doQueuePauseResume (isPause) {
+      const u = this.omsUrl + '/api/admin-all/jobs-pause/' + (isPause ? 'true' : 'false')
+      try {
+        await this.$axios.post(u) // ignore response on success
+      } catch (e) {
+        console.warn('Unable to pause or resume all model run queues', isPause, e)
+        this.$q.notify({ type: 'negative', message: this.$t(isPause ? 'Unable to pause all model run queues' : 'Unable to resume all model run queues') })
+        return // exit on error
+      }
+
+      // notify user on success, actual service state update dealyed
+      this.$q.notify({ type: 'info', message: this.$t(isPause ? 'Pausing all model run queues...' : 'Resuming all model run queues...') })
+    },
+
     // get active job control state
     async getActiveRunState (oms, stamp) {
       if (!oms || !stamp) {
@@ -550,10 +762,10 @@ export default {
         return
       }
 
-      // update active run log
+      // update active run state
       let isOk = false
       const u = this.omsUrl +
-        'api/admin-all/job/active/' + encodeURIComponent(oms) + /stamp/ + encodeURIComponent(stamp) + '/state'
+        '/api/admin-all/job/active/user/' + encodeURIComponent(oms) + /stamp/ + encodeURIComponent(stamp) + '/state'
       try {
         // send request to the server
         const response = await this.$axios.get(u)
@@ -580,10 +792,10 @@ export default {
         return
       }
 
-      // update queue run log
+      // update queue run state
       let isOk = false
       const u = this.omsUrl +
-        'api/admin-all/job/queue/' + encodeURIComponent(oms) + /stamp/ + encodeURIComponent(stamp) + '/state'
+        '/api/admin-all/job/queue/user/' + encodeURIComponent(oms) + /stamp/ + encodeURIComponent(stamp) + '/state'
       try {
         // send request to the server
         const response = await this.$axios.get(u)
@@ -603,19 +815,196 @@ export default {
       }
     },
 
-    // pause or resume all model runs queue
-    async doQueuePauseResume (isPause) {
-      const u = this.omsUrl + '/api/admin-all/jobs-pause/' + (isPause ? 'true' : 'false')
+    // update shadow past history
+    async onRereshPast () {
+      let isOk = false
+      let pd = []
+
+      const u = this.omsUrl + '/api/admin-all/job/past/file-tree'
       try {
-        await this.$axios.post(u) // ignore response on success
+        // send request to the server
+        const response = await this.$axios.get(u)
+        isOk = Mdf.isPastHistory(response?.data) // if response is past shadow history array
+        if (isOk) pd = response.data
       } catch (e) {
-        console.warn('Unable to pause or resume all model run queues', isPause, e)
-        this.$q.notify({ type: 'negative', message: this.$t(isPause ? 'Unable to pause all model run queues' : 'Unable to resume all model run queues') })
-        return // exit on error
+        let em = ''
+        try {
+          if (e.response) em = e.response.data || ''
+        } finally {}
+        console.warn('Unable to retrieve model runs history', em)
       }
 
-      // notify user on success, actual service state update dealyed
-      this.$q.notify({ type: 'info', message: this.$t(isPause ? 'Pausing all model run queues...' : 'Resuming all model run queues...') })
+      if (!isOk) {
+        this.$q.notify({ type: 'negative', message: this.$t('Unable to retrieve model runs history') })
+      } else {
+        // sort files list in reverse order of year-month, and normal ascending order of submit stamp and oms user names
+        pd.sort((left, right) => {
+          // directory  and file names names in year-month reverse order
+          switch (true) {
+            case (left.YearMonth < right.YearMonth): return 1
+            case (left.YearMonth > right.YearMonth): return -1
+          }
+          // year-month directory before file names
+          switch (true) {
+            case (left.IsDir && !right.IsDir): return -1
+            case (!left.IsDir && right.IsDir): return 1
+          }
+          // sort submit stamp in "normal" ascending order
+          switch (true) {
+            case (left.SubmitStamp < right.SubmitStamp): return -1
+            case (left.SubmitStamp > right.SubmitStamp): return 1
+          }
+          // sort oms in "normal" ascending order
+          switch (true) {
+            case (left.Oms < right.Oms): return -1
+            case (left.Oms > right.Oms): return 1
+          }
+          return 0
+        })
+
+        // update filter options
+        const ymOpts = {}
+        const omsOpts = {}
+        const nameOpts = {}
+        const digestOpts = {}
+
+        for (const pr of pd) {
+          ymOpts[pr.YearMonth] = true
+          omsOpts[pr.Oms] = true
+          nameOpts[pr.ModelName] = true
+          digestOpts[pr.ModelDigest] = true
+        }
+        this.ymPastOpts = Object.freeze(Object.keys(ymOpts).sort())
+        this.omsPastOpts = Object.freeze(Object.keys(omsOpts).sort())
+        this.namePastOpts = Object.freeze(Object.keys(nameOpts).sort())
+        this.digestPastOpts = Object.freeze(Object.keys(digestOpts).sort())
+
+        this.pastRuns = pd
+        this.isShowPastRuns = true // show results
+      }
+      this.pastRefreshTs = Mdf.dtToTimeStamp(new Date())
+    },
+
+    // get past job control state
+    async getPastRunState (ym, oms, stamp) {
+      if (!ym || !oms || !stamp) {
+        this.$q.notify({ type: 'negative', message: this.$t('Invalid (empty) year-month, oms user  or submit stamp:') + ' ' + (ym || '') + ' ' + (oms || '') + ' ' + (stamp || '') })
+        return
+      }
+
+      // update past run state
+      let isOk = false
+      const u = this.omsUrl +
+        '/api/admin-all/job/past' +
+        '/folder/' + encodeURIComponent(ym) +
+        '/user/' + encodeURIComponent(oms) +
+        '/stamp/' + encodeURIComponent(stamp) + '/state'
+      try {
+        // send request to the server
+        const response = await this.$axios.get(u)
+        const rj = response.data
+        isOk = Mdf.isNotEmptyRunJob(rj) // if response is job control state
+        this.pastRunState[ym + '-' + oms + '-' + stamp] = rj
+      } catch (e) {
+        let em = ''
+        try {
+          if (e.response) em = e.response.data || ''
+        } finally {}
+        console.warn('Unable to retrieve model run info:', ym, oms, stamp, em)
+      }
+
+      if (!isOk) {
+        this.$q.notify({ type: 'negative', message: this.$t('Unable to retrieve model run info:') + ym + ' ' + ' ' + oms + ' ' + stamp })
+      }
+    },
+
+    // clean past run log selection
+    clearPastRunLog () {
+      this.pastRunLog.yearMonth = ''
+      this.pastRunLog.user = ''
+      this.pastRunLog.submit = ''
+      this.pastRunLog.fileName = ''
+      this.pastRunLog.lines = []
+    },
+
+    // return true if run log is avalibale for that oms and submit stamp
+    isPastRunLog (ym, oms, stamp) {
+      if (!ym || !oms || !stamp) return false
+      return ((this.pastRunLog.yearMonth || '') === ym && (this.pastRunLog.user || '') === oms && (this.pastRunLog.submit || '') === stamp)
+    },
+
+    // copy past run log string to clipboard
+    async toClipboardPastRunLog (ym, oms, stamp) {
+      if (!this.isPastRunLog(ym, oms, stamp)) return
+
+      const txt = this.pastRunLog.lines.join('\n')
+      if (!txt) {
+        console.warn('empty past run log:', txt)
+        this.$q.notify({ type: 'warning', message: this.$t('Unable to copy model run log to clipboard') })
+        return
+      }
+      try {
+        await copyToClipboard(txt)
+        this.$q.notify({ type: 'info', message: this.$t('Copy model run log to clipboard:') + txt.length + ' ' + this.$t('characters') })
+      } catch (e) {
+        console.warn('Unable to copy model run log:', e)
+        this.$q.notify({ type: 'warning', message: this.$t('Unable to copy model run log to clipboard') })
+      }
+    },
+
+    // do show or hide past run log
+    onPastRunLog (ym, oms, stamp) {
+      if (!ym || !oms || !stamp) return
+
+      // if this is an past run log
+      if ((this.pastRunLog.yearMonth || '') === ym && (this.pastRunLog.user || '') === oms && (this.pastRunLog.submit || '') === stamp) {
+        this.clearPastRunLog() // clear any selected run log
+        return
+      }
+      // else there is no currently selected run log:
+      // retrive log file content
+      this.getPastRunLog(ym, oms, stamp)
+    },
+
+    // get past job log file content
+    async getPastRunLog (ym, oms, stamp) {
+      if (!ym || !oms || !stamp) {
+        this.$q.notify({ type: 'negative', message: this.$t('Invalid (empty) year-month, oms user  or submit stamp:') + ' ' + (ym || '') + ' ' + (oms || '') + ' ' + (stamp || '') })
+        return
+      }
+
+      // get past run log
+      let isOk = false
+      let ml = []
+      const u = this.omsUrl +
+        '/api/admin-all/job/past' +
+        '/folder/' + encodeURIComponent(ym) +
+        '/user/' + encodeURIComponent(oms) +
+        '/stamp/' + encodeURIComponent(stamp) + '/log'
+      try {
+        // send request to the server
+        const response = await this.$axios.get(u)
+        ml = response.data
+        isOk = Array.isArray(ml) // if response is run log file name and lines
+      } catch (e) {
+        let em = ''
+        try {
+          if (e.response) em = e.response.data || ''
+        } finally {}
+        console.warn('Unable to get model run log:', ym, oms, stamp, em)
+      }
+
+      if (!isOk) {
+        this.$q.notify({ type: 'negative', message: this.$t('Unable to get model run log:') + ym + ' ' + ' ' + oms + ' ' + stamp })
+        return
+      }
+      // else: update model run log file name and lines
+      this.pastRunLog.yearMonth = ym
+      this.pastRunLog.user = oms
+      this.pastRunLog.submit = stamp
+
+      this.pastRunLog.fileName = (ml.length > 0 && typeof ml[0] === typeof 'string') ? ml[0] : ''
+      this.pastRunLog.lines = (ml.length > 1) ? ml.slice(1) : []
     }
   },
 

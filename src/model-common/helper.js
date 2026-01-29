@@ -142,6 +142,19 @@ export const toIntervalStr = (startTs, stopTs) => {
   return ''
 }
 
+// comvert seconds to hours, minutes, seconds string
+export const toHourMinSec = (totalSec) => {
+  if (!totalSec) return '00:00'
+
+  const s = totalSec % 60
+  const m = Math.floor(totalSec / 60) % 60
+  const h = Math.floor(totalSec / (60 * 60))
+
+  return ((h > 0) ? h.toString() + ':' : '') +
+    ('00' + m.toString()).slice(-2) + ':' +
+    ('00' + s.toString()).slice(-2)
+}
+
 // convert size in bytes to KB, MB,... rounded value and unit name
 export const fileSizeParts = (size) => {
   if (!size || typeof size !== typeof 1 || size < 0) return { val: '0', name: '' }

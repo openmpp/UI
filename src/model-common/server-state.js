@@ -547,6 +547,7 @@ export const isUpDownLogList = (dLst) => {
 {
   "IsAdminAll": true,
   "IsJobControl": true,
+  "IsJobPast": true,
   "IsDiskUse": true,
   "IsQueuePaused": true,
   "IsAllQueuePaused": true,
@@ -710,6 +711,7 @@ export const emptyAdminState = () => {
   return {
     IsAdminAll: false,
     IsJobControl: false,
+    IsJobPast: false,
     IsDiskUse: false,
     IsQueuePaused: false,
     IsAllQueuePaused: false,
@@ -740,6 +742,7 @@ export const isAdminState = (st) => {
   if (!st) return false
   if (!st.hasOwnProperty('IsAdminAll') || typeof st.IsAdminAll !== typeof true) return false
   if (!st.hasOwnProperty('IsJobControl') || typeof st.IsJobControl !== typeof true) return false
+  if (!st.hasOwnProperty('IsJobPast') || typeof st.IsJobPast !== typeof true) return false
   if (!st.hasOwnProperty('IsDiskUse') || typeof st.IsDiskUse !== typeof true) return false
   if (!st.hasOwnProperty('JobUpdateDateTime') || typeof st.JobUpdateDateTime !== typeof 'string') return false
   if (!st.hasOwnProperty('IsQueuePaused') || typeof st.IsQueuePaused !== typeof true) return false
@@ -835,5 +838,62 @@ export const isRunCompUsageItem = (e) => {
   if (!e.hasOwnProperty('CompName') || typeof e.CompName !== typeof 'string') return false
   if (!e.hasOwnProperty('Cpu') || typeof e.Cpu !== typeof 1) return false
   if (!e.hasOwnProperty('Mem') || typeof e.Mem !== typeof 1) return false
+  return true
+}
+
+/*
+Past shadow history array of file names or directory names info
+[
+  {
+    "YearMonth": "2026_01",
+    "IsDir": true,
+    "Oms": "",
+    "SubmitStamp": "",
+    "ModelName": "",
+    "ModelDigest": "",
+    "RunStamp": "",
+    "Cpu": 0,
+    "Mem": 0,
+    "IsMpi": false,
+    "TotalSec": 0,
+    "Status": ""
+  },
+  {
+    "YearMonth": "2026_01",
+    "IsDir": false,
+    "Oms": "_4040",
+    "SubmitStamp": "2026_01_02_18_14_27_445",
+    "ModelName": "RiskPaths",
+    "ModelDigest": "43976e100f44b6c4e2968fc74442a745",
+    "RunStamp": "2026_01_02_18_18_56_271",
+    "Cpu": 0,
+    "Mem": 0,
+    "IsMpi": true,
+    "TotalSec": 957,
+    "Status": "success"
+  }
+]
+*/
+// return true if this is not empty global admin shadoe past history array
+export const isPastHistory = (pLst) => {
+  if (!Array.isArray(pLst) || pLst.length <= 0) return false
+  return isPastRunItem(pLst[0])
+}
+
+// return true if this is past shadow history file or directory item
+export const isPastRunItem = (e) => {
+  if (!e) return false
+  if (!e.hasOwnProperty('YearMonth') || typeof e.YearMonth !== typeof 'string') return false
+  if (!e.hasOwnProperty('IsDir') || typeof e.IsDir !== typeof true) return false
+  if (!e.hasOwnProperty('Oms') || typeof e.Oms !== typeof 'string') return false
+  if (!e.hasOwnProperty('SubmitStamp') || typeof e.SubmitStamp !== typeof 'string') return false
+  if (!e.hasOwnProperty('ModelName') || typeof e.ModelName !== typeof 'string') return false
+  if (!e.hasOwnProperty('ModelDigest') || typeof e.ModelDigest !== typeof 'string') return false
+  if (!e.hasOwnProperty('RunStamp') || typeof e.RunStamp !== typeof 'string') return false
+  if (!e.hasOwnProperty('Cpu') || typeof e.Cpu !== typeof 1) return false
+  if (!e.hasOwnProperty('Mem') || typeof e.Mem !== typeof 1) return false
+  if (!e.hasOwnProperty('IsMpi') || typeof e.IsMpi !== typeof true) return false
+  if (!e.hasOwnProperty('TotalSec') || typeof e.TotalSec !== typeof 1) return false
+  if (!e.hasOwnProperty('Status') || typeof e.Status !== typeof 'string') return false
   return true
 }
