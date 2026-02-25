@@ -144,7 +144,7 @@ import { useUiStateStore } from '../stores/ui-state'
 import * as Mdf from 'src/model-common'
 import { marked } from 'marked'
 import hljs from 'highlight.js'
-import sanitizeHtml from 'sanitize-html'
+import DOMPurify from 'dompurify'
 
 export default {
   name: 'TableInfoDialog',
@@ -216,8 +216,8 @@ export default {
         breaks: false,
         smartLists: true
       })
-      this.notes = marked.parse(sanitizeHtml(this.tableText.TableNote))
-      this.exprNotes = marked.parse(sanitizeHtml(this.tableText.ExprNote))
+      this.notes = marked.parse(DOMPurify.sanitize(this.tableText.TableNote))
+      this.exprNotes = marked.parse(DOMPurify.sanitize(this.tableText.ExprNote))
 
       // find table size info and check is this table included into the run
       this.tableSize = Mdf.tableSizeByName(this.theModel, this.tableName)
@@ -244,7 +244,7 @@ export default {
         this.exprTxt[k] = {
           name: this.tableText.TableExprTxt[k].Expr.Name,
           descr: Mdf.descrOfDescrNote(this.tableText.TableExprTxt[k]),
-          note: marked.parse(sanitizeHtml(Mdf.noteOfDescrNote(this.tableText.TableExprTxt[k])))
+          note: marked.parse(DOMPurify.sanitize(Mdf.noteOfDescrNote(this.tableText.TableExprTxt[k])))
         }
         this.isAnyExprNote = this.isAnyExprNote || ((this.exprTxt[k].note || '') !== '')
       }
@@ -273,5 +273,5 @@ export default {
 </script>
 
 <style scope="local">
-  @import '~highlight.js/styles/github.css'
+  @import 'highlight.js/styles/github.css'
 </style>

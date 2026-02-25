@@ -15,7 +15,7 @@ import EditDiscardDialog from 'components/EditDiscardDialog.vue'
 import { VueDraggableNext } from 'vue-draggable-next'
 import * as Pcvt from 'components/pivot-cvt'
 import * as Puih from './pivot-ui-helper'
-import PvTable from 'components/PvTable'
+import PvTable from 'components/PvTable.vue'
 import MarkdownEditor from 'components/MarkdownEditor.vue'
 import { openURL } from 'quasar'
 

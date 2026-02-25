@@ -1,4 +1,4 @@
-import MainLayout from 'layouts/MainLayout'
+import MainLayout from 'layouts/MainLayout.vue'
 import ModelList from 'pages/ModelList.vue'
 import ModelPage from 'pages/ModelPage.vue'
 import NotFound404 from 'pages/NotFound404.vue'

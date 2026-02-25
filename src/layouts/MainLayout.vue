@@ -36,7 +36,7 @@
         />
       <q-btn
         v-if="isModel && modelDocLink"
-        :href="'doc/' + modelDocLink"
+        :href="'/doc/' + modelDocLink"
         target="_blank"
         flat
         round

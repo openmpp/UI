@@ -97,7 +97,7 @@ import { useUiStateStore } from '../stores/ui-state'
 import * as Mdf from 'src/model-common'
 import { marked } from 'marked'
 import hljs from 'highlight.js'
-import sanitizeHtml from 'sanitize-html'
+import DOMPurify from 'dompurify'
 
 export default {
   name: 'EntityInfoDialog',
@@ -190,7 +190,7 @@ export default {
             isInternal: isInt,
             typeName: t.Type.Name,
             descr: Mdf.descrOfDescrNote(ea),
-            notes: marked.parseInline(sanitizeHtml(Mdf.noteOfDescrNote(ea)))
+            notes: marked.parseInline(DOMPurify.sanitize(Mdf.noteOfDescrNote(ea)))
           })
         }
       }
@@ -208,7 +208,7 @@ export default {
         smartLists: true
         // smartypants: true
       })
-      this.notes = marked.parse(sanitizeHtml(Mdf.noteOfDescrNote(entText)))
+      this.notes = marked.parse(DOMPurify.sanitize(Mdf.noteOfDescrNote(entText)))
 
       // get link to model documentation
       this.docLink = this.serverConfig.IsModelDoc ? Mdf.modelDocLinkByDigest(Mdf.modelDigest(this.theModel), this.modelList, this.uiLang, this.modelLanguage) : ''
@@ -224,5 +224,5 @@ export default {
 </script>
 
 <style scope="local">
-  @import '~highlight.js/styles/github.css'
+  @import 'highlight.js/styles/github.css'
 </style>

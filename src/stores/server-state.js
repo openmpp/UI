@@ -1,5 +1,6 @@
 // server state and configuration
-import { defineStore } from 'pinia'
+import { defineStore, acceptHMRUpdate } from 'pinia'
+
 import * as Mdf from '../model-common'
 
 export const useServerStateStore = defineStore('server-state', {
@@ -32,3 +33,8 @@ export const useServerStateStore = defineStore('server-state', {
     }
   }
 })
+
+
+if (import.meta.hot) {
+  import.meta.hot.accept(acceptHMRUpdate(useServerStateStore, import.meta.hot))
+}

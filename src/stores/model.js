@@ -1,5 +1,6 @@
 // current model and list of the models
-import { defineStore } from 'pinia'
+import { defineStore, acceptHMRUpdate } from 'pinia'
+
 import * as Mdf from '../model-common'
 import { useUiStateStore } from './ui-state'
 
@@ -338,3 +339,8 @@ export const useModelStore = defineStore('model', {
     }
   }
 })
+
+
+if (import.meta.hot) {
+  import.meta.hot.accept(acceptHMRUpdate(useModelStore, import.meta.hot))
+}

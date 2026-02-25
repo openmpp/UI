@@ -72,7 +72,7 @@
 import EditDiscardDialog from 'components/EditDiscardDialog.vue'
 import * as Mdf from 'src/model-common'
 import { MdEditor } from 'md-editor-v3'
-import sanitizeHtml from 'sanitize-html'
+import DOMPurify from 'dompurify'
 import 'md-editor-v3/lib/style.css'
 
 export default {
@@ -112,7 +112,7 @@ export default {
     // send description and notes to the parent
     onSaveNote () {
       if (this.notesEditable) {
-        this.noteEdit = sanitizeHtml(this.noteEdit || '') // remove unsafe html tags
+        this.noteEdit = DOMPurify.sanitize(this.noteEdit || '') // remove unsafe html tags
       }
       this.$emit(
         'save-note',
@@ -132,7 +132,7 @@ export default {
     // return description and notes
     getDescrNote () {
       if (this.notesEditable) {
-        this.noteEdit = sanitizeHtml(this.noteEdit || '') // remove unsafe html tags
+        this.noteEdit = DOMPurify.sanitize(this.noteEdit || '') // remove unsafe html tags
       }
       return {
         descr: this.descriptionEditable ? this.descrEdit : this.theDescr,

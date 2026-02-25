@@ -114,7 +114,7 @@ import { useUiStateStore } from '../stores/ui-state'
 import * as Mdf from 'src/model-common'
 import { marked } from 'marked'
 import hljs from 'highlight.js'
-import sanitizeHtml from 'sanitize-html'
+import DOMPurify from 'dompurify'
 
 export default {
   name: 'ParameterInfoDialog',
@@ -195,8 +195,8 @@ export default {
         smartLists: true
       })
 
-      this.notes = marked.parse(sanitizeHtml(Mdf.noteOfDescrNote(this.paramText)))
-      this.valueNotes = marked.parse(sanitizeHtml(Mdf.noteOfTxt(this.paramRunSet)))
+      this.notes = marked.parse(DOMPurify.sanitize(Mdf.noteOfDescrNote(this.paramText)))
+      this.valueNotes = marked.parse(DOMPurify.sanitize(Mdf.noteOfTxt(this.paramRunSet)))
 
       // find parameter type
       const t = Mdf.typeTextById(this.theModel, (this.paramText.Param.TypeId || 0))
@@ -238,5 +238,5 @@ export default {
 </script>
 
 <style scope="local">
-  @import '~highlight.js/styles/github.css'
+  @import 'highlight.js/styles/github.css'
 </style>

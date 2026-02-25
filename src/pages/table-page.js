@@ -13,7 +13,7 @@ import { VueDraggableNext } from 'vue-draggable-next'
 import * as Pcvt from 'components/pivot-cvt'
 import * as Puih from './pivot-ui-helper'
 import * as Pchrt from './pivot-ui-chart'
-import PvTable from 'components/PvTable'
+import PvTable from 'components/PvTable.vue'
 import { openURL } from 'quasar'
 
 /* eslint-disable no-multi-spaces */

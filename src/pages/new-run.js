@@ -1127,8 +1127,8 @@ export default {
         if (this.runOpts.mpiNpCount <= 0) {
           this.runOpts.mpiNpCount = 1
         }
-        this.runOpts.mpiUseJobs = this.serverConfig.IsJobControl && (!rReq.Mpi.IsNotByJob ?? this.serverConfig.IsJobControl)
-        this.runOpts.mpiOnRoot = !rReq.Mpi.IsNotOnRoot ?? this.runOpts.mpiOnRoot
+        this.runOpts.mpiUseJobs = this.serverConfig.IsJobControl && !(rReq.Mpi.IsNotByJob ?? false)
+        this.runOpts.mpiOnRoot = !(rReq.Mpi.IsNotOnRoot ?? false)
         this.runOpts.mpiTmpl = rReq.Template ?? this.runOpts.mpiTmpl
       }
 
@@ -1163,7 +1163,7 @@ export default {
         this.microOpts = Mdf.emptyRunRequestMicrodata()
 
         if (Array.isArray(rReq.Microdata?.Entity)) {
-          for (const e of rReq.Microdata?.Entity) {
+          for (const e of rReq.Microdata.Entity) {
             if (e?.Name && Array.isArray(e?.Attr)) {
               for (const a of e.Attr) {
                 this.entityAttrsUse.push(e.Name + '.' + a)

@@ -133,7 +133,7 @@ import { useUiStateStore } from '../stores/ui-state'
 import * as Mdf from 'src/model-common'
 import { marked } from 'marked'
 import hljs from 'highlight.js'
-import sanitizeHtml from 'sanitize-html'
+import DOMPurify from 'dompurify'
 
 export default {
   name: 'RunInfoDialog',
@@ -267,7 +267,7 @@ export default {
         breaks: false,
         smartLists: true
       })
-      this.notes = marked.parse(sanitizeHtml(Mdf.noteOfTxt(this.runText)))
+      this.notes = marked.parse(DOMPurify.sanitize(Mdf.noteOfTxt(this.runText)))
 
       this.showDlg = true
     }
@@ -281,5 +281,5 @@ export default {
 </script>
 
 <style scope="local">
-  @import '~highlight.js/styles/github.css'
+  @import 'highlight.js/styles/github.css'
 </style>

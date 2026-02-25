@@ -1,5 +1,6 @@
 // UI session state
-import { defineStore } from 'pinia'
+import { defineStore, acceptHMRUpdate } from 'pinia'
+
 import * as Mdf from '../model-common'
 import { useModelStore } from './model'
 
@@ -479,3 +480,8 @@ export const useUiStateStore = defineStore('ui-state', {
     }
   }
 })
+
+
+if (import.meta.hot) {
+  import.meta.hot.accept(acceptHMRUpdate(useUiStateStore, import.meta.hot))
+}

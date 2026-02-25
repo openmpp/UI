@@ -31,7 +31,7 @@ export default {
       diskUseRefreshInt: '',
       diskUseMs: DISK_USE_MIN_REFRESH_TIME,
       langCode: this.$q.lang.getLocale(),
-      appLanguages: languages.filter(lang => ['fr', 'en-US'].includes(lang.isoName))
+      appLanguages: languages.filter(lang => ['fr', 'en-US'].includes(lang.isoName)) // list of languages: code and label
     }
   },
 
@@ -87,18 +87,28 @@ export default {
       }
       this.doOrgTitle()
     },
+
     // switch app language: Quasar and vue i18n language
     langCode (lc) {
-      // dynamic import, so loading on demand only
-      import(
-        /* webpackInclude: /(fr|en-US)\.js$/ */
-        'quasar/lang/' + lc
-      ).then(lang => {
-        this.$q.lang.set(lang.default) // switch quasar language
-        this.$i18n.locale = lc // switch vue app language
-      }).catch(err => {
+      if (this.appLanguages.findIndex((ln) => ln.isoName === lc) < 0) { // language not included in translation pack, use default en-US
+          lc = 'en-US'
+          this.langCode = lc
+      }
+      this.$i18n.locale = lc
+
+      // find Quasar language translation
+      try {
+        if (Array.isArray(this.$quasarLangs)) {
+          const j = this.$quasarLangs.findIndex((ln) => ln.default.isoName === lc)
+          if (j >= 0) {
+            this.$q.lang.set(this.$quasarLangs[j].default)
+          } else {
+            console.warn('Quasar language not found:', lc)
+          }
+        }
+      } catch (err) {
         console.warn('Error at loading language:', lc, err)
-      })
+      }
     },
 
     isDiskUse () { this.restartDiskUseRefresh() },
