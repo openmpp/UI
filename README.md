@@ -29,6 +29,8 @@ npm run build
 npm run lint
 ```
 
+*You can also use `bun` instead of `npm` for faster development.*
+
 **License:** MIT.
 
 Please visit our [wiki](https://github.com/openmpp/openmpp.github.io/wiki) for more information or e-mail to: _openmpp dot org at gmail dot com_.
