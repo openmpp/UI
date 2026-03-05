@@ -18,6 +18,7 @@ npm audit --omit=dev
 ```
 npm run dev
 ```
+_2026-03-05: Vite `dev` is unstable, please watch for load errors, you may need to visit the same route multiple times before it is actually loads all assets._
 
 ### Build the app for production
 ```
