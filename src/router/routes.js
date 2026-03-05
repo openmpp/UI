@@ -1,6 +1,4 @@
 import MainLayout from 'layouts/MainLayout.vue'
-import ModelList from 'pages/ModelList.vue'
-import ModelPage from 'pages/ModelPage.vue'
 import NotFound404 from 'pages/NotFound404.vue'
 
 const routes = [
@@ -8,10 +6,13 @@ const routes = [
     path: '/',
     component: MainLayout,
     children: [
-      { path: '', component: ModelList },
+      {
+        path: '',
+        component: () => import('pages/ModelList.vue'),
+      },
       {
         path: 'model/:digest',
-        component: ModelPage,
+        component: () => import('pages/ModelPage.vue'),
         props: true,
         children: [
           {
