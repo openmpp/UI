@@ -601,13 +601,14 @@
           <div class="row no-wrap items-center full-width">
             <q-btn
               @click.stop="onRereshPast()"
+              :disable="isPastPulling"
               flat
               outline
               dense
               no-caps
               :label="pastRuns.length ? pastRefreshTs : ''"
               color="primary"
-              :icon="pastRuns.length ? 'mdi-refresh-circle' : 'mdi-play-circle-outline'"
+              icon="mdi-refresh-circle"
               class="col-auto bg-white rounded-borders q-py-none q-px-xs"
               :title="$t('Refresh model runs history')"
               />
@@ -731,61 +732,48 @@
                   <tr>
                     <td class="om-p-cell-center">
                       <template v-if="!pr.IsDir">
-                      <div class="bar-td rounded-borders q-pa-xs">
-                        <q-btn
-                          @click="onPastRunState(pr.YearMonth, pr.Oms, pr.SubmitStamp)"
-                          round
-                          outline
-                          dense
-                          padding="xs"
-                          no-caps
-                          :icon="isPastRunState(pr.YearMonth, pr.Oms, pr.SubmitStamp) ? 'mdi-information-outline' : 'mdi-information'"
-                          :title="!isPastRunState(pr.YearMonth, pr.Oms, pr.SubmitStamp) ? $t('Show model run info') : $t('Hide model run info')"
-                          color="primary"
-                          />
-                        <q-btn
-                          @click="toClipboardPastRunState(pr.YearMonth, pr.Oms, pr.SubmitStamp)"
-                          :disable="!isPastRunState(pr.YearMonth, pr.Oms, pr.SubmitStamp)"
-                          :unelevated="isPastRunState(pr.YearMonth, pr.Oms, pr.SubmitStamp)"
-                          :outline="!isPastRunState(pr.YearMonth, pr.Oms, pr.SubmitStamp)"
-                          round
-                          dense
-                          padding="xs"
-                          no-caps
-                          icon="mdi-content-copy"
-                          :title="$t('Copy model run info to clipboard')"
-                          color="primary"
-                          class="q-ml-xs"
-                          />
-                      </div>
-                      <div class="bar-td rounded-borders q-pa-xs q-ml-xs">
-                        <q-btn
-                          @click="onPastRunLog(pr.YearMonth, pr.Oms, pr.SubmitStamp)"
-                          :unelevated="!isPastRunLog(pr.YearMonth, pr.Oms, pr.SubmitStamp)"
-                          :outline="isPastRunLog(pr.YearMonth, pr.Oms, pr.SubmitStamp)"
-                          round
-                          dense
-                          padding="xs"
-                          no-caps
-                          icon="mdi-text-long"
-                          :title="!isPastRunLog(pr.YearMonth, pr.Oms, pr.SubmitStamp) ? $t('Show model run log') : $t('Hide model run log')"
-                          color="primary"
-                          />
-                        <q-btn
-                          @click="toClipboardPastRunLog(pr.YearMonth, pr.Oms, pr.SubmitStamp)"
-                          :disable="!isPastRunLog(pr.YearMonth, pr.Oms, pr.SubmitStamp)"
-                          :unelevated="isPastRunLog(pr.YearMonth, pr.Oms, pr.SubmitStamp)"
-                          :outline="!isPastRunLog(pr.YearMonth, pr.Oms, pr.SubmitStamp)"
-                          round
-                          dense
-                          padding="xs"
-                          no-caps
-                          icon="mdi-content-copy"
-                          :title="$t('Copy model run log to clipboard')"
-                          color="primary"
-                          class="q-ml-xs"
-                          />
-                      </div>
+                        <div class="bar-td rounded-borders q-pa-xs">
+                          <button
+                            @click="onPastRunState(pr.YearMonth, pr.Oms, pr.SubmitStamp)"
+                            :title="!isPastRunState(pr.YearMonth, pr.Oms, pr.SubmitStamp) ? $t('Show model run info') : $t('Hide model run info')"
+                            class="q-pa-none">
+                            <q-icon
+                              :name="isPastRunState(pr.YearMonth, pr.Oms, pr.SubmitStamp) ? 'mdi-close-circle-outline' : 'mdi-information-outline'"
+                              size="sm"
+                              color="primary" />
+                          </button>
+                          <button
+                            @click="toClipboardPastRunState(pr.YearMonth, pr.Oms, pr.SubmitStamp)"
+                            :disabled="!isPastRunState(pr.YearMonth, pr.Oms, pr.SubmitStamp)"
+                            :title="$t('Copy model run info to clipboard')"
+                            class="q-pa-none q-ml-xs">
+                            <q-icon
+                              name="mdi-content-copy"
+                              size="sm"
+                              color="primary" />
+                          </button>
+                        </div>
+                        <div class="bar-td rounded-borders q-pa-xs q-ml-xs">
+                          <button
+                            @click="onPastRunLog(pr.YearMonth, pr.Oms, pr.SubmitStamp)"
+                            :title="!isPastRunLog(pr.YearMonth, pr.Oms, pr.SubmitStamp) ? $t('Show model run log') : $t('Hide model run log')"
+                            class="q-pa-none">
+                            <q-icon
+                              :name="isPastRunLog(pr.YearMonth, pr.Oms, pr.SubmitStamp) ? 'mdi-close-circle-outline' : 'mdi-text-long'"
+                              size="sm"
+                              color="primary" />
+                          </button>
+                          <button
+                            @click="toClipboardPastRunLog(pr.YearMonth, pr.Oms, pr.SubmitStamp)"
+                            :disabled="!isPastRunLog(pr.YearMonth, pr.Oms, pr.SubmitStamp)"
+                            :title="$t('Copy model run log to clipboard')"
+                            class="q-pa-none q-ml-xs">
+                            <q-icon
+                              name="mdi-content-copy"
+                              size="sm"
+                              color="primary" />
+                          </button>
+                        </div>
                       </template>
                     </td>
 

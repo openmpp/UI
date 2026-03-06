@@ -66,6 +66,7 @@ export default {
       showStopRunTickle: false,
       isShowPastRuns: false,
       pastRefreshTs: '',
+      isPastPulling: false,
       pastRuns: [],
       isShowPastFilter: false,
       ymPastFilter: [],
@@ -818,7 +819,9 @@ export default {
     // update shadow past history
     async onRereshPast () {
       let isOk = false
+      this.isPastPulling = true
       let pd = []
+      this.pastRuns = []
 
       const u = this.omsUrl + '/api/admin-all/job/past/file-tree'
       try {
@@ -879,9 +882,10 @@ export default {
         this.namePastOpts = Object.freeze(Object.keys(nameOpts).sort())
         this.digestPastOpts = Object.freeze(Object.keys(digestOpts).sort())
 
-        this.pastRuns = pd
+        this.pastRuns = Object.freeze(pd)
         this.isShowPastRuns = true // show results
       }
+      this.isPastPulling = false
       this.pastRefreshTs = Mdf.dtToTimeStamp(new Date())
     },
 
