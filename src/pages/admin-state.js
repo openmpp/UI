@@ -179,6 +179,7 @@ export default {
       this.pastRunState = {}
       this.clearPastRunLog()
       this.clearPastFilter()
+      this.isPastPulling = false
 
       // locale for number formatting
       let lc = this.uiLang || this.$q.lang.getLocale() || ''
