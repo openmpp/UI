@@ -613,7 +613,7 @@
               :title="$t('Refresh model runs history')"
               />
             <span
-              class="col-auto q-pl-md">{{ $t('Model Runs History') }} {{ pastRuns.length ? ': ' + pastFileCount.toLocaleString(locale) : '' }}</span>
+              class="col-auto q-pl-md">{{ $t('Model Runs History') }} {{ pastRuns.length ? ': ' + (pastFileCount.toLocaleString(locale) + (isAnyPastFilter ? ' / ' + pastInFilterCount.toLocaleString(locale) : '')) : '' }}</span>
           </div>
         </q-item-section>
       </template>

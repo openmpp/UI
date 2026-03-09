@@ -103,17 +103,29 @@ export default {
     isAnyPastFilter () {
       return this.ymPastFilter.length + this.omsPastFilter.length + this.namePastFilter.length + this.digestPastFilter.length + this.statusPastFilter.length > 0
     },
+    // count of past job folders
     pastFolderCount () {
       let n = 0
       if (Array.isArray(this.pastRuns)) {
-        this.pastRuns.forEach(p => { if (typeof p?.IsDir === typeof true && p?.IsDir) n++ })
+        for (const p of this.pastRuns) {
+          if (typeof p?.IsDir === typeof true && p?.IsDir) n++
+        }
       }
       return n
     },
+    // count of past job files
     pastFileCount () {
       let n = 0
-      if (Array.isArray(this.pastRuns)) {
-        this.pastRuns.forEach(p => { if (typeof p?.IsDir === typeof true && !p?.IsDir) n++ })
+        for (const p of this.pastRuns) {
+          if (typeof p?.IsDir === typeof true && !p?.IsDir) n++
+      }
+      return n
+    },
+    // count of past job files which are matching filters
+    pastInFilterCount() {
+      let n = 0
+        for (const p of this.pastRuns) {
+          if ((typeof p?.IsDir === typeof true && !p?.IsDir) && this.isInPastFilter(p)) n++
       }
       return n
     },
