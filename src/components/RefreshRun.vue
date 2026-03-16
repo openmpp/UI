@@ -46,11 +46,7 @@ export default {
   emits: ['done', 'wait'],
 
   methods: {
-    ...mapActions(useModelStore, [
-      'runTextByDigest',
-      //
-      'dispatchRunText'
-    ]),
+    ...mapActions(useModelStore, [ 'dispatchRunText' ]),
 
     // refersh run text
     async doRefresh () {
@@ -65,7 +61,7 @@ export default {
       this.loadDone = false
       this.loadWait = true
       this.$emit('wait')
-      let d = Mdf.emptyRunText()
+      let rt = Mdf.emptyRunText()
 
       const u = this.omsUrl +
         '/api/model/' + encodeURIComponent(this.modelDigest) +
@@ -73,8 +69,8 @@ export default {
         '/text' + (this.uiLang !== '' ? '/lang/' + encodeURIComponent(this.uiLang) : '')
       try {
         const response = await this.$axios.get(u)
-        d = response.data
-        this.loadDone = true
+        rt = response.data
+        this.loadDone = Mdf.isRunText(rt)
       } catch (e) {
         let em = ''
         try {
@@ -83,11 +79,16 @@ export default {
         console.warn('Server offline or model run not found', em)
         this.$q.notify({ type: 'negative', message: this.$t('Server offline or model run not found: ') + this.runDigest })
       }
-      if (this.loadDone) {
-        this.dispatchRunText(d) // on success update run in store
-      }
-      this.$emit('done', this.loadDone, this.runDigest)
       this.loadWait = false
+
+      if (this.loadDone) {
+        this.dispatchRunText(rt) // on success update run in store
+      } else {
+        console.warn('Model run not found', this.runDigest)
+        this.$q.notify({ type: 'negative', message: this.$t('Model run not found: ') + this.runDigest })
+
+      }
+      this.$emit('done', this.loadDone, (rt?.RunDigest ||''))
     }
   },
 

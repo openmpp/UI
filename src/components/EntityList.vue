@@ -473,7 +473,7 @@ export default {
         if (isNotTop) continue // not a top level group
 
         // add first level group to the entity top group
-        const g = Mdf.dashCloneDeep(gUse[egKey].item)
+        const g = Mdf.deepClone(gUse[egKey].item)
         const i = egIdx?.[eId]
         if (i >= 0 && i < gTree.length) gTree[i].children.push(g)
 
@@ -510,8 +510,8 @@ export default {
                 key: egKey,
                 eId: gpNow.eId,
                 gId: pc.ChildGroupId,
-                path: Mdf.dashCloneDeep(gpNow.path),
-                item: Mdf.dashCloneDeep(gChildUse.item)
+                path: Mdf.deepClone(gpNow.path),
+                item: Mdf.deepClone(gChildUse.item)
               }
               g.item.key = egKey + '-' + pc.ChildPos
               g.path.push(g.gId)

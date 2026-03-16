@@ -330,7 +330,57 @@
 
   <model-info-dialog :show-tickle="modelInfoTickle" :digest="modelDigest"></model-info-dialog>
 
-  <q-inner-loading :showing="loadWait">
+  <template v-if="isRedirect">
+    <refresh-model
+      :digest="toModelDigest"
+      :refresh-tickle="refreshTickle"
+      @done="doneModelLoad"
+      @wait="loadModelWait = true"
+      >
+    </refresh-model>
+    <template v-if="modelDigest !== '' && (redirectTo === 2 || redirectTo === 3 || redirectTo === 4)">
+      <refresh-run-list
+        :digest="modelDigest"
+        :refresh-tickle="refreshTickle"
+        @done="doneRunListLoad"
+        @wait="loadRunListWait = true"
+        >
+      </refresh-run-list>
+      <refresh-run v-if="runDnsCurrent !== ''"
+        :model-digest="modelDigest"
+        :run-digest="runDnsCurrent"
+        :refresh-tickle="refreshTickle"
+        :refresh-run-tickle="refreshRunTickle"
+        @done="doneRunLoad"
+        @wait="loadRunWait = true"
+        >
+    </refresh-run>
+    </template>
+    <template v-if="modelDigest !== '' && redirectTo === 1">
+      <refresh-workset-list
+        :digest="modelDigest"
+        :refresh-tickle="refreshTickle"
+        @done="doneWsListLoad"
+        @wait="loadWsListWait = true">
+      </refresh-workset-list>
+      <refresh-workset v-if="wsNameCurrent !== ''"
+        :model-digest="modelDigest"
+        :workset-name="wsNameCurrent"
+        :refresh-tickle="refreshTickle"
+        :refresh-workset-tickle="refreshWsTickle"
+        @done="doneWsLoad"
+        @wait="loadWsWait = true">
+      </refresh-workset>
+    </template>
+    <refresh-user-views v-if="modelName !== '' && !!redirectTo"
+      :model-name="modelName"
+      @done="doneUserViewsLoad"
+      @wait="loadUserViewsWait = true"
+      >
+    </refresh-user-views>
+  </template>
+
+  <q-inner-loading :showing="loadConfigWait || loadModelWait || loadRunListWait || loadRunWait || loadWsListWait || loadWsWait || loadUserViewsWait">
     <q-spinner-gears size="xl" color="primary" />
   </q-inner-loading>
 

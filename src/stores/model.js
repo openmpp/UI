@@ -185,12 +185,16 @@ export const useModelStore = defineStore('model', {
 
     // set new value to model list and clear current model
     dispatchModelList (ml) {
-      commitModel(this, Mdf.emptyModel())
-
       // assign new value to model list, if (ml) is a model list
       if (Mdf.isModelList(ml)) {
-        // parse model extra properties
+        let isKeep = false
+        const storeDigest = Mdf.modelDigest(this.theModel)
+
         for (const m of ml) {
+          // check if current model exist in the new model list
+          if (!isKeep) isKeep = storeDigest === Mdf.modelDigest(m)
+
+          // parse model extra properties
           let me = {}
           try {
             const ms = m?.Extra || ''
@@ -200,7 +204,10 @@ export const useModelStore = defineStore('model', {
           }
           m.Extra = me
         }
-
+        // if current model does not exist in model list then clear current model
+        if (!isKeep) {
+          commitModel(this, Mdf.emptyModel())
+        }
         this.modelList = ml
         this.modelListUpdated++
       }
@@ -270,9 +277,9 @@ export const useModelStore = defineStore('model', {
       for (const rt of rtl) {
         const k = this.runTextList.findIndex((r) => rt.ModelDigest === r.ModelDigest && rt.RunDigest === r.RunDigest)
         if (k >= 0) {
-          if (Mdf.lengthOf(rt.Param) <= 0 && Mdf.lengthOf(this.runTextList[k].Param) > 0) rt.Param = Mdf.dashCloneDeep(this.runTextList[k].Param)
-          if (Mdf.lengthOf(rt.Table) <= 0 && Mdf.lengthOf(this.runTextList[k].Table) > 0) rt.Table = Mdf.dashCloneDeep(this.runTextList[k].Table)
-          if (Mdf.lengthOf(rt.Entity) <= 0 && Mdf.lengthOf(this.runTextList[k].Entity) > 0) rt.Entity = Mdf.dashCloneDeep(this.runTextList[k].Entity)
+          if (Mdf.lengthOf(rt.Param) <= 0 && Mdf.lengthOf(this.runTextList[k].Param) > 0) rt.Param = Mdf.deepClone(this.runTextList[k].Param)
+          if (Mdf.lengthOf(rt.Table) <= 0 && Mdf.lengthOf(this.runTextList[k].Table) > 0) rt.Table = Mdf.deepClone(this.runTextList[k].Table)
+          if (Mdf.lengthOf(rt.Entity) <= 0 && Mdf.lengthOf(this.runTextList[k].Entity) > 0) rt.Entity = Mdf.deepClone(this.runTextList[k].Entity)
         }
       }
       this.runTextList = rtl
@@ -286,11 +293,11 @@ export const useModelStore = defineStore('model', {
 
       const k = this.worksetTextList.findIndex((w) => w.ModelDigest === wt.ModelDigest && w.Name === wt.Name)
       if (k >= 0) {
-        this.worksetTextList[k] = Mdf.dashCloneDeep(wt)
+        this.worksetTextList[k] = Mdf.deepClone(wt)
         this.worksetTextListUpdated++
       } else {
         if (this.theModel.Model.Digest === wt.ModelDigest) {
-          this.worksetTextList.push(Mdf.dashCloneDeep(wt))
+          this.worksetTextList.push(Mdf.deepClone(wt))
           this.worksetTextListUpdated++
         }
       }
@@ -331,7 +338,7 @@ export const useModelStore = defineStore('model', {
       for (const wt of wtl) {
         const k = this.worksetTextList.findIndex((w) => w.ModelDigest === wt.ModelDigest && w.Name === wt.Name)
         if (k >= 0) {
-          if (Mdf.lengthOf(wt.Param) <= 0 && Mdf.lengthOf(this.worksetTextList[k].Param) > 0) wt.Param = Mdf.dashCloneDeep(this.worksetTextList[k].Param)
+          if (Mdf.lengthOf(wt.Param) <= 0 && Mdf.lengthOf(this.worksetTextList[k].Param) > 0) wt.Param = Mdf.deepClone(this.worksetTextList[k].Param)
         }
       }
       this.worksetTextList = wtl

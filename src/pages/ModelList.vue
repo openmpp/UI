@@ -484,6 +484,7 @@ export default {
         console.warn('Server offline or no models published', em)
         this.$q.notify({ type: 'negative', message: this.$t('Server offline or no models published') })
       }
+      this.loadWait = false
 
       // expand after refresh
       this.$nextTick(() => {
@@ -491,7 +492,6 @@ export default {
         this.doToogleExpandTree()
       })
 
-      this.loadWait = false
     },
 
     // start model download

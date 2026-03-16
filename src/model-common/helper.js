@@ -1,7 +1,7 @@
 // db structures common functions: helpers
 import cloneDeep from 'lodash/cloneDeep'
 
-export const dashCloneDeep = cloneDeep
+export const deepClone = cloneDeep
 
 // return true if argument hasOwnProperty length
 const hasLength = (a) => { return a && a.hasOwnProperty('length') }

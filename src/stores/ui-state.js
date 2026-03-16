@@ -47,12 +47,12 @@ export const useUiStateStore = defineStore('ui-state', {
     tabsView (modelDigest) {
       return (typeof modelDigest !== typeof 'string' || !this.modelView[modelDigest] || !Array.isArray(this?.modelView[modelDigest]?.tabs))
         ? []
-        : Mdf.dashCloneDeep(this.modelView[modelDigest].tabs)
+        : Mdf.deepClone(this.modelView[modelDigest].tabs)
     },
 
     // return copy of parameter view by key
     paramView (key) {
-      return this.paramViews?.[key]?.view ? Mdf.dashCloneDeep(this.paramViews[key].view) : undefined
+      return this.paramViews?.[key]?.view ? Mdf.deepClone(this.paramViews[key].view) : undefined
     },
 
     // count parameters view by model digest
@@ -95,12 +95,12 @@ export const useUiStateStore = defineStore('ui-state', {
 
     // return copy of table view by key
     tableView (key) {
-      return this.tableViews?.[key]?.view ? Mdf.dashCloneDeep(this.tableViews[key].view) : undefined
+      return this.tableViews?.[key]?.view ? Mdf.deepClone(this.tableViews[key].view) : undefined
     },
 
     // return copy of microdata view by key
     microdataView (key) {
-      return this.mdViews?.[key]?.view ? Mdf.dashCloneDeep(this.mdViews[key].view) : undefined
+      return this.mdViews?.[key]?.view ? Mdf.deepClone(this.mdViews[key].view) : undefined
     },
 
     // retrun tree expanded keys by model name and tree kind,  for example: table-tree
@@ -275,7 +275,7 @@ export const useUiStateStore = defineStore('ui-state', {
 
       // insert new or replace existing parameter view
       if (pv?.view) {
-        this.paramViews[pv.key] = Mdf.dashCloneDeep({
+        this.paramViews[pv.key] = Mdf.deepClone({
           view: pv.view,
           digest: pv?.digest || '',
           modelName: pv?.modelName || '',
@@ -289,13 +289,13 @@ export const useUiStateStore = defineStore('ui-state', {
       if (!this.paramViews?.[pv.key]?.view) return // parameter view not found
 
       if (Array.isArray(pv?.rows)) {
-        this.paramViews[pv.key].view.rows = Mdf.dashCloneDeep(pv.rows)
+        this.paramViews[pv.key].view.rows = Mdf.deepClone(pv.rows)
       }
       if (Array.isArray(pv?.cols)) {
-        this.paramViews[pv.key].view.cols = Mdf.dashCloneDeep(pv.cols)
+        this.paramViews[pv.key].view.cols = Mdf.deepClone(pv.cols)
       }
       if (Array.isArray(pv?.others)) {
-        this.paramViews[pv.key].view.others = Mdf.dashCloneDeep(pv.others)
+        this.paramViews[pv.key].view.others = Mdf.deepClone(pv.others)
       }
       if (typeof pv?.isRowColControls === typeof true) {
         this.paramViews[pv.key].view.isRowColControls = pv.isRowColControls
@@ -304,7 +304,7 @@ export const useUiStateStore = defineStore('ui-state', {
         this.paramViews[pv.key].view.rowColMode = pv.rowColMode
       }
       if (pv?.edit) {
-        this.paramViews[pv.key].view.edit = Mdf.dashCloneDeep(pv.edit)
+        this.paramViews[pv.key].view.edit = Mdf.deepClone(pv.edit)
       }
       if (typeof pv?.pageStart === typeof 1) {
         this.paramViews[pv.key].view.pageStart = pv.pageStart
@@ -334,7 +334,7 @@ export const useUiStateStore = defineStore('ui-state', {
 
       // insert new or replace existing table view
       if (tv?.view) {
-        this.tableViews[tv.key] = Mdf.dashCloneDeep({
+        this.tableViews[tv.key] = Mdf.deepClone({
           view: tv.view,
           digest: tv?.digest || '',
           modelName: tv?.modelName || '',
@@ -347,13 +347,13 @@ export const useUiStateStore = defineStore('ui-state', {
       if (!this.tableViews?.[tv.key]?.view) return // output table view not found
 
       if (Array.isArray(tv?.rows)) {
-        this.tableViews[tv.key].view.rows = Mdf.dashCloneDeep(tv.rows)
+        this.tableViews[tv.key].view.rows = Mdf.deepClone(tv.rows)
       }
       if (Array.isArray(tv?.cols)) {
-        this.tableViews[tv.key].view.cols = Mdf.dashCloneDeep(tv.cols)
+        this.tableViews[tv.key].view.cols = Mdf.deepClone(tv.cols)
       }
       if (Array.isArray(tv?.others)) {
-        this.tableViews[tv.key].view.others = Mdf.dashCloneDeep(tv.others)
+        this.tableViews[tv.key].view.others = Mdf.deepClone(tv.others)
       }
       if (typeof tv?.isRowColControls === typeof true) {
         this.tableViews[tv.key].view.isRowColControls = tv.isRowColControls
@@ -374,7 +374,7 @@ export const useUiStateStore = defineStore('ui-state', {
         this.tableViews[tv.key].view.pageSize = tv.pageSize
       }
       if (Array.isArray(tv?.valueFilter)) {
-        this.tableViews[tv.key].view.valueFilter = Mdf.dashCloneDeep(tv.valueFilter)
+        this.tableViews[tv.key].view.valueFilter = Mdf.deepClone(tv.valueFilter)
       }
       if (typeof tv?.scaleId === typeof 1) {
         this.tableViews[tv.key].view.scaleId = tv.scaleId
@@ -416,7 +416,7 @@ export const useUiStateStore = defineStore('ui-state', {
 
       // insert new or replace existing microdata view
       if (mv?.view) {
-        this.mdViews[mv.key] = Mdf.dashCloneDeep({
+        this.mdViews[mv.key] = Mdf.deepClone({
           view: mv.view,
           digest: mv?.digest || '',
           modelName: mv?.modelName || '',
@@ -429,13 +429,13 @@ export const useUiStateStore = defineStore('ui-state', {
       if (!this.mdViews?.[mv.key]?.view) return // microdata view not found
 
       if (Array.isArray(mv?.rows)) {
-        this.mdViews[mv.key].view.rows = Mdf.dashCloneDeep(mv.rows)
+        this.mdViews[mv.key].view.rows = Mdf.deepClone(mv.rows)
       }
       if (Array.isArray(mv?.cols)) {
-        this.mdViews[mv.key].view.cols = Mdf.dashCloneDeep(mv.cols)
+        this.mdViews[mv.key].view.cols = Mdf.deepClone(mv.cols)
       }
       if (Array.isArray(mv?.others)) {
-        this.mdViews[mv.key].view.others = Mdf.dashCloneDeep(mv.others)
+        this.mdViews[mv.key].view.others = Mdf.deepClone(mv.others)
       }
       if (typeof mv?.isRowColControls === typeof true) {
         this.mdViews[mv.key].view.isRowColControls = mv.isRowColControls
@@ -456,13 +456,13 @@ export const useUiStateStore = defineStore('ui-state', {
         this.mdViews[mv.key].view.cmpCalc = mv.cmpCalc
       }
       if (Array.isArray(mv?.groupBy)) {
-        this.mdViews[mv.key].view.groupBy = Mdf.dashCloneDeep(mv.groupBy)
+        this.mdViews[mv.key].view.groupBy = Mdf.deepClone(mv.groupBy)
       }
       if (Array.isArray(mv?.calcEnums)) {
-        this.mdViews[mv.key].view.calcEnums = Mdf.dashCloneDeep(mv.calcEnums)
+        this.mdViews[mv.key].view.calcEnums = Mdf.deepClone(mv.calcEnums)
       }
       if (Array.isArray(mv?.valueFilter)) {
-        this.mdViews[mv.key].view.valueFilter = Mdf.dashCloneDeep(mv.valueFilter)
+        this.mdViews[mv.key].view.valueFilter = Mdf.deepClone(mv.valueFilter)
       }
     },
 

@@ -310,7 +310,7 @@ export default {
         }) >= 0
         if (isNotTop) continue // not a top level group
 
-        const cg = Mdf.dashCloneDeep(gUse[iGid].item)
+        const cg = Mdf.deepClone(gUse[iGid].item)
         gTree.push(cg)
         gProc.push({
           gId: iGid,
@@ -343,8 +343,8 @@ export default {
 
               const g = {
                 gId: pc.ChildGroupId,
-                path: Mdf.dashCloneDeep(gpNow.path),
-                item: Mdf.dashCloneDeep(gChildUse.item)
+                path: Mdf.deepClone(gpNow.path),
+                item: Mdf.deepClone(gChildUse.item)
               }
               g.item.key = 'pgr-' + pc.ChildGroupId + '-' + this.nextId++
               g.path.push(g.gId)
@@ -357,7 +357,7 @@ export default {
           if (pc.ChildLeafId >= 0) {
             const p = pUse[pc.ChildLeafId]
             if (p) {
-              const pn = Mdf.dashCloneDeep(p.item)
+              const pn = Mdf.deepClone(p.item)
               pn.key = 'ptl-' + pc.ChildLeafId + '-' + this.nextId++
               gpNow.item.children.push(pn)
               p.isLeaf = true

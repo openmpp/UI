@@ -4,20 +4,41 @@ import { useServerStateStore } from '../stores/server-state'
 import { useUiStateStore } from '../stores/ui-state'
 import languages from 'quasar/lang/index.json'
 import * as Mdf from 'src/model-common'
+import RefreshModel from 'components/RefreshModel.vue'
+import RefreshRunList from 'components/RefreshRunList.vue'
+import RefreshRun from 'components/RefreshRun.vue'
+import RefreshWorksetList from 'components/RefreshWorksetList.vue'
+import RefreshWorkset from 'components/RefreshWorkset.vue'
+import RefreshUserViews from 'components/RefreshUserViews.vue'
 import ModelInfoDialog from 'components/ModelInfoDialog.vue'
 
 const DISK_USE_MIN_REFRESH_TIME = (17 * 1000) // msec, minimum disk space usage refresh interval
 const DISK_USE_MAX_ERR = 5 // max error count to stop disk use retrival and block model runs
+const NO_REDIRECT = 0
+const WS_PARAM_REDIRECT = 1 // redirect by url to workset parameter
+const RUN_PARAM_REDIRECT = 2 // redirect by url to run parameter
+const TABLE_REDIRECT = 3 // redirect by url to output table
+const ENTITY_REDIRECT = 4 // redirect by url to run parameter
 
 export default {
   name: 'MainLayout',
-  components: { ModelInfoDialog },
+  components: {
+    RefreshModel,
+    RefreshRunList,
+    RefreshRun,
+    RefreshWorksetList,
+    RefreshWorkset,
+    RefreshUserViews,
+    ModelInfoDialog
+  },
 
   data () {
     return {
       leftDrawerOpen: false,
       refreshTickle: false,
-      loadConfigDone: false,
+      refreshRunTickle: false,
+      refreshWsTickle: false,
+      loadConfigWait: false,
       loadDiskUseDone: false,
       nDiskUseErr: 0, // disk use error count
       loginUrl: '',
@@ -30,6 +51,24 @@ export default {
       isDiskUse: false,
       diskUseRefreshInt: '',
       diskUseMs: DISK_USE_MIN_REFRESH_TIME,
+      //
+      isRedirect: false, // redirect by url
+      redirectTo: NO_REDIRECT,
+      toModelDigest: '',
+      toRunDns: '',
+      runDnsCurrent: '',
+      toWsName: '',
+      wsNameCurrent: '',
+      toParamName: '',
+      toTableName: '',
+      toEntityName: '',
+      loadModelWait: false,
+      loadWsListWait: false,
+      loadWsWait: false,
+      loadRunListWait: false,
+      loadRunWait: false,
+      loadUserViewsWait: false,
+      //
       langCode: this.$q.lang.getLocale(),
       appLanguages: languages.filter(lang => ['fr', 'en-US'].includes(lang.isoName)) // list of languages: code and label
     }
@@ -48,9 +87,6 @@ export default {
     },
     runTextCount () { return Mdf.runTextCount(this.runTextList) },
     worksetTextCount () { return Mdf.worksetTextCount(this.worksetTextList) },
-    loadWait () {
-      return !this.loadConfigDone
-    },
 
     ...mapState(useModelStore, [
       'theModel',
@@ -75,6 +111,10 @@ export default {
   },
 
   watch: {
+    isDiskUse () { this.restartDiskUseRefresh() },
+    diskUseMs () { this.restartDiskUseRefresh() },
+    modelCount () { this.doRedirectByUrl() },
+
     // language updated outside of main menu
     uiLang () {
       if (!this.uiLang) {
@@ -111,9 +151,6 @@ export default {
       }
     },
 
-    isDiskUse () { this.restartDiskUseRefresh() },
-    diskUseMs () { this.restartDiskUseRefresh() },
-
     // set 401 and 403 interceptor: open login page
     loginUrl () {
       if (this.isLoginCatch || !this.loginUrl || typeof this.loginUrl !== typeof 'string') return // use only first non-empty login url
@@ -145,7 +182,9 @@ export default {
     ]),
     ...mapActions(useUiStateStore, [
       'dispatchUiLang',
-      'dispatchSortModelTree'
+      'dispatchSortModelTree',
+      'dispatchRunDigestSelected',
+      'dispatchWorksetNameSelected'
     ]),
 
     // show model notes dialog
@@ -261,7 +300,7 @@ export default {
 
     // receive server configuration, including configuration of model catalog and run catalog
     async doConfigRefresh () {
-      this.loadConfigDone = false
+      this.loadConfigWait = true
 
       const u = this.omsUrl + '/api/service/config'
       try {
@@ -276,7 +315,8 @@ export default {
         console.warn('Server offline or configuration retrieve failed.', em)
         this.$q.notify({ type: 'negative', message: this.$t('Server offline or configuration retrieve failed.') })
       }
-      this.loadConfigDone = true
+      this.loadConfigWait = false
+
       this.loginUrl = Mdf.configEnvValue(this.serverConfig, 'OM_CFG_LOGIN_URL')
       this.logoutUrl = Mdf.configEnvValue(this.serverConfig, 'OM_CFG_LOGOUT_URL')
 
@@ -363,6 +403,169 @@ export default {
 
       // get disk usage from the server
       setTimeout(() => this.doGetDiskUse(), 1231)
+    },
+
+    //
+    // redirect by url to open parameter, table or entity page:
+    //   http://host/?model=DigestOrName&set=Default&parameter=ageSex
+    //   http://host/?model=DigestOrName&run=NameOrDigestOrStamp&parameter=ageSex
+    //   http://host/?model=DigestOrName&run=NameOrDigestOrStamp&table=salarySex
+    //   http://host/?model=DigestOrName&run=NameOrDigestOrStamp&entity=Person
+    async doRedirectByUrl () {
+      this.isRedirect = false
+      this.redirectTo = NO_REDIRECT
+
+      if (!this.modelCount || this.$route.path !== '/') {
+        return // exit: no models or it is not a redirect url path
+      }
+      const mdl = this.$route.query?.model || '' // model digest or name
+      if (!mdl) {
+        return // model digest is empty: it is not a redirect url
+      }
+      const wsName = this.$route.query?.set || '' // workset name
+      const rdn = this.$route.query?.run || '' // run digest or name
+      const pName = this.$route.query?.parameter || '' // paramter name
+      const tName = this.$route.query?.table || '' // output table name
+      const eName = this.$route.query?.entity || '' // microdata entity name
+
+      if (!!wsName && !!pName && !rdn && !tName && !eName) { // redirect to workset parameter
+        this.redirectTo = WS_PARAM_REDIRECT
+        this.toWsName = wsName
+        this.toParamName = pName
+      }
+      if (!!rdn && !!pName && !wsName && !tName && !eName) { // redirect to run parameter
+        this.redirectTo = RUN_PARAM_REDIRECT
+        this.toRunDns = rdn
+        this.toParamName = pName
+      }
+      if (!!rdn && !!tName && !wsName && !pName && !eName) { // redirect to output table
+        this.redirectTo = TABLE_REDIRECT
+        this.toRunDns = rdn
+        this.toTableName = tName
+      }
+      if (!!rdn && !!eName && !wsName && !pName && !tName) { // redirect to microdata entity
+        this.redirectTo = ENTITY_REDIRECT
+        this.toRunDns = rdn
+        this.toEntityName = eName
+      }
+      if (this.redirectTo === NO_REDIRECT) return // it is not a redirect url
+
+      // load the model, if it is exists in models list
+      let mdgst = ''
+      for (const m of this.modelList) {
+        if (m.Model.Digest === mdl || m.Model.Name === mdl) {
+          mdgst = m.Model.Digest
+          break
+        }
+      }
+      if (!mdgst) {
+        console.warn('Model not found', mdl)
+        this.$q.notify({ type: 'negative', message: this.$t('Model not found') + ' : ' + mdl })
+        return
+      }
+      this.toModelDigest = mdgst
+      this.isRedirect = true
+    },
+
+    // model loaded
+    doneModelLoad (isSuccess, dgst) {
+      this.loadModelWait = false
+      if (!isSuccess) {
+        console.warn('Model load failed:', this.toModelDigest)
+        return
+      }
+      this.$q.notify({ type: 'info', message: this.$t('Model') +' : '+ this.modelName })
+    },
+    // user views for current model are loaded
+    doneUserViewsLoad (isSuccess, nViews) {
+      this.loadUserViewsWait = false
+      if (nViews > 0) {
+        this.$q.notify({ type: 'info', message: this.$t('User views count: ') + nViews.toString() })
+      }
+    },
+    // list of model runs loaded
+    doneRunListLoad (isSuccess) {
+      this.loadRunListWait = false
+      if (!isSuccess || !Mdf.isLength(this.runTextList)) { // do not refresh run: run list empty
+        this.runDnsCurrent = ''
+        return
+      }
+      // run by digest, name or run stamp
+      this.runDnsCurrent = this.toRunDns
+      this.refreshRunTickle = !this.refreshRunTickle
+    },
+    // current model run loaded
+    doneRunLoad (isSuccess, dgst) {
+      this.loadRunWait = false
+      if (!isSuccess && (dgst || '') === '') { // model run not found
+        this.runDnsCurrent = ''
+        return
+      }
+      this.$q.notify({ type: 'info', message: this.$t('Model run') +' : '+ this.toRunDns })
+
+      // redirect to run parameter page, output table or microdata entity
+      this.dispatchRunDigestSelected({ digest: this.modelDigest, runDigest: dgst })
+
+      // /model/:digest/run/:runDigest/parameter/:parameterName
+      if (this.redirectTo === RUN_PARAM_REDIRECT) {
+        this.$q.notify({ type: 'info', message: this.$t('Open') +' : '+ this.toParamName })
+        this.$router.push(
+          '/model/' + encodeURIComponent(this.modelDigest || '-') +
+          '/run/' + encodeURIComponent(dgst || '') +
+          '/parameter/' + encodeURIComponent(this.toParamName || '-')
+        )
+      }
+      // /model/:digest/run/:runDigest/table/:parameterName
+      if (this.redirectTo === TABLE_REDIRECT) {
+        this.$q.notify({ type: 'info', message: this.$t('Open') +' : '+ this.toTableName })
+        this.$router.push(
+          '/model/' + encodeURIComponent(this.modelDigest || '-') +
+          '/run/' + encodeURIComponent(dgst || '') +
+          '/table/' + encodeURIComponent(this.toTableName || '-')
+        )
+      }
+      // /model/:digest/run/:runDigest/entity/:parameterName
+      if (this.redirectTo === ENTITY_REDIRECT) {
+        this.$q.notify({ type: 'info', message: this.$t('Open') +' : '+ this.toEntityName })
+        this.$router.push(
+          '/model/' + encodeURIComponent(this.modelDigest || '-') +
+          '/run/' + encodeURIComponent(dgst || '') +
+          '/entity/' + encodeURIComponent(this.toEntityName || '-')
+        )
+      }
+    },
+    // list of model worksets loaded
+    doneWsListLoad (isSuccess) {
+      this.loadWsListWait = false
+      if (!isSuccess || !Mdf.isLength(this.worksetTextList)) { // do not refresh workset: workset list empty
+        this.wsNameCurrent = ''
+        return
+      }
+      // refresh workset by name
+      this.wsNameCurrent = this.toWsName
+      this.refreshWsTickle = !this.refreshWsTickle
+    },
+    // current workset loaded
+    doneWsLoad (isSuccess, name, isNewRun) {
+      this.loadWsWait = false
+      if (!isSuccess && (name || '') === '') { // workset not found
+        this.wsNameCurrent = ''
+        return
+      }
+      this.$q.notify({ type: 'info', message: this.$t('Input Scenario') +' : '+ this.wsNameCurrent })
+
+      // redirect to workset parameter page
+      this.dispatchWorksetNameSelected({ digest: this.modelDigest, worksetName: name })
+
+      // /model/:digest/set/:runDigest/parameter/:parameterName
+      if (this.redirectTo === WS_PARAM_REDIRECT) {
+        this.$q.notify({ type: 'info', message: this.$t('Open') +' : '+ this.toParamName })
+        this.$router.push(
+          '/model/' + encodeURIComponent(this.modelDigest || '-') +
+          '/set/' + encodeURIComponent(this.toWsName || '') +
+          '/parameter/' + encodeURIComponent(this.toParamName || '-')
+        )
+      }
     }
   },
 
