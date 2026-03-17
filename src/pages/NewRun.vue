@@ -16,7 +16,6 @@
             class="rounded-borders q-pr-xs"
             >
             <q-icon name="mdi-run" class="q-mr-xs"/>
-            <q-icon v-if="isDiskOver" name="mdi-database-alert" color="negative" class="q-mr-xs"/>
             <span>{{ $t('Run the Model') }}</span>
           </q-btn>
           <q-btn
@@ -24,11 +23,13 @@
             to="/disk-use"
             outline
             rounded
-            icon="mdi-database-alert"
             color="negative"
-            class="rounded-borders q-mr-xs"
+            class="rounded-borders q-pr-xs"
             :title="$t('View and cleanup storage space')"
-            />
+            >
+            <q-icon name="mdi-database-alert" color="negative" class="q-mr-xs"/>
+            <span>{{ $t('Cleanup Required') }}</span>
+          </q-btn>
         </span>
 
         <span class="col-grow">

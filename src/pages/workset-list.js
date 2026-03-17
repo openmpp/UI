@@ -89,6 +89,7 @@ export default {
       showDeleteParameterTickle: false,
       showDeleteGroupTickle: false,
       wsMultipleCount: 0,
+      isWsDeleteAll: false,
       showDeleteMultipleDialogTickle: false,
       loadWsMultipletDelete: false,
       uploadFileSelect: false,
@@ -378,6 +379,7 @@ export default {
       if (!this.wsTreeTicked?.length) return // empty selection
 
       this.wsMultipleCount = this.wsTreeTicked.length
+      this.isWsDeleteAll = Array.isArray(this.worksetTextList) && this.wsMultipleCount >= this.worksetTextList.length
       this.showDeleteMultipleDialogTickle = !this.showDeleteMultipleDialogTickle
     },
     // user answer yes to confirm delete multiple selected model worksets

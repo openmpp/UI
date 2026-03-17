@@ -57,6 +57,7 @@ export default {
   'Cleanup may take very long time. It is recommended to delete old model runs and old input scenarios before cleanup.':
     "Le nettoyage peut prendre beaucoup de temps. Il est recommandé de supprimer les anciennes exécutions de modèle et les anciens scénarios d'entrée avant le nettoyage.",
   'Cleanup model database': 'Base de données du modèle de nettoyage',
+  'Cleanup Required': 'Nettoyage requis',
   'Clear': 'Claire',
   'Clear all': 'Tout effacer',
   'Clear all filters': 'Effacer tous les filtres',
@@ -136,6 +137,7 @@ export default {
   'Delete all files of all models in download folder': 'Supprimez tous les fichiers de tous les modèles dans le dossier de téléchargement',
   'Delete all files of all models in upload folder': 'Supprimez tous les fichiers de tous les modèles dans le dossier de chargement',
   'Delete all history': "Supprimer tout l'historique",
+  'Delete ALL input scenarios' : "Supprimer TOUS les scénarios d'entrée",
   'Delete all upload files': 'Supprimer tous les fichiers chargés',
   'Delete download files': 'Supprimer les fichiers téléchargés',
   'Delete download of': 'Supprimer le téléchargement de',
@@ -200,6 +202,7 @@ export default {
   'Do not use MPI root process to run the model': "N'utilisez pas le processus racine MPI pour exécuter le modèle",
   'Do not use sparse output tables: store all values': 'Ne pas utiliser de tableaux de résultats éparses : stocker toutes les valeurs',
   'Do not write model version into run log': "N'écrivez pas la version du modèle dans le journal d'exécution",
+  'Do you really want to delete ALL input scenarios?': "Voulez-vous vraiment supprimer TOUS les scénarios d'entrée ?",
   'Donut chart': 'Graphique en anneau',
   'Download': 'Télécharger',
   'Download completed': 'Téléchargement terminé',

@@ -641,8 +641,8 @@
     :show-tickle="showDeleteMultipleDialogTickle"
     :item-name="'[ ' + wsMultipleCount.toString() + ' ] ' + $t('input scenarios to be deleted')"
     :item-id="!!wsMultipleCount ? wsMultipleCount.toString() : 'empty'"
-    :bodyText="$t('Model may be unavaliable until delete is completed.')"
-    :dialog-title="$t('Delete multiple input scenarios') + '?'"
+    :bodyText="isWsDeleteAll ? $t('Do you really want to delete ALL input scenarios?') : $t('Model may be unavaliable until delete is completed.')"
+    :dialog-title="(isWsDeleteAll ? $t('Delete ALL input scenarios') : $t('Delete multiple input scenarios')) + '?'"
     >
   </delete-confirm-dialog>
 
