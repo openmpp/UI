@@ -103,7 +103,7 @@ export default {
         this.$q.notify({ type: 'negative', message: this.$t('Server offline or upload user views failed: ') + this.modelName })
       }
 
-      this.$emit('done', this.uploadDone, pvRows.length + tvRows.length)
+      this.$emit('done', this.uploadDone, pvRows.length + tvRows.length + mvRows.length)
       this.uploadWait = false
     }
   },

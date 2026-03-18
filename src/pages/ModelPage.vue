@@ -149,9 +149,7 @@
     @download-select="onDownloadSelect"
     @upload-select="onUploadSelect"
     @run-completed-list="onRunCompletedList"
-    @parameter-view-saved="onParameterViewSaved"
-    @table-view-saved="onTableViewSaved"
-    @entity-view-saved="onEntityViewSaved"
+    @user-view-updated="onUserViewUpdated"
     @run-list-refresh="onRunListRefresh"
     @set-list-refresh="onWorksetListRefresh"
     @run-list-delete="onRunListDelete"
@@ -224,13 +222,7 @@
     @wait="loadUserViewsDone = false"
     >
   </refresh-user-views>
-  <upload-user-views
-    :model-name="modelName"
-    :upload-views-tickle="uploadUserViewsTickle"
-    @done="doneUserViewsUpload"
-    @wait="uploadUserViewsDone = false"
-    >
-  </upload-user-views>
+
   <run-info-dialog :show-tickle="runInfoTickle" :model-digest="digest" :run-digest="runDnsCurrent"></run-info-dialog>
   <workset-info-dialog :show-tickle="worksetInfoTickle" :model-digest="digest" :workset-name="wsNameCurrent"></workset-info-dialog>
 

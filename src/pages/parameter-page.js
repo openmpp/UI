@@ -161,7 +161,7 @@ export default {
     'edit-updated',
     'new-run-select',
     'set-update-readonly',
-    'parameter-view-saved',
+    'user-view-updated',
     'tab-mounted'
   ],
 
@@ -406,7 +406,8 @@ export default {
         return
       }
       this.$q.notify({ type: 'info', message: this.$t('Default view of parameter saved: ') + this.parameterName })
-      this.$emit('parameter-view-saved', this.parameterName)
+            this.$emit('user-view-updated', this.digest, Mdf.modelName(this.theModel))
+
     },
 
     // restore default parameter view

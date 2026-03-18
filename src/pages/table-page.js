@@ -205,7 +205,7 @@ export default {
     prctChartSize () { this.dispatchTableView({ key: this.routeKey, prctChartSize: this.prctChartSize }) }
   },
 
-  emits: ['table-view-saved', 'tab-mounted'],
+  emits: ['user-view-updated', 'tab-mounted'],
 
   methods: {
     ...mapActions(useModelStore, [
@@ -1740,7 +1740,7 @@ export default {
       }
 
       this.$q.notify({ type: 'info', message: this.$t('Default view of output table saved: ') + this.tableName })
-      this.$emit('table-view-saved', this.tableName)
+      this.$emit('user-view-updated', this.digest, Mdf.modelName(this.theModel))
     },
 
     // restore default output table view

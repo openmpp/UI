@@ -325,6 +325,7 @@
       @upload-select="onUploadSelect"
       @disk-use-refresh="onDiskUseRefresh"
       @set-update-readonly="onWorksetReadonlyUpdate"
+      @user-view-updated="onUserViewUpdated"
       >
     </router-view>
   </q-page-container>
@@ -373,12 +374,6 @@
         @wait="loadWsWait = true">
       </refresh-workset>
     </template>
-    <refresh-user-views v-if="modelName !== '' && !!redirectTo"
-      :model-name="modelName"
-      @done="doneUserViewsLoad"
-      @wait="loadUserViewsWait = true"
-      >
-    </refresh-user-views>
   </template>
 
   <update-workset-status
@@ -390,7 +385,23 @@
     @wait="wsStatusUpadteWait = true">
   </update-workset-status>
 
-  <q-inner-loading :showing="loadConfigWait || loadModelWait || loadRunListWait || loadRunWait || loadWsListWait || loadWsWait || loadUserViewsWait">
+  <template v-if="modelName !== ''">
+    <refresh-user-views
+      :model-name="modelName"
+      @done="doneUserViewsLoad"
+      @wait="loadUserViewsWait = true"
+      >
+    </refresh-user-views>
+    <upload-user-views
+      :model-name="modelName"
+      :upload-views-tickle="uploadUserViewsTickle"
+      @done="doneUserViewsUpload"
+      @wait="uploadUserViewsWait = true"
+      >
+    </upload-user-views>
+  </template>
+
+  <q-inner-loading :showing="loadConfigWait || loadModelWait || loadRunListWait || loadRunWait || loadWsListWait || loadWsWait || loadUserViewsWait || uploadUserViewsWait">
     <q-spinner-gears size="xl" color="primary" />
   </q-inner-loading>
 

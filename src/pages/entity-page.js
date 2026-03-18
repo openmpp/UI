@@ -173,7 +173,7 @@ export default {
     theModelUpdated () { this.doRefresh() }
   },
 
-  emits: ['entity-view-saved', 'tab-mounted'],
+  emits: ['user-view-updated', 'tab-mounted'],
 
   methods: {
     ...mapActions(useModelStore, [
@@ -1546,8 +1546,8 @@ export default {
         pageSize: this.isPages ? this.pageSize : 0,
         aggrCalc: this.aggrCalc || '',
         cmpCalc: this.cmpCalc || '',
-        groupBy: Array.isArray(this.groupBy) ? this.groupBy : [],
-        calcEnums: Array.isArray(this.calcEnums) ? this.calcEnums : []
+        groupBy: Array.isArray(this.groupBy) ? Array.from(this.groupBy) : [],
+        calcEnums: Array.isArray(this.calcEnums) ? Array.from(this.calcEnums) : []
       }
 
       // save into indexed db
@@ -1562,7 +1562,7 @@ export default {
       }
 
       this.$q.notify({ type: 'info', message: this.$t('Default view of microdata saved: ') + this.entityName })
-      this.$emit('entity-view-saved', this.entityName)
+      this.$emit('user-view-updated', this.digest, Mdf.modelName(this.theModel))
     },
 
     // restore default microdata view

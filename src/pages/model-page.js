@@ -11,7 +11,6 @@ import RefreshWorkset from 'components/RefreshWorkset.vue'
 import RefreshWorksetList from 'components/RefreshWorksetList.vue'
 import RefreshWorksetArray from 'components/RefreshWorksetArray.vue'
 import RefreshUserViews from 'components/RefreshUserViews.vue'
-import UploadUserViews from 'components/UploadUserViews.vue'
 import RunBar from 'components/RunBar.vue'
 import RunInfoDialog from 'components/RunInfoDialog.vue'
 import WorksetBar from 'components/WorksetBar.vue'
@@ -36,7 +35,6 @@ export default {
     RefreshWorksetList,
     RefreshWorksetArray,
     RefreshUserViews,
-    UploadUserViews,
     RunBar,
     RunInfoDialog,
     WorksetBar,
@@ -67,8 +65,6 @@ export default {
       refreshRunViewsTickle: false,
       refreshWsViewsTickle: false,
       uploadViewsTickle: false,
-      uploadUserViewsTickle: false,
-      uploadUserViewsDone: false,
       modelName: '',
       runDnsCurrent: '',        // run digest selected (run name, run stamp)
       wsNameCurrent: '',        // workset name selected
@@ -113,7 +109,10 @@ export default {
     refreshTickle () { this.initalView() }
   },
 
-  emits: ['set-update-readonly'],
+  emits: [
+    'set-update-readonly',
+    'user-view-updated'
+  ],
 
   methods: {
     ...mapActions(useModelStore, [
@@ -269,12 +268,6 @@ export default {
         this.$q.notify({ type: 'info', message: this.$t('User views count: ') + nViews.toString() })
       }
     },
-    doneUserViewsUpload (isSuccess, nViews) {
-      this.uploadUserViewsDone = true
-      if (isSuccess && nViews > 0) {
-        this.$q.notify({ type: 'info', message: this.$t('User views uploaded: ') + nViews.toString() })
-      }
-    },
     // deleting run or multiple runs
     onRunListDelete () {
       this.doTabFilter(
@@ -405,17 +398,9 @@ export default {
       const nPos = this.tabItems.findIndex(t => t.path === tabPath)
       if (nPos >= 0) this.tabItems[nPos].updated = isUpdated
     },
-    // on parameter default view saved by user
-    onParameterViewSaved (name) {
-      this.uploadUserViewsTickle = !this.uploadUserViewsTickle
-    },
-    // on output table default view saved by user
-    onTableViewSaved (name) {
-      this.uploadUserViewsTickle = !this.uploadUserViewsTickle
-    },
-    // on microdata default view saved by user
-    onEntityViewSaved (name) {
-      this.uploadUserViewsTickle = !this.uploadUserViewsTickle
+    // upload views into user home directory
+    onUserViewUpdated (dgst, mName) {
+      this.$emit('user-view-updated', dgst, mName)
     },
     // show run notes dialog
     doShowRunNote (modelDgst, runDgst) {

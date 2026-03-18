@@ -262,14 +262,6 @@
     </q-card>
   </q-expansion-item>
 
-  <upload-user-views
-    :model-name="modelName"
-    :upload-views-tickle="uploadUserViewsTickle"
-    @done="doneUserViewsUpload"
-    @wait="uploadUserViewsDone = false"
-    >
-  </upload-user-views>
-
 </q-page>
 </template>
 
@@ -281,11 +273,9 @@ import { useUiStateStore } from '../stores/ui-state'
 import * as Mdf from 'src/model-common'
 import * as Idb from 'src/idb/idb'
 import { exportFile } from 'quasar'
-import UploadUserViews from 'components/UploadUserViews.vue'
 
 export default {
   name: 'SessionSettings',
-  components: { UploadUserViews },
 
   data () {
     return {
@@ -294,8 +284,6 @@ export default {
       tableNames: [], // output table names from dbRows
       entityNames: [], // microdata entity names from dbRows
       uploadFile: null,
-      uploadUserViewsTickle: false,
-      uploadUserViewsDone: false,
       fastDownload: 'yes',
       isMicroDownload: false,
       isIdCsvDownload: false,
@@ -350,6 +338,8 @@ export default {
       this.dispatchTreeLabelKind((val === 'name-only' || val === 'descr-only') ? val : '')
     }
   },
+
+  emits: ['user-view-updated'],
 
   methods: {
     ...mapActions(useModelStore, [
@@ -534,16 +524,8 @@ export default {
         this.$q.notify({ type: 'info', message: this.$t('No user views found: ') + this.modelName })
       }
 
-      // upload parameter views into user home directory
-      this.uploadUserViewsTickle = !this.uploadUserViewsTickle
-    },
-
-    // upload of parameter and output table views completed
-    doneUserViewsUpload (isSuccess, nViews) {
-      this.uploadUserViewsDone = true
-      if (isSuccess && nViews > 0) {
-        this.$q.notify({ type: 'info', message: this.$t('User views uploaded: ') + nViews.toString() })
-      }
+      // upload views into user home directory
+      this.$emit('user-view-updated', Mdf.modelDigest(this.theModel), this.modelName)
     },
 
     // delete parameter default view
@@ -591,8 +573,8 @@ export default {
         message: this.$t('Default view erased: ') + name
       })
 
-      // upload parameter views into user home directory
-      this.uploadUserViewsTickle = !this.uploadUserViewsTickle
+      // upload views into user home directory
+      this.$emit('user-view-updated', Mdf.modelDigest(this.theModel), this.modelName)
     },
 
     // select all user views from indexed db

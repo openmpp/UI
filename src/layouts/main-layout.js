@@ -10,6 +10,7 @@ import RefreshRun from 'components/RefreshRun.vue'
 import RefreshWorksetList from 'components/RefreshWorksetList.vue'
 import RefreshWorkset from 'components/RefreshWorkset.vue'
 import RefreshUserViews from 'components/RefreshUserViews.vue'
+import UploadUserViews from 'components/UploadUserViews.vue'
 import UpdateWorksetStatus from 'components/UpdateWorksetStatus.vue'
 import ModelInfoDialog from 'components/ModelInfoDialog.vue'
 
@@ -30,6 +31,7 @@ export default {
     RefreshWorksetList,
     RefreshWorkset,
     RefreshUserViews,
+    UploadUserViews,
     UpdateWorksetStatus,
     ModelInfoDialog
   },
@@ -75,6 +77,8 @@ export default {
       isReadonlyWsStatus: false,
       nameWsStatus: '',
       updateWsStatusTickle: false,
+      uploadUserViewsTickle: false,
+      uploadUserViewsWait: false,
       //
       langCode: this.$q.lang.getLocale(),
       appLanguages: languages.filter(lang => ['fr', 'en-US'].includes(lang.isoName)) // list of languages: code and label
@@ -264,6 +268,7 @@ export default {
       return mm
     },
 
+    // refresh views and backend data
     onRefresh () {
       this.clearRedirect()
       this.doRefresh()
@@ -492,13 +497,6 @@ export default {
       }
       this.$q.notify({ type: 'info', message: this.$t('Model') +' : '+ this.modelName })
     },
-    // user views for current model are loaded
-    doneUserViewsLoad (isSuccess, nViews) {
-      this.loadUserViewsWait = false
-      if (nViews > 0) {
-        this.$q.notify({ type: 'info', message: this.$t('User views count: ') + nViews.toString() })
-      }
-    },
     // list of model runs loaded
     doneRunListLoad (isSuccess) {
       this.loadRunListWait = false
@@ -581,6 +579,25 @@ export default {
           '/model/' + encodeURIComponent(this.modelDigest || '-') +
           '/set/' + encodeURIComponent(this.toWsName || '-')
         )
+      }
+    },
+
+    // user views for current model are loaded
+    doneUserViewsLoad (isSuccess, nViews) {
+      this.loadUserViewsWait = false
+      if (nViews > 0) {
+        this.$q.notify({ type: 'info', message: this.$t('User views count: ') + nViews.toString() })
+      }
+    },
+    // start uploading views into user home directory
+    onUserViewUpdated (dgst, mName) {
+      this.uploadUserViewsTickle = !this.uploadUserViewsTickle
+    },
+    // user views uploaded to the server
+    doneUserViewsUpload (isSuccess, nViews) {
+      this.uploadUserViewsWait = false
+      if (isSuccess && nViews > 0) {
+        this.$q.notify({ type: 'info', message: this.$t('User views uploaded: ') + nViews.toString() })
       }
     },
 
