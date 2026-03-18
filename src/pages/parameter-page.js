@@ -51,6 +51,7 @@ export default {
   /* eslint-disable no-multi-spaces */
   data () {
     return {
+      isModelTab: this.$route.path.startsWith('/model/'), // if true then model page tab else parameter top page
       loadDone: false,
       loadWait: false,
       saveStarted: false,
@@ -210,7 +211,7 @@ export default {
         }
         if (this.noteEditorShow) return // note editor active
       }
-      this.$emit('set-update-readonly', this.digest, this.worksetName, isReadonly)
+      this.onWorksetReadonlyToggle(this.digest, this.worksetName, isReadonly)
     },
     // workset updated: check read-only status and adjust controls
     // if sub-values count changed as result of parameter upload then reset view and reload data
@@ -1442,26 +1443,29 @@ export default {
   },
 
   // route leave guard: on leaving parameter page check
-  // if parameter notes edited and not saved then ask user to coonfirm "discard all changes?"
-  beforeRouteLeave (to, from, next) {
+  // if parameter notes edited and not saved then ask user to confirm "discard all changes?"
+  beforeRouteLeave (to, from) {
+    // if this is parameter page (not model tab) editor then ask suer to save or cancle changes
+    if (!this.isModelTab && this.edt.isEdit && this.edt.isUpdated) {
+        this.showEditDiscardTickle = !this.showEditDiscardTickle
+        return false // redirect to dialog to confirm "discard changes?"
+    }
     // if user already confimed "yes" to leave the page
     if (this.isYesToLeave) {
       this.isYesToLeave = false
-      next() // leave parameter page and route to next page
-      return
+      return true // leave parameter page and route to next page
     }
     // else:
     //  if there edited and unsaved parameter notes
     this.isYesToLeave = this.onCancelParamNote()
     if (this.isYesToLeave) {
       this.isYesToLeave = false
-      next() // no unsaved changes: leave parameter page and route to next page
-      return
+      return true // no unsaved changes: leave parameter page and route to next page
     }
     // else:
     //  redirect to dialog to confirm "discard all changes?"
     this.pathToRouteLeave = to.path || '' // store path-to leave if user confirm "yes" to "discard changes?"
-    next(false)
+    return false
   },
 
   mounted () {

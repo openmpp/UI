@@ -10,6 +10,7 @@ const routes = [
         path: '',
         component: () => import('pages/ModelList.vue'),
       },
+      // model page and tabs
       {
         path: 'model/:digest',
         component: () => import('pages/ModelPage.vue'),
@@ -63,6 +64,28 @@ const routes = [
           }
         ]
       },
+      // redirect by url pages, outside of model page (not as tabs)
+      {
+        path: 'parameter/:parameterName/model/:digest/run/:runDigest',
+        component: () => import('pages/ParameterPage.vue'),
+        props: true
+      },
+      {
+        path: 'parameter/:parameterName/model/:digest/set/:worksetName',
+        component: () => import('pages/ParameterPage.vue'),
+        props: true
+      },
+      {
+        path: 'table/:tableName/model/:digest/run/:runDigest',
+        component: () => import('pages/TablePage.vue'),
+        props: true
+      },
+      {
+        path: 'entity/:entityName/model/:digest/run/:runDigest',
+        component: () => import('pages/EntityPage.vue'),
+        props: true
+      },
+      // other top level pages, main menu items
       {
         path: 'updown-list/model/:digest',
         component: () => import('pages/UpDownList.vue'),

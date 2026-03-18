@@ -98,7 +98,7 @@
         icon="mdi-logout"
         />
       <q-btn
-        @click="doRefresh"
+        @click="onRefresh"
         flat
         round
         dense
@@ -324,6 +324,7 @@
       @download-select="onDownloadSelect"
       @upload-select="onUploadSelect"
       @disk-use-refresh="onDiskUseRefresh"
+      @set-update-readonly="onWorksetReadonlyUpdate"
       >
     </router-view>
   </q-page-container>
@@ -379,6 +380,15 @@
       >
     </refresh-user-views>
   </template>
+
+  <update-workset-status
+    :model-digest="modelDigest"
+    :workset-name="nameWsStatus"
+    :is-readonly="isReadonlyWsStatus"
+    :update-status-tickle="updateWsStatusTickle"
+    @done="wsStatusUpadteWait = false"
+    @wait="wsStatusUpadteWait = true">
+  </update-workset-status>
 
   <q-inner-loading :showing="loadConfigWait || loadModelWait || loadRunListWait || loadRunWait || loadWsListWait || loadWsWait || loadUserViewsWait">
     <q-spinner-gears size="xl" color="primary" />

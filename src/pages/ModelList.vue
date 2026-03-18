@@ -529,9 +529,9 @@ export default {
   },
 
   // route leave guard: on leaving save model tree expanded state
-  beforeRouteLeave (to, from, next) {
+  beforeRouteLeave (to, from) {
     this.dispatchTreeExpandedKeys('all-models', 'model-list', this.expandedKeys)
-    next()
+    return true
   },
 
   mounted () {

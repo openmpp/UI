@@ -9,7 +9,6 @@ import RefreshRunList from 'components/RefreshRunList.vue'
 import RefreshRunArray from 'components/RefreshRunArray.vue'
 import RefreshWorkset from 'components/RefreshWorkset.vue'
 import RefreshWorksetList from 'components/RefreshWorksetList.vue'
-import UpdateWorksetStatus from 'components/UpdateWorksetStatus.vue'
 import RefreshWorksetArray from 'components/RefreshWorksetArray.vue'
 import RefreshUserViews from 'components/RefreshUserViews.vue'
 import UploadUserViews from 'components/UploadUserViews.vue'
@@ -35,7 +34,6 @@ export default {
     RefreshRunArray,
     RefreshWorkset,
     RefreshWorksetList,
-    UpdateWorksetStatus,
     RefreshWorksetArray,
     RefreshUserViews,
     UploadUserViews,
@@ -78,10 +76,6 @@ export default {
       wsViewsArray: [],         // names of worksets to refresh to view existing tabs
       activeTabKey: '',         // active tab path
       tabItems: [],             // tab list
-      updatingWsStatus: false,
-      isReadonlyWsStatus: false,
-      nameWsStatus: '',
-      updateWsStatusTickle: false,
       runInfoTickle: false,
       worksetInfoTickle: false,
       toUpDownSection: 'down',    // downloads and uploads page active section
@@ -94,12 +88,6 @@ export default {
   /* eslint-enable no-multi-spaces */
 
   computed: {
-    loadWait () {
-      return !this.loadModelDone ||
-        !this.loadRunDone || !this.loadRunListDone || !this.loadRunViewsDone ||
-        !this.loadWsDone || !this.loadWsListDone || this.updatingWsStatus || !this.loadWsViewsDone ||
-        !this.loadUserViewsDone
-    },
     isEmptyTabList () { return !Mdf.isLength(this.tabItems) },
     runTextCount () { return Mdf.runTextCount(this.runTextList) },
     worksetTextCount () { return Mdf.worksetTextCount(this.worksetTextList) },
@@ -124,6 +112,8 @@ export default {
     digest () { this.initalView() },
     refreshTickle () { this.initalView() }
   },
+
+  emits: ['set-update-readonly'],
 
   methods: {
     ...mapActions(useModelStore, [
@@ -270,9 +260,6 @@ export default {
         if (isNewRun) this.doNewRunSelect()
       }
     },
-    doneUpdateWsStatus (isSuccess, name, isReadonly) {
-      this.updatingWsStatus = false
-    },
     doneWsViewsLoad (isSuccess, count) {
       this.loadWsViewsDone = true
     },
@@ -411,9 +398,7 @@ export default {
         }
       }
       // else: update workset status
-      this.isReadonlyWsStatus = isReadonly
-      this.nameWsStatus = name
-      this.updateWsStatusTickle = !this.updateWsStatusTickle
+      this.$emit('set-update-readonly', dgst, name, isReadonly)
     },
     // on parameter updated (data dirty flag) change
     onEditUpdated (isUpdated, tabPath) {
@@ -818,14 +803,13 @@ export default {
   },
 
   // change active tab on route update or redirect from default model path to current page
-  beforeRouteUpdate (to, from, next) {
+  beforeRouteUpdate (to, from) {
     // if to.path is one of the tabs then change active tab
     let isFrom = false
     for (const t of this.tabItems) {
       if (t.path === to.path) {
         this.activeTabKey = t.path // set active tab and do navigation
-        next()
-        return
+        return true
       }
       if (!isFrom) isFrom = t.path === from.path
     }
@@ -833,32 +817,29 @@ export default {
     // if to.path is default model/digest and one of the tabs is from.path then cancel navigation
     if (isFrom && to.path === '/model/' + encodeURIComponent(this.digest)) {
       if (this.activeTabKey !== from.path) this.activeTabKey = from.path
-      next(false)
-      return
+      return false
     }
-    next() // else default
+    return true // else default
   },
 
   // route leave guard: on leaving model page check
-  // if any parameters edited and not changes saved then ask user to coonfirm "discard all changes?"
-  beforeRouteLeave (to, from, next) {
+  // if any parameters edited and not changes saved then ask user to confirm "discard all changes?"
+  beforeRouteLeave (to, from) {
     // if user already confimed "yes" to leave the page
     if (this.isYesToLeave) {
-      next() // leave model page and route to next page
-      return
+      return true // leave model page and route to next page
     }
     // else:
     //  if there any edited and unsaved parameters for current model
     this.paramEditCount = this.paramViewUpdatedCount(this.digest)
     if (this.paramEditCount <= 0) {
-      next() // no unsaved changes: leave model page and route to next page
-      return
+      return true // no unsaved changes: leave model page and route to next page
     }
     // else:
     //  redirect to dialog to confirm "discard all changes?"
     this.showAllDiscardDlg = true
     this.pathToRouteLeave = to.path || '' // store path-to leave if user confirm "yes" to "discard changes?"
-    next(false)
+    return false
   },
 
   mounted () {

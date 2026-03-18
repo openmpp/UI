@@ -18,7 +18,7 @@
           :model-digest="digest"
           :workset-name="worksetName"
           :is-readonly-button="true"
-          :is-new-run-button="true"
+          :is-new-run-button="isModelTab"
           :is-show-menu="true"
           @set-info-click="doShowWorksetNote"
           @set-update-readonly="onWorksetReadonlyToggle"

@@ -209,14 +209,6 @@
     @done="doneWsLoad"
     @wait="loadWsDone = false">
   </refresh-workset>
-  <update-workset-status
-    :model-digest="digest"
-    :workset-name="nameWsStatus"
-    :is-readonly="isReadonlyWsStatus"
-    :update-status-tickle="updateWsStatusTickle"
-    @done="doneUpdateWsStatus"
-    @wait="updatingWsStatus = true">
-  </update-workset-status>
   <refresh-workset-array v-if="(digest || '') !== ''"
     :model-digest="digest"
     :workset-name-array="wsViewsArray"
@@ -260,7 +252,9 @@
     </q-card>
   </q-dialog>
 
-  <q-inner-loading :showing="loadWait">
+  <q-inner-loading
+    :showing="!loadModelDone || !loadRunDone || !loadRunListDone || !loadRunViewsDone || !loadWsDone || !loadWsListDone || !loadWsViewsDone || !loadUserViewsDone"
+    >
     <q-spinner-gears size="lg" color="primary" />
   </q-inner-loading>
 

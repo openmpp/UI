@@ -10,6 +10,7 @@ import RefreshRun from 'components/RefreshRun.vue'
 import RefreshWorksetList from 'components/RefreshWorksetList.vue'
 import RefreshWorkset from 'components/RefreshWorkset.vue'
 import RefreshUserViews from 'components/RefreshUserViews.vue'
+import UpdateWorksetStatus from 'components/UpdateWorksetStatus.vue'
 import ModelInfoDialog from 'components/ModelInfoDialog.vue'
 
 const DISK_USE_MIN_REFRESH_TIME = (17 * 1000) // msec, minimum disk space usage refresh interval
@@ -29,6 +30,7 @@ export default {
     RefreshWorksetList,
     RefreshWorkset,
     RefreshUserViews,
+    UpdateWorksetStatus,
     ModelInfoDialog
   },
 
@@ -69,6 +71,11 @@ export default {
       loadRunWait: false,
       loadUserViewsWait: false,
       //
+      wsStatusUpadteWait: false,
+      isReadonlyWsStatus: false,
+      nameWsStatus: '',
+      updateWsStatusTickle: false,
+      //
       langCode: this.$q.lang.getLocale(),
       appLanguages: languages.filter(lang => ['fr', 'en-US'].includes(lang.isoName)) // list of languages: code and label
     }
@@ -106,7 +113,8 @@ export default {
       'uiLang',
       'runDigestSelected',
       'worksetNameSelected',
-      'taskNameSelected'
+      'taskNameSelected',
+     'paramViewWorksetUpdatedCount'
     ])
   },
 
@@ -256,6 +264,10 @@ export default {
       return mm
     },
 
+    onRefresh () {
+      this.clearRedirect()
+      this.doRefresh()
+    },
     doRefresh () {
       this.doConfigRefresh()
       this.restartDiskUseRefresh()
@@ -412,8 +424,7 @@ export default {
     //   http://host/?model=DigestOrName&run=NameOrDigestOrStamp&table=salarySex
     //   http://host/?model=DigestOrName&run=NameOrDigestOrStamp&entity=Person
     async doRedirectByUrl () {
-      this.isRedirect = false
-      this.redirectTo = NO_REDIRECT
+      this.clearRedirect()
 
       if (!this.modelCount || this.$route.path !== '/') {
         return // exit: no models or it is not a redirect url path
@@ -466,6 +477,11 @@ export default {
       this.toModelDigest = mdgst
       this.isRedirect = true
     },
+    // clear redirect state
+    clearRedirect () {
+      this.isRedirect = false
+      this.redirectTo = NO_REDIRECT
+    },
 
     // model loaded
     doneModelLoad (isSuccess, dgst) {
@@ -506,31 +522,31 @@ export default {
       // redirect to run parameter page, output table or microdata entity
       this.dispatchRunDigestSelected({ digest: this.modelDigest, runDigest: dgst })
 
-      // /model/:digest/run/:runDigest/parameter/:parameterName
+      // parameter/:parameterName/model/:digest/run/:runDigest
       if (this.redirectTo === RUN_PARAM_REDIRECT) {
         this.$q.notify({ type: 'info', message: this.$t('Open') +' : '+ this.toParamName })
         this.$router.push(
+          'parameter/' + encodeURIComponent(this.toParamName || '-') +
           '/model/' + encodeURIComponent(this.modelDigest || '-') +
-          '/run/' + encodeURIComponent(dgst || '') +
-          '/parameter/' + encodeURIComponent(this.toParamName || '-')
+          '/run/' + encodeURIComponent(dgst || '-')
         )
       }
-      // /model/:digest/run/:runDigest/table/:parameterName
+      // table/:toTableName/model/:digest/run/:runDigest
       if (this.redirectTo === TABLE_REDIRECT) {
         this.$q.notify({ type: 'info', message: this.$t('Open') +' : '+ this.toTableName })
         this.$router.push(
+          'table/' + encodeURIComponent(this.toTableName || '-') +
           '/model/' + encodeURIComponent(this.modelDigest || '-') +
-          '/run/' + encodeURIComponent(dgst || '') +
-          '/table/' + encodeURIComponent(this.toTableName || '-')
+          '/run/' + encodeURIComponent(dgst || '-')
         )
       }
-      // /model/:digest/run/:runDigest/entity/:parameterName
+      // entity/:toEntityName/model/:digest/run/:runDigest
       if (this.redirectTo === ENTITY_REDIRECT) {
         this.$q.notify({ type: 'info', message: this.$t('Open') +' : '+ this.toEntityName })
         this.$router.push(
+          'entity/' + encodeURIComponent(this.toEntityName || '-') +
           '/model/' + encodeURIComponent(this.modelDigest || '-') +
-          '/run/' + encodeURIComponent(dgst || '') +
-          '/entity/' + encodeURIComponent(this.toEntityName || '-')
+          '/run/' + encodeURIComponent(dgst || '-')
         )
       }
     },
@@ -557,15 +573,37 @@ export default {
       // redirect to workset parameter page
       this.dispatchWorksetNameSelected({ digest: this.modelDigest, worksetName: name })
 
-      // /model/:digest/set/:runDigest/parameter/:parameterName
+      // parameter/:parameterName/model/:digest/set/:runDigest
       if (this.redirectTo === WS_PARAM_REDIRECT) {
         this.$q.notify({ type: 'info', message: this.$t('Open') +' : '+ this.toParamName })
         this.$router.push(
+          'parameter/' + encodeURIComponent(this.toParamName || '-') +
           '/model/' + encodeURIComponent(this.modelDigest || '-') +
-          '/set/' + encodeURIComponent(this.toWsName || '') +
-          '/parameter/' + encodeURIComponent(this.toParamName || '-')
+          '/set/' + encodeURIComponent(this.toWsName || '-')
         )
       }
+    },
+
+    // update workset readonly status
+    onWorksetReadonlyUpdate (dgst, name, isReadonly) {
+      if (dgst !== this.modelDigest || !name) return
+
+      if (isReadonly) {
+        // if there are any edited and unsaved parameters for this workset
+        const n = this.paramViewWorksetUpdatedCount({ digest: this.modelDigest, worksetName: name })
+        if (n > 0) {
+          console.warn('Unable to save input scenario: unsaved parameters count:', name, n)
+          this.$q.notify({
+            type: 'negative',
+            message: this.$t('Unable to save input scenario {setName} because you have {count} unsaved parameter(s)', { setName: name, count: n })
+          })
+          return
+        }
+      }
+      // else: update workset status
+      this.isReadonlyWsStatus = isReadonly
+      this.nameWsStatus = name
+      this.updateWsStatusTickle = !this.updateWsStatusTickle
     }
   },
 

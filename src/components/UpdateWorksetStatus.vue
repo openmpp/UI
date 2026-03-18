@@ -57,7 +57,7 @@ export default {
       try {
         const response = await this.$axios.post(u)
         const rsp = response.data
-        // expected workserRow json, it must be same name as workset requested
+        // expected worksetRow json, it must be same name as workset requested
         if (rsp && rsp.hasOwnProperty('Name') && rsp.hasOwnProperty('IsReadonly') && rsp.hasOwnProperty('UpdateDateTime') &&
           (rsp.Name || '') === (this.worksetName || '_EMPTY_NAME_')) {
           // update current workset status in store
