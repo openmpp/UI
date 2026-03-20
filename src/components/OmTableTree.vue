@@ -14,6 +14,7 @@ Expected array of tree items as:
   key:           'item-key',
   label:         'item name to display',
   descr:         'item description',
+  link:          'link to open as _blank target'
   children:      [array of child items],  // folder children
   parts:         '',                      // any payload
   isGroup:       false,                   // if true then item is a folder even there are no children
@@ -119,6 +120,18 @@ Expected array of tree items as:
             :title="$t('About') + ' ' + prop.node.label"
             />
           <q-btn
+            v-if="!!prop.node.link"
+            @click.stop="onLink(prop.node.link, prop.node.label)"
+            flat
+            round
+            dense
+            color="primary"
+            padding="xs"
+            class="col-auto"
+            icon="open_in_new"
+            :title="$t('Open') + ' ' + prop.node.label"
+            />
+          <q-btn
             v-if="isAddGroup"
             @click.stop="$emit('om-table-tree-group-add', prop.node.label, prop.node.parts)"
             :disable="isAddDisabled"
@@ -200,6 +213,18 @@ Expected array of tree items as:
             :title="$t('About') + ' ' + prop.node.label"
             />
           <q-btn
+            v-if="!!prop.node.link"
+            @click.stop="onLink(prop.node.link, prop.node.label)"
+            flat
+            round
+            dense
+            color="primary"
+            padding="xs"
+            class="col-auto"
+            icon="open_in_new"
+            :title="$t('Open') + ' ' + prop.node.label"
+            />
+          <q-btn
             v-if="isAdd"
             @click.stop="$emit('om-table-tree-leaf-add', prop.node.label, prop.node.parts)"
             :disable="isAddDisabled"
@@ -269,6 +294,8 @@ Expected array of tree items as:
 </style>
 
 <script>
+import { openURL } from 'quasar'
+
 export default {
   name: 'OmTableTree',
 
@@ -354,6 +381,8 @@ export default {
   ],
 
   methods: {
+    onLink (link, name) { openURL(link) },
+
     // update view on tree data change
     doRefresh () {
       this.treeFilter = ''

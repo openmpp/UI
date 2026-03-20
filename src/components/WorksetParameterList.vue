@@ -218,6 +218,7 @@ export default {
         this.$q.notify({ type: 'negative', message: this.$t('Model parameters list is empty or invalid') })
         return { tree: [], leafCount: 0 } // invalid list of parameters
       }
+      const mDgst = Mdf.modelDigest(this.theModel)
 
       // make parameters map: map parameter id to parameter node
       const pUse = {}
@@ -238,6 +239,7 @@ export default {
             key: 'ptl-' + p.Param.ParamId + '-' + this.nextId++,
             label: p.Param.Name,
             descr: Mdf.descrOfDescrNote(p),
+            link: this.isParamLeafClick ? '/?model=' + encodeURIComponent(mDgst) + '&set=' + encodeURIComponent(this.worksetName) + '&parameter=' + encodeURIComponent(p.Param.Name) : '',
             children: [],
             parts: '',
             isGroup: false,

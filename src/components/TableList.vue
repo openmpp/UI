@@ -248,6 +248,7 @@ export default {
         this.$q.notify({ type: 'negative', message: this.$t('Model output tables list is empty or invalid') })
         return { tree: [], leafCount: 0 } // invalid list of output tables
       }
+      const mDgst = Mdf.modelDigest(this.theModel)
 
       // if filter names not empty then display only groups and tables from that name list
       // build groups name list and tables names list to include into the tree
@@ -392,6 +393,7 @@ export default {
               label: t.Table.Name,
               descr: (t.TableDescr || ''),
               children: [],
+              link: this.isTableLeafClick ? '/?model=' + encodeURIComponent(mDgst) + '&run=' + encodeURIComponent(this.runDigest) + '&table=' + encodeURIComponent(t.Table.Name) : '',
               parts: '',
               isGroup: false,
               isAbout: true,
@@ -426,6 +428,7 @@ export default {
             key: 'ttl-' + t.Table.TableId + '-' + this.nextId++,
             label: t.Table.Name,
             descr: (t.TableDescr || ''),
+            link: this.isTableLeafClick ? '/?model=' + encodeURIComponent(mDgst) + '&run=' + encodeURIComponent(this.runDigest) + '&table=' + encodeURIComponent(t.Table.Name) : '',
             children: [],
             parts: '',
             isGroup: false,

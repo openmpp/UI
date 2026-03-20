@@ -318,6 +318,7 @@ export default {
         this.$q.notify({ type: 'negative', message: this.$t('Model entity attributes list is empty or invalid') })
         return { tree: [], leafCount: 0 } // invalid list of entity attributes
       }
+      const mDgst = Mdf.modelDigest(this.theModel)
 
       // if run specified then include only entity.attribute from this model run
       const eRun = {}
@@ -366,6 +367,7 @@ export default {
           label: ent.Entity.Name,
           descr: Mdf.descrOfDescrNote(ent),
           children: [],
+          link: this.isEntityClick ? '/?model=' + encodeURIComponent(mDgst) + '&run=' + encodeURIComponent(this.runDigest) + '&entity=' + encodeURIComponent(ent.Entity.Name) : '',
           parts: {
             isEntity: true,
             entityId: ent.Entity.EntityId,

@@ -247,6 +247,7 @@ export default {
         this.$q.notify({ type: 'negative', message: this.$t('Model parameters list is empty or invalid') })
         return { tree: [], leafCount: 0 } // invalid list of parameters
       }
+      const mDgst = Mdf.modelDigest(this.theModel)
 
       // if filter names not empty then display only groups and parameters from that name list
       // build groups name list and parameter names list to include into the tree
@@ -382,6 +383,7 @@ export default {
                 label: p.Param.Name,
                 descr: Mdf.descrOfDescrNote(p),
                 children: [],
+                link: this.isParamLeafClick ? '/?model=' + encodeURIComponent(mDgst) + '&run=' + encodeURIComponent(this.runDigest) + '&parameter=' + encodeURIComponent(p.Param.Name) : '',
                 parts: '',
                 isGroup: false,
                 isAbout: true,
@@ -424,6 +426,7 @@ export default {
             label: p.Param.Name,
             descr: Mdf.descrOfDescrNote(p),
             children: [],
+            link:  this.isParamLeafClick ? '/?model=' + encodeURIComponent(mDgst) + '&run=' + encodeURIComponent(this.runDigest) + '&parameter=' + encodeURIComponent(p.Param.Name) : '',
             parts: '',
             isGroup: false,
             isAbout: true,
