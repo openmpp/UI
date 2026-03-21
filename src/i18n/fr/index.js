@@ -503,6 +503,7 @@ export default {
    "Seuls les enregistrements de l'historique d'exécution du modèle ont été supprimés. Les résultats réels de l’exécution du modèle ne sont pas affectés.",
   'Open': 'Ouvrir',
   'Open / Close': 'Ouvrir fermer',
+  'Open in new window': 'Ouvrir dans une nouvelle fenêtre',
   'Open model database': 'Base de données de modèles ouverte',
   'Open to edit scenario': 'Ouvrir pour modifier le scénario',
   'OpenM++ website': "Site d'OpenM++",

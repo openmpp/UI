@@ -40,6 +40,18 @@
             </q-item-section>
             <q-item-section>{{ $t('About') + ' ' + tableName }}</q-item-section>
           </q-item>
+          <q-item
+            clickable
+            v-close-popup
+            tag="a"
+            target="_blank"
+            :href="'/?model=' + encodeURIComponent(digest) + '&run=' + encodeURIComponent(runDigest) + '&table=' + encodeURIComponent(tableName)"
+            >
+            <q-item-section avatar>
+              <q-icon color="primary" name="open_in_new" />
+            </q-item-section>
+            <q-item-section>{{ $t('Open in new window') }}</q-item-section>
+          </q-item>
 
           <q-separator />
 
@@ -506,9 +518,19 @@
       @click="doShowTableNote"
       flat
       dense
-      class="col-auto bg-primary text-white rounded-borders"
+      class="col-auto bg-primary text-white rounded-borders q-mr-xs"
       icon="mdi-information"
       :title="$t('About') + ' ' + tableName"
+      />
+    <q-btn
+      tag="a"
+      target="_blank"
+      :href="'/?model=' + encodeURIComponent(digest) + '&run=' + encodeURIComponent(runDigest) + '&table=' + encodeURIComponent(tableName)"
+      flat
+      dense
+      class="col-auto bg-primary text-white rounded-borders"
+      icon="open_in_new"
+      :title="$t('Open in new window')"
       />
     <q-separator vertical inset spaced="sm" color="secondary" />
 

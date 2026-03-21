@@ -40,6 +40,18 @@
             </q-item-section>
             <q-item-section>{{ $t('About') + ' '  + entityName }}</q-item-section>
           </q-item>
+          <q-item
+            clickable
+            v-close-popup
+            tag="a"
+            target="_blank"
+            :href="'/?model=' + encodeURIComponent(digest) + '&run=' + encodeURIComponent(runDigest) + '&entity=' + encodeURIComponent(entityName)"
+            >
+            <q-item-section avatar>
+              <q-icon color="primary" name="open_in_new" />
+            </q-item-section>
+            <q-item-section>{{ $t('Open in new window') }}</q-item-section>
+          </q-item>
 
           <q-separator />
 
@@ -366,6 +378,16 @@
       class="col-auto rounded-borders"
       icon="mdi-information"
       :title="$t('About') + ' ' + entityName"
+      />
+    <q-btn
+      tag="a"
+      target="_blank"
+      :href="'/?model=' + encodeURIComponent(digest) + '&run=' + encodeURIComponent(runDigest) + '&entity=' + encodeURIComponent(entityName)"
+      flat
+      dense
+      class="col-auto bg-primary text-white rounded-borders q-ml-xs"
+      icon="open_in_new"
+      :title="$t('Open in new window')"
       />
     <q-separator vertical inset spaced="sm" color="secondary" />
 
