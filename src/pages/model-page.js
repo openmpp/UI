@@ -181,6 +181,7 @@ export default {
     doneModelLoad (isSuccess, dgst) {
       this.modelName = Mdf.modelName(this.theModel)
       this.loadModelDone = true
+      document.title = this.modelName
 
       // on successs update run list and workset list if empty or from other model
       if (isSuccess && (dgst || '') === this.digest) {

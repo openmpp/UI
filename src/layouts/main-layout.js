@@ -115,6 +115,7 @@ export default {
     }),
     ...mapState(useUiStateStore, [
       'uiLang',
+      'defaultTitle',
       'runDigestSelected',
       'worksetNameSelected',
       'taskNameSelected',
@@ -126,6 +127,7 @@ export default {
     isDiskUse () { this.restartDiskUseRefresh() },
     diskUseMs () { this.restartDiskUseRefresh() },
     modelCount () { this.doRedirectByUrl() },
+    defaultTitle () { if (this.$route.path === '/' && this.defaultTitle) document.title = this.defaultTitle },
 
     // language updated outside of main menu
     uiLang () {
@@ -194,6 +196,7 @@ export default {
     ]),
     ...mapActions(useUiStateStore, [
       'dispatchUiLang',
+      'dispatchDefaultTitle',
       'dispatchSortModelTree',
       'dispatchRunDigestSelected',
       'dispatchWorksetNameSelected'
@@ -221,7 +224,7 @@ export default {
         if (m.LangCode === ulc) {
           this.orgTitle = m?.Label || 'OpenM++'
           this.orgLink = m?.Link || 'https://openmpp.org'
-          return
+          break
         }
         const m2p = Mdf.splitLangCode(m.LangCode)
         const ui2p = Mdf.splitLangCode(ulc)
@@ -231,14 +234,16 @@ export default {
         if (m2p.lower === ui2p.lower) {
           this.orgTitle = m?.Label || 'OpenM++'
           this.orgLink = m?.Link || 'https://openmpp.org'
-          return
+          break
         }
         if (m2p.first === ui2p.first) {
           this.orgTitle = m?.Label || 'OpenM++'
           this.orgLink = m?.Link || 'https://openmpp.org'
-          return
+          break
         }
       }
+
+      this.dispatchDefaultTitle(this.orgTitle)
     },
     // return more menu extra items array for current UI language
     moreMenu () {
@@ -528,6 +533,7 @@ export default {
           '/model/' + encodeURIComponent(this.modelDigest || '-') +
           '/run/' + encodeURIComponent(dgst || '-')
         )
+        this.clearRedirect()
       }
       // table/:toTableName/model/:digest/run/:runDigest
       if (this.redirectTo === TABLE_REDIRECT) {
@@ -537,6 +543,7 @@ export default {
           '/model/' + encodeURIComponent(this.modelDigest || '-') +
           '/run/' + encodeURIComponent(dgst || '-')
         )
+        this.clearRedirect()
       }
       // entity/:toEntityName/model/:digest/run/:runDigest
       if (this.redirectTo === ENTITY_REDIRECT) {
@@ -546,6 +553,7 @@ export default {
           '/model/' + encodeURIComponent(this.modelDigest || '-') +
           '/run/' + encodeURIComponent(dgst || '-')
         )
+        this.clearRedirect()
       }
     },
     // list of model worksets loaded
@@ -571,7 +579,7 @@ export default {
       // redirect to workset parameter page
       this.dispatchWorksetNameSelected({ digest: this.modelDigest, worksetName: name })
 
-      // parameter/:parameterName/model/:digest/set/:runDigest
+      // parameter/:parameterName/model/:digest/set/:worksetName
       if (this.redirectTo === WS_PARAM_REDIRECT) {
         this.$q.notify({ type: 'info', message: this.$t('Open') +' : '+ this.toParamName })
         this.$router.push(
@@ -579,6 +587,7 @@ export default {
           '/model/' + encodeURIComponent(this.modelDigest || '-') +
           '/set/' + encodeURIComponent(this.toWsName || '-')
         )
+        this.clearRedirect()
       }
     },
 

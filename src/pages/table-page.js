@@ -167,7 +167,8 @@ export default {
         value: Pcvt.MIDDLE_SCALE,
         code: 'MIDDLE',
         label: 'Range of (Value - Middle)'
-      }]
+      }],
+      isModelTab: this.$route.path.startsWith('/model/') // if true then model page tab else table top page
     }
   },
   /* eslint-enable no-multi-spaces */
@@ -2610,5 +2611,6 @@ export default {
   mounted () {
     this.doRefresh()
     this.$emit('tab-mounted', 'table', { digest: this.digest, runDigest: this.runDigest, tableName: this.tableName })
+    if (!this.isModelTab) document.title = this.tableName
   }
 }

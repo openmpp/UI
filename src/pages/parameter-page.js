@@ -51,7 +51,6 @@ export default {
   /* eslint-disable no-multi-spaces */
   data () {
     return {
-      isModelTab: this.$route.path.startsWith('/model/'), // if true then model page tab else parameter top page
       loadDone: false,
       loadWait: false,
       saveStarted: false,
@@ -118,7 +117,8 @@ export default {
       uploadFileSelect: false,
       subCountUpload: 1,
       defaultSubUpload: 0,
-      uploadFile: null
+      uploadFile: null,
+      isModelTab: this.$route.path.startsWith('/model/') // if true then model page tab else parameter top page
     }
   },
   /* eslint-enable no-multi-spaces */
@@ -1479,5 +1479,6 @@ export default {
         this.$emit('edit-updated', this.edt.isUpdated, this.routeKey)
       })
     }
+    if (!this.isModelTab) document.title = this.parameterName
   }
 }

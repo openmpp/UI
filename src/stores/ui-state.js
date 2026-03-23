@@ -7,6 +7,7 @@ import { useModelStore } from './model'
 export const useUiStateStore = defineStore('ui-state', {
   state: () => ({
     uiLang: '',
+    defaultTitle: 'OpenM++',
     runDigestSelected: '',
     worksetNameSelected: '',
     taskNameSelected: '',
@@ -126,6 +127,9 @@ export const useUiStateStore = defineStore('ui-state', {
       this.uiLang = (lang || '')
       modelStore.dispatchWordList(Mdf.emptyWordList()) // clear model word list
     },
+
+    // store default document title
+    dispatchDefaultTitle (title) { this.defaultTitle = (typeof title === typeof 'string' && !!title) ? title : 'OpenM++' },
 
     // set fast or full download: use accumulators or not
     dispatchNoAccDownload (noAcc) { this.noAccDownload = !!noAcc },

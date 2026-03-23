@@ -141,7 +141,8 @@ export default {
       }, {
         code: 'PERCENT',
         label: '100 * (Variant - Base) / Base'
-      }]
+      }],
+      isModelTab: this.$route.path.startsWith('/model/') // if true then model page tab else entity top page
     }
   },
   /* eslint-enable no-multi-spaces */
@@ -2135,5 +2136,6 @@ export default {
   mounted () {
     this.doRefresh()
     this.$emit('tab-mounted', 'entity', { digest: this.digest, runDigest: this.runDigest, entityName: this.entityName })
+    if (!this.isModelTab) document.title = this.entityName
   }
 }
