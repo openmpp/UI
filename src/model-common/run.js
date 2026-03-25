@@ -22,7 +22,7 @@ export const isRunText = (rt) => {
   if (!rt.hasOwnProperty('Name') || !rt.hasOwnProperty('SubCount')) return false
   if (!rt.hasOwnProperty('CreateDateTime') || !rt.hasOwnProperty('Status') || !rt.hasOwnProperty('UpdateDateTime')) return false
   if (!rt.hasOwnProperty('RunId') || !rt.hasOwnProperty('RunDigest') || !rt.hasOwnProperty('ValueDigest') || !rt.hasOwnProperty('RunStamp')) return false
-  if (!Array.isArray(rt.Param) || !Array.isArray(rt.Table) || !Array.isArray(rt.Entity) || !Array.isArray(rt.Txt)) return false
+  if (!Array.isArray(rt.Param) || !Array.isArray(rt.Table) || !Array.isArray(rt.Entity) || !Array.isArray(rt.Txt) || !rt.hasOwnProperty('Opts')) return false
   return true
 }
 
@@ -48,6 +48,7 @@ export const emptyRunText = () => {
     RunDigest: '',
     ValueDigest: '',
     RunStamp: '',
+    Opts: {},
     Param: [],
     Table: [],
     Entity: [],

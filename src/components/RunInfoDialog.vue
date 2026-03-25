@@ -49,6 +49,14 @@
             <td class="om-p-head-left">{{ $t('Value Digest') }}</td>
             <td class="om-p-cell-left mono">{{ runText.ValueDigest }}</td>
           </tr>
+          <tr v-if="baseSetName">
+            <td class="om-p-head-left">{{ $t('Input Scenario') }}</td>
+            <td class="om-p-cell-left mono">{{ baseSetName }}</td>
+          </tr>
+          <tr v-if="baseRunName || baseRunDigest">
+            <td class="om-p-head-left">{{ $t('Base Run') }}</td>
+            <td class="om-p-cell-left mono">{{ baseRunName }}<br v-if="baseRunName && baseRunDigest" />{{ baseRunDigest }}</td>
+          </tr>
         </tbody>
       </table>
     </q-card-section>
@@ -157,6 +165,9 @@ export default {
       duration: '',
       isDeleted: false,
       isCompare: false,
+      baseRunDigest: '',
+      baseRunName: '',
+      baseSetName: '',
       compareRuns: [],
       diffParam: [],
       diffTable: [],
@@ -196,6 +207,9 @@ export default {
       this.lastDateTime = Mdf.dtStr(this.runText.UpdateDateTime)
       this.duration = Mdf.toIntervalStr(this.createDateTime, this.lastDateTime)
       this.isDeleted = Mdf.isRunDeletedStatus(this.runText.Status, this.runText.Name)
+      this.baseRunDigest = ''
+      this.baseRunName = ''
+      this.baseSetName = ''
 
       // if it is a base run of run comparison (if there is not empty list of digests to compare)
       // then make run compare info
@@ -208,6 +222,10 @@ export default {
       this.missEntity = []
 
       if (this.runDigest === this.runDigestSelected) {
+        this.baseRunDigest = Mdf.getRunOption(this.runText.Opts, 'OpenM.BaseRunDigest')
+        this.baseRunName = Mdf.getRunOption(this.runText.Opts, 'OpenM.BaseRunName')
+        this.baseSetName = Mdf.getRunOption(this.runText.Opts, 'OpenM.SetName')
+
         const mv = this.modelViewSelected(this.modelDigest)
         this.isCompare = !!mv && Array.isArray(mv?.digestCompareList) && mv.digestCompareList.length > 0
 
