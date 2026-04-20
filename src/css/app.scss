@@ -39,6 +39,9 @@ $om-secondary-text-color: #616161; // grey-8
 .om-light-border {
   border: 1px solid lightgrey;
 }
+.om-primary-border {
+  border: 4px solid $primary;
+}
 
 .om-tree-control-button {
   height: 2.5rem;

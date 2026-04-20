@@ -419,7 +419,7 @@
 
             <template v-if="showIniFilesTree">
               <tr>
-                <td colspan="2" class="om-light-border">
+                <td colspan="2" class="om-primary-border">
                   <q-input
                     ref="iniTreeFilterInput"
                     debounce="500"
@@ -527,7 +527,7 @@
 
             <template v-if="showCsvFilesTree">
               <tr>
-                <td colspan="2" class="om-light-border">
+                <td colspan="2" class="om-primary-border">
                   <q-input
                     ref="csvTreeFilterInput"
                     debounce="500"
