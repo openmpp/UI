@@ -152,7 +152,7 @@
           <span class="col-auto">
             <q-btn
               @click="onUploadViews"
-              :disable="!isModel || !isUploadFile"
+              :disable="!isModel || !isUploadFile || isReadonlyServer"
               flat
               dense
               class="bg-primary text-white rounded-borders"
@@ -163,7 +163,7 @@
           <span class="col-grow q-pl-sm">
             <q-file
               v-model="uploadFile"
-              :disable="!isModel"
+              :disable="!isModel || isReadonlyServer"
               accept=".view.json"
               outlined
               dense
@@ -188,6 +188,7 @@
         <q-item v-for="pName of paramNames" :key="pName">
           <q-item-section avatar>
             <q-btn
+             :disable="isReadonlyServer"
               @click="onRemoveParamView(pName)"
               flat
               dense
@@ -215,6 +216,7 @@
         <q-item v-for="tName of tableNames" :key="tName">
           <q-item-section avatar>
             <q-btn
+              :disable="isReadonlyServer"
               @click="onRemoveTableView(tName)"
               flat
               dense
@@ -243,6 +245,7 @@
           <q-item v-for="eName of entityNames" :key="eName">
             <q-item-section avatar>
               <q-btn
+                :disable="isReadonlyServer"
                 @click="onRemoveMicrodataView(eName)"
                 flat
                 dense
@@ -301,6 +304,7 @@ export default {
     isUploadFile () {
       return this.uploadFile instanceof File && (this.uploadFile?.name || '') !== '' && this.uploadFile?.type === 'application/json'
     },
+    isReadonlyServer () { return this.serverConfig?.IsReadonly ?? true },
 
     ...mapState(useModelStore, [
       'theModel',

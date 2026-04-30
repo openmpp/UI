@@ -11,7 +11,7 @@
           <q-btn
            v-if="!isDiskOver"
             @click="onModelRunClick"
-            :disable="isInitRun || !runOpts.runName || isNoTables || isDiskOver"
+            :disable="isInitRun || !runOpts.runName || isNoTables || isDiskOver || isReadonlyServer"
             color="primary"
             class="rounded-borders q-pr-xs"
             >
