@@ -117,11 +117,11 @@
       </div>
 
       <div v-if="runDigest && !isRunHasTable" class="q-pt-md">{{ $t('This table is excluded from model run results') }}</div>
-      <div v-if="tableText.ExprDescr" class="q-pt-md">{{ tableText.ExprDescr }}</div>
 
     </q-card-section>
 
     <q-card-section v-if="exprNotes" class="text-body1 q-pb-none">
+      <div v-if="tableText.ExprDescr" class="q-pt-md">{{ tableText.ExprDescr }}</div>
       <div v-html="exprNotes" />
     </q-card-section>
     <q-card-section v-if="notes" class="text-body1 q-pb-none">
