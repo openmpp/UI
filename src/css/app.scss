@@ -30,7 +30,7 @@ $om-secondary-text-color: #616161; // grey-8
   @extend .om-text-body2;
 }
 .om-text-descr-selected {
-  color: primary;
+  color: $primary;
   @extend .om-text-body2;
 }
 .om-text-medium {

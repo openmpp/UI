@@ -1,45 +1,6 @@
 <template>
 <q-page class="text-body1 q-pt-xs">
 
-  <q-card
-    v-if="runDigestSelected || worksetNameSelected"
-    class="row q-mb-sm q-mx-sm q-pl-sm"
-    >
-      <transition
-        enter-active-class="animated fadeIn"
-        leave-active-class="animated fadeOut"
-        mode="out-in"
-        >
-        <span :key="runDigestSelected">
-        <run-bar
-          v-if="runDigestSelected"
-          :model-digest="digest"
-          :run-digest="runDigestSelected"
-          :refresh-run-tickle="refreshTickle"
-          @run-info-click="doShowRunNote"
-          >
-        </run-bar>
-        </span>
-      </transition>
-    <q-separator v-if="runDigestSelected && worksetNameSelected" vertical inset spaced="lg" color="secondary" />
-      <transition
-        enter-active-class="animated fadeIn"
-        leave-active-class="animated fadeOut"
-        mode="out-in"
-        >
-        <span :key="worksetNameSelected">
-        <workset-bar
-          v-if="worksetNameSelected"
-          :model-digest="digest"
-          :workset-name="worksetNameSelected"
-          :refresh-workset-tickle="refreshTickle"
-          @set-info-click="doShowWorksetNote"
-          >
-        </workset-bar>
-        </span>
-      </transition>
-  </q-card>
-
   <div class="row no-wrap full-width q-pl-sm">
 
     <q-tabs

@@ -207,6 +207,25 @@
         </q-item-section>
       </q-item>
 
+      <template v-if="isNotEmptyRunCurrent">
+      <q-item
+          @click="doShowRunNote(runDigestSelected)"
+          clickable
+          >
+          <q-item-section avatar>
+            <q-icon
+              :color="isRunDeleted(runCurrent.Status, runCurrent.Name) ? 'negative' : ((isSuccess(runCurrent.Status) || isInProgress(runCurrent.Status)) ? 'primary' : 'warning')"
+              :name="isSuccess(runCurrent.Status) ? 'mdi-information-outline' : (isInProgress(runCurrent.Status) ? 'mdi-run' : 'mdi-alert-circle-outline')"
+              />
+          </q-item-section>
+          <q-item-section>
+            <q-item-label class="label-break om-text-descr-selected">{{ runCurrent.Name }}</q-item-label>
+            <q-item-label caption class="label-break">{{ descrRunCurrent }}</q-item-label>
+          </q-item-section>
+        </q-item>
+        <q-separator />
+      </template>
+
       <q-item
         clickable
         :disable="!isModel || !worksetTextCount"
@@ -223,6 +242,26 @@
           <q-badge v-if="isModel" color="secondary" :label="worksetTextCount" />
         </q-item-section>
       </q-item>
+
+      <template v-if="isNotEmptyWorksetCurrent">
+        <q-item
+          @click="doShowWorksetNote(worksetNameSelected)"
+          clickable
+          >
+          <q-item-section avatar>
+            <q-icon
+              color="primary"
+              name="mdi-information-outline"
+              />
+          </q-item-section>
+          <q-item-section>
+            <q-item-label class="label-break om-text-descr-selected">{{ worksetNameSelected }}</q-item-label>
+            <q-item-label caption class="label-break">{{ descrWorksetCurrent }}</q-item-label>
+          </q-item-section>
+        </q-item>
+        <q-separator />
+      </template>
+
 
       <q-item v-if="!serverConfig.IsReadonly"
         clickable
@@ -266,7 +305,7 @@
         </q-item-section>
       </q-item>
 
-      <q-item
+      <q-item v-if="serverConfig.IsJobControl"
         clickable
         :disable="!serverConfig.IsJobControl"
         to="/service-state"
@@ -331,6 +370,8 @@
   </q-page-container>
 
   <model-info-dialog :show-tickle="modelInfoTickle" :digest="modelDigest"></model-info-dialog>
+  <run-info-dialog :show-tickle="runInfoTickle" :model-digest="modelDigest" :run-digest="runInfoDigest"></run-info-dialog>
+  <workset-info-dialog :show-tickle="worksetInfoTickle" :model-digest="modelDigest" :workset-name="worksetInfoName"></workset-info-dialog>
 
   <template v-if="isRedirect">
     <refresh-model
@@ -415,5 +456,8 @@
     text-decoration: none;
     color: white;
     // display: inline-block;
+  }
+  .label-break {
+    overflow-wrap: break-word;
   }
 </style>

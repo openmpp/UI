@@ -243,8 +243,8 @@ export const useUiStateStore = defineStore('ui-state', {
 
     // delete parameter views, table views and model tab list by model digest
     dispatchViewDeleteByModel (modelDigest) {
-      this.paramViewDeleteByModel(modelDigest)
-      this.tableViewDeleteByModel(modelDigest)
+      this.dispatchParamViewDeleteByModel(modelDigest)
+      this.dispatchTableViewDeleteByModel(modelDigest)
 
       // clear model view
       const mDgst = (typeof modelDigest === typeof 'string') ? modelDigest : ''
