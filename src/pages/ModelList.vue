@@ -107,6 +107,18 @@
             icon="mdi-download-circle-outline"
             :title="$t('Download') + ' ' + prop.node.label"
             />
+          <q-btn
+            v-if="!serverConfig.IsReadonly"
+            @click.stop="onDeleteModel(prop.node.digest, prop.node.label, prop.node.ver)"
+            flat
+            round
+            dense
+            padding="xs"
+            color="primary"
+            class="col-auto"
+            icon="mdi-delete-forever"
+            :title="$t('Delete') + ' ' + prop.node.label + (prop.node.ver ? ('-' + prop.node.ver) : '')"
+            />
           <router-link
             :to="'/model/' + prop.node.digest"
             :title="prop.node.label"
@@ -135,6 +147,18 @@
     :dialog-title="$t('Download model data' + '?')"
     :body-text="$t('Download')"
     :icon-name="'mdi-download-circle'"
+    >
+  </confirm-dialog>
+
+  <confirm-dialog
+    @confirm-yes="onYesDeleteModel"
+    :show-tickle="showDeleteModelDialogTickle"
+    :item-id="deleteDigest"
+    :item-name="nameVerModel"
+    :dialog-title="$t('Delete the model' + '?')"
+    :body-text="$t('Delete')"
+    :body-note="$t('All model data will be deleted permanently')"
+    :icon-name="'mdi-delete-forever'"
     >
   </confirm-dialog>
 
@@ -180,6 +204,9 @@ export default {
       showDownloadConfirmTickle: false,
       downloadDigest: '',
       downloadLabel: '',
+      showDeleteModelDialogTickle: false,
+      deleteDigest: '',
+      nameVerModel: '',
       loadDone: false,
       loadWait: false
     }
@@ -216,7 +243,7 @@ export default {
     isDescModelTree () { this.sortTree(this.treeData) }
   },
 
-  emits: ['download-select'],
+  emits: ['download-select', 'disk-use-refresh'],
 
   methods: {
     ...mapActions(useModelStore, [
@@ -324,6 +351,23 @@ export default {
       this.startModelDownload(digest) // start model download and show download page on success
     },
 
+    // show yes/no dialog to confirm model delete
+    onDeleteModel (digest, label, ver) {
+      if (!digest) {
+        console.warn('Invalid (empty) model digest:', digest)
+        this.$q.notify({ type: 'negative', message: this.$t('Invalid (empty) model digest') })
+        return
+      }
+      this.deleteDigest = digest
+      this.nameVerModel = label + (ver ? ('-' + ver) : '')
+      this.showDeleteModelDialogTickle = !this.showDeleteModelDialogTickle
+    },
+    // user answer Yes to delete all model files
+    onYesDeleteModel (nameVer, digest, kind) {
+      this.showDeleteModelDialogTickle = !this.showDeleteModelDialogTickle
+      this.doDeleteModel(digest, nameVer)
+    },
+
     // return tree of models
     makeTreeData (mLst, ekArr) {
       this.isAnyModelGroup = false
@@ -384,6 +428,7 @@ export default {
             digest: md.Model.Digest,
             label: md.Model.Name,
             descr: Mdf.descrOfDescrNote(md),
+            ver: '',
             dir: p,
             children: [],
             disabled: false
@@ -401,6 +446,7 @@ export default {
             digest: md.Model.Digest,
             label: md.Model.Name,
             descr: Mdf.descrOfDescrNote(md),
+            ver: md.Model.Version || '',
             dir: '',
             children: [],
             disabled: false
@@ -491,7 +537,6 @@ export default {
         this.isTreeExpanded = false // toogle to default-expand-all
         this.doToogleExpandTree()
       })
-
     },
 
     // start model download
@@ -525,6 +570,45 @@ export default {
 
       this.$emit('download-select', dgst) // download started: show download list page
       this.$q.notify({ type: 'info', message: this.$t('Model download started') })
+    },
+
+    // delete all model files
+    async doDeleteModel (digest, nameVer) {
+      if (!digest) {
+        console.warn('Invalid (empty) model digest:', digest, ': nameVer:', nameVer)
+        this.$q.notify({ type: 'negative', message: this.$t('Invalid (empty) model digest') })
+        return
+      }
+      this.$q.notify({ type: 'info', message: this.$t('Deleting') + ' ' + nameVer})
+
+      this.loadWait = true
+      let isOk = false
+
+      let u = this.omsUrl + '/api/admin/model/' + encodeURIComponent(digest) + '/delete'
+      try {
+        await this.$axios.post(u) // ignore response on success
+        isOk = true
+      } catch (e) {
+        let msg = ''
+        try {
+          if (e.response) msg = e.response.data || ''
+        } finally {}
+        console.warn('Error at model delete', msg)
+      }
+      if (!isOk) {
+        this.loadWait = false
+        this.$q.notify({ type: 'negative', message: this.$t('Error at model delete: ') + nameVer + ' ' + digest })
+        return
+      }
+      this.$q.notify({ type: 'info', message: this.$t('Deleted' + ' ' + nameVer) })
+
+      // refresh model tree
+      this.$nextTick(() => {
+        this.doRefresh()
+      })
+
+      // refresh disk usage from the server
+      setTimeout(() => this.$emit('disk-use-refresh'), 1051)
     }
   },
 
