@@ -193,16 +193,6 @@ export const useModelStore = defineStore('model', {
         for (const m of ml) {
           // check if current model exist in the new model list
           if (!isKeep) isKeep = storeDigest === Mdf.modelDigest(m)
-
-          // parse model extra properties
-          let me = {}
-          try {
-            const ms = m?.Extra || ''
-            if (ms && typeof ms === typeof 'string') me = JSON.parse(ms)
-          } catch {
-            me = {}
-          }
-          m.Extra = me
         }
         // if current model does not exist in model list then clear current model
         if (!isKeep) {

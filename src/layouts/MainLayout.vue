@@ -319,6 +319,34 @@
         </q-item-section>
       </q-item>
 
+      <q-item v-if="!!serverConfig.IsAdminAll"
+        clickable
+        :disable="!serverConfig.IsJobControl"
+        to="/admin-state"
+        >
+        <q-item-section avatar>
+          <q-icon name="mdi-server-security" />
+        </q-item-section>
+        <q-item-section>
+          <q-item-label>{{ $t('Admin Status') }}</q-item-label>
+          <q-item-label caption>{{ $t('Admin status and model(s) run') }}</q-item-label>
+        </q-item-section>
+      </q-item>
+
+      <q-item
+        clickable
+        :disable="!serverConfig?.ModelLib?.IsCopy"
+        to="/model-lib"
+        >
+        <q-item-section avatar>
+          <q-icon name="mdi-folder-network-outline" />
+        </q-item-section>
+        <q-item-section>
+          <q-item-label>{{ $t('Models Library') }}</q-item-label>
+          <q-item-label caption>{{ $t('Shared Models Library') }}</q-item-label>
+        </q-item-section>
+      </q-item>
+
       <q-item
         clickable
         :disable="!isDiskUse"
@@ -336,20 +364,6 @@
         </q-item-section>
         <q-item-section avatar>
           <q-badge v-if="!!diskUseState?.DiskUse?.TotalSize" color="secondary" :label="fileSizeStr(diskUseState?.DiskUse?.TotalSize)" />
-        </q-item-section>
-      </q-item>
-
-      <q-item v-if="!!serverConfig.IsAdminAll"
-        clickable
-        :disable="!serverConfig.IsJobControl"
-        to="/admin-state"
-        >
-        <q-item-section avatar>
-          <q-icon name="mdi-server-security" />
-        </q-item-section>
-        <q-item-section>
-          <q-item-label>{{ $t('Admin Status') }}</q-item-label>
-          <q-item-label caption>{{ $t('Admin status and model(s) run') }}</q-item-label>
         </q-item-section>
       </q-item>
 

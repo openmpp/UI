@@ -513,7 +513,6 @@ export default {
 
     // refersh model list
     async doRefresh () {
-      this.loadDone = false
       this.loadWait = true
 
       const u = this.omsUrl + '/api/model-list/text' + (this.uiLang !== '' ? '/lang/' + encodeURIComponent(this.uiLang) : '')
@@ -521,7 +520,6 @@ export default {
         const response = await this.$axios.get(u)
         this.dispatchModelList(response.data) // update model list in store
         this.treeData = this.makeTreeData(response.data, []) // update model list tree
-        this.loadDone = true
       } catch (e) {
         let em = ''
         try {
@@ -621,7 +619,6 @@ export default {
   mounted () {
     // if model list already loaded then exit
     if (this.modelCount > 0) {
-      this.loadDone = true
       const expKeys = this.treeExpandedKeys('all-models', 'model-list')
       this.treeData = this.makeTreeData(this.modelList, expKeys) // update model list tree
       return
