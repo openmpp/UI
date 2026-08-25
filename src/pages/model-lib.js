@@ -7,6 +7,10 @@ import ModelInfoBaseDialog from 'components/ModelInfoBaseDialog.vue'
 import ConfirmDialog from 'components/ConfirmDialog.vue'
 import { openURL } from 'quasar'
 
+const COPY_LOG_REFRESH_TIME = 1021  // msec, copy log refresh interval
+const MAX_EMPTY_COPY_LOG_COUNT = 11 // pause log refresh if empty response exceed this count (11 = 11 seconds)
+const MAX_SEND_COPY_LOG_COUNT = 4   // do not send more than max requests without response
+
 export default {
   name: 'ModelLib',
   components: { ModelInfoBaseDialog, ConfirmDialog },
@@ -36,6 +40,12 @@ export default {
       copyDigest: '',
       copyNameVer: '',
       copyLogPath: '',
+      isRefreshCopyLog: false,
+      refreshCount: 0,
+      refreshSendCount: 0,
+      lastCopyLogTs: 0,
+      refreshEmptyCount: 0,
+      refreshCopyLogInt: '',
       copyLogStat: this.emptyCopyLogStat(),
       logList: [],
       isShowCopyLogs: false,
@@ -68,7 +78,7 @@ export default {
   },
 
   watch: {
-    refreshTickle () { this.doRefresh() },
+    refreshTickle () { this.initView() },
     treeFilter () { this.updateTreeWalk() },
     isDescModelTree () { this.sortTree(this.treeData) }
   },
@@ -83,13 +93,15 @@ export default {
       'dispatchSortModelTree'
     ]),
     fromUnderscoreTs (ts) { return Mdf.isUnderscoreTimeStamp(ts) ? Mdf.fromUnderscoreTimeStamp(ts) : ts },
+    fromModTime (modT) { return Mdf.modTsToTimeStamp(modT)},
 
     // refersh list of library models and list of copy model logs
-    async doRefresh () {
-      this.copyLogPath = ''
+    async initView () {
       this.logList = []
       this.logListRefreshTs = ''
       this.isShowCopyLogs = false
+      await this.stopRefreshCopyLog()
+      this.copyLogPath = ''
       this.copyLogStat = this.emptyCopyLogStat()
 
       // locale for number formatting
@@ -105,8 +117,9 @@ export default {
       }
       this.locale = (typeof lc === typeof 'string') ? lc : ''
 
-      // refersh list of library models and list of copy model logs
+      // refersh list of library models, models list, disk usage and list of copy model logs
       this.refreshLibModles()
+      this.refreshState()
       this.refreshLogList()
     },
 
@@ -427,12 +440,13 @@ export default {
       }
       this.$q.notify({ type: 'info', message: this.$t('Copy') + ' ' + nameVer})
 
+      this.copyLogPath = ''
+      this.stopRefreshCopyLog()
+
       this.loadWait = true
       let isOk = false
-      this.copyLogPath = ''
       let p = ''
       let msg = ''
-
       // start model copy
       const u = this.omsUrl + '/api/admin/copy-model' + (this.uiLang !== '' ? '/lang/' + encodeURIComponent(this.uiLang) : '')
       try {
@@ -452,34 +466,47 @@ export default {
         } finally {}
         console.warn('Unable to copy model', msg)
       }
-
       if (!isOk) {
         this.$q.notify({ type: 'negative', message: this.$t('Unable to copy model') + (msg ? ('. ' + msg) : '') })
         // return
       }
-      if (p) {
-        this.$nextTick(() => {
-          this.refreshLogList()
-          this.refreshCopyLog(p)
-        })
-      }
-      // refresh model tree and refresh disk usage from the server
+
+      // start copy model log refersh and refersh models list
       setTimeout(() => {
-          this.loadWait = false
+          this.refreshLogList()
+          if (p) this.startRefreshCopyLog(p)
           this.refreshModelList()
-          this.$emit('disk-use-refresh')
+          this.loadWait = false
+
+          // show copy log to the user
+          this.isShowCopyLogs = true
+          const el = this.$refs.logListBox
+          if (el) {
+            el.scrollIntoView({ behavior: 'smooth' })
+          }
         },
-        isOk ? 2017 : 1051
+        COPY_LOG_REFRESH_TIME
       )
+    },
+
+    // refresh models tree and disk usage from the server
+    async refreshState () {
+      this.refreshModelList()
+      this.$emit('disk-use-refresh')
     },
 
     // refresh list of model copy log files
     async refreshLogList() {
+      let lst = []
+      this.logList = []
+      let isOk = false
+
       const u = this.omsUrl + '/api/admin/copy-model/log-all'
       this.loadLogListWait = true
       try {
         const response = await this.$axios.get(u)
-        this.logList = Array.isArray(response.data) ? response.data : []
+        isOk = Array.isArray(response.data)
+        lst = isOk ? response.data : []
       } catch (e) {
         let em = ''
         try {
@@ -490,6 +517,18 @@ export default {
       }
       this.loadLogListWait = false
 
+      if (isOk) { // sort log list by time descending and name-version ascending
+        lst.sort((left, right) => {
+          const eL = this.getCopyLogHdr(left)
+          const eR = this.getCopyLogHdr(right)
+          if (eL.LogStamp < eR.LogStamp) return 1
+          if (eL.LogStamp > eR.LogStamp) return -1
+          if (eL.BaseName < eR.BaseName) return -1
+          if (eL.BaseName > eR.BaseName) return 1
+          return 0
+        })
+        this.logList = lst
+      }
       this.logListRefreshTs = Mdf.dtToTimeStamp(new Date())
     },
     // get copy log header from log list item
@@ -503,28 +542,81 @@ export default {
     },
 
     // show or hide model copy log
-    async onToggleCopyLog (p) {
+    async doToggleCopyLog (p) {
       if (!p) return
-      if (p === this.copyLogPath) {
-        this.copyLogPath = '' // hide selected model copy log
+
+      const isHide = p === this.copyLogPath
+      this.copyLogPath = '' // hide selected model copy log
+
+      this.stopRefreshCopyLog()
+      if (!isHide) this.startRefreshCopyLog(p) // refresh and show selected model copy log
+    },
+
+    // start or stop auto refresh of copy log file content
+    onToogleRefreshCopyLog (p) {
+      const isRefresh = this.isRefreshCopyLog
+
+      this.stopRefreshCopyLog()
+      if (!isRefresh) this.startRefreshCopyLog(p)
+    },
+    startRefreshCopyLog (p) {
+      this.refreshCount = 0
+      this.refreshSendCount = 0
+      this.lastCopyLogTs = 0
+      this.refreshEmptyCount = 0
+      this.copyLogStat = this.emptyCopyLogStat()
+      this.isRefreshCopyLog = true
+      this.refreshCopyLogInt = setInterval(this.nextRefreshCopyLog, COPY_LOG_REFRESH_TIME, p)
+    },
+    stopRefreshCopyLog () {
+      this.isRefreshCopyLog = false
+      this.refreshCount = 0
+      this.refreshSendCount = 0
+      this.lastCopyLogTs = 0
+      this.refreshEmptyCount = 0
+      clearInterval(this.refreshCopyLogInt)
+    },
+
+    // send next request to get model copy log
+    nextRefreshCopyLog (p) {
+      if (!p || !this.isRefreshCopyLog) return
+
+      if (this.copyLogStat.IsError) {
+        this.stopRefreshCopyLog()
+        this.refreshState()
         return
       }
-      // else show selected model copy log
-      this.copyLogPath = ''
-      await this.refreshCopyLog(p)
+      this.refreshCount++
+      this.refreshSendCount++
+
+      // stop log refresh if there are no updates: model copy likely completed
+      if (this.lastCopyLogTs === this.copyLogStat.ModTs) {
+        this.refreshEmptyCount++
+      } else {
+        this.refreshEmptyCount = 0
+      }
+      if (this.refreshEmptyCount > MAX_EMPTY_COPY_LOG_COUNT) {
+        this.stopRefreshCopyLog()
+        this.refreshState()
+        return
+      }
+
+      // limit number of requests without responces
+      if (this.refreshSendCount <= MAX_SEND_COPY_LOG_COUNT) this.refreshCopyLog(p)
     },
 
     // refresh content and status of current model copy log
     async refreshCopyLog(p) {
       if (!p) return
 
+      // this.loadLogWait = true
       const u = this.omsUrl + '/api/admin/copy-model/log/' + encodeURIComponent(p)
-
-      this.loadLogWait = true
       try {
         const response = await this.$axios.get(u)
-        this.setCopyLogStat(response.data)
-        this.copyLogPath = p
+        this.copyLogStat = this.getCopyLogStat(response.data)
+        this.copyLogPath = this.copyLogStat.LogFileName
+        this.lastCopyLogTs = this.copyLogStat.ModTs
+        this.refreshSendCount = 0
       } catch (e) {
         let em = ''
         try {
@@ -533,19 +625,20 @@ export default {
         console.warn('Unable to refresh model copy log content', em)
         this.$q.notify({ type: 'negative', message: this.$t('Unable to refresh model copy log content') })
       }
-
       this.loadLogWait = false
     },
 
     // set current copy log state from response data
-    setCopyLogStat (fi) {
-      this.copyLogStat.BaseName = fi?.BaseName || ''
-      this.copyLogStat.LogStamp = fi?.LogStamp || ''
-      this.copyLogStat.LogFileName = fi?.LogFileName || ''
-      this.copyLogStat.IsError = fi?.IsError || false
-      this.copyLogStat.Size = fi?.Size || 0
-      this.copyLogStat.BaseModTsName = fi?.ModTs || 0
-      this.copyLogStat.Lines = fi?.Lines || []
+    getCopyLogStat (fi) {
+      return {
+        BaseName: fi?.BaseName || '',
+        LogStamp: fi?.LogStamp || '',
+        LogFileName: fi?.LogFileName || '',
+        IsError: fi?.IsError || false,
+        Size: fi?.Size || 0,
+        ModTs: fi?.ModTs || 0,
+        Lines: fi?.Lines || []
+      }
     },
     // return empty copy log file stat
     emptyCopyLogStat () {
@@ -560,7 +653,7 @@ export default {
       }
     },
 
-    // refresh model list after copy
+    // refresh models list after copy
     async refreshModelList() {
       this.loadModelListWait = true
 
@@ -581,6 +674,6 @@ export default {
   },
 
   mounted () {
-    this.doRefresh() // get list of library models and list of copy model logs
+    this.initView()
   }
 }

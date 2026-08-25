@@ -103,7 +103,7 @@
             padding="xs"
             :color="!serverConfig.ModelLib.IsCopy || serverConfig.IsReadonly || !prop.node?.pubLst ? 'secondary' : 'primary'"
             class="col-auto"
-            icon="copy_all"
+            icon="mdi-database-plus"
             :title="$t('Copy') + ' ' + prop.node.label + (prop.node.ver ? ('-' + prop.node.ver) : '')"
             />
           <div class="col om-tree-leaf-link q-ml-xs">
@@ -119,7 +119,10 @@
     </q-tree>
   </div>
 
-  <div class="q-px-sm q-pt-lg q-pb-sm">
+  <div
+    ref="logListBox"
+    class="q-px-sm q-pt-lg q-pb-sm"
+    >
     <q-expansion-item
       v-model="isShowCopyLogs"
       switch-toggle-side
@@ -170,8 +173,8 @@
                 <tr>
                   <td class="om-p-cell-center">
                     <button
-                      @click="onToggleCopyLog(lg.LogFileName)"
-                      :disable="loadLogWait"
+                      @click="doToggleCopyLog(lg.LogFileName)"
+                      :disabled="loadLogWait"
                       :title="lg.LogFileName === copyLogPath ? $t('Hide model copy log') : $t('Show model copy log')"
                       >
                       <q-icon
@@ -190,12 +193,26 @@
                 </tr>
 
                 <tr v-if="lg.LogFileName === copyLogPath">
-                  <td colspan="5" class="om-p-cell-left mono">
-                    <span v-if="lg.LogFileName" class="mono"><i>{{ lg.LogFileName }}:</i></span>
-                    <div v-if="copyLogStat.Lines.length <= 0">
+                  <td colspan="5" class="om-p-cell-left">
+                    <div class="row no-wrap items-center full-width log-hdr">
+                      <button
+                        @click="onToogleRefreshCopyLog(lg.LogFileName)"
+                        :disabled="copyLogStat.IsError"
+                        :title="isRefreshCopyLog ? $t('Pause auto refresh') : $t('Auto refresh model copy log')"
+                        >
+                        <q-icon
+                          :name="isRefreshCopyLog ? (((refreshCount % 2) === 1) ? 'mdi-autorenew' : 'mdi-sync') : 'mdi-play-circle-outline'"
+                          size="sm"
+                          color="primary" />
+                      </button>
+                      <span class="col-auto mono q-pl-md"><i>{{ copyLogStat.LogFileName ? copyLogStat.LogFileName : lg.LogFileName }}<span v-if="copyLogStat.ModTs" class="om-text-descr mono q-pl-sm">[{{ (!copyLogStat.IsError ? $t('updated at:') : $t('failed at:')) + ' ' + fromModTime(copyLogStat.ModTs) }}]</span></i></span>
+                    </div>
+                    <div v-if="copyLogStat.Lines.length <= 0"
+                      class="q-pl-md">
                       <span class="mono">{{ $t('Log file not found or empty') }}</span>
                     </div>
-                    <div v-else>
+                    <div v-else
+                      class="q-pl-md">
                       <pre>{{copyLogStat.Lines.join('\n')}}</pre>
                     </div>
                   </td>
@@ -226,7 +243,7 @@
     :dialog-title="!isModelExist ? $t('Copy model') : $t('Overwrite existing model')"
     :body-text="!isModelExist ? $t('Copy') : $t('Model already exist')"
     :body-note="isModelExist ? $t('Do you want to overwrite existing model?') : ''"
-    :icon-name="'copy_all'"
+    :icon-name="'mdi-database-plus'"
     >
   </confirm-dialog>
 
@@ -240,4 +257,7 @@
 <script src="./model-lib.js"></script>
 
 <style lang="scss" scope="local">
+  .log-hdr {
+    padding-left: 1rem;
+  }
 </style>
