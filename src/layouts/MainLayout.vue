@@ -456,6 +456,12 @@
     </upload-user-views>
   </template>
 
+  <refresh-run-status-all v-if="modelDigest !== ''"
+    :model-digest="modelDigest"
+    :refresh-tickle="refreshTickle"
+    >
+  </refresh-run-status-all>
+
   <q-inner-loading :showing="loadConfigWait || loadModelWait || loadRunListWait || loadRunWait || loadWsListWait || loadWsWait || loadUserViewsWait || uploadUserViewsWait">
     <q-spinner-gears size="xl" color="primary" />
   </q-inner-loading>

@@ -10,6 +10,7 @@ import RefreshRun from 'components/RefreshRun.vue'
 import RefreshWorksetList from 'components/RefreshWorksetList.vue'
 import RefreshWorkset from 'components/RefreshWorkset.vue'
 import RefreshUserViews from 'components/RefreshUserViews.vue'
+import RefreshRunStatusAll from 'components/RefreshRunStatusAll.vue'
 import UploadUserViews from 'components/UploadUserViews.vue'
 import UpdateWorksetStatus from 'components/UpdateWorksetStatus.vue'
 import ModelInfoDialog from 'components/ModelInfoDialog.vue'
@@ -22,7 +23,7 @@ const NO_REDIRECT = 0
 const WS_PARAM_REDIRECT = 1 // redirect by url to workset parameter
 const RUN_PARAM_REDIRECT = 2 // redirect by url to run parameter
 const TABLE_REDIRECT = 3 // redirect by url to output table
-const ENTITY_REDIRECT = 4 // redirect by url to run parameter
+const ENTITY_REDIRECT = 4 // redirect by url to entity microdata
 
 export default {
   name: 'MainLayout',
@@ -33,6 +34,7 @@ export default {
     RefreshWorksetList,
     RefreshWorkset,
     RefreshUserViews,
+    RefreshRunStatusAll,
     UploadUserViews,
     UpdateWorksetStatus,
     ModelInfoDialog,
