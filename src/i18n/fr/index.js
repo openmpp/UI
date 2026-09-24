@@ -272,6 +272,7 @@ export default {
   'Files deleted.': 'Fichiers supprimés.',
   'Filter': 'Filtre',
   'Filter by values': 'Filtrer par valeurs',
+  'Filtered out:': 'Exclu par le filtre :',
   'Filters': 'Filtres',
   'Find entity or attribute...': 'Rechercher une entité ou un attribut...',
   'Find files...': 'Rechercher des dossiers...',

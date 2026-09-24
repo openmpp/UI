@@ -462,8 +462,18 @@
           >
         </q-select>
       </template>
-      <q-separator vertical inset spaced="sm" color="secondary" />
     </template>
+    <q-icon
+      v-if="filterCellCount > 0"
+      name="mdi-filter-remove-outline"
+      size="md"
+      class="page-start-item rounded-borders om-text-secondary q-ml-xs"
+      :title="$t('Filtered out:') + ' ' + filterCellCount.toLocaleString()"
+      >
+      <q-badge floating>{{ filterCellCount.toLocaleString() }}</q-badge>
+    </q-icon>
+
+    <q-separator v-if="isPages || filterCellCount > 0" vertical inset spaced="sm" color="secondary" />
 
     <q-btn
       @click="doMicroPage()"
@@ -1048,6 +1058,7 @@
         :refreshViewTickle="ctrl.isPvTickle"
         :refreshDimsTickle="ctrl.isPvDimsTickle"
         @pv-key-pos="onPvKeyPos"
+        @pv-size="onPvSize"
         >
       </pv-table>
 

@@ -20,7 +20,7 @@ import MarkdownEditor from 'components/MarkdownEditor.vue'
 import { openURL } from 'quasar'
 
 /* eslint-disable no-multi-spaces */
-const SMALL_PAGE_SIZE = 1000                    // small page size: do not show page controls
+const SMALL_PAGE_SIZE = 8 // 1000                    // small page size: do not show page controls
 const LAST_PAGE_OFFSET = 2 * 1024 * 1024 * 1024 // large page offset to get the last page
 /* eslint-enable no-multi-spaces */
 
@@ -94,6 +94,7 @@ export default {
       edt: Pcvt.emptyEdit(),  // editor options and state shared with child
       isDragging: false,      // if true then user is dragging dimension select control
       selectDimName: '',      // selected dimension name
+      filterCellCount: 0,     // number of cells filtered out by dimension items selection
       isPages: false,
       pageStart: 0,
       pageSize: 0,
@@ -494,6 +495,9 @@ export default {
 
     // pivot table view updated: item keys layout updated
     onPvKeyPos (keyPos) { this.pvKeyPos = keyPos },
+
+    // new pivot table size
+    onPvSize (nTotal, nFilter, nData) { this.filterCellCount = nFilter || 0 },
 
     // start of editor methods
     //

@@ -99,6 +99,7 @@ export default {
       selectDimName: '',      // selected dimension name
       exprDimPos: 0,          // expression dimension position: table ExprPos
       totalEnumLabel: '',     // total enum item label, language-specific, ex.: All
+      filterCellCount: 0,     // number of cells filtered out by dimension items selection
       isPages: false,
       pageStart: 0,
       pageSize: 0,
@@ -2063,6 +2064,9 @@ export default {
 
     // pivot table view updated: item keys layout updated
     onPvKeyPos (keyPos) { this.pvKeyPos = keyPos },
+
+    // new pivot table size
+    onPvSize (nTotal, nFilter, nData) { this.filterCellCount = nFilter || 0 },
 
     // dimensions drag, drop and selection filter
     //

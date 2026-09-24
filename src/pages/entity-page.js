@@ -90,8 +90,9 @@ export default {
       pvKeyPos: [],               // position of each dimension item in cell key
       locale: '',                 // current locale to format values
       isDragging: false,          // if true then user is dragging dimension select control
-      selectDimName: '',      // selected dimension name
+      selectDimName: '',          // selected dimension name
       isOtherDropDisabled: false, // if true then others drop area disabled
+      filterCellCount: 0,         // number of cells filtered out by attribute items selection
       isPages: false,
       pageStart: 0,
       pageSize: 0,
@@ -1695,6 +1696,9 @@ export default {
 
     // pivot table view updated: item keys layout updated
     onPvKeyPos (keyPos) { this.pvKeyPos = keyPos },
+
+    // new pivot table size
+    onPvSize (nTotal, nFilter, nData) { this.filterCellCount = nFilter || 0 },
 
     // dimensions drag, drop and selection filter
     //
