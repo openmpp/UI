@@ -49,6 +49,7 @@ export default {
       isNullable: true,       // output table always nullabale, value can be NULL
       isScalar: false,        // output table never scalar, it always has at least measure dimension
       rank: 0,                // output table rank
+      tableSize: Mdf.emptyTableSize(),
       tableText: Mdf.emptyTableText(),
       runText: Mdf.emptyRunText(),
       subCount: 0,
@@ -105,6 +106,9 @@ export default {
       pageSize: 0,
       isLastPage: false,
       isShowPageControls: false,
+      pageStartLabel: '0',
+      pageSizeOpts: [],
+      pageSizeVals: [10, 40, 100, 200, 400, 1000, 2000, 4000, 10000, 20000, 0],
       loadRunWait: false,
       refreshRunTickle: false,
       runInfoTickle: false,
@@ -169,6 +173,7 @@ export default {
         code: 'MIDDLE',
         label: 'Range of (Value - Middle)'
       }],
+
       isModelTab: this.$route.path.startsWith('/model/') // if true then model page tab else table top page
     }
   },
@@ -233,13 +238,13 @@ export default {
       // check if model run exists and output table is included in model run results
       if (!this.initRunTable()) return // exit on error
 
-      const tblSize = Mdf.tableSizeByName(this.theModel, this.tableName)
-      this.rank = tblSize.rank || 0
-      const allAccCount = tblSize.allAccCount || 0
+      this.tableSize = Mdf.tableSizeByName(this.theModel, this.tableName)
+      this.rank = this.tableSize.rank || 0
+      const allAccCount = this.tableSize.allAccCount || 0
       this.subCount = this.runText.SubCount || 0
       this.exprDimPos = this.tableText.Table.ExprPos || 0
 
-      this.isPages = tblSize?.dimTotal > SMALL_PAGE_SIZE // disable pages for small table
+      this.isPages = this.tableSize?.dimTotal > SMALL_PAGE_SIZE // disable pages for small table
       this.pageStart = 0
       this.pageSize = 0 // by default show all rows
       this.isShowPageControls = this.pageSize > 0
@@ -559,6 +564,7 @@ export default {
       this.ctrl.isRawView = this.pvc.formatter.options().isRawValue
       this.ctrl.isMoreView = this.pvc.formatter.options().isDoMore
       this.ctrl.isLessView = this.pvc.formatter.options().isDoLess
+      this.updatePageSizeOpts()
     },
 
     // set page view: use previous page view from store or default
@@ -689,6 +695,7 @@ export default {
         this.pageSize = 0
       }
       this.isShowPageControls = this.pageSize > 0
+      this.updatePageSizeOpts()
 
       // restore scale view
       this.scaleId = (typeof tv?.scaleId === typeof 1) ? (tv?.scaleId || 0) : -1
@@ -808,6 +815,7 @@ export default {
 
       this.setScaleItems()
       this.setScaleView()
+      this.updatePageSizeOpts()
 
       // default row-column mode: no row-column headers for scalar output table without sub-values and measure dimension
       // as it is today output table cannot be scalar, always has measure dimension
@@ -921,6 +929,7 @@ export default {
 
       // set new view kind, scale items and store pivot view
       this.ctrl.kind = Puih.tkind.EXPR
+      this.updatePageSizeOpts()
       this.pvc.formatter.byKey(true)
       this.setScaleItems()
       this.setScaleView()
@@ -983,6 +992,7 @@ export default {
 
       // set new view kind, scale items and reload data
       this.ctrl.kind = isToAll ? Puih.tkind.ALL : Puih.tkind.ACC
+      this.updatePageSizeOpts()
       this.setScaleItems()
       this.setScaleView()
       this.pvc.formatter.byKey(false)
@@ -1967,21 +1977,25 @@ export default {
         this.pageStart = 0
         this.pageSize = 0
       }
+      this.updatePageStartLabel()
       this.dispatchTableView({ key: this.routeKey, pageSize: size })
       this.doRefreshDataPage()
     },
     onFirstPage () {
       this.pageStart = 0
+      this.updatePageStartLabel()
       this.doRefreshDataPage()
     },
     onPrevPage () {
       this.pageStart = this.pageStart - this.pageSize
       if (this.pageStart < 0) this.pageStart = 0
 
+      this.updatePageStartLabel()
       this.doRefreshDataPage()
     },
     onNextPage () {
       this.pageStart = this.pageStart + this.pageSize
+      this.updatePageStartLabel()
       this.doRefreshDataPage()
     },
     onLastPage () {
@@ -1992,10 +2006,29 @@ export default {
       this.pageStart = LAST_PAGE_OFFSET
       this.isShowPageControls = this.pageSize > 0
 
+      this.updatePageStartLabel()
       this.doRefreshDataPage(true)
     },
     isAllPageSize () {
       return !this.pageSize || typeof this.pageSize !== typeof 1 || this.pageSize <= 0
+    },
+
+    // update page size labels and  start label
+    updatePageSizeOpts () {
+      const scale = this.ctrl.kind === Puih.tkind.ALL ? this.tableSize.allAccCount : 1
+      this.pageSizeOpts = []
+      for (const val of this.pageSizeVals) {
+        this.pageSizeOpts.push({
+          value: val,
+          label: (!val || typeof val !== typeof 1 || val <= 0) ? this.$t('All') : (val * (scale || 1)).toLocaleString()
+        })
+      }
+      this.updatePageStartLabel()
+    },
+    // update page start label
+    updatePageStartLabel() {
+      const scale = this.ctrl.kind === Puih.tkind.ALL ? this.tableSize.allAccCount : 1
+      this.pageStartLabel = (typeof this.pageStart === typeof 1) ? (this.pageStart * (scale || 1)).toLocaleString() : this.pageStart
     },
 
     // download output table as csv file

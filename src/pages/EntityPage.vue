@@ -427,7 +427,7 @@
         <div
           class="page-start-item rounded-borders om-text-secondary q-px-xs q-py-xs q-mr-xs"
           :title="$t('Position')"
-          >{{ (!!pageStart && typeof pageStart === typeof 1) ? pageStart.toLocaleString() : pageStart }}</div>
+          >{{ pageStartLabel }}</div>
         <q-btn
           @click="onNextPage"
           :disable="isLastPage"
@@ -450,9 +450,10 @@
           />
         <q-select
           :model-value="pageSize"
-           @update:model-value="onPageSize"
-          :options="[10, 40, 100, 200, 400, 1000, 2000, 4000, 10000, 20000, 0]"
-          :option-label="(val) => (!val || typeof val !== typeof 1 || val <= 0) ? $t('All') : val.toLocaleString()"
+          @update:model-value="onPageSize"
+          :options="pageSizeOpts"
+          emit-value
+          map-options
           outlined
           options-dense
           dense

@@ -98,6 +98,9 @@ export default {
       pageSize: 0,
       isLastPage: false,
       isHidePageControls: false,
+      pageStartLabel: '0',
+      pageSizeOpts: [],
+      pageSizeVals: [10, 40, 100, 200, 400, 1000, 2000, 4000, 10000, 20000, 0],
       loadRunWait: false,
       refreshRunTickle: false,
       runInfoTickle: false,
@@ -240,6 +243,7 @@ export default {
 
       this.ctrl.kind = Puih.ekind.MICRO // default view
       this.pvc.reader = this.readerMicro
+      this.updatePageSizeOpts()
     },
     // setup all dimensions and microdata view formatter
     setupDims () {
@@ -620,6 +624,7 @@ export default {
         this.pageStart = 0
         this.pageSize = 0
       }
+      this.updatePageSizeOpts()
 
       // store view and refresh pivot view: both dimensions labels and table body
       if (this.ctrl.kind === Puih.ekind.CALC || this.ctrl.kind === Puih.ekind.CMP) this.doCalcPage()
@@ -686,6 +691,7 @@ export default {
       // refresh pivot view: both dimensions labels and table body
       this.ctrl.isPvDimsTickle = !this.ctrl.isPvDimsTickle
       this.ctrl.isPvTickle = !this.ctrl.isPvTickle
+      this.updatePageSizeOpts()
     },
     // store pivot view
     storeView () {
@@ -825,6 +831,7 @@ export default {
 
       // set new view kind and  store pivot view
       this.ctrl.kind = Puih.ekind.MICRO
+      this.updatePageSizeOpts()
       this.storeView()
       this.doRefreshDataPage()
     },
@@ -1154,6 +1161,7 @@ export default {
 
       // set new view kind, store pivot view and refersh the data
       this.ctrl.kind = this.isRunCompare ? Puih.ekind.CMP : Puih.ekind.CALC
+      this.updatePageSizeOpts()
       this.updateCalcFormat()
       this.pvc.reader = this.makeCalcReader()
     },
@@ -1409,21 +1417,25 @@ export default {
         this.pageStart = 0
         this.pageSize = 0
       }
+      this.updatePageStartLabel()
       this.dispatchMicrodataView({ key: this.routeKey, pageSize: size })
       this.doRefreshDataPage()
     },
     onFirstPage () {
       this.pageStart = 0
+      this.updatePageStartLabel()
       this.doRefreshDataPage()
     },
     onPrevPage () {
       this.pageStart = this.pageStart - this.pageSize
       if (this.pageStart < 0) this.pageStart = 0
 
+      this.updatePageStartLabel()
       this.doRefreshDataPage()
     },
     onNextPage () {
       this.pageStart = this.pageStart + this.pageSize
+      this.updatePageStartLabel()
       this.doRefreshDataPage()
     },
     onLastPage () {
@@ -1433,10 +1445,29 @@ export default {
       }
       this.pageStart = LAST_PAGE_OFFSET
 
+      this.updatePageStartLabel()
       this.doRefreshDataPage(true)
     },
     isAllPageSize () {
       return !this.pageSize || typeof this.pageSize !== typeof 1 || this.pageSize <= 0
+    },
+
+    // update page size labels and  start label
+    updatePageSizeOpts () {
+      const scale = this.ctrl.kind === Puih.ekind.MICRO ? this.attrCount : 1
+      this.pageSizeOpts = []
+      for (const val of this.pageSizeVals) {
+        this.pageSizeOpts.push({
+          value: val,
+          label: (!val || typeof val !== typeof 1 || val <= 0) ? this.$t('All') : (val * (scale || 1)).toLocaleString()
+        })
+      }
+      this.updatePageStartLabel()
+    },
+    // update page start label
+    updatePageStartLabel() {
+      const scale = this.ctrl.kind === Puih.ekind.MICRO ? this.attrCount : 1
+      this.pageStartLabel = (typeof this.pageStart === typeof 1) ? (this.pageStart * (scale || 1)).toLocaleString() : this.pageStart
     },
 
     // download microdata as csv file
