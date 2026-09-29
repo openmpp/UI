@@ -101,6 +101,7 @@ export default {
       exprDimPos: 0,          // expression dimension position: table ExprPos
       totalEnumLabel: '',     // total enum item label, language-specific, ex.: All
       filterCellCount: 0,     // number of cells filtered out by dimension items selection
+      visibleCellCount: 0,    // visible cells count: total - filter
       isPages: false,
       pageStart: 0,
       pageSize: 0,
@@ -1977,25 +1978,21 @@ export default {
         this.pageStart = 0
         this.pageSize = 0
       }
-      this.updatePageStartLabel()
       this.dispatchTableView({ key: this.routeKey, pageSize: size })
       this.doRefreshDataPage()
     },
     onFirstPage () {
       this.pageStart = 0
-      this.updatePageStartLabel()
       this.doRefreshDataPage()
     },
     onPrevPage () {
       this.pageStart = this.pageStart - this.pageSize
       if (this.pageStart < 0) this.pageStart = 0
 
-      this.updatePageStartLabel()
       this.doRefreshDataPage()
     },
     onNextPage () {
       this.pageStart = this.pageStart + this.pageSize
-      this.updatePageStartLabel()
       this.doRefreshDataPage()
     },
     onLastPage () {
@@ -2006,7 +2003,6 @@ export default {
       this.pageStart = LAST_PAGE_OFFSET
       this.isShowPageControls = this.pageSize > 0
 
-      this.updatePageStartLabel()
       this.doRefreshDataPage(true)
     },
     isAllPageSize () {
@@ -2028,7 +2024,7 @@ export default {
     // update page start label
     updatePageStartLabel() {
       const scale = this.ctrl.kind === Puih.tkind.ALL ? this.tableSize.allAccCount : 1
-      this.pageStartLabel = (typeof this.pageStart === typeof 1) ? (this.pageStart * (scale || 1)).toLocaleString() : this.pageStart
+      this.pageStartLabel = (this.pageStart * scale).toLocaleString()
     },
 
     // download output table as csv file
@@ -2099,7 +2095,10 @@ export default {
     onPvKeyPos (keyPos) { this.pvKeyPos = keyPos },
 
     // new pivot table size
-    onPvSize (nTotal, nFilter, nData) { this.filterCellCount = nFilter || 0 },
+    onPvSize (nTotal, nFilter, nData) {
+      this.filterCellCount = nFilter
+      this.visibleCellCount = nTotal - nFilter
+    },
 
     // dimensions drag, drop and selection filter
     //
@@ -2643,6 +2642,7 @@ export default {
           pageStart: this.isPages ? this.pageStart : 0,
           pageSize: this.isPages ? this.pageSize : 0
         })
+        this.updatePageStartLabel()
       }
     }
   },

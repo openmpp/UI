@@ -95,6 +95,7 @@ export default {
       isDragging: false,      // if true then user is dragging dimension select control
       selectDimName: '',      // selected dimension name
       filterCellCount: 0,     // number of cells filtered out by dimension items selection
+      visibleCellCount: 0,    // visible cells count: total - filter
       isPages: false,
       pageStart: 0,
       pageSize: 0,
@@ -497,7 +498,10 @@ export default {
     onPvKeyPos (keyPos) { this.pvKeyPos = keyPos },
 
     // new pivot table size
-    onPvSize (nTotal, nFilter, nData) { this.filterCellCount = nFilter || 0 },
+    onPvSize (nTotal, nFilter, nData) {
+      this.filterCellCount = nFilter
+      this.visibleCellCount = nTotal - nFilter
+    },
 
     // start of editor methods
     //

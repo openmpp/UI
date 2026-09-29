@@ -392,6 +392,23 @@
       />
     <q-separator vertical inset spaced="sm" color="secondary" />
 
+    <table class="om-text-secondary">
+      <tbody>
+        <tr class="cell-count-item"
+          :title="$t('Visible values count:') + ' ' + visibleCellCount.toLocaleString()"
+          >
+          <td class="q-py-none"><q-icon name="check" size="xs" class="cell-count-icon rounded-borders"></q-icon></td>
+          <td class="text-right text-caption q-py-none">{{ (visibleCellCount).toLocaleString() }}</td>
+        </tr>
+        <tr class="cell-count-item"
+          :title="$t('Filtered out values:') + ' ' + filterCellCount.toLocaleString()"
+          >
+          <td class="q-py-none"><q-icon name="mdi-close" size="xs" class="cell-count-icon rounded-borders"></q-icon></td>
+          <td class="text-right text-caption q-py-none">{{ (filterCellCount).toLocaleString() }}</td>
+        </tr>
+      </tbody>
+    </table>
+
     <template v-if="isPages">
       <q-btn
         @click="isHidePageControls = !isHidePageControls"
@@ -399,7 +416,7 @@
         :outline="!isHidePageControls"
         dense
         color="primary"
-        class="col-auto rounded-borders q-mr-xs"
+        class="col-auto rounded-borders q-mx-xs"
         icon="mdi-unfold-more-vertical"
         :title="!isHidePageControls ? $t('Hide pagination controls') : $t('Show pagination controls')"
         />
@@ -464,17 +481,8 @@
         </q-select>
       </template>
     </template>
-    <q-icon
-      v-if="filterCellCount > 0"
-      name="mdi-filter-remove-outline"
-      size="md"
-      class="page-start-item rounded-borders om-text-secondary q-ml-xs"
-      :title="$t('Filtered out:') + ' ' + filterCellCount.toLocaleString()"
-      >
-      <q-badge floating>{{ filterCellCount.toLocaleString() }}</q-badge>
-    </q-icon>
 
-    <q-separator v-if="isPages || filterCellCount > 0" vertical inset spaced="sm" color="secondary" />
+    <q-separator vertical inset spaced="sm" color="secondary" />
 
     <q-btn
       @click="doMicroPage()"
@@ -1137,6 +1145,14 @@
     min-width: 2rem;
     text-align: center;
   }
+  .cell-count-item {
+    min-width: 2rem;
+    text-align: center;
+  }
+  .cell-count-icon {
+    background: rgba(0, 0, 0, 0.1);
+  }
+
   .drag-area {
     min-height: 2.5rem;
     padding: 0.125rem;

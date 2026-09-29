@@ -92,7 +92,8 @@ export default {
       isDragging: false,          // if true then user is dragging dimension select control
       selectDimName: '',          // selected dimension name
       isOtherDropDisabled: false, // if true then others drop area disabled
-      filterCellCount: 0,         // number of cells filtered out by attribute items selection
+      filterCellCount: 0,     // number of cells filtered out by dimension items selection
+      visibleCellCount: 0,    // visible cells count: total - filter
       isPages: false,
       pageStart: 0,
       pageSize: 0,
@@ -945,8 +946,29 @@ export default {
       this.calcEditTickle = !this.calcEditTickle
     },
     // copy edited calcultion list into calcEnums
+    // or if calcultion list is empty then clear calcEnums and other calculation state
     onCalcEditApply (cLst) {
-      if (!Mdf.isLength(cLst) || cLst.findIndex(c => !!c.calc && Mdf.isLength(c.calc.trim())) < 0) {
+      if (!Array.isArray(cLst)) {
+        console.warn('Invalid (empty) list of calculated measure attributes', cLst)
+        this.$q.notify({ type: 'negative', message: this.$t('Invalid (empty) list of calculated measure attributes') })
+        return
+      }
+
+      // if calcultion list is empty then clear calculation state
+      if (!Mdf.isLength(cLst)) {
+        this.calcEnums = []
+        this.groupBy = []
+        this.groupDimCalc = []
+        this.attrCalc = []
+        this.aggrCalc = '' // disable update from menu
+        this.cmpCalc = ''
+
+        this.doMicroPage()
+        return
+      }
+
+      // apply edited calcultion list
+      if (cLst.findIndex(c => !!c.calc && Mdf.isLength(c.calc.trim())) < 0) {
         console.warn('Invalid (empty) list of calculated measure attributes', cLst)
         this.$q.notify({ type: 'negative', message: this.$t('Invalid (empty) list of calculated measure attributes') })
         return
@@ -1417,25 +1439,21 @@ export default {
         this.pageStart = 0
         this.pageSize = 0
       }
-      this.updatePageStartLabel()
       this.dispatchMicrodataView({ key: this.routeKey, pageSize: size })
       this.doRefreshDataPage()
     },
     onFirstPage () {
       this.pageStart = 0
-      this.updatePageStartLabel()
       this.doRefreshDataPage()
     },
     onPrevPage () {
       this.pageStart = this.pageStart - this.pageSize
       if (this.pageStart < 0) this.pageStart = 0
 
-      this.updatePageStartLabel()
       this.doRefreshDataPage()
     },
     onNextPage () {
       this.pageStart = this.pageStart + this.pageSize
-      this.updatePageStartLabel()
       this.doRefreshDataPage()
     },
     onLastPage () {
@@ -1445,7 +1463,6 @@ export default {
       }
       this.pageStart = LAST_PAGE_OFFSET
 
-      this.updatePageStartLabel()
       this.doRefreshDataPage(true)
     },
     isAllPageSize () {
@@ -1467,7 +1484,7 @@ export default {
     // update page start label
     updatePageStartLabel() {
       const scale = this.ctrl.kind === Puih.ekind.MICRO ? this.attrCount : 1
-      this.pageStartLabel = (typeof this.pageStart === typeof 1) ? (this.pageStart * (scale || 1)).toLocaleString() : this.pageStart
+      this.pageStartLabel = (this.pageStart * scale).toLocaleString()
     },
 
     // download microdata as csv file
@@ -1729,7 +1746,10 @@ export default {
     onPvKeyPos (keyPos) { this.pvKeyPos = keyPos },
 
     // new pivot table size
-    onPvSize (nTotal, nFilter, nData) { this.filterCellCount = nFilter || 0 },
+    onPvSize (nTotal, nFilter, nData) {
+      this.filterCellCount = nFilter
+      this.visibleCellCount = nTotal - nFilter
+    },
 
     // dimensions drag, drop and selection filter
     //
@@ -2063,6 +2083,7 @@ export default {
           pageSize: this.isPages ? this.pageSize : 0
         })
       }
+      this.updatePageStartLabel()
     },
 
     // get page of aggregated microdata from current model run
@@ -2167,6 +2188,7 @@ export default {
           pageSize: this.isPages ? this.pageSize : 0
         })
       }
+      this.updatePageStartLabel()
     }
   },
 
