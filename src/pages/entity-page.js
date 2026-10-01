@@ -2084,6 +2084,8 @@ export default {
         })
       }
       this.updatePageStartLabel()
+      this.filterCellCount = 0
+      this.visibleCellCount = 0
     },
 
     // get page of aggregated microdata from current model run
@@ -2189,6 +2191,8 @@ export default {
         })
       }
       this.updatePageStartLabel()
+      this.filterCellCount = 0
+      this.visibleCellCount = 0
     }
   },
 

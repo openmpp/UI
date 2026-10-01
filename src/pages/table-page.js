@@ -2643,6 +2643,8 @@ export default {
           pageSize: this.isPages ? this.pageSize : 0
         })
         this.updatePageStartLabel()
+        this.filterCellCount = 0
+        this.visibleCellCount = 0
       }
     }
   },

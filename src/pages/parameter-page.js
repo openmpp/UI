@@ -1245,6 +1245,8 @@ export default {
           pageStart: this.isPages ? this.pageStart : 0,
           pageSize: this.isPages ? this.pageSize : 0
         })
+        this.filterCellCount = 0
+        this.visibleCellCount = 0
       }
     },
 
